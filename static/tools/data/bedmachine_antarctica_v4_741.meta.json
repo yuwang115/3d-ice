@@ -5,14 +5,14 @@
   "reference": "Morlighem, M. et al. (2020) Deep glacial troughs and stabilizing ridges unveiled beneath the margins of the Antarctic ice sheet. Nat. Geosci. 13, 132\u2013137. https://doi.org/10.1038/s41561-019-0510-8",
   "license": "No restrictions on access or use",
   "source_file": "BedMachineAntarctica_V4.nc",
-  "downsample_step": 18,
+  "downsample_step": 8,
   "grid": {
-    "nx": 741,
-    "ny": 741,
+    "nx": 1667,
+    "ny": 1667,
     "x0_m": -3333000,
     "y0_m": 3333000,
-    "dx_m": 9000,
-    "dy_m": -9000
+    "dx_m": 4000,
+    "dy_m": -4000
   },
   "quantization": {
     "float_fill_value": -9999.0,
@@ -26,40 +26,40 @@
       "name": "bed",
       "dtype": "int16",
       "byte_offset": 0,
-      "byte_length": 1098162,
+      "byte_length": 5557778,
       "stats_m": {
-        "min": -8047.13818359375,
-        "max": 4260.33740234375,
-        "mean": -2526.1201171875
+        "min": -8069.33447265625,
+        "max": 4517.7333984375,
+        "mean": -2525.574951171875
       }
     },
     {
       "name": "surface",
       "dtype": "int16",
-      "byte_offset": 1098162,
-      "byte_length": 1098162,
+      "byte_offset": 5557778,
+      "byte_length": 5557778,
       "stats_m": {
         "min": 0.0,
-        "max": 4260.33740234375,
-        "mean": 595.1244506835938
+        "max": 4523.29052734375,
+        "mean": 595.2716064453125
       }
     },
     {
       "name": "thickness",
       "dtype": "int16",
-      "byte_offset": 2196324,
-      "byte_length": 1098162,
+      "byte_offset": 11115556,
+      "byte_length": 5557778,
       "stats_m": {
         "min": 0.0,
-        "max": 4656.38671875,
-        "mean": 590.29248046875
+        "max": 5051.982421875,
+        "mean": 590.5386962890625
       }
     },
     {
       "name": "mask",
       "dtype": "uint8",
-      "byte_offset": 3294486,
-      "byte_length": 549081,
+      "byte_offset": 16673334,
+      "byte_length": 2778889,
       "flags": {
         "0": "ocean",
         "1": "ice_free_land",

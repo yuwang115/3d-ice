@@ -5,14 +5,14 @@
   "reference": "Morlighem, M. et al. (2020) Deep glacial troughs and stabilizing ridges unveiled beneath the margins of the Antarctic ice sheet. Nat. Geosci. 13, 132\u2013137. https://doi.org/10.1038/s41561-019-0510-8",
   "license": "No restrictions on access or use",
   "source_file": "BedMachineAntarctica_V4.nc",
-  "downsample_step": 28,
+  "downsample_step": 20,
   "grid": {
-    "nx": 477,
-    "ny": 477,
+    "nx": 667,
+    "ny": 667,
     "x0_m": -3333000,
     "y0_m": 3333000,
-    "dx_m": 14000,
-    "dy_m": -14000
+    "dx_m": 10000,
+    "dy_m": -10000
   },
   "quantization": {
     "float_fill_value": -9999.0,
@@ -26,40 +26,40 @@
       "name": "bed",
       "dtype": "int16",
       "byte_offset": 0,
-      "byte_length": 455058,
+      "byte_length": 889778,
       "stats_m": {
-        "min": -7831.77685546875,
-        "max": 4614.03466796875,
-        "mean": -2530.3271484375
+        "min": -7970.28369140625,
+        "max": 3949.607421875,
+        "mean": -2526.734619140625
       }
     },
     {
       "name": "surface",
       "dtype": "int16",
-      "byte_offset": 455058,
-      "byte_length": 455058,
+      "byte_offset": 889778,
+      "byte_length": 889778,
       "stats_m": {
         "min": 0.0,
-        "max": 4614.03466796875,
-        "mean": 593.5615844726562
+        "max": 4048.23583984375,
+        "mean": 594.8805541992188
       }
     },
     {
       "name": "thickness",
       "dtype": "int16",
-      "byte_offset": 910116,
-      "byte_length": 455058,
+      "byte_offset": 1779556,
+      "byte_length": 889778,
       "stats_m": {
         "min": 0.0,
-        "max": 4572.4462890625,
-        "mean": 588.848876953125
+        "max": 4539.39111328125,
+        "mean": 590.1796875
       }
     },
     {
       "name": "mask",
       "dtype": "uint8",
-      "byte_offset": 1365174,
-      "byte_length": 227529,
+      "byte_offset": 2669334,
+      "byte_length": 444889,
       "flags": {
         "0": "ocean",
         "1": "ice_free_land",
