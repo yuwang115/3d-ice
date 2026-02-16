@@ -1,0 +1,61 @@
+{
+  "title": "MEaSUREs Phase-Based Antarctica Ice Velocity Map, Version 1, slim",
+  "product_version": "v1",
+  "source_file": "antarctic_ice_vel_phase_map_v01_ErrorDel_inpaint_extend_slim_PIGmodified.nc",
+  "source_url": "https://nsidc.org/data/NSIDC-0754/versions/1",
+  "coordinate_system": "EPSG:3031 WGS 84 / Antarctic Polar Stereographic projection",
+  "remark": "Yu Wang modified on 2021.10; Only streamline the variables in the original data set, without making additional changes",
+  "resampled_to": "HD",
+  "grid": {
+    "nx": 1667,
+    "ny": 1667,
+    "x0_m": -3333000,
+    "y0_m": 3333000,
+    "dx_m": 4000,
+    "dy_m": -4000
+  },
+  "quantization": {
+    "int16_fill_value": -32768,
+    "unit": "m/year",
+    "scale": 1.0,
+    "offset": 0.0
+  },
+  "coverage": {
+    "valid_count": 1960000,
+    "cell_count": 2778889,
+    "valid_fraction": 0.7053178446494265
+  },
+  "fields": [
+    {
+      "name": "vx",
+      "dtype": "int16",
+      "byte_offset": 0,
+      "byte_length": 5557778,
+      "stats_m_per_year": {
+        "min": -3730.439208984375,
+        "max": 3305.161865234375,
+        "mean": -2.0165522430591776
+      }
+    },
+    {
+      "name": "vy",
+      "dtype": "int16",
+      "byte_offset": 5557778,
+      "byte_length": 5557778,
+      "stats_m_per_year": {
+        "min": -3928.898727881353,
+        "max": 2301.548828125,
+        "mean": -0.7638369127782104
+      }
+    },
+    {
+      "name": "speed",
+      "unit": "m/year",
+      "stats_m_per_year": {
+        "min": 0.0,
+        "max": 4306.617706985501,
+        "mean": 30.99582201888845
+      }
+    }
+  ]
+}
