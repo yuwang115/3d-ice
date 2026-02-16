@@ -143,55 +143,39 @@ function parseField(meta, arrayBuffer, name) {
   throw new Error(`Unsupported dtype for ${name}: ${field.dtype}`);
 }
 
-function quickselectInPlace(values, k) {
-  let left = 0;
-  let right = values.length - 1;
-  while (left < right) {
-    const pivotIndex = left + Math.floor(Math.random() * (right - left + 1));
-    const pivotValue = values[pivotIndex];
-    [values[pivotIndex], values[right]] = [values[right], values[pivotIndex]];
-
-    let store = left;
-    for (let i = left; i < right; i += 1) {
-      if (values[i] < pivotValue) {
-        [values[store], values[i]] = [values[i], values[store]];
-        store += 1;
-      }
-    }
-    [values[right], values[store]] = [values[store], values[right]];
-
-    if (k === store) return values[store];
-    if (k < store) {
-      right = store - 1;
-    } else {
-      left = store + 1;
-    }
-  }
-  return values[left];
-}
-
-function finiteMedian(values) {
+function finiteMedian(values, maxSampleSize = 180000) {
   let finiteCount = 0;
   for (let i = 0; i < values.length; i += 1) {
     if (Number.isFinite(values[i])) finiteCount += 1;
   }
   if (finiteCount === 0) return Number.NaN;
 
-  const sample = new Float64Array(finiteCount);
+  // Sampling bounds the cost on very large grids while staying stable for metadata display.
+  const stride = finiteCount > maxSampleSize ? Math.ceil(finiteCount / maxSampleSize) : 1;
+  const sampleCount = Math.ceil(finiteCount / stride);
+  let sample = new Float64Array(sampleCount);
   let cursor = 0;
+  let seen = 0;
   for (let i = 0; i < values.length; i += 1) {
     const value = values[i];
     if (Number.isFinite(value)) {
-      sample[cursor] = value;
-      cursor += 1;
+      if (seen % stride === 0) {
+        sample[cursor] = value;
+        cursor += 1;
+      }
+      seen += 1;
     }
   }
 
-  const mid = Math.floor(finiteCount / 2);
-  const upper = quickselectInPlace(sample, mid);
-  if (finiteCount % 2 === 1) return upper;
-  const lower = quickselectInPlace(sample, mid - 1);
-  return (lower + upper) / 2;
+  if (cursor === 0) return Number.NaN;
+  if (cursor !== sample.length) {
+    sample = sample.subarray(0, cursor);
+  }
+
+  sample.sort();
+  const mid = Math.floor(sample.length / 2);
+  if (sample.length % 2 === 1) return sample[mid];
+  return (sample[mid - 1] + sample[mid]) / 2;
 }
 
 function buildSurfaceGeometryWithField({
@@ -210,54 +194,63 @@ function buildSurfaceGeometryWithField({
   progressEnd,
   progressLabelVertices,
   progressLabelIndices,
+  sampleStride = 1,
 }) {
-  const vertexCount = nx * ny;
+  const stride = Math.max(1, Math.floor(Number(sampleStride) || 1));
+  const sampledNx = Math.floor((nx - 1) / stride) + 1;
+  const sampledNy = Math.floor((ny - 1) / stride) + 1;
+  const vertexCount = sampledNx * sampledNy;
   const positions = new Float32Array(vertexCount * 3);
   const colors = new Uint8Array(vertexCount * 3);
-  const maxIndexCount = (nx - 1) * (ny - 1) * 6;
+  const sampledValid = new Uint8Array(vertexCount);
+  const maxIndexCount = (sampledNx - 1) * (sampledNy - 1) * 6;
   const indices = new Uint32Array(maxIndexCount);
   let indexCursor = 0;
   const halfX = (nx - 1) / 2;
   const halfY = (ny - 1) / 2;
   const absDy = Math.abs(dyMeters);
-  const rowStep = Math.max(4, Math.floor(ny / 28));
+  const rowStep = Math.max(4, Math.floor(sampledNy / 28));
 
-  for (let row = 0; row < ny; row += 1) {
-    for (let col = 0; col < nx; col += 1) {
-      const i = row * nx + col;
+  for (let sampledRow = 0; sampledRow < sampledNy; sampledRow += 1) {
+    const row = Math.min(ny - 1, sampledRow * stride);
+    for (let sampledCol = 0; sampledCol < sampledNx; sampledCol += 1) {
+      const col = Math.min(nx - 1, sampledCol * stride);
+      const sourceIndex = row * nx + col;
+      const targetIndex = sampledRow * sampledNx + sampledCol;
       const px = ((col - halfX) * dxMeters) / horizontalMetersPerUnit;
       const pz = ((row - halfY) * absDy) / horizontalMetersPerUnit;
-      const h = heights[i];
-      const isValid = valid[i];
-      positions[3 * i] = px;
-      positions[3 * i + 1] = isValid ? h / verticalMetersPerUnit : 0;
-      positions[3 * i + 2] = pz;
-      const rgb = colorFn(fieldValues[i]);
-      colors[3 * i] = Math.round(clamp01(rgb[0]) * 255);
-      colors[3 * i + 1] = Math.round(clamp01(rgb[1]) * 255);
-      colors[3 * i + 2] = Math.round(clamp01(rgb[2]) * 255);
+      const h = heights[sourceIndex];
+      const isValid = Boolean(valid[sourceIndex]);
+      sampledValid[targetIndex] = Number(isValid);
+      positions[3 * targetIndex] = px;
+      positions[3 * targetIndex + 1] = isValid ? h / verticalMetersPerUnit : 0;
+      positions[3 * targetIndex + 2] = pz;
+      const rgb = colorFn(fieldValues[sourceIndex]);
+      colors[3 * targetIndex] = Math.round(clamp01(rgb[0]) * 255);
+      colors[3 * targetIndex + 1] = Math.round(clamp01(rgb[1]) * 255);
+      colors[3 * targetIndex + 2] = Math.round(clamp01(rgb[2]) * 255);
     }
 
-    if (row > 0 && row % rowStep === 0) {
-      const t = row / Math.max(1, ny - 1);
+    if (sampledRow > 0 && sampledRow % rowStep === 0) {
+      const t = sampledRow / Math.max(1, sampledNy - 1);
       const p = progressStart + (progressEnd - progressStart) * t * 0.5;
       progress(p, progressLabelVertices);
     }
   }
 
-  for (let row = 0; row < ny - 1; row += 1) {
-    for (let col = 0; col < nx - 1; col += 1) {
-      const i0 = row * nx + col;
+  for (let row = 0; row < sampledNy - 1; row += 1) {
+    for (let col = 0; col < sampledNx - 1; col += 1) {
+      const i0 = row * sampledNx + col;
       const i1 = i0 + 1;
-      const i2 = i0 + nx;
+      const i2 = i0 + sampledNx;
       const i3 = i2 + 1;
 
-      if (valid[i0] && valid[i2] && valid[i1]) {
+      if (sampledValid[i0] && sampledValid[i2] && sampledValid[i1]) {
         indices[indexCursor++] = i0;
         indices[indexCursor++] = i2;
         indices[indexCursor++] = i1;
       }
-      if (valid[i1] && valid[i2] && valid[i3]) {
+      if (sampledValid[i1] && sampledValid[i2] && sampledValid[i3]) {
         indices[indexCursor++] = i1;
         indices[indexCursor++] = i2;
         indices[indexCursor++] = i3;
@@ -265,7 +258,7 @@ function buildSurfaceGeometryWithField({
     }
 
     if (row > 0 && row % rowStep === 0) {
-      const t = row / Math.max(1, ny - 2);
+      const t = row / Math.max(1, sampledNy - 2);
       const p = progressStart + (progressEnd - progressStart) * (0.5 + t * 0.5);
       progress(p, progressLabelIndices);
     }
@@ -286,8 +279,12 @@ function buildVelocityTask(id, payload) {
     ny,
     cellCount,
     baseConfig,
+    meshStride,
     reportProgress,
   } = payload;
+  const safeStride = Math.max(1, Math.floor(Number(meshStride) || 1));
+  // Decimated HD mesh can intersect full-res ice surface; add extra lift to keep overlay above ice.
+  const velocitySurfaceOffsetMeters = FLOWLINE_SURFACE_OFFSET_M + (safeStride - 1) * 72;
 
   postProgress(id, reportProgress, 0.02, "Decoding velocity field...");
   const velocityXInt = parseField(velocityMeta, velocityBuffer, "vx");
@@ -321,7 +318,7 @@ function buildVelocityTask(id, payload) {
     velocityValid[i] = Number(hasVelocity);
     velocitySpeed[i] = hasVelocity ? Math.hypot(vx, vy) : Number.NaN;
     velocitySurfaceValid[i] = Number(iceValid[i] && hasVelocity);
-    velocitySurfaceHeights[i] = velocitySurfaceValid[i] ? surfaceHeights[i] + FLOWLINE_SURFACE_OFFSET_M : Number.NaN;
+    velocitySurfaceHeights[i] = velocitySurfaceValid[i] ? surfaceHeights[i] + velocitySurfaceOffsetMeters : Number.NaN;
 
     if (i > 0 && i % chunk === 0) {
       const t = i / Math.max(1, cellCount - 1);
@@ -345,6 +342,7 @@ function buildVelocityTask(id, payload) {
     progressEnd: 0.92,
     progressLabelVertices: "Building velocity mesh...",
     progressLabelIndices: "Triangulating velocity mesh...",
+    sampleStride: meshStride,
   });
 
   const velocityMedianSpeed = finiteMedian(velocitySpeed);
@@ -373,8 +371,17 @@ function buildHydrologyTask(id, payload) {
     bedValid,
     effectivePressureLut,
     channelDischargeLut,
+    meshStride,
     reportProgress,
   } = payload;
+  const safeStride = Math.max(1, Math.floor(Number(meshStride) || 1));
+  // Decimated HD overlays can intersect bed; increase lift with stride.
+  const effectivePressureSurfaceOffsetMeters =
+    EFFECTIVE_PRESSURE_SURFACE_OFFSET_M + (safeStride - 1) * 64;
+  const subglacialChannelSurfaceOffsetMeters = Math.max(
+    effectivePressureSurfaceOffsetMeters + 24,
+    SUBGLACIAL_CHANNEL_SURFACE_OFFSET_M + (safeStride - 1) * 76
+  );
 
   if (hydrologyMeta.grid.nx !== nx || hydrologyMeta.grid.ny !== ny) {
     throw new Error("Hydrology grid is not aligned to BedMachine grid.");
@@ -413,7 +420,9 @@ function buildHydrologyTask(id, payload) {
     effectivePressure[i] = pressure;
     const hasPressure = bedValid[i] && Number.isFinite(pressure) && pressure > 0;
     effectivePressureValid[i] = Number(hasPressure);
-    effectivePressureHeights[i] = hasPressure ? bedHeights[i] + EFFECTIVE_PRESSURE_SURFACE_OFFSET_M : Number.NaN;
+    effectivePressureHeights[i] = hasPressure
+      ? bedHeights[i] + effectivePressureSurfaceOffsetMeters
+      : Number.NaN;
 
     if (i > 0 && i % chunk === 0) {
       const t = i / Math.max(1, cellCount - 1);
@@ -437,6 +446,7 @@ function buildHydrologyTask(id, payload) {
     progressEnd: 0.72,
     progressLabelVertices: "Building hydrology mesh...",
     progressLabelIndices: "Triangulating hydrology mesh...",
+    sampleStride: meshStride,
   });
 
   const halfX = (nx - 1) / 2;
@@ -468,10 +478,10 @@ function buildHydrologyTask(id, payload) {
 
     const x0 = ((c0 - halfX) * baseConfig.dxMeters) / baseConfig.horizontalMetersPerUnit;
     const z0 = ((r0 - halfY) * absDy) / baseConfig.horizontalMetersPerUnit;
-    const y0 = (h0 + SUBGLACIAL_CHANNEL_SURFACE_OFFSET_M) / baseConfig.verticalMetersPerUnit;
+    const y0 = (h0 + subglacialChannelSurfaceOffsetMeters) / baseConfig.verticalMetersPerUnit;
     const x1 = ((c1 - halfX) * baseConfig.dxMeters) / baseConfig.horizontalMetersPerUnit;
     const z1 = ((r1 - halfY) * absDy) / baseConfig.horizontalMetersPerUnit;
-    const y1 = (h1 + SUBGLACIAL_CHANNEL_SURFACE_OFFSET_M) / baseConfig.verticalMetersPerUnit;
+    const y1 = (h1 + subglacialChannelSurfaceOffsetMeters) / baseConfig.verticalMetersPerUnit;
 
     const color = subglacialChannelColor(discharge, channelDischargeLut);
     const directionX = x1 - x0;
