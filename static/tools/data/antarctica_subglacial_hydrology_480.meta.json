@@ -18,7 +18,7 @@
     "effective_pressure_offset_pa": 0.0
   },
   "channel_filter": {
-    "min_discharge_m3_per_s": 1e-05,
+    "min_discharge_m3_per_s": 0.001,
     "aggregation": "max discharge on collapsed undirected target-cell edge"
   },
   "coverage": {
@@ -26,8 +26,8 @@
     "cell_count": 444889,
     "effective_pressure_valid_fraction": 0.2683613215880815,
     "channel_segment_count_raw": 5929081,
-    "channel_segment_count_after_filter": 53167,
-    "channel_segment_count_unique": 22162
+    "channel_segment_count_after_filter": 9012,
+    "channel_segment_count_unique": 5898
   },
   "fields": [
     {
@@ -46,40 +46,40 @@
       "name": "channel_col1",
       "dtype": "uint16",
       "byte_offset": 889778,
-      "byte_length": 44324,
+      "byte_length": 11796,
       "unit": "grid_col"
     },
     {
       "name": "channel_row1",
       "dtype": "uint16",
-      "byte_offset": 934102,
-      "byte_length": 44324,
+      "byte_offset": 901574,
+      "byte_length": 11796,
       "unit": "grid_row"
     },
     {
       "name": "channel_col2",
       "dtype": "uint16",
-      "byte_offset": 978426,
-      "byte_length": 44324,
+      "byte_offset": 913370,
+      "byte_length": 11796,
       "unit": "grid_col"
     },
     {
       "name": "channel_row2",
       "dtype": "uint16",
-      "byte_offset": 1022750,
-      "byte_length": 44324,
+      "byte_offset": 925166,
+      "byte_length": 11796,
       "unit": "grid_row"
     },
     {
       "name": "channel_discharge",
       "dtype": "float32",
-      "byte_offset": 1067074,
-      "byte_length": 88648,
+      "byte_offset": 936962,
+      "byte_length": 23592,
       "unit": "m3/s",
       "stats_m3_per_s": {
-        "min": 1.000421525532147e-05,
+        "min": 0.0010028238175436854,
         "max": 206.3415069580078,
-        "mean": 0.8362420797348022
+        "mean": 3.1420297622680664
       }
     }
   ]
