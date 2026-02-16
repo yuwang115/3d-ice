@@ -1,0 +1,86 @@
+{
+  "title": "Subglacial Hydrology Antarctica",
+  "product_version": "v 1.0 (production date: 29-Oct-2024)",
+  "source_file": "Antarctica_SubglacialHydrology.nc",
+  "resampled_to": "HD",
+  "grid": {
+    "nx": 1667,
+    "ny": 1667,
+    "x0_m": -3333000,
+    "y0_m": 3333000,
+    "dx_m": 4000,
+    "dy_m": -4000
+  },
+  "quantization": {
+    "int16_fill_value": -32768,
+    "effective_pressure_unit": "Pa",
+    "effective_pressure_scale_pa_per_int16": 1000.0,
+    "effective_pressure_offset_pa": 0.0
+  },
+  "channel_filter": {
+    "min_discharge_m3_per_s": 1e-05,
+    "aggregation": "max discharge on collapsed undirected target-cell edge"
+  },
+  "coverage": {
+    "effective_pressure_valid_count": 745986,
+    "cell_count": 2778889,
+    "effective_pressure_valid_fraction": 0.26844757023400356,
+    "channel_segment_count_raw": 5929081,
+    "channel_segment_count_after_filter": 120856,
+    "channel_segment_count_unique": 80191
+  },
+  "fields": [
+    {
+      "name": "effective_pressure",
+      "dtype": "int16",
+      "byte_offset": 0,
+      "byte_length": 5557778,
+      "unit": "Pa",
+      "stats_pa": {
+        "min": 45.99897766113281,
+        "max": 17424298.0,
+        "mean": 1666481.9448144536
+      }
+    },
+    {
+      "name": "channel_col1",
+      "dtype": "uint16",
+      "byte_offset": 5557778,
+      "byte_length": 160382,
+      "unit": "grid_col"
+    },
+    {
+      "name": "channel_row1",
+      "dtype": "uint16",
+      "byte_offset": 5718160,
+      "byte_length": 160382,
+      "unit": "grid_row"
+    },
+    {
+      "name": "channel_col2",
+      "dtype": "uint16",
+      "byte_offset": 5878542,
+      "byte_length": 160382,
+      "unit": "grid_col"
+    },
+    {
+      "name": "channel_row2",
+      "dtype": "uint16",
+      "byte_offset": 6038924,
+      "byte_length": 160382,
+      "unit": "grid_row"
+    },
+    {
+      "name": "channel_discharge",
+      "dtype": "float32",
+      "byte_offset": 6199306,
+      "byte_length": 320764,
+      "unit": "m3/s",
+      "stats_m3_per_s": {
+        "min": 1.0000387192121707e-05,
+        "max": 205.6685333251953,
+        "mean": 0.5429550409317017
+      }
+    }
+  ]
+}
