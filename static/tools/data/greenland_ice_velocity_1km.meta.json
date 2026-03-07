@@ -1,0 +1,61 @@
+{
+  "title": "ITS_LIVE summary mosaics of image pair velocities",
+  "product_version": "V02.1",
+  "source_file": "ITS_LIVE_velocity_120m_RGI05A_0000_V02.1.nc",
+  "source_url": "http://its-live-data.s3.amazonaws.com/velocity_mosaic/v2.1/production/ITS_LIVE_velocity_120m_RGI05A_0000_V02.1.nc",
+  "coordinate_system": "3413",
+  "date_created": "24-Nov-2025 10:50:33",
+  "resampled_to": "1 km",
+  "grid": {
+    "nx": 1533,
+    "ny": 2752,
+    "x0_m": -652925,
+    "y0_m": -632675,
+    "dx_m": 1000,
+    "dy_m": -1000
+  },
+  "quantization": {
+    "int16_fill_value": -32768,
+    "unit": "m/year",
+    "scale": 1.0,
+    "offset": 0.0
+  },
+  "coverage": {
+    "valid_count": 2163796,
+    "cell_count": 4218816,
+    "valid_fraction": 0.5128917686858113
+  },
+  "fields": [
+    {
+      "name": "vx",
+      "dtype": "int16",
+      "byte_offset": 0,
+      "byte_length": 8437632,
+      "stats_m_per_year": {
+        "min": -19273.9921875,
+        "max": 19603.021484375,
+        "mean": -7.018371107512574
+      }
+    },
+    {
+      "name": "vy",
+      "dtype": "int16",
+      "byte_offset": 8437632,
+      "byte_length": 8437632,
+      "stats_m_per_year": {
+        "min": -16404.03515625,
+        "max": 15685.0322265625,
+        "mean": -0.6607204440205959
+      }
+    },
+    {
+      "name": "speed",
+      "unit": "m/year",
+      "stats_m_per_year": {
+        "min": 0.0010340287117287517,
+        "max": 19942.5546875,
+        "mean": 53.60929760954709
+      }
+    }
+  ]
+}
