@@ -1,0 +1,72 @@
+{
+  "title": "BedMachine Greenland v6",
+  "product_version": "v6.6",
+  "date_modified": "24-Nov-2025 09:53:10",
+  "reference": "Morlighem M. et al., (2017), BedMachine v3: Complete bed topography and ocean bathymetry mapping of Greenland from multi-beam echo sounding combined with mass conservation, Geophys. Res. Lett., 44, doi:10.1002/2017GL074954. (http://onlinelibrary.wiley.com/doi/10.1002/2017GL074954/full)",
+  "license": "No restrictions on access or use",
+  "summary": "This dataset contains a bed topography/bathymetry map of Greenland based on mass conservation and other methods. The dataset also includes ice thickness, surface elevation, an ice/ocean/land mask, ice thickness estimation errors, and a map showing where each method was utilized.",
+  "source_file": "BedMachineGreenland-v6.nc",
+  "target_resolution_m": 1000,
+  "grid": {
+    "nx": 1533,
+    "ny": 2752,
+    "x0_m": -652925,
+    "y0_m": -632675,
+    "dx_m": 1000,
+    "dy_m": -1000
+  },
+  "quantization": {
+    "float_fill_value": -9999.0,
+    "int16_fill_value": -32768,
+    "unit": "m",
+    "scale": 1.0,
+    "offset": 0.0
+  },
+  "fields": [
+    {
+      "name": "bed",
+      "dtype": "int16",
+      "byte_offset": 0,
+      "byte_length": 8437632,
+      "stats_m": {
+        "min": -5570.24658203125,
+        "max": 3595.425537109375,
+        "mean": -313.2814636230469
+      }
+    },
+    {
+      "name": "surface",
+      "dtype": "int16",
+      "byte_offset": 8437632,
+      "byte_length": 8437632,
+      "stats_m": {
+        "min": 0.0,
+        "max": 3597.04248046875,
+        "mean": 934.0084838867188
+      }
+    },
+    {
+      "name": "thickness",
+      "dtype": "int16",
+      "byte_offset": 16875264,
+      "byte_length": 8437632,
+      "stats_m": {
+        "min": 0.0,
+        "max": 3409.652587890625,
+        "mean": 703.20166015625
+      }
+    },
+    {
+      "name": "mask",
+      "dtype": "uint8",
+      "byte_offset": 25312896,
+      "byte_length": 4218816,
+      "flags": {
+        "0": "ocean",
+        "1": "ice_free_land",
+        "2": "grounded_ice",
+        "3": "floating_ice"
+      }
+    }
+  ]
+}
