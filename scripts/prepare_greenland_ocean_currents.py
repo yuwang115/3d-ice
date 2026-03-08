@@ -13,7 +13,7 @@ from typing import Any
 import h5py
 import numpy as np
 
-DEFAULT_SEED_DEPTHS_M = (0.0, 50.0, 150.0, 300.0, 600.0, 1000.0)
+DEFAULT_SEED_DEPTHS_M = (0.0, 100.0, 250.0, 500.0, 750.0, 1000.0)
 DEFAULT_SAMPLE_STRIDE = 6
 DEFAULT_BEDMACHINE_MARGIN_M = 450_000.0
 DEFAULT_MIN_SPEED_MPS = 0.01
@@ -22,12 +22,32 @@ DEFAULT_MIN_TRACE_SPEED_MPS = 0.015
 DEFAULT_WATER_COLUMN_CLEARANCE_M = 20.0
 DEFAULT_FLOWLINE_STEP_CELLS = 0.75
 DEFAULT_FLOWLINE_MAX_STEPS = 72
-DEFAULT_SEED_TARGET_PER_DEPTH = 220
-DEFAULT_ADAPTIVE_BOTTOM_SEED_TARGET = 90
-DEFAULT_ADAPTIVE_BOTTOM_MIN_MODEL_DEPTH_M = 1400.0
-DEFAULT_ADAPTIVE_BOTTOM_MIN_SEED_DEPTH_M = 1200.0
-DEFAULT_ADAPTIVE_BOTTOM_DEPTH_FRACTION = 0.82
-DEFAULT_ADAPTIVE_BOTTOM_OFFSET_M = 120.0
+DEFAULT_SEED_TARGET_PER_DEPTH = 200
+DEFAULT_ADAPTIVE_DEEP_MIN_MODEL_DEPTH_M = 1400.0
+DEFAULT_ADAPTIVE_DEEP_LAYER_CONFIGS = (
+    {
+        "key": "adaptive_deep_mid",
+        "base_fraction": 0.72,
+        "fraction_jitter": 0.08,
+        "min_seed_depth_m": 1050.0,
+        "bottom_offset_m": 280.0,
+        "seed_target": 80,
+        "min_speed_mps": 0.005,
+        "min_seed_speed_mps": 0.015,
+        "min_trace_speed_mps": 0.008,
+    },
+    {
+        "key": "adaptive_deep_lower",
+        "base_fraction": 0.86,
+        "fraction_jitter": 0.06,
+        "min_seed_depth_m": 1225.0,
+        "bottom_offset_m": 90.0,
+        "seed_target": 100,
+        "min_speed_mps": 0.004,
+        "min_seed_speed_mps": 0.012,
+        "min_trace_speed_mps": 0.007,
+    },
+)
 WGS84_A = 6_378_137.0
 WGS84_E = 0.08181919084262149
 PS70_LAT_TS_RAD = math.radians(70.0)
@@ -159,16 +179,9 @@ def project_to_bedmachine_grid(grid: dict[str, Any], x_m: np.ndarray, y_m: np.nd
     return col, row
 
 
-def select_depth_indices(depth_axis: np.ndarray, requested_depths_m: tuple[float, ...]) -> list[tuple[int, float]]:
-    selected: list[tuple[int, float]] = []
-    used: set[int] = set()
-    for requested in requested_depths_m:
-        idx = int(np.argmin(np.abs(depth_axis - requested)))
-        if idx in used:
-            continue
-        used.add(idx)
-        selected.append((idx, float(depth_axis[idx])))
-    return selected
+def hash_unit_interval(row: int, col: int, salt: int = 0) -> float:
+    value = math.sin((row + 1) * 12.9898 + (col + 1) * 78.233 + (salt + 1) * 37.719) * 43758.5453123
+    return value - math.floor(value)
 
 
 def percentile_range(values: np.ndarray, lo: float, hi: float) -> list[float]:
@@ -267,6 +280,18 @@ def trilinear_sample(volume: np.ndarray, depth_axis: np.ndarray, depth_m: float,
     if not math.isfinite(value0) or not math.isfinite(value1):
         return float("nan")
     return value0 * (1 - tz) + value1 * tz
+
+
+def interpolate_depth_plane(volume: np.ndarray, depth_axis: np.ndarray, depth_m: float) -> np.ndarray:
+    depth_state = depth_index_fraction(depth_axis, depth_m)
+    if depth_state is None:
+        raise ValueError(f"Requested depth {depth_m} m is outside the source depth axis.")
+    lower, upper, tz = depth_state
+    if lower == upper or tz <= 1e-9:
+        return np.asarray(volume[lower], dtype=np.float32)
+    return (np.asarray(volume[lower], dtype=np.float32) * (1 - tz) + np.asarray(volume[upper], dtype=np.float32) * tz).astype(
+        np.float32
+    )
 
 
 def meters_per_degree_lat(lat_deg: float) -> float:
@@ -577,23 +602,44 @@ def append_traced_streamline(
     return True
 
 
-def compute_adaptive_bottom_seed_depth(model_depth_m: float, max_supported_depth_m: float) -> float:
+def compute_adaptive_deep_seed_depths(
+    model_depth_m: float,
+    max_supported_depth_m: float,
+    *,
+    row: int,
+    col: int,
+) -> list[tuple[dict[str, float | str], float]]:
     if not math.isfinite(model_depth_m) or not math.isfinite(max_supported_depth_m):
-        return float("nan")
-    if model_depth_m < DEFAULT_ADAPTIVE_BOTTOM_MIN_MODEL_DEPTH_M:
-        return float("nan")
+        return []
+    if model_depth_m < DEFAULT_ADAPTIVE_DEEP_MIN_MODEL_DEPTH_M:
+        return []
 
-    candidate = min(
-        model_depth_m * DEFAULT_ADAPTIVE_BOTTOM_DEPTH_FRACTION,
-        model_depth_m - DEFAULT_WATER_COLUMN_CLEARANCE_M - DEFAULT_ADAPTIVE_BOTTOM_OFFSET_M,
+    seed_depths: list[tuple[dict[str, float | str], float]] = []
+    max_water_depth_m = min(
         max_supported_depth_m - DEFAULT_WATER_COLUMN_CLEARANCE_M,
+        model_depth_m - DEFAULT_WATER_COLUMN_CLEARANCE_M,
     )
-    candidate = max(DEFAULT_ADAPTIVE_BOTTOM_MIN_SEED_DEPTH_M, candidate)
-    if candidate <= DEFAULT_SEED_DEPTHS_M[-1] + 40.0:
-        return float("nan")
-    if candidate >= model_depth_m - DEFAULT_WATER_COLUMN_CLEARANCE_M:
-        return float("nan")
-    return candidate
+    if not math.isfinite(max_water_depth_m) or max_water_depth_m <= DEFAULT_SEED_DEPTHS_M[-1] + 25.0:
+        return []
+
+    for layer_index, layer in enumerate(DEFAULT_ADAPTIVE_DEEP_LAYER_CONFIGS):
+        jitter = (hash_unit_interval(row, col, layer_index) - 0.5) * 2.0 * float(layer["fraction_jitter"])
+        depth_fraction = float(layer["base_fraction"]) + jitter
+        candidate = min(
+            model_depth_m * depth_fraction,
+            model_depth_m - DEFAULT_WATER_COLUMN_CLEARANCE_M - float(layer["bottom_offset_m"]),
+            max_water_depth_m,
+        )
+        candidate = max(float(layer["min_seed_depth_m"]), candidate)
+        if candidate <= DEFAULT_SEED_DEPTHS_M[-1] + 25.0:
+            continue
+        if candidate >= model_depth_m - DEFAULT_WATER_COLUMN_CLEARANCE_M:
+            continue
+        if seed_depths and min(abs(candidate - existing_depth) for _, existing_depth in seed_depths) < 140.0:
+            continue
+        seed_depths.append((layer, candidate))
+
+    return seed_depths
 
 
 def main() -> None:
@@ -675,12 +721,11 @@ def main() -> None:
         sal_volume = load_sparse_volume(ds["so"], lat_idx, lon_idx)
         max_supported_depth_m = float(depth_axis[-1])
 
-        depth_selections = select_depth_indices(depth_axis, DEFAULT_SEED_DEPTHS_M)
-        for depth_idx, seed_depth_m in depth_selections:
-            u2d = u_volume[depth_idx]
-            v2d = v_volume[depth_idx]
-            theta2d = theta_volume[depth_idx]
-            sal2d = sal_volume[depth_idx]
+        for seed_depth_m in DEFAULT_SEED_DEPTHS_M:
+            u2d = interpolate_depth_plane(u_volume, depth_axis, seed_depth_m)
+            v2d = interpolate_depth_plane(v_volume, depth_axis, seed_depth_m)
+            theta2d = interpolate_depth_plane(theta_volume, depth_axis, seed_depth_m)
+            sal2d = interpolate_depth_plane(sal_volume, depth_axis, seed_depth_m)
             speed2d = np.hypot(u2d, v2d)
 
             valid_seed_layer = water_mask_2d.copy()
@@ -747,69 +792,80 @@ def main() -> None:
             flowlines_by_seed_depth[depth_key] = flowline_count
             counts_by_seed_depth[depth_key] = len(segment_x0) - segment_count_before
 
-        adaptive_seed_depth_2d = np.full(sampled_model_depth.shape, np.nan, dtype=np.float32)
-        adaptive_speed_2d = np.full(sampled_model_depth.shape, np.nan, dtype=np.float32)
-        adaptive_theta_2d = np.full(sampled_model_depth.shape, np.nan, dtype=np.float32)
-        adaptive_sal_2d = np.full(sampled_model_depth.shape, np.nan, dtype=np.float32)
-        deep_water_candidates = water_mask_2d & (sampled_model_depth >= DEFAULT_ADAPTIVE_BOTTOM_MIN_MODEL_DEPTH_M)
+        adaptive_layers = {
+            str(layer["key"]): {
+                "depth": np.full(sampled_model_depth.shape, np.nan, dtype=np.float32),
+                "speed": np.full(sampled_model_depth.shape, np.nan, dtype=np.float32),
+                "theta": np.full(sampled_model_depth.shape, np.nan, dtype=np.float32),
+                "sal": np.full(sampled_model_depth.shape, np.nan, dtype=np.float32),
+            }
+            for layer in DEFAULT_ADAPTIVE_DEEP_LAYER_CONFIGS
+        }
+        deep_water_candidates = water_mask_2d & (sampled_model_depth >= DEFAULT_ADAPTIVE_DEEP_MIN_MODEL_DEPTH_M)
 
         for seed_row, seed_col in np.argwhere(deep_water_candidates):
-            seed_depth_m = compute_adaptive_bottom_seed_depth(
+            adaptive_seed_depths = compute_adaptive_deep_seed_depths(
                 float(sampled_model_depth[seed_row, seed_col]),
                 max_supported_depth_m,
+                row=int(seed_row),
+                col=int(seed_col),
             )
-            if not math.isfinite(seed_depth_m):
-                continue
-            state = sample_stream_state(
-                depth_axis=depth_axis,
-                depth_m=seed_depth_m,
-                row=float(seed_row),
-                col=float(seed_col),
-                water_mask_2d=water_mask_2d,
-                model_depth_2d=sampled_model_depth,
-                lat_grid=lat_grid,
-                lon_grid=lon_grid,
-                x_grid=x_grid,
-                y_grid=y_grid,
-                u_volume=u_volume,
-                v_volume=v_volume,
-                w_volume=w_volume,
-                theta_volume=theta_volume,
-                sal_volume=sal_volume,
-                clearance_m=DEFAULT_WATER_COLUMN_CLEARANCE_M,
-                lon_step_deg=lon_step_deg,
-                lat_step_deg=lat_step_deg,
-            )
-            if state is None or state["speed"] < float(args.min_speed_mps):
-                continue
-            adaptive_seed_depth_2d[seed_row, seed_col] = state["depth"]
-            adaptive_speed_2d[seed_row, seed_col] = state["speed"]
-            adaptive_theta_2d[seed_row, seed_col] = state["theta"]
-            adaptive_sal_2d[seed_row, seed_col] = state["sal"]
+            for layer, seed_depth_m in adaptive_seed_depths:
+                state = sample_stream_state(
+                    depth_axis=depth_axis,
+                    depth_m=seed_depth_m,
+                    row=float(seed_row),
+                    col=float(seed_col),
+                    water_mask_2d=water_mask_2d,
+                    model_depth_2d=sampled_model_depth,
+                    lat_grid=lat_grid,
+                    lon_grid=lon_grid,
+                    x_grid=x_grid,
+                    y_grid=y_grid,
+                    u_volume=u_volume,
+                    v_volume=v_volume,
+                    w_volume=w_volume,
+                    theta_volume=theta_volume,
+                    sal_volume=sal_volume,
+                    clearance_m=DEFAULT_WATER_COLUMN_CLEARANCE_M,
+                    lon_step_deg=lon_step_deg,
+                    lat_step_deg=lat_step_deg,
+                )
+                if state is None or state["speed"] < float(layer["min_speed_mps"]):
+                    continue
+                store = adaptive_layers[str(layer["key"])]
+                store["depth"][seed_row, seed_col] = state["depth"]
+                store["speed"][seed_row, seed_col] = state["speed"]
+                store["theta"][seed_row, seed_col] = state["theta"]
+                store["sal"][seed_row, seed_col] = state["sal"]
 
-        valid_adaptive_seed_layer = (
-            np.isfinite(adaptive_seed_depth_2d)
-            & np.isfinite(adaptive_speed_2d)
-            & np.isfinite(adaptive_theta_2d)
-            & np.isfinite(adaptive_sal_2d)
-        )
-        if np.any(valid_adaptive_seed_layer):
-            retained_speed_samples.append(adaptive_speed_2d[valid_adaptive_seed_layer].astype(np.float32))
-            retained_theta_samples.append(adaptive_theta_2d[valid_adaptive_seed_layer].astype(np.float32))
-            retained_sal_samples.append(adaptive_sal_2d[valid_adaptive_seed_layer].astype(np.float32))
+        for layer in DEFAULT_ADAPTIVE_DEEP_LAYER_CONFIGS:
+            depth_key = str(layer["key"])
+            store = adaptive_layers[depth_key]
+            valid_adaptive_seed_layer = (
+                np.isfinite(store["depth"])
+                & np.isfinite(store["speed"])
+                & np.isfinite(store["theta"])
+                & np.isfinite(store["sal"])
+            )
+            if not np.any(valid_adaptive_seed_layer):
+                continue
+
+            retained_speed_samples.append(store["speed"][valid_adaptive_seed_layer].astype(np.float32))
+            retained_theta_samples.append(store["theta"][valid_adaptive_seed_layer].astype(np.float32))
+            retained_sal_samples.append(store["sal"][valid_adaptive_seed_layer].astype(np.float32))
 
             seeds = collect_seeds(
-                adaptive_speed_2d,
+                store["speed"],
                 valid_adaptive_seed_layer,
-                float(args.min_seed_speed_mps),
-                DEFAULT_ADAPTIVE_BOTTOM_SEED_TARGET,
+                float(layer["min_seed_speed_mps"]),
+                int(layer["seed_target"]),
             )
-            depth_key = "adaptive_bottom"
             segment_count_before = len(segment_x0)
             flowline_count = 0
 
             for seed_row, seed_col in seeds:
-                seed_depth_m = float(adaptive_seed_depth_2d[seed_row, seed_col])
+                seed_depth_m = float(store["depth"][seed_row, seed_col])
                 appended = append_traced_streamline(
                     depth_axis=depth_axis,
                     seed_depth_m=seed_depth_m,
@@ -830,7 +886,7 @@ def main() -> None:
                     lon_step_deg=lon_step_deg,
                     lat_step_deg=lat_step_deg,
                     step_cells=float(args.flowline_step_cells),
-                    min_trace_speed=float(args.min_trace_speed_mps),
+                    min_trace_speed=float(layer["min_trace_speed_mps"]),
                     max_steps=int(args.flowline_max_steps),
                     segment_x0=segment_x0,
                     segment_y0=segment_y0,
@@ -925,13 +981,23 @@ def main() -> None:
             "flowline_max_steps": int(args.flowline_max_steps),
             "seed_target_per_depth": int(args.seed_target_per_depth),
             "bedmachine_margin_m": float(args.margin_m),
-            "adaptive_bottom_seeding": {
+            "adaptive_deep_seeding": {
                 "enabled": True,
-                "seed_target": DEFAULT_ADAPTIVE_BOTTOM_SEED_TARGET,
-                "min_model_depth_m": DEFAULT_ADAPTIVE_BOTTOM_MIN_MODEL_DEPTH_M,
-                "min_seed_depth_m": DEFAULT_ADAPTIVE_BOTTOM_MIN_SEED_DEPTH_M,
-                "depth_fraction": DEFAULT_ADAPTIVE_BOTTOM_DEPTH_FRACTION,
-                "bottom_offset_m": DEFAULT_ADAPTIVE_BOTTOM_OFFSET_M,
+                "min_model_depth_m": DEFAULT_ADAPTIVE_DEEP_MIN_MODEL_DEPTH_M,
+                "layers": [
+                    {
+                        "key": str(layer["key"]),
+                        "base_fraction": float(layer["base_fraction"]),
+                        "fraction_jitter": float(layer["fraction_jitter"]),
+                        "min_seed_depth_m": float(layer["min_seed_depth_m"]),
+                        "bottom_offset_m": float(layer["bottom_offset_m"]),
+                        "seed_target": int(layer["seed_target"]),
+                        "min_speed_mps": float(layer["min_speed_mps"]),
+                        "min_seed_speed_mps": float(layer["min_seed_speed_mps"]),
+                        "min_trace_speed_mps": float(layer["min_trace_speed_mps"]),
+                    }
+                    for layer in DEFAULT_ADAPTIVE_DEEP_LAYER_CONFIGS
+                ],
             },
         },
         "streamline_count": streamline_count,

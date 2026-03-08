@@ -10,11 +10,11 @@
   "sampling": {
     "sample_stride": 6,
     "seed_depths_m": [
-      -0.0,
-      50.0,
-      150.0,
-      300.0,
-      600.0,
+      0.0,
+      100.0,
+      250.0,
+      500.0,
+      750.0,
       1000.0
     ],
     "min_speed_mps": 0.01,
@@ -22,53 +22,75 @@
     "min_trace_speed_mps": 0.015,
     "flowline_step_cells": 0.75,
     "flowline_max_steps": 72,
-    "seed_target_per_depth": 220,
+    "seed_target_per_depth": 200,
     "bedmachine_margin_m": 450000.0,
-    "adaptive_bottom_seeding": {
+    "adaptive_deep_seeding": {
       "enabled": true,
-      "seed_target": 90,
       "min_model_depth_m": 1400.0,
-      "min_seed_depth_m": 1200.0,
-      "depth_fraction": 0.82,
-      "bottom_offset_m": 120.0
+      "layers": [
+        {
+          "key": "adaptive_deep_mid",
+          "base_fraction": 0.72,
+          "fraction_jitter": 0.08,
+          "min_seed_depth_m": 1050.0,
+          "bottom_offset_m": 280.0,
+          "seed_target": 80,
+          "min_speed_mps": 0.005,
+          "min_seed_speed_mps": 0.015,
+          "min_trace_speed_mps": 0.008
+        },
+        {
+          "key": "adaptive_deep_lower",
+          "base_fraction": 0.86,
+          "fraction_jitter": 0.06,
+          "min_seed_depth_m": 1225.0,
+          "bottom_offset_m": 90.0,
+          "seed_target": 100,
+          "min_speed_mps": 0.004,
+          "min_seed_speed_mps": 0.012,
+          "min_trace_speed_mps": 0.007
+        }
+      ]
     }
   },
-  "streamline_count": 1090,
-  "segment_count": 27027,
+  "streamline_count": 927,
+  "segment_count": 19248,
   "coverage": {
     "x_min_m": -653840.0625,
     "x_max_m": 870866.4375,
     "y_min_m": -3380692.75,
-    "y_max_m": -636944.875,
-    "depth_min_m": -0.0,
-    "depth_max_m": 2490.18896484375,
+    "y_max_m": -638375.8125,
+    "depth_min_m": 0.0,
+    "depth_max_m": 2996.33447265625,
     "segments_by_seed_depth": {
-      "0": 4163,
-      "50": 10276,
-      "150": 5018,
-      "300": 3468,
-      "600": 2566,
+      "0": 2373,
+      "100": 5720,
+      "250": 3764,
+      "500": 2640,
+      "750": 1868,
       "1000": 1286,
-      "adaptive_bottom": 250
+      "adaptive_deep_mid": 1210,
+      "adaptive_deep_lower": 387
     },
     "streamlines_by_seed_depth": {
-      "0": 241,
-      "50": 341,
-      "150": 176,
-      "300": 127,
-      "600": 105,
+      "0": 150,
+      "100": 240,
+      "250": 138,
+      "500": 111,
+      "750": 88,
       "1000": 72,
-      "adaptive_bottom": 28
+      "adaptive_deep_mid": 80,
+      "adaptive_deep_lower": 48
     }
   },
   "visualization": {
     "temperature_range_c": [
-      -1.4057801604270934,
-      8.1400691986084
+      -1.2364556789398193,
+      8.216222047805786
     ],
     "salinity_range_psu": [
-      30.17116012573242,
-      35.01785449981689
+      30.145709991455078,
+      35.015785217285156
     ]
   },
   "fields": [
@@ -76,75 +98,75 @@
       "name": "x0_ps_m",
       "dtype": "float32",
       "byte_offset": 0,
-      "byte_length": 108108
+      "byte_length": 76992
     },
     {
       "name": "y0_ps_m",
       "dtype": "float32",
-      "byte_offset": 108108,
-      "byte_length": 108108
+      "byte_offset": 76992,
+      "byte_length": 76992
     },
     {
       "name": "depth0_m",
       "dtype": "float32",
-      "byte_offset": 216216,
-      "byte_length": 108108
+      "byte_offset": 153984,
+      "byte_length": 76992
     },
     {
       "name": "x1_ps_m",
       "dtype": "float32",
-      "byte_offset": 324324,
-      "byte_length": 108108
+      "byte_offset": 230976,
+      "byte_length": 76992
     },
     {
       "name": "y1_ps_m",
       "dtype": "float32",
-      "byte_offset": 432432,
-      "byte_length": 108108
+      "byte_offset": 307968,
+      "byte_length": 76992
     },
     {
       "name": "depth1_m",
       "dtype": "float32",
-      "byte_offset": 540540,
-      "byte_length": 108108
+      "byte_offset": 384960,
+      "byte_length": 76992
     },
     {
       "name": "theta0_c",
       "dtype": "float32",
-      "byte_offset": 648648,
-      "byte_length": 108108
+      "byte_offset": 461952,
+      "byte_length": 76992
     },
     {
       "name": "sal0_psu",
       "dtype": "float32",
-      "byte_offset": 756756,
-      "byte_length": 108108
+      "byte_offset": 538944,
+      "byte_length": 76992
     },
     {
       "name": "theta1_c",
       "dtype": "float32",
-      "byte_offset": 864864,
-      "byte_length": 108108
+      "byte_offset": 615936,
+      "byte_length": 76992
     },
     {
       "name": "sal1_psu",
       "dtype": "float32",
-      "byte_offset": 972972,
-      "byte_length": 108108
+      "byte_offset": 692928,
+      "byte_length": 76992
     },
     {
       "name": "terminal_flag",
       "dtype": "uint8",
-      "byte_offset": 1081080,
-      "byte_length": 27027
+      "byte_offset": 769920,
+      "byte_length": 19248
     },
     {
       "name": "speed_mps",
       "unit": "m/s",
       "stats": {
-        "min": 0.010002868250012398,
+        "min": 0.0041727786883711815,
         "max": 0.5464276671409607,
-        "mean": 0.06053268164396286
+        "mean": 0.056630004197359085
       }
     },
     {
@@ -153,7 +175,7 @@
       "stats": {
         "min": -1.6411596536636353,
         "max": 11.613105773925781,
-        "mean": 3.0200374126434326
+        "mean": 3.23989200592041
       }
     },
     {
@@ -161,8 +183,8 @@
       "unit": "psu",
       "stats": {
         "min": 27.516897201538086,
-        "max": 35.15130615234375,
-        "mean": 33.56010437011719
+        "max": 35.15419006347656,
+        "mean": 33.80647659301758
       }
     }
   ]
