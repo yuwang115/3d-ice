@@ -1,0 +1,169 @@
+{
+  "title": "Arctic Ocean Physics Analysis, 6.25km monthly mean",
+  "product_version": "ARCTIC_ANALYSISFORECAST_PHY_002_001",
+  "source_file": "cmems_mod_arc_phy_anfc_6km_detided_P1M-m_1772932313217.nc",
+  "source_dataset": "cmems_mod_arc_phy_anfc_6km_detided_P1M-m_202311",
+  "source_reference": "https://marine.copernicus.eu/",
+  "source_time_utc": "2025-08-01T00:00:00Z",
+  "projection": "EPSG:3413",
+  "geometry_type": "streamlines_3d",
+  "sampling": {
+    "sample_stride": 6,
+    "seed_depths_m": [
+      -0.0,
+      50.0,
+      150.0,
+      300.0,
+      600.0,
+      1000.0
+    ],
+    "min_speed_mps": 0.01,
+    "min_seed_speed_mps": 0.03,
+    "min_trace_speed_mps": 0.015,
+    "flowline_step_cells": 0.75,
+    "flowline_max_steps": 72,
+    "seed_target_per_depth": 220,
+    "bedmachine_margin_m": 450000.0,
+    "adaptive_bottom_seeding": {
+      "enabled": true,
+      "seed_target": 90,
+      "min_model_depth_m": 1400.0,
+      "min_seed_depth_m": 1200.0,
+      "depth_fraction": 0.82,
+      "bottom_offset_m": 120.0
+    }
+  },
+  "streamline_count": 1090,
+  "segment_count": 27027,
+  "coverage": {
+    "x_min_m": -653840.0625,
+    "x_max_m": 870866.4375,
+    "y_min_m": -3380692.75,
+    "y_max_m": -636944.875,
+    "depth_min_m": -0.0,
+    "depth_max_m": 2490.18896484375,
+    "segments_by_seed_depth": {
+      "0": 4163,
+      "50": 10276,
+      "150": 5018,
+      "300": 3468,
+      "600": 2566,
+      "1000": 1286,
+      "adaptive_bottom": 250
+    },
+    "streamlines_by_seed_depth": {
+      "0": 241,
+      "50": 341,
+      "150": 176,
+      "300": 127,
+      "600": 105,
+      "1000": 72,
+      "adaptive_bottom": 28
+    }
+  },
+  "visualization": {
+    "temperature_range_c": [
+      -1.4057801604270934,
+      8.1400691986084
+    ],
+    "salinity_range_psu": [
+      30.17116012573242,
+      35.01785449981689
+    ]
+  },
+  "fields": [
+    {
+      "name": "x0_ps_m",
+      "dtype": "float32",
+      "byte_offset": 0,
+      "byte_length": 108108
+    },
+    {
+      "name": "y0_ps_m",
+      "dtype": "float32",
+      "byte_offset": 108108,
+      "byte_length": 108108
+    },
+    {
+      "name": "depth0_m",
+      "dtype": "float32",
+      "byte_offset": 216216,
+      "byte_length": 108108
+    },
+    {
+      "name": "x1_ps_m",
+      "dtype": "float32",
+      "byte_offset": 324324,
+      "byte_length": 108108
+    },
+    {
+      "name": "y1_ps_m",
+      "dtype": "float32",
+      "byte_offset": 432432,
+      "byte_length": 108108
+    },
+    {
+      "name": "depth1_m",
+      "dtype": "float32",
+      "byte_offset": 540540,
+      "byte_length": 108108
+    },
+    {
+      "name": "theta0_c",
+      "dtype": "float32",
+      "byte_offset": 648648,
+      "byte_length": 108108
+    },
+    {
+      "name": "sal0_psu",
+      "dtype": "float32",
+      "byte_offset": 756756,
+      "byte_length": 108108
+    },
+    {
+      "name": "theta1_c",
+      "dtype": "float32",
+      "byte_offset": 864864,
+      "byte_length": 108108
+    },
+    {
+      "name": "sal1_psu",
+      "dtype": "float32",
+      "byte_offset": 972972,
+      "byte_length": 108108
+    },
+    {
+      "name": "terminal_flag",
+      "dtype": "uint8",
+      "byte_offset": 1081080,
+      "byte_length": 27027
+    },
+    {
+      "name": "speed_mps",
+      "unit": "m/s",
+      "stats": {
+        "min": 0.010002868250012398,
+        "max": 0.5464276671409607,
+        "mean": 0.06053268164396286
+      }
+    },
+    {
+      "name": "theta_c_summary",
+      "unit": "degC",
+      "stats": {
+        "min": -1.6411596536636353,
+        "max": 11.613105773925781,
+        "mean": 3.0200374126434326
+      }
+    },
+    {
+      "name": "sal_psu_summary",
+      "unit": "psu",
+      "stats": {
+        "min": 27.516897201538086,
+        "max": 35.15130615234375,
+        "mean": 33.56010437011719
+      }
+    }
+  ]
+}
