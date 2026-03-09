@@ -1,7 +1,8 @@
 "use strict";
 
 const FLOWLINE_SURFACE_OFFSET_M = 18;
-const VELOCITY_REFERENCE_SPEED = 1800;
+const VELOCITY_VISUALIZATION_MAX = 3000;
+const VELOCITY_VISUALIZATION_KNEE = 20;
 const EFFECTIVE_PRESSURE_REFERENCE_PA = 5_000_000;
 const CHANNEL_DISCHARGE_MIN = 1e-3;
 const CHANNEL_DISCHARGE_MAX = 100;
@@ -48,7 +49,9 @@ function sampleColorLUT(lut, t) {
 
 function velocityColor(speedMetersPerYear) {
   const speed = Number.isFinite(speedMetersPerYear) ? Math.max(0, speedMetersPerYear) : 0;
-  const scaled = Math.log1p(speed) / Math.log1p(VELOCITY_REFERENCE_SPEED);
+  const scaled =
+    Math.log1p(speed / VELOCITY_VISUALIZATION_KNEE) /
+    Math.log1p(VELOCITY_VISUALIZATION_MAX / VELOCITY_VISUALIZATION_KNEE);
   return sampleColorStops(
     [
       [0.0, [0.06, 0.2, 0.5]],
@@ -202,6 +205,7 @@ function buildSurfaceGeometryWithField({
   const vertexCount = sampledNx * sampledNy;
   const positions = new Float32Array(vertexCount * 3);
   const colors = new Uint8Array(vertexCount * 3);
+  const uvs = new Float32Array(vertexCount * 2);
   const sampledValid = new Uint8Array(vertexCount);
   const maxIndexCount = (sampledNx - 1) * (sampledNy - 1) * 6;
   const indices = new Uint32Array(maxIndexCount);
@@ -225,6 +229,8 @@ function buildSurfaceGeometryWithField({
       positions[3 * targetIndex] = px;
       positions[3 * targetIndex + 1] = isValid ? h / verticalMetersPerUnit : 0;
       positions[3 * targetIndex + 2] = pz;
+      uvs[2 * targetIndex] = col / Math.max(1, nx - 1);
+      uvs[2 * targetIndex + 1] = row / Math.max(1, ny - 1);
       const rgb = colorFn(fieldValues[sourceIndex]);
       colors[3 * targetIndex] = Math.round(clamp01(rgb[0]) * 255);
       colors[3 * targetIndex + 1] = Math.round(clamp01(rgb[1]) * 255);
@@ -266,7 +272,7 @@ function buildSurfaceGeometryWithField({
 
   const trimmed = new Uint32Array(indexCursor);
   trimmed.set(indices.subarray(0, indexCursor));
-  return { positions, colors, indices: trimmed };
+  return { positions, colors, uvs, indices: trimmed };
 }
 
 function buildVelocityTask(id, payload) {
@@ -350,6 +356,7 @@ function buildVelocityTask(id, payload) {
   return {
     positions: geometry.positions,
     colors: geometry.colors,
+    uvs: geometry.uvs,
     indices: geometry.indices,
     velocityX,
     velocityY,
