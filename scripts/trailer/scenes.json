@@ -1,0 +1,407 @@
+{
+  "meta": {
+    "title": "3D Antarctica & Greenland Explorer",
+    "outputName": "antarctica-greenland-explorer-trailer-v1",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "siteUrl": "yuwang115.github.io/tools/",
+    "voiceoverLanguage": "en-AU",
+    "voiceoverStyle": "Calm, precise, academic, and concise."
+  },
+  "scenes": [
+    {
+      "id": "antarctica-hero",
+      "mode": "trailer",
+      "durationMs": 5000,
+      "region": "antarctica",
+      "preset": "balanced",
+      "exaggeration": 4.8,
+      "iceOpacity": 0.96,
+      "toggles": {
+        "showBed": true,
+        "showIce": true,
+        "showIceBottom": false,
+        "showVelocity": false,
+        "showFlowline": false,
+        "showRefinedBasins": false,
+        "showEffectivePressure": false,
+        "showSubglacialChannels": false,
+        "showOceanCurrents": false,
+        "showSea": false,
+        "wireframe": false
+      },
+      "cameraFrom": {
+        "position": [10.8, 61.5, 86.2],
+        "target": [3.4, -7.1, 3.2],
+        "fov": 40
+      },
+      "cameraTo": {
+        "position": [2.8, 54.2, 75.5],
+        "target": [3.8, -7.5, 2.0],
+        "fov": 42
+      },
+      "easing": "ease-in-out-cubic",
+      "overlay": {
+        "visible": true,
+        "variant": "hero",
+        "align": "left",
+        "kicker": "Dual-Polar Scientific Explorer",
+        "title": "3D Antarctica & Greenland Explorer",
+        "body": "Terrain, ice-sheet structure, and polar process layers in one 3D environment."
+      },
+      "caption": "Antarctica terrain and ice geometry",
+      "voiceover": "Explore Antarctica and Greenland in a shared three-dimensional scientific viewer."
+    },
+    {
+      "id": "antarctica-velocity",
+      "mode": "trailer",
+      "durationMs": 7000,
+      "region": "antarctica",
+      "preset": "balanced",
+      "exaggeration": 4.8,
+      "iceOpacity": 0.72,
+      "toggles": {
+        "showBed": true,
+        "showIce": true,
+        "showIceBottom": false,
+        "showVelocity": true,
+        "showFlowline": true,
+        "showRefinedBasins": false,
+        "showEffectivePressure": false,
+        "showSubglacialChannels": false,
+        "showOceanCurrents": false,
+        "showSea": false,
+        "wireframe": false
+      },
+      "cameraFrom": {
+        "position": [17.6, 49.0, 56.0],
+        "target": [9.3, -11.2, -4.5],
+        "fov": 38
+      },
+      "cameraTo": {
+        "position": [8.4, 43.0, 48.0],
+        "target": [6.5, -9.4, -1.8],
+        "fov": 37
+      },
+      "easing": "ease-in-out-cubic",
+      "overlay": {
+        "visible": true,
+        "variant": "label",
+        "align": "left",
+        "kicker": "Antarctica",
+        "title": "Velocity and Flowlines",
+        "body": "Fast surface corridors and integrated flow structure appear together."
+      },
+      "caption": "Antarctica velocity and flowlines",
+      "voiceover": "Across Antarctica, bed topography, ice geometry, and fast surface flow appear in one coherent scene."
+    },
+    {
+      "id": "antarctica-hydrology",
+      "mode": "trailer",
+      "durationMs": 7000,
+      "region": "antarctica",
+      "preset": "balanced",
+      "exaggeration": 4.8,
+      "iceOpacity": 0.46,
+      "toggles": {
+        "showBed": true,
+        "showIce": true,
+        "showIceBottom": false,
+        "showVelocity": false,
+        "showFlowline": false,
+        "showRefinedBasins": false,
+        "showEffectivePressure": true,
+        "showSubglacialChannels": true,
+        "showOceanCurrents": false,
+        "showSea": false,
+        "wireframe": false
+      },
+      "cameraFrom": {
+        "position": [-9.0, 57.0, 64.0],
+        "target": [-4.0, -8.5, 0.5],
+        "fov": 40
+      },
+      "cameraTo": {
+        "position": [0.5, 50.5, 58.0],
+        "target": [1.8, -6.5, 1.2],
+        "fov": 39
+      },
+      "easing": "ease-in-out-cubic",
+      "overlay": {
+        "visible": true,
+        "variant": "label",
+        "align": "left",
+        "kicker": "Antarctica",
+        "title": "Subglacial Hydrology",
+        "body": "Effective pressure and channelized drainage reveal conditions beneath marine-based ice."
+      },
+      "caption": "Antarctica subglacial hydrology",
+      "voiceover": "Hydrology layers add effective pressure and channelized drainage beneath marine-based ice."
+    },
+    {
+      "id": "greenland-hero",
+      "mode": "trailer",
+      "durationMs": 5000,
+      "region": "greenland",
+      "preset": "balanced",
+      "exaggeration": 4.0,
+      "iceOpacity": 0.95,
+      "toggles": {
+        "showBed": true,
+        "showIce": true,
+        "showIceBottom": false,
+        "showVelocity": false,
+        "showFlowline": false,
+        "showRefinedBasins": false,
+        "showEffectivePressure": false,
+        "showSubglacialChannels": false,
+        "showOceanCurrents": false,
+        "showSea": false,
+        "wireframe": false
+      },
+      "cameraFrom": {
+        "position": [10.5, 88.0, 91.0],
+        "target": [4.6, -11.8, 6.2],
+        "fov": 42
+      },
+      "cameraTo": {
+        "position": [2.8, 79.0, 80.0],
+        "target": [5.0, -11.6, 5.4],
+        "fov": 41
+      },
+      "easing": "ease-in-out-cubic",
+      "overlay": {
+        "visible": true,
+        "variant": "label",
+        "align": "left",
+        "kicker": "Greenland",
+        "title": "Shared Polar Workflow",
+        "body": "The same 3D language carries directly across regions on a consistent scientific grid."
+      },
+      "caption": "Greenland hero transition",
+      "voiceover": "The same visual framework extends to Greenland on a consistent polar grid."
+    },
+    {
+      "id": "greenland-basins-velocity",
+      "mode": "trailer",
+      "durationMs": 7000,
+      "region": "greenland",
+      "preset": "balanced",
+      "exaggeration": 4.1,
+      "iceOpacity": 0.7,
+      "toggles": {
+        "showBed": true,
+        "showIce": true,
+        "showIceBottom": false,
+        "showVelocity": true,
+        "showFlowline": false,
+        "showRefinedBasins": true,
+        "showEffectivePressure": false,
+        "showSubglacialChannels": false,
+        "showOceanCurrents": false,
+        "showSea": false,
+        "wireframe": false
+      },
+      "cameraFrom": {
+        "position": [18.0, 65.0, 61.0],
+        "target": [9.0, -7.5, -1.5],
+        "fov": 39
+      },
+      "cameraTo": {
+        "position": [10.2, 58.0, 48.0],
+        "target": [5.8, -8.8, 1.5],
+        "fov": 38
+      },
+      "easing": "ease-in-out-cubic",
+      "overlay": {
+        "visible": true,
+        "variant": "label",
+        "align": "left",
+        "kicker": "Greenland",
+        "title": "Basins and Velocity",
+        "body": "Catchment sectors and ice-speed structure show how regional flow reorganizes."
+      },
+      "caption": "Greenland basins and velocity",
+      "voiceover": "Basin boundaries and velocity patterns reveal how regional flow reorganizes across the ice sheet."
+    },
+    {
+      "id": "greenland-ocean",
+      "mode": "trailer",
+      "durationMs": 8000,
+      "region": "greenland",
+      "preset": "balanced",
+      "exaggeration": 4.0,
+      "iceOpacity": 0.26,
+      "toggles": {
+        "showBed": true,
+        "showIce": true,
+        "showIceBottom": false,
+        "showVelocity": false,
+        "showFlowline": false,
+        "showRefinedBasins": false,
+        "showEffectivePressure": false,
+        "showSubglacialChannels": false,
+        "showOceanCurrents": true,
+        "showSea": true,
+        "wireframe": false
+      },
+      "cameraFrom": {
+        "position": [20.0, 18.0, 45.0],
+        "target": [4.0, -8.0, 10.0],
+        "fov": 55
+      },
+      "cameraTo": {
+        "position": [24.0, 20.0, 40.0],
+        "target": [2.0, -8.0, 12.0],
+        "fov": 52
+      },
+      "easing": "ease-in-out-cubic",
+      "overlay": {
+        "visible": true,
+        "variant": "label",
+        "align": "left",
+        "kicker": "Greenland",
+        "title": "3D Ocean Streamlines",
+        "body": "Offshore circulation is traced in three dimensions around the ice margin."
+      },
+      "caption": "Greenland ocean streamlines",
+      "voiceover": "Three-dimensional ocean streamlines connect Greenland's margin to the surrounding Arctic circulation."
+    },
+    {
+      "id": "ui-proof",
+      "mode": "interactive",
+      "durationMs": 6000,
+      "cameraFrom": {
+        "position": [3.0, 53.0, 77.0],
+        "target": [3.5, -7.0, 3.0],
+        "fov": 45
+      },
+      "cameraTo": {
+        "position": [3.0, 53.0, 77.0],
+        "target": [3.5, -7.0, 3.0],
+        "fov": 45
+      },
+      "segments": [
+        {
+          "durationMs": 2000,
+          "state": {
+            "region": "antarctica",
+            "preset": "balanced",
+            "exaggeration": 4.0,
+            "iceOpacity": 0.65,
+            "toggles": {
+              "showBed": true,
+              "showIce": true,
+              "showIceBottom": true,
+              "showVelocity": true,
+              "showFlowline": true,
+              "showRefinedBasins": false,
+              "showEffectivePressure": false,
+              "showSubglacialChannels": false,
+              "showOceanCurrents": false,
+              "showSea": false,
+              "wireframe": false
+            },
+            "overlay": null
+          },
+          "panelScroll": "top"
+        },
+        {
+          "durationMs": 2000,
+          "state": {
+            "region": "antarctica",
+            "preset": "hd",
+            "exaggeration": 4.0,
+            "iceOpacity": 0.65,
+            "toggles": {
+              "showBed": true,
+              "showIce": true,
+              "showIceBottom": true,
+              "showVelocity": false,
+              "showFlowline": false,
+              "showRefinedBasins": false,
+              "showEffectivePressure": false,
+              "showSubglacialChannels": false,
+              "showOceanCurrents": false,
+              "showSea": false,
+              "wireframe": false
+            },
+            "overlay": null
+          },
+          "panelScroll": "top"
+        },
+        {
+          "durationMs": 2000,
+          "state": {
+            "region": "greenland",
+            "preset": "balanced",
+            "exaggeration": 4.0,
+            "iceOpacity": 0.65,
+            "toggles": {
+              "showBed": true,
+              "showIce": true,
+              "showIceBottom": true,
+              "showVelocity": true,
+              "showFlowline": false,
+              "showRefinedBasins": true,
+              "showEffectivePressure": false,
+              "showSubglacialChannels": false,
+              "showOceanCurrents": false,
+              "showSea": false,
+              "wireframe": false
+            },
+            "overlay": null
+          },
+          "panelScroll": "snapshot"
+        }
+      ],
+      "caption": "Interactive region, preset, and metadata controls",
+      "voiceover": "Interactive controls switch region, resolution, and layer combinations while the scientific snapshot updates live."
+    },
+    {
+      "id": "end-card",
+      "mode": "trailer",
+      "durationMs": 4000,
+      "region": "greenland",
+      "preset": "balanced",
+      "exaggeration": 4.0,
+      "iceOpacity": 0.88,
+      "toggles": {
+        "showBed": true,
+        "showIce": true,
+        "showIceBottom": false,
+        "showVelocity": false,
+        "showFlowline": false,
+        "showRefinedBasins": false,
+        "showEffectivePressure": false,
+        "showSubglacialChannels": false,
+        "showOceanCurrents": false,
+        "showSea": false,
+        "wireframe": false
+      },
+      "cameraFrom": {
+        "position": [6.0, 70.0, 76.0],
+        "target": [4.8, -10.5, 4.2],
+        "fov": 39
+      },
+      "cameraTo": {
+        "position": [4.4, 66.0, 71.0],
+        "target": [4.8, -10.5, 4.2],
+        "fov": 38
+      },
+      "easing": "ease-out-cubic",
+      "overlay": {
+        "visible": true,
+        "variant": "title-card",
+        "align": "left",
+        "kicker": "Research Communication Demo",
+        "title": "3D Antarctica & Greenland Explorer",
+        "body": "Built for research communication, teaching, and collaboration across polar datasets.",
+        "cta": "Yu Wang  |  yuwang115.github.io/tools/"
+      },
+      "caption": "End card",
+      "voiceover": "Built for research communication, teaching, and collaboration, the explorer turns polar datasets into an explorable narrative."
+    }
+  ]
+}

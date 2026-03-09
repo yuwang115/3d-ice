@@ -1,0 +1,215 @@
+{
+  "title": "RISE Antarctica 2D Preview",
+  "dataset_title": "Realistic ice-shelf/ocean state estimates (RISE) of basal melting and drivers: data",
+  "dataset_source": "Australian Antarctic Data Centre (RISE multi-model mean, Version 1)",
+  "citation": "Galton-Fenzi, B.K. (2025) Realistic ice-shelf/ocean state estimates (RISE) of basal melting and drivers: data.",
+  "license": "CC BY 4.0",
+  "source_file": "RISE_MultiModelMean_Antarctica_v01.nc",
+  "projection": "EPSG:3031 polar stereographic",
+  "grid": {
+    "width": 2801,
+    "height": 2557,
+    "x_min_m": -2735250.0,
+    "x_max_m": 2864750.0,
+    "y_min_m": -2373250.0,
+    "y_max_m": 2738750.0,
+    "dx_m": 2000.0,
+    "dy_m": -2000.0
+  },
+  "mask": {
+    "image_url": "/tools/data/rise_antarctica_mask.png",
+    "index_image_url": "/tools/data/rise_antarctica_mask_index.png",
+    "categories": {
+      "1": {
+        "label": "grounded",
+        "color": "#8f95a0"
+      },
+      "2": {
+        "label": "iceshelf",
+        "color": "#d8f5ff"
+      },
+      "3": {
+        "label": "conshelf",
+        "color": "#65b8b5"
+      },
+      "4": {
+        "label": "ocean",
+        "color": "#113f70"
+      }
+    },
+    "counts": {
+      "1": 3019481,
+      "2": 381854,
+      "3": 734324,
+      "4": 3026498
+    }
+  },
+  "variables": {
+    "mask": {
+      "title": "Mask",
+      "unit": "category",
+      "description": "RISE mask categories for grounded, ice-shelf, continental-shelf, and ocean cells.",
+      "image_url": "/tools/data/rise_antarctica_mask.png",
+      "type": "categorical",
+      "categories": {
+        "1": {
+          "label": "grounded",
+          "color": "#8f95a0"
+        },
+        "2": {
+          "label": "iceshelf",
+          "color": "#d8f5ff"
+        },
+        "3": {
+          "label": "conshelf",
+          "color": "#65b8b5"
+        },
+        "4": {
+          "label": "ocean",
+          "color": "#113f70"
+        }
+      }
+    },
+    "ismr": {
+      "title": "Basal Melt",
+      "unit": "m/yr",
+      "description": "Average basal ice-shelf melt.",
+      "image_url": "/tools/data/rise_antarctica_ismr.png",
+      "type": "continuous",
+      "display_range": [
+        -0.5245542526245117,
+        1.8203575611114502
+      ],
+      "percentile_range": [
+        -0.5245542526245117,
+        1.8203575611114502
+      ],
+      "recommended_percentiles": [
+        90.0,
+        90.0
+      ],
+      "stats": {
+        "min": -14.183850288391113,
+        "max": 15.468132972717285,
+        "mean": 0.641800045967102
+      },
+      "palette_stops": [
+        {
+          "t": 0.0,
+          "color": "#153760"
+        },
+        {
+          "t": 0.22,
+          "color": "#4fa7d8"
+        },
+        {
+          "t": 0.5,
+          "color": "#f6f7fb"
+        },
+        {
+          "t": 0.78,
+          "color": "#f7a35b"
+        },
+        {
+          "t": 1.0,
+          "color": "#8a1117"
+        }
+      ]
+    },
+    "tstar_zice": {
+      "title": "Thermal Driving",
+      "unit": "\u00b0C",
+      "description": "Average thermal driving at the ice draft.",
+      "image_url": "/tools/data/rise_antarctica_tstar_zice.png",
+      "type": "continuous",
+      "display_range": [
+        -0.029425206091254947,
+        0.8598349356651296
+      ],
+      "percentile_range": [
+        -0.029425206091254947,
+        0.8598349356651296
+      ],
+      "recommended_percentiles": [
+        1.0,
+        99.0
+      ],
+      "stats": {
+        "min": -0.1054999977350235,
+        "max": 1.7036999464035034,
+        "mean": 0.14389470219612122
+      },
+      "palette_stops": [
+        {
+          "t": 0.0,
+          "color": "#081d58"
+        },
+        {
+          "t": 0.22,
+          "color": "#225ea8"
+        },
+        {
+          "t": 0.52,
+          "color": "#1d91c0"
+        },
+        {
+          "t": 0.78,
+          "color": "#7fcdbb"
+        },
+        {
+          "t": 1.0,
+          "color": "#fff3a3"
+        }
+      ]
+    },
+    "zice": {
+      "title": "Ice Draft Depth",
+      "unit": "m",
+      "description": "Ice draft depth.",
+      "image_url": "/tools/data/rise_antarctica_zice.png",
+      "type": "continuous",
+      "display_range": [
+        -1080.25,
+        0.0
+      ],
+      "percentile_range": [
+        -1080.25,
+        -10.0
+      ],
+      "recommended_percentiles": [
+        1.0,
+        99.0
+      ],
+      "stats": {
+        "min": -1732.5714111328125,
+        "max": -1.0,
+        "mean": -355.71051025390625
+      },
+      "palette_stops": [
+        {
+          "t": 0.0,
+          "color": "#edf8fb"
+        },
+        {
+          "t": 0.24,
+          "color": "#bfd3e6"
+        },
+        {
+          "t": 0.5,
+          "color": "#9ebcda"
+        },
+        {
+          "t": 0.76,
+          "color": "#8c6bb1"
+        },
+        {
+          "t": 1.0,
+          "color": "#5b1f6d"
+        }
+      ]
+    }
+  },
+  "source_url": "https://data.aad.gov.au/metadata/RISE",
+  "paper_url": "https://doi.org/10.5194/egusphere-2024-4047",
+  "output_directory": "static/tools/data"
+}

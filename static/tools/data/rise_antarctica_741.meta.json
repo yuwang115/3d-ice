@@ -1,0 +1,216 @@
+{
+  "title": "RISE Antarctica ice-shelf basal melt and thermal driving",
+  "product_version": "v1",
+  "source_file": "RISE_MultiModelMean_Antarctica_v01.nc",
+  "source_dataset": "Australian Antarctic Data Centre RISE multi-model mean",
+  "source_url": "https://data.aad.gov.au/metadata/RISE",
+  "license": "CC BY 4.0",
+  "resampled_to": "HD",
+  "grid": {
+    "nx": 1667,
+    "ny": 1667,
+    "x0_m": -3333000,
+    "y0_m": 3333000,
+    "dx_m": 4000,
+    "dy_m": -4000
+  },
+  "mask_flags": {
+    "0": "no_data",
+    "1": "grounded",
+    "2": "iceshelf",
+    "3": "conshelf",
+    "4": "ocean"
+  },
+  "coverage": {
+    "cell_count": 2778889,
+    "iceshelf_cell_count": 95490,
+    "mask_counts": {
+      "0": 989689,
+      "1": 754842,
+      "2": 95490,
+      "3": 183554,
+      "4": 755314
+    }
+  },
+  "visualization": {
+    "basal_melt": {
+      "display_range_m_per_year": [
+        -0.5358955264091492,
+        1.8213856220245361
+      ],
+      "percentile_range_m_per_year": [
+        -0.5358955264091492,
+        1.8213856220245361
+      ],
+      "palette_stops": [
+        {
+          "t": 0.0,
+          "color": "#153760"
+        },
+        {
+          "t": 0.22,
+          "color": "#4fa7d8"
+        },
+        {
+          "t": 0.5,
+          "color": "#f6f7fb"
+        },
+        {
+          "t": 0.78,
+          "color": "#f7a35b"
+        },
+        {
+          "t": 1.0,
+          "color": "#8a1117"
+        }
+      ],
+      "recommended_percentiles": [
+        90.0,
+        90.0
+      ]
+    },
+    "thermal_driving": {
+      "display_range_c": [
+        -0.029377777129411697,
+        0.8595209705829621
+      ],
+      "percentile_range_c": [
+        -0.029377777129411697,
+        0.8595209705829621
+      ],
+      "palette_stops": [
+        {
+          "t": 0.0,
+          "color": "#081d58"
+        },
+        {
+          "t": 0.22,
+          "color": "#225ea8"
+        },
+        {
+          "t": 0.52,
+          "color": "#1d91c0"
+        },
+        {
+          "t": 0.78,
+          "color": "#7fcdbb"
+        },
+        {
+          "t": 1.0,
+          "color": "#fff3a3"
+        }
+      ],
+      "recommended_percentiles": [
+        1.0,
+        99.0
+      ]
+    },
+    "ice_draft": {
+      "display_range_m": [
+        -1093.391669921875,
+        0.0
+      ],
+      "percentile_range_m": [
+        -1093.391669921875,
+        -50.0
+      ],
+      "palette_stops": [
+        {
+          "t": 0.0,
+          "color": "#edf8fb"
+        },
+        {
+          "t": 0.24,
+          "color": "#bfd3e6"
+        },
+        {
+          "t": 0.5,
+          "color": "#9ebcda"
+        },
+        {
+          "t": 0.76,
+          "color": "#8c6bb1"
+        },
+        {
+          "t": 1.0,
+          "color": "#5b1f6d"
+        }
+      ],
+      "recommended_percentiles": [
+        1.0,
+        99.0
+      ]
+    }
+  },
+  "fields": [
+    {
+      "name": "mask",
+      "dtype": "uint8",
+      "byte_offset": 0,
+      "byte_length": 2778889,
+      "flags": {
+        "0": "no_data",
+        "1": "grounded",
+        "2": "iceshelf",
+        "3": "conshelf",
+        "4": "ocean"
+      }
+    },
+    {
+      "name": "iceshelf_id",
+      "dtype": "uint16",
+      "byte_offset": 2778889,
+      "byte_length": 5557778,
+      "stats": {
+        "min": 0.0,
+        "max": 180.0,
+        "mean": 3.5229129791259766
+      }
+    },
+    {
+      "name": "zice",
+      "dtype": "int16",
+      "byte_offset": 8336667,
+      "byte_length": 5557778,
+      "scale": 1.0,
+      "offset": 0.0,
+      "fill_value": -32768,
+      "unit": "m",
+      "stats_m": {
+        "min": -1726.0,
+        "max": -1.0,
+        "mean": -380.4632263183594
+      }
+    },
+    {
+      "name": "ismr",
+      "dtype": "int16",
+      "byte_offset": 13894445,
+      "byte_length": 5557778,
+      "scale": 0.001,
+      "offset": 0.0,
+      "fill_value": -32768,
+      "unit": "m/yr",
+      "stats_m_per_year": {
+        "min": -14.183850288391113,
+        "max": 15.319825172424316,
+        "mean": 0.6412487030029297
+      }
+    },
+    {
+      "name": "tstar_zice",
+      "dtype": "int16",
+      "byte_offset": 19452223,
+      "byte_length": 5557778,
+      "scale": 0.0001,
+      "offset": 0.0,
+      "fill_value": -32768,
+      "unit": "celsius",
+      "stats_c": {
+        "min": -0.10081250220537186,
+        "max": 1.7036999464035034,
+        "mean": 0.14388884603977203
+      }
+    }
+  ]
+}
