@@ -1,0 +1,288 @@
+{
+  "title": "Whole Antarctic and Ocean Application, 2 km resolution",
+  "product_version": "WAOM2",
+  "source_file": "ocean_avg_yr5_annual.nc",
+  "source_reference": "https://gmd.copernicus.org/articles/15/723/2022/",
+  "source_time_utc": "2011-07-04T15:00:00Z",
+  "source_time_label": "Year 5 annual mean",
+  "projection": "EPSG:3031",
+  "geometry_type": "streamlines_3d",
+  "sampling": {
+    "sample_stride": 1,
+    "seed_strategy": "random_spatial_scattered",
+    "depth_sampling_summary": "Randomized cavity/open-ocean seeding with front-focused retention near ice-shelf margins, sector-balanced extra fill, and vertically separated XY-bin balancing.",
+    "min_speed_mps": 0.01,
+    "min_seed_speed_mps": 0.03,
+    "min_trace_speed_mps": 0.01,
+    "flowline_step_cells": 1.2,
+    "flowline_max_steps": 150,
+    "target_streamline_count": 4200,
+    "min_streamline_segments": 5,
+    "random_seed": 115,
+    "source_grid_dx_m": 2000.0,
+    "source_grid_dy_m": 2000.0,
+    "source_grid_x0_m": -3000000.0,
+    "source_grid_y0_m": -3000000.0,
+    "clearance_m": 20.0,
+    "velocity_vertical_mapping": "native_u_v_to_rho_depths",
+    "selection_strategy": "spatial_bin_round_robin",
+    "selection_bin_size_cells_global": 12,
+    "vertical_seed_separation_m": 120.0,
+    "front_radius_cells": 2,
+    "anti_zigzag": {
+      "state_depth_band_m": 100.0,
+      "revisit_window_steps": 6,
+      "reversal_window_steps": 5,
+      "reversal_angle_deg": 150.0,
+      "min_unique_xy_cells": 6,
+      "min_net_displacement_cells": 2.0
+    },
+    "seed_bucket_labels": {
+      "cavity_front": "Ice-shelf front cavity exchange",
+      "cavity_interior": "Interior ice-shelf cavity circulation",
+      "open_front": "Open-ocean intrusion pathways",
+      "open_mid": "Open-ocean mid-water",
+      "open_lower": "Open-ocean lower water"
+    },
+    "seed_buckets": [
+      {
+        "key": "cavity_front",
+        "label": "Ice-shelf front cavity exchange",
+        "mask_name": "cavity_front",
+        "retain_fraction": 0.25,
+        "candidate_factor": 3.5,
+        "min_total_depth_m": 180.0,
+        "depth_fraction_range": [
+          0.32,
+          0.92
+        ],
+        "proxy_fraction": 0.72,
+        "min_seed_speed_mps": 0.004
+      },
+      {
+        "key": "cavity_interior",
+        "label": "Interior ice-shelf cavity circulation",
+        "mask_name": "cavity_interior",
+        "retain_fraction": 0.15,
+        "candidate_factor": 3.5,
+        "min_total_depth_m": 140.0,
+        "depth_fraction_range": [
+          0.22,
+          0.86
+        ],
+        "proxy_fraction": 0.58,
+        "min_seed_speed_mps": 0.004
+      },
+      {
+        "key": "open_front",
+        "label": "Open-ocean intrusion pathways",
+        "mask_name": "open_front",
+        "retain_fraction": 0.25,
+        "candidate_factor": 3.5,
+        "min_total_depth_m": 250.0,
+        "depth_fraction_range": [
+          0.4,
+          0.92
+        ],
+        "proxy_fraction": 0.68,
+        "min_seed_speed_mps": 0.006
+      },
+      {
+        "key": "open_mid",
+        "label": "Open-ocean mid-water",
+        "mask_name": "open_mid",
+        "retain_fraction": 0.15,
+        "candidate_factor": 3.5,
+        "min_total_depth_m": 300.0,
+        "depth_fraction_range": [
+          0.35,
+          0.72
+        ],
+        "proxy_fraction": 0.56,
+        "min_seed_speed_mps": 0.008
+      },
+      {
+        "key": "open_lower",
+        "label": "Open-ocean lower water",
+        "mask_name": "open_lower",
+        "retain_fraction": 0.2,
+        "candidate_factor": 3.5,
+        "min_total_depth_m": 700.0,
+        "depth_fraction_range": [
+          0.62,
+          0.94
+        ],
+        "proxy_fraction": 0.8,
+        "min_seed_speed_mps": 0.006
+      }
+    ]
+  },
+  "streamline_count": 4200,
+  "segment_count": 202542,
+  "coverage": {
+    "x_min_m": -2998987.5,
+    "x_max_m": 3296876.25,
+    "y_min_m": -2998936.25,
+    "y_max_m": 2366329.5,
+    "depth_min_m": 21.550796508789062,
+    "depth_max_m": 4989.19384765625,
+    "seed_depth_min_m": 55.78495910066902,
+    "seed_depth_max_m": 4900.634007742579,
+    "retained_seed_sector_counts_8": [
+      219,
+      275,
+      363,
+      498,
+      576,
+      852,
+      818,
+      599
+    ],
+    "segments_by_seed_bucket": {
+      "cavity_front": 42050,
+      "cavity_interior": 31815,
+      "open_front": 45125,
+      "open_mid": 52048,
+      "open_lower": 31504
+    },
+    "streamlines_by_seed_bucket": {
+      "cavity_front": 928,
+      "cavity_interior": 652,
+      "open_front": 985,
+      "open_mid": 739,
+      "open_lower": 896
+    },
+    "seed_depth_stats_by_bucket": {
+      "cavity_front": {
+        "min_m": 72.21849060058594,
+        "max_m": 1634.7154541015625,
+        "mean_m": 444.4619140625
+      },
+      "cavity_interior": {
+        "min_m": 55.78495788574219,
+        "max_m": 1282.84130859375,
+        "mean_m": 612.2056274414062
+      },
+      "open_front": {
+        "min_m": 102.1703872680664,
+        "max_m": 1783.182861328125,
+        "mean_m": 351.7018737792969
+      },
+      "open_mid": {
+        "min_m": 111.65514373779297,
+        "max_m": 3496.843994140625,
+        "mean_m": 1521.5689697265625
+      },
+      "open_lower": {
+        "min_m": 472.5623779296875,
+        "max_m": 4900.6337890625,
+        "mean_m": 2998.415283203125
+      }
+    }
+  },
+  "visualization": {
+    "temperature_range_c": [
+      -2.0462726354599,
+      1.4998651206493367
+    ],
+    "salinity_range_psu": [
+      34.29087829589844,
+      34.714561462402344
+    ]
+  },
+  "fields": [
+    {
+      "name": "x0_ps_m",
+      "dtype": "float32",
+      "byte_offset": 0,
+      "byte_length": 810168
+    },
+    {
+      "name": "y0_ps_m",
+      "dtype": "float32",
+      "byte_offset": 810168,
+      "byte_length": 810168
+    },
+    {
+      "name": "depth0_m",
+      "dtype": "float32",
+      "byte_offset": 1620336,
+      "byte_length": 810168
+    },
+    {
+      "name": "x1_ps_m",
+      "dtype": "float32",
+      "byte_offset": 2430504,
+      "byte_length": 810168
+    },
+    {
+      "name": "y1_ps_m",
+      "dtype": "float32",
+      "byte_offset": 3240672,
+      "byte_length": 810168
+    },
+    {
+      "name": "depth1_m",
+      "dtype": "float32",
+      "byte_offset": 4050840,
+      "byte_length": 810168
+    },
+    {
+      "name": "theta0_c",
+      "dtype": "float32",
+      "byte_offset": 4861008,
+      "byte_length": 810168
+    },
+    {
+      "name": "sal0_psu",
+      "dtype": "float32",
+      "byte_offset": 5671176,
+      "byte_length": 810168
+    },
+    {
+      "name": "theta1_c",
+      "dtype": "float32",
+      "byte_offset": 6481344,
+      "byte_length": 810168
+    },
+    {
+      "name": "sal1_psu",
+      "dtype": "float32",
+      "byte_offset": 7291512,
+      "byte_length": 810168
+    },
+    {
+      "name": "terminal_flag",
+      "dtype": "uint8",
+      "byte_offset": 8101680,
+      "byte_length": 202542
+    },
+    {
+      "name": "speed_mps",
+      "unit": "m/s",
+      "stats": {
+        "min": 0.010047501884400845,
+        "max": 0.311012864112854,
+        "mean": 0.03415272384881973
+      }
+    },
+    {
+      "name": "theta_c_summary",
+      "unit": "degC",
+      "stats": {
+        "min": -2.5697081089019775,
+        "max": 3.978276491165161,
+        "mean": -0.44133472442626953
+      }
+    },
+    {
+      "name": "sal_psu_summary",
+      "unit": "psu",
+      "stats": {
+        "min": 33.94506072998047,
+        "max": 34.76752853393555,
+        "mean": 34.6146240234375
+      }
+    }
+  ]
+}
