@@ -9,88 +9,192 @@
   "geometry_type": "streamlines_3d",
   "sampling": {
     "sample_stride": 6,
-    "seed_depths_m": [
-      0.0,
-      100.0,
-      250.0,
-      500.0,
-      750.0,
-      1000.0
-    ],
-    "min_speed_mps": 0.01,
-    "min_seed_speed_mps": 0.03,
-    "min_trace_speed_mps": 0.015,
+    "streamline_class": "greenland_open_ocean",
+    "streamline_class_label": "Greenland ocean domain clipped to the BedMachine Greenland ocean mask",
+    "seed_strategy": "uniform_spatial_scattered",
+    "depth_sampling_summary": "Mask-aware Poisson-disk seeding across the Greenland ocean domain, with four vertically stratified seed layers (surface, upper, mid, lower) and sector-proportional spatial selection.",
+    "min_speed_mps": 0.0,
+    "min_seed_speed_mps": 0.0,
+    "min_trace_speed_mps": 0.001,
     "flowline_step_cells": 0.75,
     "flowline_max_steps": 72,
-    "seed_target_per_depth": 200,
+    "target_streamline_count": 1200,
+    "min_streamline_segments": 4,
+    "random_seed": 3413,
     "bedmachine_margin_m": 450000.0,
-    "adaptive_deep_seeding": {
-      "enabled": true,
-      "min_model_depth_m": 1400.0,
-      "layers": [
-        {
-          "key": "adaptive_deep_mid",
-          "base_fraction": 0.72,
-          "fraction_jitter": 0.08,
-          "min_seed_depth_m": 1050.0,
-          "bottom_offset_m": 280.0,
-          "seed_target": 80,
-          "min_speed_mps": 0.005,
-          "min_seed_speed_mps": 0.015,
-          "min_trace_speed_mps": 0.008
-        },
-        {
-          "key": "adaptive_deep_lower",
-          "base_fraction": 0.86,
-          "fraction_jitter": 0.06,
-          "min_seed_depth_m": 1225.0,
-          "bottom_offset_m": 90.0,
-          "seed_target": 100,
-          "min_speed_mps": 0.004,
-          "min_seed_speed_mps": 0.012,
-          "min_trace_speed_mps": 0.007
-        }
-      ]
-    }
+    "clearance_m": 20.0,
+    "selection_strategy": "sector_proportional_spatial_round_robin",
+    "selection_sector_targets": "valid_seed_area",
+    "vertical_seed_separation_m": 120.0,
+    "region_definition": {
+      "type": "bedmachine_greenland_ocean_mask",
+      "bedmachine_margin_m": 450000.0
+    },
+    "seed_bucket_labels": {
+      "greenland_surface": "Greenland ocean surface layer",
+      "greenland_upper": "Greenland ocean upper layer",
+      "greenland_mid": "Greenland ocean mid-water layer",
+      "greenland_lower": "Greenland ocean lower layer"
+    },
+    "seed_buckets": [
+      {
+        "key": "greenland_surface",
+        "label": "Greenland ocean surface layer",
+        "retain_fraction": 0.25,
+        "candidate_factor": 5.0,
+        "min_total_depth_m": 60.0,
+        "depth_fraction_range": [
+          0.03,
+          0.18
+        ],
+        "proxy_fraction": 0.1,
+        "depth_beta": [
+          1.0,
+          1.0
+        ],
+        "seed_layout_mode": "mask_aware_poisson_disk",
+        "seed_weight_mode": "uniform",
+        "seed_depth_mode": "first_valid_with_proxy_fallback",
+        "selection_rank_mode": "segment_random",
+        "min_speed_mps": 0.0,
+        "min_seed_speed_mps": 0.0,
+        "min_trace_speed_mps": 0.001,
+        "min_streamline_segments": 4,
+        "min_unique_xy_cells": 3,
+        "min_net_displacement_cells": 0.5
+      },
+      {
+        "key": "greenland_upper",
+        "label": "Greenland ocean upper layer",
+        "retain_fraction": 0.25,
+        "candidate_factor": 5.0,
+        "min_total_depth_m": 80.0,
+        "depth_fraction_range": [
+          0.18,
+          0.4
+        ],
+        "proxy_fraction": 0.3,
+        "depth_beta": [
+          1.0,
+          1.0
+        ],
+        "seed_layout_mode": "mask_aware_poisson_disk",
+        "seed_weight_mode": "uniform",
+        "seed_depth_mode": "first_valid_with_proxy_fallback",
+        "selection_rank_mode": "segment_random",
+        "min_speed_mps": 0.0,
+        "min_seed_speed_mps": 0.0,
+        "min_trace_speed_mps": 0.001,
+        "min_streamline_segments": 4,
+        "min_unique_xy_cells": 3,
+        "min_net_displacement_cells": 0.5
+      },
+      {
+        "key": "greenland_mid",
+        "label": "Greenland ocean mid-water layer",
+        "retain_fraction": 0.25,
+        "candidate_factor": 5.0,
+        "min_total_depth_m": 120.0,
+        "depth_fraction_range": [
+          0.4,
+          0.7
+        ],
+        "proxy_fraction": 0.55,
+        "depth_beta": [
+          1.0,
+          1.0
+        ],
+        "seed_layout_mode": "mask_aware_poisson_disk",
+        "seed_weight_mode": "uniform",
+        "seed_depth_mode": "first_valid_with_proxy_fallback",
+        "selection_rank_mode": "segment_random",
+        "min_speed_mps": 0.0,
+        "min_seed_speed_mps": 0.0,
+        "min_trace_speed_mps": 0.001,
+        "min_streamline_segments": 4,
+        "min_unique_xy_cells": 3,
+        "min_net_displacement_cells": 0.5
+      },
+      {
+        "key": "greenland_lower",
+        "label": "Greenland ocean lower layer",
+        "retain_fraction": 0.25,
+        "candidate_factor": 5.0,
+        "min_total_depth_m": 180.0,
+        "depth_fraction_range": [
+          0.7,
+          0.95
+        ],
+        "proxy_fraction": 0.82,
+        "depth_beta": [
+          1.0,
+          1.0
+        ],
+        "seed_layout_mode": "mask_aware_poisson_disk",
+        "seed_weight_mode": "uniform",
+        "seed_depth_mode": "first_valid_with_proxy_fallback",
+        "selection_rank_mode": "segment_random",
+        "min_speed_mps": 0.0,
+        "min_seed_speed_mps": 0.0,
+        "min_trace_speed_mps": 0.001,
+        "min_streamline_segments": 4,
+        "min_unique_xy_cells": 3,
+        "min_net_displacement_cells": 0.5
+      }
+    ]
   },
-  "streamline_count": 927,
-  "segment_count": 19248,
+  "streamline_count": 783,
+  "segment_count": 27771,
   "coverage": {
     "x_min_m": -653840.0625,
-    "x_max_m": 870866.4375,
-    "y_min_m": -3380692.75,
-    "y_max_m": -638375.8125,
-    "depth_min_m": 0.0,
-    "depth_max_m": 2996.33447265625,
-    "segments_by_seed_depth": {
-      "0": 2373,
-      "100": 5720,
-      "250": 3764,
-      "500": 2640,
-      "750": 1868,
-      "1000": 1286,
-      "adaptive_deep_mid": 1210,
-      "adaptive_deep_lower": 387
+    "x_max_m": 871930.1875,
+    "y_min_m": -3379439.0,
+    "y_max_m": -637763.125,
+    "depth_min_m": 3.3299479484558105,
+    "depth_max_m": 2995.0732421875,
+    "seed_depth_min_m": 20.009355545043945,
+    "seed_depth_max_m": 2932.31787109375,
+    "valid_seed_sector_counts_8": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      1070,
+      1486,
+      85
+    ],
+    "retained_seed_sector_counts_8": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      288,
+      462,
+      33
+    ],
+    "segments_by_seed_bucket": {
+      "greenland_surface": 12726,
+      "greenland_upper": 6421,
+      "greenland_mid": 6400,
+      "greenland_lower": 2224
     },
-    "streamlines_by_seed_depth": {
-      "0": 150,
-      "100": 240,
-      "250": 138,
-      "500": 111,
-      "750": 88,
-      "1000": 72,
-      "adaptive_deep_mid": 80,
-      "adaptive_deep_lower": 48
+    "streamlines_by_seed_bucket": {
+      "greenland_surface": 259,
+      "greenland_upper": 189,
+      "greenland_mid": 221,
+      "greenland_lower": 114
     }
   },
   "visualization": {
     "temperature_range_c": [
-      -1.2364556789398193,
-      8.216222047805786
+      -1.2650253295898437,
+      7.018444776535034
     ],
     "salinity_range_psu": [
-      30.145709991455078,
-      35.015785217285156
+      31.24819860458374,
+      35.01015148162842
     ]
   },
   "fields": [
@@ -98,93 +202,93 @@
       "name": "x0_ps_m",
       "dtype": "float32",
       "byte_offset": 0,
-      "byte_length": 76992
+      "byte_length": 111084
     },
     {
       "name": "y0_ps_m",
       "dtype": "float32",
-      "byte_offset": 76992,
-      "byte_length": 76992
+      "byte_offset": 111084,
+      "byte_length": 111084
     },
     {
       "name": "depth0_m",
       "dtype": "float32",
-      "byte_offset": 153984,
-      "byte_length": 76992
+      "byte_offset": 222168,
+      "byte_length": 111084
     },
     {
       "name": "x1_ps_m",
       "dtype": "float32",
-      "byte_offset": 230976,
-      "byte_length": 76992
+      "byte_offset": 333252,
+      "byte_length": 111084
     },
     {
       "name": "y1_ps_m",
       "dtype": "float32",
-      "byte_offset": 307968,
-      "byte_length": 76992
+      "byte_offset": 444336,
+      "byte_length": 111084
     },
     {
       "name": "depth1_m",
       "dtype": "float32",
-      "byte_offset": 384960,
-      "byte_length": 76992
+      "byte_offset": 555420,
+      "byte_length": 111084
     },
     {
       "name": "theta0_c",
       "dtype": "float32",
-      "byte_offset": 461952,
-      "byte_length": 76992
+      "byte_offset": 666504,
+      "byte_length": 111084
     },
     {
       "name": "sal0_psu",
       "dtype": "float32",
-      "byte_offset": 538944,
-      "byte_length": 76992
+      "byte_offset": 777588,
+      "byte_length": 111084
     },
     {
       "name": "theta1_c",
       "dtype": "float32",
-      "byte_offset": 615936,
-      "byte_length": 76992
+      "byte_offset": 888672,
+      "byte_length": 111084
     },
     {
       "name": "sal1_psu",
       "dtype": "float32",
-      "byte_offset": 692928,
-      "byte_length": 76992
+      "byte_offset": 999756,
+      "byte_length": 111084
     },
     {
       "name": "terminal_flag",
       "dtype": "uint8",
-      "byte_offset": 769920,
-      "byte_length": 19248
+      "byte_offset": 1110840,
+      "byte_length": 27771
     },
     {
       "name": "speed_mps",
       "unit": "m/s",
       "stats": {
-        "min": 0.0041727786883711815,
-        "max": 0.5464276671409607,
-        "mean": 0.056630004197359085
+        "min": 0.0010173143818974495,
+        "max": 0.35937660932540894,
+        "mean": 0.0538833923637867
       }
     },
     {
       "name": "theta_c_summary",
       "unit": "degC",
       "stats": {
-        "min": -1.6411596536636353,
-        "max": 11.613105773925781,
-        "mean": 3.23989200592041
+        "min": -1.5214289426803589,
+        "max": 11.17016315460205,
+        "mean": 2.774837017059326
       }
     },
     {
       "name": "sal_psu_summary",
       "unit": "psu",
       "stats": {
-        "min": 27.516897201538086,
-        "max": 35.15419006347656,
-        "mean": 33.80647659301758
+        "min": 29.84761619567871,
+        "max": 35.140350341796875,
+        "mean": 34.184425354003906
       }
     }
   ]

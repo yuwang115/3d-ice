@@ -13,39 +13,88 @@ from typing import Any
 import h5py
 import numpy as np
 
-DEFAULT_SEED_DEPTHS_M = (0.0, 100.0, 250.0, 500.0, 750.0, 1000.0)
 DEFAULT_SAMPLE_STRIDE = 6
 DEFAULT_BEDMACHINE_MARGIN_M = 450_000.0
-DEFAULT_MIN_SPEED_MPS = 0.01
-DEFAULT_MIN_SEED_SPEED_MPS = 0.03
-DEFAULT_MIN_TRACE_SPEED_MPS = 0.015
+DEFAULT_TARGET_STREAMLINES = 1200
+DEFAULT_MIN_SPEED_MPS = 0.0
+DEFAULT_MIN_SEED_SPEED_MPS = 0.0
+DEFAULT_MIN_TRACE_SPEED_MPS = 0.001
 DEFAULT_WATER_COLUMN_CLEARANCE_M = 20.0
 DEFAULT_FLOWLINE_STEP_CELLS = 0.75
 DEFAULT_FLOWLINE_MAX_STEPS = 72
-DEFAULT_SEED_TARGET_PER_DEPTH = 200
-DEFAULT_ADAPTIVE_DEEP_MIN_MODEL_DEPTH_M = 1400.0
-DEFAULT_ADAPTIVE_DEEP_LAYER_CONFIGS = (
+DEFAULT_MIN_STREAMLINE_SEGMENTS = 5
+DEFAULT_MIN_UNIQUE_XY_CELLS = 4
+DEFAULT_MIN_NET_DISPLACEMENT_CELLS = 1.0
+DEFAULT_VERTICAL_SEED_SEPARATION_M = 120.0
+DEFAULT_SEED_DEPTH_ATTEMPTS = 6
+DEFAULT_SECTOR_COUNT = 8
+DEFAULT_RANDOM_SEED = 3413
+DEFAULT_SPATIAL_BIN_SIZE_MIN = 4
+DEFAULT_SPATIAL_BIN_SIZE_MAX = 10
+GREENLAND_LAYER_BUCKETS = (
     {
-        "key": "adaptive_deep_mid",
-        "base_fraction": 0.72,
-        "fraction_jitter": 0.08,
-        "min_seed_depth_m": 1050.0,
-        "bottom_offset_m": 280.0,
-        "seed_target": 80,
-        "min_speed_mps": 0.005,
-        "min_seed_speed_mps": 0.015,
-        "min_trace_speed_mps": 0.008,
+        "key": "greenland_surface",
+        "label": "Greenland ocean surface layer",
+        "retain_fraction": 0.25,
+        "candidate_factor": 5.0,
+        "min_total_depth_m": 60.0,
+        "depth_fraction_range": (0.03, 0.18),
+        "proxy_fraction": 0.10,
+        "depth_beta": (1.0, 1.0),
+        "min_speed_mps": 0.0,
+        "min_seed_speed_mps": 0.0,
+        "min_trace_speed_mps": 0.001,
+        "min_streamline_segments": 4,
+        "min_unique_xy_cells": 3,
+        "min_net_displacement_cells": 0.5,
     },
     {
-        "key": "adaptive_deep_lower",
-        "base_fraction": 0.86,
-        "fraction_jitter": 0.06,
-        "min_seed_depth_m": 1225.0,
-        "bottom_offset_m": 90.0,
-        "seed_target": 100,
-        "min_speed_mps": 0.004,
-        "min_seed_speed_mps": 0.012,
-        "min_trace_speed_mps": 0.007,
+        "key": "greenland_upper",
+        "label": "Greenland ocean upper layer",
+        "retain_fraction": 0.25,
+        "candidate_factor": 5.0,
+        "min_total_depth_m": 80.0,
+        "depth_fraction_range": (0.18, 0.40),
+        "proxy_fraction": 0.30,
+        "depth_beta": (1.0, 1.0),
+        "min_speed_mps": 0.0,
+        "min_seed_speed_mps": 0.0,
+        "min_trace_speed_mps": 0.001,
+        "min_streamline_segments": 4,
+        "min_unique_xy_cells": 3,
+        "min_net_displacement_cells": 0.5,
+    },
+    {
+        "key": "greenland_mid",
+        "label": "Greenland ocean mid-water layer",
+        "retain_fraction": 0.25,
+        "candidate_factor": 5.0,
+        "min_total_depth_m": 120.0,
+        "depth_fraction_range": (0.40, 0.70),
+        "proxy_fraction": 0.55,
+        "depth_beta": (1.0, 1.0),
+        "min_speed_mps": 0.0,
+        "min_seed_speed_mps": 0.0,
+        "min_trace_speed_mps": 0.001,
+        "min_streamline_segments": 4,
+        "min_unique_xy_cells": 3,
+        "min_net_displacement_cells": 0.5,
+    },
+    {
+        "key": "greenland_lower",
+        "label": "Greenland ocean lower layer",
+        "retain_fraction": 0.25,
+        "candidate_factor": 5.0,
+        "min_total_depth_m": 180.0,
+        "depth_fraction_range": (0.70, 0.95),
+        "proxy_fraction": 0.82,
+        "depth_beta": (1.0, 1.0),
+        "min_speed_mps": 0.0,
+        "min_seed_speed_mps": 0.0,
+        "min_trace_speed_mps": 0.001,
+        "min_streamline_segments": 4,
+        "min_unique_xy_cells": 3,
+        "min_net_displacement_cells": 0.5,
     },
 )
 WGS84_A = 6_378_137.0
@@ -105,10 +154,10 @@ def parse_args() -> argparse.Namespace:
         help="Minimum horizontal speed required to continue tracing a streamline.",
     )
     parser.add_argument(
-        "--seed-target-per-depth",
+        "--target-streamlines",
         type=int,
-        default=DEFAULT_SEED_TARGET_PER_DEPTH,
-        help="Approximate target number of streamline seeds per seed depth.",
+        default=DEFAULT_TARGET_STREAMLINES,
+        help="Approximate target number of retained Greenland streamlines across the four depth layers.",
     )
     parser.add_argument(
         "--flowline-step-cells",
@@ -121,6 +170,12 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=DEFAULT_FLOWLINE_MAX_STEPS,
         help="Maximum traced steps in each direction from a seed.",
+    )
+    parser.add_argument(
+        "--random-seed",
+        type=int,
+        default=DEFAULT_RANDOM_SEED,
+        help="Random seed used for Greenland ocean seeding and selection.",
     )
     return parser.parse_args()
 
@@ -347,6 +402,336 @@ def collect_seeds(speed2d: np.ndarray, valid2d: np.ndarray, min_seed_speed: floa
     return seeds
 
 
+def collect_mask_aware_poisson_disk_cells(
+    valid2d: np.ndarray,
+    target_count: int,
+    rng: np.random.Generator,
+    *,
+    search_iterations: int = 14,
+) -> list[tuple[int, int]]:
+    valid_rows, valid_cols = np.nonzero(valid2d)
+    valid_count = int(valid_rows.size)
+    if valid_count == 0 or target_count <= 0:
+        return []
+    if valid_count <= target_count:
+        order = rng.permutation(valid_count)
+        return [(int(valid_rows[index]), int(valid_cols[index])) for index in order.tolist()]
+
+    order = rng.permutation(valid_count)
+    rows = valid_rows[order].astype(np.int32, copy=False)
+    cols = valid_cols[order].astype(np.int32, copy=False)
+
+    def greedy(radius_cells: float, *, stop_at_target: bool) -> list[tuple[int, int]] | None:
+        if radius_cells <= 1e-6:
+            limit = min(target_count, valid_count) if stop_at_target else valid_count
+            return [(int(rows[index]), int(cols[index])) for index in range(limit)]
+
+        bin_size = max(1.0, float(radius_cells))
+        radius_sq = float(radius_cells) * float(radius_cells)
+        bins: dict[tuple[int, int], list[tuple[int, int]]] = {}
+        accepted: list[tuple[int, int]] = []
+
+        for row, col in zip(rows.tolist(), cols.tolist()):
+            bin_row = int(math.floor(float(row) / bin_size))
+            bin_col = int(math.floor(float(col) / bin_size))
+            allowed = True
+            for neighbor_row in range(bin_row - 1, bin_row + 2):
+                for neighbor_col in range(bin_col - 1, bin_col + 2):
+                    for other_row, other_col in bins.get((neighbor_row, neighbor_col), []):
+                        drow = float(row - other_row)
+                        dcol = float(col - other_col)
+                        if drow * drow + dcol * dcol < radius_sq:
+                            allowed = False
+                            break
+                    if not allowed:
+                        break
+                if not allowed:
+                    break
+            if not allowed:
+                continue
+
+            accepted.append((int(row), int(col)))
+            bins.setdefault((bin_row, bin_col), []).append((int(row), int(col)))
+            if stop_at_target and len(accepted) >= target_count:
+                return accepted
+
+        return accepted
+
+    low_radius = 0.0
+    high_radius = float(max(valid2d.shape))
+    best_radius = 0.0
+
+    for _ in range(max(4, int(search_iterations))):
+        trial_radius = 0.5 * (low_radius + high_radius)
+        accepted = greedy(trial_radius, stop_at_target=True)
+        if accepted is not None and len(accepted) >= target_count:
+            best_radius = trial_radius
+            low_radius = trial_radius
+        else:
+            high_radius = trial_radius
+
+    final_seeds = greedy(best_radius, stop_at_target=True)
+    if final_seeds is None:
+        return []
+    return final_seeds[:target_count]
+
+
+def compute_bucket_targets(target_streamlines: int, seed_buckets: tuple[dict[str, Any], ...]) -> list[int]:
+    raw_bucket_targets = [float(bucket["retain_fraction"]) * float(target_streamlines) for bucket in seed_buckets]
+    bucket_targets = [int(math.floor(value)) for value in raw_bucket_targets]
+    remaining_slots = max(0, int(target_streamlines) - sum(bucket_targets))
+    remainders = sorted(
+        ((raw - base, index) for index, (raw, base) in enumerate(zip(raw_bucket_targets, bucket_targets))),
+        reverse=True,
+    )
+    for _, index in remainders[:remaining_slots]:
+        bucket_targets[index] += 1
+    return bucket_targets
+
+
+def compute_weighted_targets(weights: list[int] | np.ndarray, target_count: int) -> list[int]:
+    weights_array = np.asarray(weights, dtype=np.float64)
+    if target_count <= 0 or weights_array.size == 0:
+        return [0 for _ in range(int(weights_array.size))]
+
+    positive = np.isfinite(weights_array) & (weights_array > 0)
+    if not np.any(positive):
+        return [0 for _ in range(int(weights_array.size))]
+
+    targets = np.zeros(weights_array.shape, dtype=np.int32)
+    positive_indices = np.flatnonzero(positive)
+    guaranteed = min(int(target_count), int(positive_indices.size))
+    if guaranteed > 0:
+        ranked_positive = sorted(
+            positive_indices.tolist(),
+            key=lambda index: (float(weights_array[index]), -int(index)),
+            reverse=True,
+        )
+        for index in ranked_positive[:guaranteed]:
+            targets[index] += 1
+
+    remaining = int(target_count) - int(np.sum(targets))
+    if remaining <= 0:
+        return targets.astype(int).tolist()
+
+    positive_weights = weights_array[positive]
+    weight_sum = float(np.sum(positive_weights))
+    if weight_sum <= 0:
+        return targets.astype(int).tolist()
+
+    raw_additional = (positive_weights / weight_sum) * float(remaining)
+    base_additional = np.floor(raw_additional).astype(np.int32)
+    targets[positive] += base_additional
+    leftover = int(target_count) - int(np.sum(targets))
+    if leftover > 0:
+        remainders = raw_additional - base_additional.astype(np.float64)
+        order = np.argsort(-remainders, kind="stable")
+        for rank in order[:leftover].tolist():
+            targets[positive_indices[rank]] += 1
+    return targets.astype(int).tolist()
+
+
+def sector_indices_from_xy(x_values: np.ndarray, y_values: np.ndarray, sector_count: int = DEFAULT_SECTOR_COUNT) -> np.ndarray:
+    count = max(1, int(sector_count))
+    angles = np.mod(np.arctan2(y_values, x_values), 2.0 * np.pi)
+    sector_width = (2.0 * np.pi) / float(count)
+    indices = np.floor(angles / sector_width).astype(np.int32)
+    return np.clip(indices, 0, count - 1)
+
+
+def mask_sector_counts(mask2d: np.ndarray, x_grid: np.ndarray, y_grid: np.ndarray, sector_count: int = DEFAULT_SECTOR_COUNT) -> list[int]:
+    count = max(1, int(sector_count))
+    rows, cols = np.nonzero(mask2d)
+    if rows.size == 0:
+        return [0 for _ in range(count)]
+    sector_indices = sector_indices_from_xy(x_grid[rows, cols], y_grid[rows, cols], count)
+    counts = np.bincount(sector_indices, minlength=count)
+    return counts.astype(int).tolist()
+
+
+def spatial_bin_key(row: int, col: int, bin_size: int) -> tuple[int, int]:
+    safe_size = max(1, int(bin_size))
+    return int(row) // safe_size, int(col) // safe_size
+
+
+def compute_spatial_bin_size(valid2d: np.ndarray, target_count: int) -> int:
+    valid_count = int(np.count_nonzero(valid2d))
+    if valid_count <= 0 or target_count <= 0:
+        return DEFAULT_SPATIAL_BIN_SIZE_MAX
+    raw_size = int(round(math.sqrt(valid_count / max(1, target_count))))
+    return max(DEFAULT_SPATIAL_BIN_SIZE_MIN, min(DEFAULT_SPATIAL_BIN_SIZE_MAX, raw_size))
+
+
+def compute_spatial_bin_size_for_streamlines(candidates: list[dict[str, Any]], target_count: int) -> int:
+    if not candidates or target_count <= 0:
+        return DEFAULT_SPATIAL_BIN_SIZE_MAX
+    unique_seed_cells = {
+        (int(streamline["seed_row"]), int(streamline["seed_col"]))
+        for streamline in candidates
+    }
+    raw_size = int(round(math.sqrt(len(unique_seed_cells) / max(1, target_count))))
+    return max(DEFAULT_SPATIAL_BIN_SIZE_MIN, min(DEFAULT_SPATIAL_BIN_SIZE_MAX, raw_size))
+
+
+def streamline_sector_index(streamline: dict[str, Any], sector_count: int = DEFAULT_SECTOR_COUNT) -> int:
+    count = max(1, int(sector_count))
+    seed_x = float(streamline["seed_x_m"])
+    seed_y = float(streamline["seed_y_m"])
+    if not math.isfinite(seed_x) or not math.isfinite(seed_y):
+        return 0
+    angle = (math.atan2(seed_y, seed_x) + 2.0 * math.pi) % (2.0 * math.pi)
+    sector_width = (2.0 * math.pi) / float(count)
+    return min(count - 1, max(0, int(math.floor(angle / sector_width))))
+
+
+def retained_seed_sector_counts(streamlines: list[dict[str, Any]], sector_count: int = DEFAULT_SECTOR_COUNT) -> list[int]:
+    counts = [0 for _ in range(max(1, int(sector_count)))]
+    for streamline in streamlines:
+        counts[streamline_sector_index(streamline, len(counts))] += 1
+    return counts
+
+
+def streamline_rank_key(streamline: dict[str, Any]) -> tuple[int, float]:
+    return int(streamline["segment_count"]), float(streamline.get("selection_rank_secondary", streamline.get("seed_speed", 0.0)))
+
+
+def select_streamlines_spatially(
+    candidates: list[dict[str, Any]],
+    *,
+    target_count: int,
+    selection_bin_size: int,
+    depth_bin_size: int,
+    retained_depths_by_bin: dict[tuple[int, int], list[float]],
+    rng: np.random.Generator,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    if target_count <= 0 or not candidates:
+        return [], list(candidates)
+
+    bin_groups: dict[tuple[int, int], list[dict[str, Any]]] = {}
+    for candidate in candidates:
+        bin_key = spatial_bin_key(int(candidate["seed_row"]), int(candidate["seed_col"]), selection_bin_size)
+        bin_groups.setdefault(bin_key, []).append(candidate)
+
+    ordered_bin_keys = list(bin_groups.keys())
+    if ordered_bin_keys:
+        permutation = rng.permutation(len(ordered_bin_keys)).tolist()
+        ordered_bin_keys = [ordered_bin_keys[index] for index in permutation]
+    for bin_key in ordered_bin_keys:
+        bin_groups[bin_key] = sorted(bin_groups[bin_key], key=streamline_rank_key, reverse=True)
+
+    selected: list[dict[str, Any]] = []
+    leftovers: list[dict[str, Any]] = []
+    made_progress = True
+    while len(selected) < target_count and made_progress:
+        made_progress = False
+        for bin_key in ordered_bin_keys:
+            queue = bin_groups[bin_key]
+            while queue:
+                candidate = queue.pop(0)
+                depth_key = spatial_bin_key(int(candidate["seed_row"]), int(candidate["seed_col"]), depth_bin_size)
+                existing_depths = retained_depths_by_bin.setdefault(depth_key, [])
+                if any(
+                    abs(float(candidate["seed_depth_m"]) - float(existing_depth)) < DEFAULT_VERTICAL_SEED_SEPARATION_M
+                    for existing_depth in existing_depths
+                ):
+                    leftovers.append(candidate)
+                    continue
+                selected.append(candidate)
+                existing_depths.append(float(candidate["seed_depth_m"]))
+                made_progress = True
+                break
+            if len(selected) >= target_count:
+                break
+
+    for queue in bin_groups.values():
+        leftovers.extend(queue)
+
+    if len(selected) >= target_count:
+        return selected[:target_count], leftovers
+
+    if not leftovers:
+        return selected, leftovers
+
+    leftovers.sort(key=streamline_rank_key, reverse=True)
+    remaining: list[dict[str, Any]] = []
+    for candidate in leftovers:
+        if len(selected) >= target_count:
+            remaining.append(candidate)
+            continue
+        depth_key = spatial_bin_key(int(candidate["seed_row"]), int(candidate["seed_col"]), depth_bin_size)
+        existing_depths = retained_depths_by_bin.setdefault(depth_key, [])
+        if any(
+            abs(float(candidate["seed_depth_m"]) - float(existing_depth)) < DEFAULT_VERTICAL_SEED_SEPARATION_M
+            for existing_depth in existing_depths
+        ):
+            remaining.append(candidate)
+            continue
+        selected.append(candidate)
+        existing_depths.append(float(candidate["seed_depth_m"]))
+
+    return selected, remaining
+
+
+def select_streamlines_spatially_by_sector_targets(
+    candidates: list[dict[str, Any]],
+    *,
+    target_count: int,
+    sector_targets: list[int],
+    selection_bin_size: int,
+    depth_bin_size: int,
+    retained_depths_by_bin: dict[tuple[int, int], list[float]],
+    retained_sector_counts: list[int],
+    rng: np.random.Generator,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    if target_count <= 0 or not candidates:
+        return [], list(candidates)
+
+    sector_count = max(1, int(DEFAULT_SECTOR_COUNT))
+    candidates_by_sector: dict[int, list[dict[str, Any]]] = {sector: [] for sector in range(sector_count)}
+    for candidate in candidates:
+        candidates_by_sector[streamline_sector_index(candidate, sector_count)].append(candidate)
+
+    selected: list[dict[str, Any]] = []
+    leftovers: list[dict[str, Any]] = []
+    sector_order = rng.permutation(sector_count).tolist()
+    for sector in sector_order:
+        sector_target = int(sector_targets[sector]) if sector < len(sector_targets) else 0
+        sector_candidates = candidates_by_sector.get(sector, [])
+        if sector_target <= 0:
+            leftovers.extend(sector_candidates)
+            continue
+        sector_selection_bin_size = compute_spatial_bin_size_for_streamlines(sector_candidates, sector_target)
+        selected_sector, leftovers_sector = select_streamlines_spatially(
+            sector_candidates,
+            target_count=sector_target,
+            selection_bin_size=sector_selection_bin_size,
+            depth_bin_size=depth_bin_size,
+            retained_depths_by_bin=retained_depths_by_bin,
+            rng=rng,
+        )
+        selected.extend(selected_sector)
+        retained_sector_counts[sector] += len(selected_sector)
+        leftovers.extend(leftovers_sector)
+
+    return selected, leftovers
+
+
+def count_unique_xy_cells(row_values: np.ndarray, col_values: np.ndarray) -> int:
+    cells = {
+        (int(round(float(row_value))), int(round(float(col_value))))
+        for row_value, col_value in zip(row_values.tolist(), col_values.tolist())
+    }
+    return len(cells)
+
+
+def net_displacement_cells(row_values: np.ndarray, col_values: np.ndarray) -> float:
+    if row_values.size < 2 or col_values.size < 2:
+        return 0.0
+    drow = float(row_values[-1]) - float(row_values[0])
+    dcol = float(col_values[-1]) - float(col_values[0])
+    return math.hypot(drow, dcol)
+
+
 def sample_stream_state(
     *,
     depth_axis: np.ndarray,
@@ -403,6 +788,8 @@ def sample_stream_state(
         "x": x,
         "y": y,
         "depth": depth_m,
+        "sample_row": row,
+        "sample_col": col,
         "theta": theta,
         "sal": sal,
         "u": u,
@@ -498,12 +885,43 @@ def trace_streamline_direction(
     return states
 
 
-def append_traced_streamline(
+def choose_seed_depth(
+    model_depth_m: float,
+    *,
+    depth_fraction_range: tuple[float, float],
+    proxy_fraction: float,
+    rng: np.random.Generator,
+    beta_shape: tuple[float, float] = (1.0, 1.0),
+    clearance_m: float = DEFAULT_WATER_COLUMN_CLEARANCE_M,
+    attempts: int = DEFAULT_SEED_DEPTH_ATTEMPTS,
+) -> list[float]:
+    if not math.isfinite(model_depth_m) or model_depth_m <= 2.0 * clearance_m:
+        return []
+    lower = max(clearance_m, model_depth_m * float(depth_fraction_range[0]))
+    upper = min(model_depth_m - clearance_m, model_depth_m * float(depth_fraction_range[1]))
+    if not math.isfinite(lower) or not math.isfinite(upper) or upper <= lower:
+        return []
+
+    candidate_depths: list[float] = []
+    alpha = max(1e-6, float(beta_shape[0]))
+    beta = max(1e-6, float(beta_shape[1]))
+    for _ in range(max(1, int(attempts))):
+        depth_fraction = float(rng.beta(alpha, beta))
+        candidate_depths.append(lower + depth_fraction * (upper - lower))
+
+    proxy_depth = min(model_depth_m - clearance_m, max(clearance_m, model_depth_m * float(proxy_fraction)))
+    if all(abs(proxy_depth - candidate) >= 1e-3 for candidate in candidate_depths):
+        candidate_depths.append(proxy_depth)
+    return candidate_depths
+
+
+def build_traced_streamline(
     *,
     depth_axis: np.ndarray,
     seed_depth_m: float,
     seed_row: int,
     seed_col: int,
+    seed_state: dict[str, float],
     water_mask_2d: np.ndarray,
     model_depth_2d: np.ndarray,
     lat_grid: np.ndarray,
@@ -521,18 +939,10 @@ def append_traced_streamline(
     step_cells: float,
     min_trace_speed: float,
     max_steps: int,
-    segment_x0: list[float],
-    segment_y0: list[float],
-    segment_depth0: list[float],
-    segment_x1: list[float],
-    segment_y1: list[float],
-    segment_depth1: list[float],
-    segment_theta0: list[float],
-    segment_sal0: list[float],
-    segment_theta1: list[float],
-    segment_sal1: list[float],
-    segment_terminal_flag: list[int],
-) -> bool:
+    min_segment_count: int,
+    min_unique_xy_cells: int,
+    min_net_displacement_cells: float,
+) -> dict[str, Any] | None:
     forward = trace_streamline_direction(
         depth_axis=depth_axis,
         seed_depth_m=seed_depth_m,
@@ -582,64 +992,85 @@ def append_traced_streamline(
         max_steps=max_steps,
     )
     merged = list(reversed(backward)) + forward[1:]
-    if len(merged) < 4:
-        return False
+    if len(merged) < max(2, int(min_segment_count) + 1):
+        return None
 
-    for segment_index in range(1, len(merged)):
-        point0 = merged[segment_index - 1]
-        point1 = merged[segment_index]
-        segment_x0.append(point0["x"])
-        segment_y0.append(point0["y"])
-        segment_depth0.append(point0["depth"])
-        segment_x1.append(point1["x"])
-        segment_y1.append(point1["y"])
-        segment_depth1.append(point1["depth"])
-        segment_theta0.append(point0["theta"])
-        segment_sal0.append(point0["sal"])
-        segment_theta1.append(point1["theta"])
-        segment_sal1.append(point1["sal"])
-        segment_terminal_flag.append(1 if segment_index == len(merged) - 1 else 0)
-    return True
-
-
-def compute_adaptive_deep_seed_depths(
-    model_depth_m: float,
-    max_supported_depth_m: float,
-    *,
-    row: int,
-    col: int,
-) -> list[tuple[dict[str, float | str], float]]:
-    if not math.isfinite(model_depth_m) or not math.isfinite(max_supported_depth_m):
-        return []
-    if model_depth_m < DEFAULT_ADAPTIVE_DEEP_MIN_MODEL_DEPTH_M:
-        return []
-
-    seed_depths: list[tuple[dict[str, float | str], float]] = []
-    max_water_depth_m = min(
-        max_supported_depth_m - DEFAULT_WATER_COLUMN_CLEARANCE_M,
-        model_depth_m - DEFAULT_WATER_COLUMN_CLEARANCE_M,
+    row_values = np.asarray(
+        [float(state["y"]) for state in merged],
+        dtype=np.float32,
     )
-    if not math.isfinite(max_water_depth_m) or max_water_depth_m <= DEFAULT_SEED_DEPTHS_M[-1] + 25.0:
-        return []
+    col_values = np.asarray(
+        [float(state["x"]) for state in merged],
+        dtype=np.float32,
+    )
+    row_values = np.asarray([float(seed_row) if not np.isfinite(v) else v for v in row_values], dtype=np.float32)
+    col_values = np.asarray([float(seed_col) if not np.isfinite(v) else v for v in col_values], dtype=np.float32)
+    unique_xy_cells = count_unique_xy_cells(
+        np.asarray([float(state.get("sample_row", seed_row)) for state in merged], dtype=np.float32),
+        np.asarray([float(state.get("sample_col", seed_col)) for state in merged], dtype=np.float32),
+    )
+    if unique_xy_cells < max(1, int(min_unique_xy_cells)):
+        return None
 
-    for layer_index, layer in enumerate(DEFAULT_ADAPTIVE_DEEP_LAYER_CONFIGS):
-        jitter = (hash_unit_interval(row, col, layer_index) - 0.5) * 2.0 * float(layer["fraction_jitter"])
-        depth_fraction = float(layer["base_fraction"]) + jitter
-        candidate = min(
-            model_depth_m * depth_fraction,
-            model_depth_m - DEFAULT_WATER_COLUMN_CLEARANCE_M - float(layer["bottom_offset_m"]),
-            max_water_depth_m,
+    if (
+        net_displacement_cells(
+            np.asarray([float(state.get("sample_row", seed_row)) for state in merged], dtype=np.float32),
+            np.asarray([float(state.get("sample_col", seed_col)) for state in merged], dtype=np.float32),
         )
-        candidate = max(float(layer["min_seed_depth_m"]), candidate)
-        if candidate <= DEFAULT_SEED_DEPTHS_M[-1] + 25.0:
-            continue
-        if candidate >= model_depth_m - DEFAULT_WATER_COLUMN_CLEARANCE_M:
-            continue
-        if seed_depths and min(abs(candidate - existing_depth) for _, existing_depth in seed_depths) < 140.0:
-            continue
-        seed_depths.append((layer, candidate))
+        < float(min_net_displacement_cells)
+    ):
+        return None
 
-    return seed_depths
+    return {
+        "x": np.asarray([point["x"] for point in merged], dtype=np.float32),
+        "y": np.asarray([point["y"] for point in merged], dtype=np.float32),
+        "depth": np.asarray([point["depth"] for point in merged], dtype=np.float32),
+        "theta": np.asarray([point["theta"] for point in merged], dtype=np.float32),
+        "sal": np.asarray([point["sal"] for point in merged], dtype=np.float32),
+        "speed": np.asarray([point["speed"] for point in merged], dtype=np.float32),
+        "sample_row": np.asarray([point.get("sample_row", seed_row) for point in merged], dtype=np.float32),
+        "sample_col": np.asarray([point.get("sample_col", seed_col) for point in merged], dtype=np.float32),
+        "segment_count": len(merged) - 1,
+        "seed_speed": float(seed_state["speed"]),
+        "seed_theta": float(seed_state["theta"]),
+        "seed_sal": float(seed_state["sal"]),
+        "seed_x_m": float(seed_state["x"]),
+        "seed_y_m": float(seed_state["y"]),
+        "seed_row": int(seed_row),
+        "seed_col": int(seed_col),
+        "seed_depth_m": float(seed_depth_m),
+        "unique_xy_cells": int(unique_xy_cells),
+    }
+
+
+def append_streamline_segments(
+    streamline: dict[str, Any],
+    *,
+    segment_x0: list[float],
+    segment_y0: list[float],
+    segment_depth0: list[float],
+    segment_x1: list[float],
+    segment_y1: list[float],
+    segment_depth1: list[float],
+    segment_theta0: list[float],
+    segment_sal0: list[float],
+    segment_theta1: list[float],
+    segment_sal1: list[float],
+    segment_terminal_flag: list[int],
+) -> None:
+    point_count = int(streamline["x"].size)
+    for segment_index in range(1, point_count):
+        segment_x0.append(float(streamline["x"][segment_index - 1]))
+        segment_y0.append(float(streamline["y"][segment_index - 1]))
+        segment_depth0.append(float(streamline["depth"][segment_index - 1]))
+        segment_x1.append(float(streamline["x"][segment_index]))
+        segment_y1.append(float(streamline["y"][segment_index]))
+        segment_depth1.append(float(streamline["depth"][segment_index]))
+        segment_theta0.append(float(streamline["theta"][segment_index - 1]))
+        segment_sal0.append(float(streamline["sal"][segment_index - 1]))
+        segment_theta1.append(float(streamline["theta"][segment_index]))
+        segment_sal1.append(float(streamline["sal"][segment_index]))
+        segment_terminal_flag.append(1 if segment_index == point_count - 1 else 0)
 
 
 def main() -> None:
@@ -650,6 +1081,7 @@ def main() -> None:
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    rng = np.random.default_rng(int(args.random_seed))
 
     bed_meta, bed_mask = load_bedmachine_mask(Path(args.bedmachine_meta), Path(args.bedmachine_bin))
     bed_grid = bed_meta["grid"]
@@ -669,12 +1101,6 @@ def main() -> None:
     segment_theta1: list[float] = []
     segment_sal1: list[float] = []
     segment_terminal_flag: list[int] = []
-    retained_speed_samples: list[np.ndarray] = []
-    retained_theta_samples: list[np.ndarray] = []
-    retained_sal_samples: list[np.ndarray] = []
-    seed_depth_levels: list[float] = []
-    counts_by_seed_depth: dict[str, int] = {}
-    flowlines_by_seed_depth: dict[str, int] = {}
 
     with h5py.File(input_path, "r") as ds:
         lat_axis = np.asarray(ds["latitude"][:], dtype=np.float32)
@@ -719,158 +1145,76 @@ def main() -> None:
         w_volume = load_sparse_volume(ds["wo"], lat_idx, lon_idx)
         theta_volume = load_sparse_volume(ds["thetao"], lat_idx, lon_idx)
         sal_volume = load_sparse_volume(ds["so"], lat_idx, lon_idx)
-        max_supported_depth_m = float(depth_axis[-1])
+        seed_buckets = tuple(GREENLAND_LAYER_BUCKETS)
+        bucket_targets = compute_bucket_targets(int(args.target_streamlines), seed_buckets)
+        bucket_streamlines: dict[str, list[dict[str, Any]]] = {str(bucket["key"]): [] for bucket in seed_buckets}
+        bucket_labels = {str(bucket["key"]): str(bucket["label"]) for bucket in seed_buckets}
+        bucket_valid_masks: dict[str, np.ndarray] = {}
+        bucket_valid_sector_counts: dict[str, list[int]] = {}
 
-        for seed_depth_m in DEFAULT_SEED_DEPTHS_M:
-            u2d = interpolate_depth_plane(u_volume, depth_axis, seed_depth_m)
-            v2d = interpolate_depth_plane(v_volume, depth_axis, seed_depth_m)
-            theta2d = interpolate_depth_plane(theta_volume, depth_axis, seed_depth_m)
-            sal2d = interpolate_depth_plane(sal_volume, depth_axis, seed_depth_m)
-            speed2d = np.hypot(u2d, v2d)
-
-            valid_seed_layer = water_mask_2d.copy()
-            valid_seed_layer &= np.isfinite(u2d) & np.isfinite(v2d) & np.isfinite(theta2d) & np.isfinite(sal2d)
-            valid_seed_layer &= np.isfinite(speed2d) & (speed2d >= float(args.min_speed_mps))
-            valid_seed_layer &= sampled_model_depth >= seed_depth_m + DEFAULT_WATER_COLUMN_CLEARANCE_M
-
-            if not np.any(valid_seed_layer):
+        for bucket, bucket_target in zip(seed_buckets, bucket_targets):
+            bucket_key = str(bucket["key"])
+            valid_seed_mask = water_mask_2d.copy()
+            valid_seed_mask &= sampled_model_depth >= float(bucket["min_total_depth_m"])
+            bucket_valid_masks[bucket_key] = valid_seed_mask.copy()
+            bucket_valid_sector_counts[bucket_key] = mask_sector_counts(valid_seed_mask, x_grid, y_grid)
+            if not np.any(valid_seed_mask):
                 continue
 
-            seed_depth_levels.append(seed_depth_m)
-            retained_speed_samples.append(speed2d[valid_seed_layer].astype(np.float32))
-            retained_theta_samples.append(theta2d[valid_seed_layer].astype(np.float32))
-            retained_sal_samples.append(sal2d[valid_seed_layer].astype(np.float32))
-
-            seeds = collect_seeds(
-                speed2d,
-                valid_seed_layer,
-                float(args.min_seed_speed_mps),
-                int(args.seed_target_per_depth),
+            candidate_seed_target = max(
+                int(bucket_target),
+                int(math.ceil(float(bucket["candidate_factor"]) * max(1, int(bucket_target)))),
             )
-            depth_key = str(int(round(seed_depth_m)))
-            segment_count_before = len(segment_x0)
-            flowline_count = 0
+            seeds = collect_mask_aware_poisson_disk_cells(valid_seed_mask, candidate_seed_target, rng)
 
             for seed_row, seed_col in seeds:
-                appended = append_traced_streamline(
-                    depth_axis=depth_axis,
-                    seed_depth_m=seed_depth_m,
-                    seed_row=seed_row,
-                    seed_col=seed_col,
-                    water_mask_2d=water_mask_2d,
-                    model_depth_2d=sampled_model_depth,
-                    lat_grid=lat_grid,
-                    lon_grid=lon_grid,
-                    x_grid=x_grid,
-                    y_grid=y_grid,
-                    u_volume=u_volume,
-                    v_volume=v_volume,
-                    w_volume=w_volume,
-                    theta_volume=theta_volume,
-                    sal_volume=sal_volume,
+                model_depth_here = float(sampled_model_depth[seed_row, seed_col])
+                candidate_depths = choose_seed_depth(
+                    model_depth_here,
+                    depth_fraction_range=tuple(bucket["depth_fraction_range"]),
+                    proxy_fraction=float(bucket["proxy_fraction"]),
+                    rng=rng,
+                    beta_shape=tuple(bucket["depth_beta"]),
                     clearance_m=DEFAULT_WATER_COLUMN_CLEARANCE_M,
-                    lon_step_deg=lon_step_deg,
-                    lat_step_deg=lat_step_deg,
-                    step_cells=float(args.flowline_step_cells),
-                    min_trace_speed=float(args.min_trace_speed_mps),
-                    max_steps=int(args.flowline_max_steps),
-                    segment_x0=segment_x0,
-                    segment_y0=segment_y0,
-                    segment_depth0=segment_depth0,
-                    segment_x1=segment_x1,
-                    segment_y1=segment_y1,
-                    segment_depth1=segment_depth1,
-                    segment_theta0=segment_theta0,
-                    segment_sal0=segment_sal0,
-                    segment_theta1=segment_theta1,
-                    segment_sal1=segment_sal1,
-                    segment_terminal_flag=segment_terminal_flag,
                 )
-                if appended:
-                    flowline_count += 1
+                seed_state: dict[str, float] | None = None
+                seed_depth_m = float("nan")
+                for candidate_depth in candidate_depths:
+                    state = sample_stream_state(
+                        depth_axis=depth_axis,
+                        depth_m=float(candidate_depth),
+                        row=float(seed_row),
+                        col=float(seed_col),
+                        water_mask_2d=water_mask_2d,
+                        model_depth_2d=sampled_model_depth,
+                        lat_grid=lat_grid,
+                        lon_grid=lon_grid,
+                        x_grid=x_grid,
+                        y_grid=y_grid,
+                        u_volume=u_volume,
+                        v_volume=v_volume,
+                        w_volume=w_volume,
+                        theta_volume=theta_volume,
+                        sal_volume=sal_volume,
+                        clearance_m=DEFAULT_WATER_COLUMN_CLEARANCE_M,
+                        lon_step_deg=lon_step_deg,
+                        lat_step_deg=lat_step_deg,
+                    )
+                    if state is None or float(state["speed"]) < float(bucket["min_seed_speed_mps"]):
+                        continue
+                    seed_state = state
+                    seed_depth_m = float(candidate_depth)
+                    break
 
-            flowlines_by_seed_depth[depth_key] = flowline_count
-            counts_by_seed_depth[depth_key] = len(segment_x0) - segment_count_before
-
-        adaptive_layers = {
-            str(layer["key"]): {
-                "depth": np.full(sampled_model_depth.shape, np.nan, dtype=np.float32),
-                "speed": np.full(sampled_model_depth.shape, np.nan, dtype=np.float32),
-                "theta": np.full(sampled_model_depth.shape, np.nan, dtype=np.float32),
-                "sal": np.full(sampled_model_depth.shape, np.nan, dtype=np.float32),
-            }
-            for layer in DEFAULT_ADAPTIVE_DEEP_LAYER_CONFIGS
-        }
-        deep_water_candidates = water_mask_2d & (sampled_model_depth >= DEFAULT_ADAPTIVE_DEEP_MIN_MODEL_DEPTH_M)
-
-        for seed_row, seed_col in np.argwhere(deep_water_candidates):
-            adaptive_seed_depths = compute_adaptive_deep_seed_depths(
-                float(sampled_model_depth[seed_row, seed_col]),
-                max_supported_depth_m,
-                row=int(seed_row),
-                col=int(seed_col),
-            )
-            for layer, seed_depth_m in adaptive_seed_depths:
-                state = sample_stream_state(
-                    depth_axis=depth_axis,
-                    depth_m=seed_depth_m,
-                    row=float(seed_row),
-                    col=float(seed_col),
-                    water_mask_2d=water_mask_2d,
-                    model_depth_2d=sampled_model_depth,
-                    lat_grid=lat_grid,
-                    lon_grid=lon_grid,
-                    x_grid=x_grid,
-                    y_grid=y_grid,
-                    u_volume=u_volume,
-                    v_volume=v_volume,
-                    w_volume=w_volume,
-                    theta_volume=theta_volume,
-                    sal_volume=sal_volume,
-                    clearance_m=DEFAULT_WATER_COLUMN_CLEARANCE_M,
-                    lon_step_deg=lon_step_deg,
-                    lat_step_deg=lat_step_deg,
-                )
-                if state is None or state["speed"] < float(layer["min_speed_mps"]):
+                if seed_state is None:
                     continue
-                store = adaptive_layers[str(layer["key"])]
-                store["depth"][seed_row, seed_col] = state["depth"]
-                store["speed"][seed_row, seed_col] = state["speed"]
-                store["theta"][seed_row, seed_col] = state["theta"]
-                store["sal"][seed_row, seed_col] = state["sal"]
 
-        for layer in DEFAULT_ADAPTIVE_DEEP_LAYER_CONFIGS:
-            depth_key = str(layer["key"])
-            store = adaptive_layers[depth_key]
-            valid_adaptive_seed_layer = (
-                np.isfinite(store["depth"])
-                & np.isfinite(store["speed"])
-                & np.isfinite(store["theta"])
-                & np.isfinite(store["sal"])
-            )
-            if not np.any(valid_adaptive_seed_layer):
-                continue
-
-            retained_speed_samples.append(store["speed"][valid_adaptive_seed_layer].astype(np.float32))
-            retained_theta_samples.append(store["theta"][valid_adaptive_seed_layer].astype(np.float32))
-            retained_sal_samples.append(store["sal"][valid_adaptive_seed_layer].astype(np.float32))
-
-            seeds = collect_seeds(
-                store["speed"],
-                valid_adaptive_seed_layer,
-                float(layer["min_seed_speed_mps"]),
-                int(layer["seed_target"]),
-            )
-            segment_count_before = len(segment_x0)
-            flowline_count = 0
-
-            for seed_row, seed_col in seeds:
-                seed_depth_m = float(store["depth"][seed_row, seed_col])
-                appended = append_traced_streamline(
+                streamline = build_traced_streamline(
                     depth_axis=depth_axis,
                     seed_depth_m=seed_depth_m,
-                    seed_row=seed_row,
-                    seed_col=seed_col,
+                    seed_row=int(seed_row),
+                    seed_col=int(seed_col),
+                    seed_state=seed_state,
                     water_mask_2d=water_mask_2d,
                     model_depth_2d=sampled_model_depth,
                     lat_grid=lat_grid,
@@ -886,28 +1230,63 @@ def main() -> None:
                     lon_step_deg=lon_step_deg,
                     lat_step_deg=lat_step_deg,
                     step_cells=float(args.flowline_step_cells),
-                    min_trace_speed=float(layer["min_trace_speed_mps"]),
+                    min_trace_speed=float(bucket["min_trace_speed_mps"]),
                     max_steps=int(args.flowline_max_steps),
-                    segment_x0=segment_x0,
-                    segment_y0=segment_y0,
-                    segment_depth0=segment_depth0,
-                    segment_x1=segment_x1,
-                    segment_y1=segment_y1,
-                    segment_depth1=segment_depth1,
-                    segment_theta0=segment_theta0,
-                    segment_sal0=segment_sal0,
-                    segment_theta1=segment_theta1,
-                    segment_sal1=segment_sal1,
-                    segment_terminal_flag=segment_terminal_flag,
+                    min_segment_count=int(bucket["min_streamline_segments"]),
+                    min_unique_xy_cells=int(bucket["min_unique_xy_cells"]),
+                    min_net_displacement_cells=float(bucket["min_net_displacement_cells"]),
                 )
-                if appended:
-                    flowline_count += 1
+                if streamline is None:
+                    continue
 
-            flowlines_by_seed_depth[depth_key] = flowline_count
-            counts_by_seed_depth[depth_key] = len(segment_x0) - segment_count_before
+                streamline["bucket_key"] = bucket_key
+                streamline["bucket_label"] = bucket_labels[bucket_key]
+                streamline["selection_rank_secondary"] = float(rng.random())
+                bucket_streamlines[bucket_key].append(streamline)
 
-    if not segment_x0:
+        selected_streamlines: list[dict[str, Any]] = []
+        retained_depths_by_global_bin: dict[tuple[int, int], list[float]] = {}
+        retained_sector_counts = [0 for _ in range(DEFAULT_SECTOR_COUNT)]
+
+        for bucket, bucket_target in zip(seed_buckets, bucket_targets):
+            bucket_key = str(bucket["key"])
+            selection_bin_size = compute_spatial_bin_size(bucket_valid_masks.get(bucket_key, water_mask_2d), int(bucket_target))
+            sector_targets = compute_weighted_targets(bucket_valid_sector_counts.get(bucket_key, []), int(bucket_target))
+            selected_bucket, _ = select_streamlines_spatially_by_sector_targets(
+                bucket_streamlines[bucket_key],
+                target_count=int(bucket_target),
+                sector_targets=sector_targets,
+                selection_bin_size=selection_bin_size,
+                depth_bin_size=selection_bin_size,
+                retained_depths_by_bin=retained_depths_by_global_bin,
+                retained_sector_counts=retained_sector_counts,
+                rng=rng,
+            )
+            selected_streamlines.extend(selected_bucket)
+
+    if not selected_streamlines:
         raise RuntimeError("No valid Greenland 3D ocean streamlines were retained.")
+
+    counts_by_seed_bucket: dict[str, int] = {str(bucket["key"]): 0 for bucket in GREENLAND_LAYER_BUCKETS}
+    flowlines_by_seed_bucket: dict[str, int] = {str(bucket["key"]): 0 for bucket in GREENLAND_LAYER_BUCKETS}
+    for streamline in selected_streamlines:
+        bucket_key = str(streamline["bucket_key"])
+        flowlines_by_seed_bucket[bucket_key] += 1
+        counts_by_seed_bucket[bucket_key] += int(streamline["segment_count"])
+        append_streamline_segments(
+            streamline,
+            segment_x0=segment_x0,
+            segment_y0=segment_y0,
+            segment_depth0=segment_depth0,
+            segment_x1=segment_x1,
+            segment_y1=segment_y1,
+            segment_depth1=segment_depth1,
+            segment_theta0=segment_theta0,
+            segment_sal0=segment_sal0,
+            segment_theta1=segment_theta1,
+            segment_sal1=segment_sal1,
+            segment_terminal_flag=segment_terminal_flag,
+        )
 
     x0_all = np.asarray(segment_x0, dtype=np.float32)
     y0_all = np.asarray(segment_y0, dtype=np.float32)
@@ -921,11 +1300,12 @@ def main() -> None:
     sal1_all = np.asarray(segment_sal1, dtype=np.float32)
     terminal_all = np.asarray(segment_terminal_flag, dtype=np.uint8)
 
-    speed_all = np.concatenate(retained_speed_samples) if retained_speed_samples else np.array([0], dtype=np.float32)
-    theta_all = np.concatenate(retained_theta_samples) if retained_theta_samples else np.array([0], dtype=np.float32)
-    sal_all = np.concatenate(retained_sal_samples) if retained_sal_samples else np.array([0], dtype=np.float32)
+    speed_all = np.concatenate([np.asarray(streamline["speed"], dtype=np.float32) for streamline in selected_streamlines])
+    theta_all = np.concatenate([np.asarray(streamline["theta"], dtype=np.float32) for streamline in selected_streamlines])
+    sal_all = np.concatenate([np.asarray(streamline["sal"], dtype=np.float32) for streamline in selected_streamlines])
+    seed_depth_all = np.asarray([float(streamline["seed_depth_m"]) for streamline in selected_streamlines], dtype=np.float32)
 
-    streamline_count = int(sum(flowlines_by_seed_depth.values()))
+    streamline_count = int(sum(flowlines_by_seed_bucket.values()))
     segment_count = int(x0_all.size)
     basename = build_default_basename(source_time_iso)
     out_bin = output_dir / f"{basename}.bin"
@@ -973,32 +1353,51 @@ def main() -> None:
         "geometry_type": "streamlines_3d",
         "sampling": {
             "sample_stride": int(args.sample_stride),
-            "seed_depths_m": [float(depth) for depth in seed_depth_levels],
-            "min_speed_mps": float(args.min_speed_mps),
-            "min_seed_speed_mps": float(args.min_seed_speed_mps),
-            "min_trace_speed_mps": float(args.min_trace_speed_mps),
+            "streamline_class": "greenland_open_ocean",
+            "streamline_class_label": "Greenland ocean domain clipped to the BedMachine Greenland ocean mask",
+            "seed_strategy": "uniform_spatial_scattered",
+            "depth_sampling_summary": "Mask-aware Poisson-disk seeding across the Greenland ocean domain, with four vertically stratified seed layers (surface, upper, mid, lower) and sector-proportional spatial selection.",
+            "min_speed_mps": float(min(float(bucket["min_speed_mps"]) for bucket in seed_buckets)),
+            "min_seed_speed_mps": float(min(float(bucket["min_seed_speed_mps"]) for bucket in seed_buckets)),
+            "min_trace_speed_mps": float(min(float(bucket["min_trace_speed_mps"]) for bucket in seed_buckets)),
             "flowline_step_cells": float(args.flowline_step_cells),
             "flowline_max_steps": int(args.flowline_max_steps),
-            "seed_target_per_depth": int(args.seed_target_per_depth),
+            "target_streamline_count": int(args.target_streamlines),
+            "min_streamline_segments": int(min(int(bucket["min_streamline_segments"]) for bucket in seed_buckets)),
+            "random_seed": int(args.random_seed),
             "bedmachine_margin_m": float(args.margin_m),
-            "adaptive_deep_seeding": {
-                "enabled": True,
-                "min_model_depth_m": DEFAULT_ADAPTIVE_DEEP_MIN_MODEL_DEPTH_M,
-                "layers": [
-                    {
-                        "key": str(layer["key"]),
-                        "base_fraction": float(layer["base_fraction"]),
-                        "fraction_jitter": float(layer["fraction_jitter"]),
-                        "min_seed_depth_m": float(layer["min_seed_depth_m"]),
-                        "bottom_offset_m": float(layer["bottom_offset_m"]),
-                        "seed_target": int(layer["seed_target"]),
-                        "min_speed_mps": float(layer["min_speed_mps"]),
-                        "min_seed_speed_mps": float(layer["min_seed_speed_mps"]),
-                        "min_trace_speed_mps": float(layer["min_trace_speed_mps"]),
-                    }
-                    for layer in DEFAULT_ADAPTIVE_DEEP_LAYER_CONFIGS
-                ],
+            "clearance_m": float(DEFAULT_WATER_COLUMN_CLEARANCE_M),
+            "selection_strategy": "sector_proportional_spatial_round_robin",
+            "selection_sector_targets": "valid_seed_area",
+            "vertical_seed_separation_m": float(DEFAULT_VERTICAL_SEED_SEPARATION_M),
+            "region_definition": {
+                "type": "bedmachine_greenland_ocean_mask",
+                "bedmachine_margin_m": float(args.margin_m),
             },
+            "seed_bucket_labels": bucket_labels,
+            "seed_buckets": [
+                {
+                    "key": str(bucket["key"]),
+                    "label": str(bucket["label"]),
+                    "retain_fraction": float(bucket["retain_fraction"]),
+                    "candidate_factor": float(bucket["candidate_factor"]),
+                    "min_total_depth_m": float(bucket["min_total_depth_m"]),
+                    "depth_fraction_range": [float(value) for value in bucket["depth_fraction_range"]],
+                    "proxy_fraction": float(bucket["proxy_fraction"]),
+                    "depth_beta": [float(value) for value in bucket["depth_beta"]],
+                    "seed_layout_mode": "mask_aware_poisson_disk",
+                    "seed_weight_mode": "uniform",
+                    "seed_depth_mode": "first_valid_with_proxy_fallback",
+                    "selection_rank_mode": "segment_random",
+                    "min_speed_mps": float(bucket["min_speed_mps"]),
+                    "min_seed_speed_mps": float(bucket["min_seed_speed_mps"]),
+                    "min_trace_speed_mps": float(bucket["min_trace_speed_mps"]),
+                    "min_streamline_segments": int(bucket["min_streamline_segments"]),
+                    "min_unique_xy_cells": int(bucket["min_unique_xy_cells"]),
+                    "min_net_displacement_cells": float(bucket["min_net_displacement_cells"]),
+                }
+                for bucket in seed_buckets
+            ],
         },
         "streamline_count": streamline_count,
         "segment_count": segment_count,
@@ -1009,8 +1408,12 @@ def main() -> None:
             "y_max_m": float(np.max(y_bounds)),
             "depth_min_m": float(np.min(depth_bounds)),
             "depth_max_m": float(np.max(depth_bounds)),
-            "segments_by_seed_depth": counts_by_seed_depth,
-            "streamlines_by_seed_depth": flowlines_by_seed_depth,
+            "seed_depth_min_m": float(np.min(seed_depth_all)),
+            "seed_depth_max_m": float(np.max(seed_depth_all)),
+            "valid_seed_sector_counts_8": mask_sector_counts(water_mask_2d, x_grid, y_grid, DEFAULT_SECTOR_COUNT),
+            "retained_seed_sector_counts_8": retained_seed_sector_counts(selected_streamlines, DEFAULT_SECTOR_COUNT),
+            "segments_by_seed_bucket": counts_by_seed_bucket,
+            "streamlines_by_seed_bucket": flowlines_by_seed_bucket,
         },
         "visualization": {
             "temperature_range_c": percentile_range(theta_all, 5, 95),
@@ -1037,8 +1440,8 @@ def main() -> None:
     }
     out_meta.write_text(json.dumps(meta, indent=2), encoding="utf-8")
     print(
-        f"Kept {streamline_count} 3D streamlines / {segment_count} segments across seed depths "
-        f"{[float(depth) for depth in seed_depth_levels]}"
+        f"Kept {streamline_count} Greenland 3D streamlines / {segment_count} segments across "
+        f"{', '.join(str(bucket['key']) for bucket in seed_buckets)}"
     )
 
 

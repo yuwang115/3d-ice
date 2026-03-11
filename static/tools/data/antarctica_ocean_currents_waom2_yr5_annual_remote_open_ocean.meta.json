@@ -1,0 +1,320 @@
+{
+  "title": "Whole Antarctic and Ocean Application, 2 km resolution",
+  "product_version": "WAOM2",
+  "source_file": "ocean_avg_yr5_annual.nc",
+  "source_reference": "https://gmd.copernicus.org/articles/15/723/2022/",
+  "source_time_utc": "2011-07-04T15:00:00Z",
+  "source_time_label": "Year 5 annual mean",
+  "projection": "EPSG:3031",
+  "geometry_type": "streamlines_3d",
+  "sampling": {
+    "sample_stride": 1,
+    "streamline_class": "remote_open_ocean",
+    "streamline_class_label": "Remote open ocean beyond the ice-shelf cavity + 80 km coastal band",
+    "seed_strategy": "uniform_spatial_scattered",
+    "depth_sampling_summary": "Mask-aware Poisson-disk seeding across remote open-ocean cells outside the cavity + 80 km coastal band, with four vertically stratified seed layers (surface, upper, mid, lower) and sector-proportional spatial selection.",
+    "min_speed_mps": 0.0,
+    "min_seed_speed_mps": 0.0,
+    "min_trace_speed_mps": 0.001,
+    "flowline_step_cells": 1.2,
+    "flowline_max_steps": 150,
+    "target_streamline_count": 10000,
+    "min_streamline_segments": 5,
+    "random_seed": 115,
+    "source_grid_dx_m": 2000.0,
+    "source_grid_dy_m": 2000.0,
+    "source_grid_x0_m": -3000000.0,
+    "source_grid_y0_m": -3000000.0,
+    "clearance_m": 20.0,
+    "velocity_vertical_mapping": "native_u_v_to_rho_depths",
+    "selection_strategy": "sector_proportional_spatial_round_robin",
+    "selection_bin_size_cells_global": 12,
+    "vertical_seed_separation_m": 120.0,
+    "front_radius_cells": 2,
+    "region_definition": {
+      "type": "remote_open_ocean",
+      "excluded_radius_m": 80000.0,
+      "remote_open_ocean_cell_count": 4952360,
+      "excluded_cavity_margin_cell_count": 831331
+    },
+    "anti_zigzag": {
+      "state_depth_band_m": 100.0,
+      "revisit_window_steps": 6,
+      "reversal_window_steps": 5,
+      "reversal_angle_deg": 150.0,
+      "min_unique_xy_cells": 4,
+      "min_net_displacement_cells": 1.0
+    },
+    "seed_bucket_labels": {
+      "remote_surface": "Remote open ocean surface layer",
+      "remote_upper": "Remote open ocean upper layer",
+      "remote_mid": "Remote open ocean mid-water layer",
+      "remote_lower": "Remote open ocean lower layer"
+    },
+    "seed_buckets": [
+      {
+        "key": "remote_surface",
+        "label": "Remote open ocean surface layer",
+        "mask_name": "remote_open_ocean",
+        "retain_fraction": 0.25,
+        "candidate_factor": 1.35,
+        "min_total_depth_m": 60.0,
+        "depth_fraction_range": [
+          0.03,
+          0.18
+        ],
+        "proxy_fraction": 0.1,
+        "min_seed_speed_mps": 0.0,
+        "min_proxy_speed_mps": 0.0,
+        "min_trace_speed_mps": 0.001,
+        "seed_layout_mode": "mask_aware_poisson_disk",
+        "seed_weight_mode": "uniform",
+        "seed_depth_mode": "first_valid_with_proxy_fallback",
+        "selection_rank_mode": "segment_random",
+        "min_streamline_segments": 5,
+        "min_unique_xy_cells": 4,
+        "min_net_displacement_cells": 1.0
+      },
+      {
+        "key": "remote_upper",
+        "label": "Remote open ocean upper layer",
+        "mask_name": "remote_open_ocean",
+        "retain_fraction": 0.25,
+        "candidate_factor": 1.35,
+        "min_total_depth_m": 80.0,
+        "depth_fraction_range": [
+          0.18,
+          0.4
+        ],
+        "proxy_fraction": 0.3,
+        "min_seed_speed_mps": 0.0,
+        "min_proxy_speed_mps": 0.0,
+        "min_trace_speed_mps": 0.001,
+        "seed_layout_mode": "mask_aware_poisson_disk",
+        "seed_weight_mode": "uniform",
+        "seed_depth_mode": "first_valid_with_proxy_fallback",
+        "selection_rank_mode": "segment_random",
+        "min_streamline_segments": 5,
+        "min_unique_xy_cells": 4,
+        "min_net_displacement_cells": 1.0
+      },
+      {
+        "key": "remote_mid",
+        "label": "Remote open ocean mid-water layer",
+        "mask_name": "remote_open_ocean",
+        "retain_fraction": 0.25,
+        "candidate_factor": 1.35,
+        "min_total_depth_m": 120.0,
+        "depth_fraction_range": [
+          0.4,
+          0.7
+        ],
+        "proxy_fraction": 0.55,
+        "min_seed_speed_mps": 0.0,
+        "min_proxy_speed_mps": 0.0,
+        "min_trace_speed_mps": 0.001,
+        "seed_layout_mode": "mask_aware_poisson_disk",
+        "seed_weight_mode": "uniform",
+        "seed_depth_mode": "first_valid_with_proxy_fallback",
+        "selection_rank_mode": "segment_random",
+        "min_streamline_segments": 5,
+        "min_unique_xy_cells": 4,
+        "min_net_displacement_cells": 1.0
+      },
+      {
+        "key": "remote_lower",
+        "label": "Remote open ocean lower layer",
+        "mask_name": "remote_open_ocean",
+        "retain_fraction": 0.25,
+        "candidate_factor": 1.35,
+        "min_total_depth_m": 180.0,
+        "depth_fraction_range": [
+          0.7,
+          0.95
+        ],
+        "proxy_fraction": 0.82,
+        "min_seed_speed_mps": 0.0,
+        "min_proxy_speed_mps": 0.0,
+        "min_trace_speed_mps": 0.001,
+        "seed_layout_mode": "mask_aware_poisson_disk",
+        "seed_weight_mode": "uniform",
+        "seed_depth_mode": "first_valid_with_proxy_fallback",
+        "selection_rank_mode": "segment_random",
+        "min_streamline_segments": 5,
+        "min_unique_xy_cells": 4,
+        "min_net_displacement_cells": 1.0
+      }
+    ]
+  },
+  "streamline_count": 10000,
+  "segment_count": 1264440,
+  "coverage": {
+    "x_min_m": -3000999.5,
+    "x_max_m": 3298998.75,
+    "y_min_m": -3000994.5,
+    "y_max_m": 2598998.0,
+    "depth_min_m": 21.469501495361328,
+    "depth_max_m": 5343.3427734375,
+    "seed_depth_min_m": 21.508247765308646,
+    "seed_depth_max_m": 5198.923954745584,
+    "valid_seed_sector_counts_8": [
+      2559482,
+      1206292,
+      1969567,
+      2489858,
+      3055703,
+      3588141,
+      2448626,
+      2470163
+    ],
+    "retained_seed_sector_counts_8": [
+      1293,
+      612,
+      996,
+      1257,
+      1544,
+      1812,
+      1238,
+      1248
+    ],
+    "segments_by_seed_bucket": {
+      "remote_surface": 387299,
+      "remote_upper": 370819,
+      "remote_mid": 305211,
+      "remote_lower": 201111
+    },
+    "streamlines_by_seed_bucket": {
+      "remote_surface": 2500,
+      "remote_upper": 2500,
+      "remote_mid": 2500,
+      "remote_lower": 2500
+    },
+    "seed_depth_stats_by_bucket": {
+      "remote_surface": {
+        "min_m": 21.50824737548828,
+        "max_m": 957.073974609375,
+        "mean_m": 381.4673156738281
+      },
+      "remote_upper": {
+        "min_m": 26.593427658081055,
+        "max_m": 2145.722412109375,
+        "mean_m": 1072.3546142578125
+      },
+      "remote_mid": {
+        "min_m": 80.73643493652344,
+        "max_m": 3719.318603515625,
+        "mean_m": 2023.5936279296875
+      },
+      "remote_lower": {
+        "min_m": 152.73760986328125,
+        "max_m": 5198.923828125,
+        "mean_m": 3015.952880859375
+      }
+    }
+  },
+  "visualization": {
+    "temperature_range_c": [
+      -0.63010573387146,
+      2.2596367835998503
+    ],
+    "salinity_range_psu": [
+      34.42127990722656,
+      34.71394729614258
+    ]
+  },
+  "fields": [
+    {
+      "name": "x0_ps_m",
+      "dtype": "float32",
+      "byte_offset": 0,
+      "byte_length": 5057760
+    },
+    {
+      "name": "y0_ps_m",
+      "dtype": "float32",
+      "byte_offset": 5057760,
+      "byte_length": 5057760
+    },
+    {
+      "name": "depth0_m",
+      "dtype": "float32",
+      "byte_offset": 10115520,
+      "byte_length": 5057760
+    },
+    {
+      "name": "x1_ps_m",
+      "dtype": "float32",
+      "byte_offset": 15173280,
+      "byte_length": 5057760
+    },
+    {
+      "name": "y1_ps_m",
+      "dtype": "float32",
+      "byte_offset": 20231040,
+      "byte_length": 5057760
+    },
+    {
+      "name": "depth1_m",
+      "dtype": "float32",
+      "byte_offset": 25288800,
+      "byte_length": 5057760
+    },
+    {
+      "name": "theta0_c",
+      "dtype": "float32",
+      "byte_offset": 30346560,
+      "byte_length": 5057760
+    },
+    {
+      "name": "sal0_psu",
+      "dtype": "float32",
+      "byte_offset": 35404320,
+      "byte_length": 5057760
+    },
+    {
+      "name": "theta1_c",
+      "dtype": "float32",
+      "byte_offset": 40462080,
+      "byte_length": 5057760
+    },
+    {
+      "name": "sal1_psu",
+      "dtype": "float32",
+      "byte_offset": 45519840,
+      "byte_length": 5057760
+    },
+    {
+      "name": "terminal_flag",
+      "dtype": "uint8",
+      "byte_offset": 50577600,
+      "byte_length": 1264440
+    },
+    {
+      "name": "speed_mps",
+      "unit": "m/s",
+      "stats": {
+        "min": 0.0010059612104669213,
+        "max": 0.5445161461830139,
+        "mean": 0.02861044369637966
+      }
+    },
+    {
+      "name": "theta_c_summary",
+      "unit": "degC",
+      "stats": {
+        "min": -2.299990653991699,
+        "max": 6.96315336227417,
+        "mean": 0.6080646514892578
+      }
+    },
+    {
+      "name": "sal_psu_summary",
+      "unit": "psu",
+      "stats": {
+        "min": 34.040225982666016,
+        "max": 34.74884033203125,
+        "mean": 34.65037536621094
+      }
+    }
+  ]
+}

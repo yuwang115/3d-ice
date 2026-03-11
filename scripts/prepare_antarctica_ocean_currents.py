@@ -26,10 +26,12 @@ DEFAULT_WATER_COLUMN_CLEARANCE_M = 20.0
 DEFAULT_FLOWLINE_STEP_CELLS = 1.2
 DEFAULT_FLOWLINE_MAX_STEPS = 150
 DEFAULT_TARGET_STREAMLINES = 4200
+DEFAULT_CAVITY_MARGIN_TARGET_STREAMLINES = 5000
 DEFAULT_MIN_STREAMLINE_SEGMENTS = 5
 DEFAULT_RANDOM_SEED = 115
 DEFAULT_SEED_DEPTH_ATTEMPTS = 6
 DEFAULT_FRONT_RADIUS_CELLS = 2
+DEFAULT_CAVITY_MARGIN_RADIUS_M = 80_000.0
 DEFAULT_STATE_DEPTH_BAND_M = 100.0
 DEFAULT_REVISIT_WINDOW_STEPS = 6
 DEFAULT_REVERSAL_WINDOW_STEPS = 5
@@ -40,8 +42,9 @@ DEFAULT_VERTICAL_SEED_SEPARATION_M = 120.0
 DEFAULT_SPATIAL_BIN_SIZE_MIN = 6
 DEFAULT_SPATIAL_BIN_SIZE_MAX = 12
 DEFAULT_SECTOR_COUNT = 8
+DEFAULT_STREAMLINE_CLASS = "legacy_multi_bucket"
 FRONT_BUCKET_KEYS = frozenset({"cavity_front", "open_front"})
-SEED_BUCKETS = (
+LEGACY_SEED_BUCKETS = (
     {
         "key": "cavity_front",
         "label": "Ice-shelf front cavity exchange",
@@ -111,9 +114,20 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--input", required=True, help="Path to the WAOM2 annual-mean NetCDF file.")
     parser.add_argument(
+        "--streamline-class",
+        choices=("legacy_multi_bucket", "cavity_margin_50km", "cavity_margin_80km", "remote_open_ocean"),
+        default=DEFAULT_STREAMLINE_CLASS,
+        help="Streamline domain/class to export. Only cavity_margin_50km and cavity_margin_80km are implemented in the new two-class workflow.",
+    )
+    parser.add_argument(
         "--output-dir",
         default="static/tools/data",
         help="Directory for output .bin/.meta.json files.",
+    )
+    parser.add_argument(
+        "--output-basename",
+        default="",
+        help="Optional basename for the output .bin/.meta.json pair.",
     )
     parser.add_argument(
         "--bedmachine-meta",
@@ -176,8 +190,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--target-streamlines",
         type=int,
-        default=DEFAULT_TARGET_STREAMLINES,
-        help="Approximate number of Antarctica streamlines to retain after filtering.",
+        default=None,
+        help="Approximate number of Antarctica streamlines to retain after filtering. Defaults depend on the selected streamline class.",
     )
     parser.add_argument(
         "--min-streamline-segments",
@@ -239,6 +253,64 @@ def build_default_basename(source_name: str) -> str:
     return f"antarctica_ocean_currents_waom2{year_suffix}{annual_suffix}"
 
 
+def build_output_basename(source_name: str, streamline_class: str) -> str:
+    base = build_default_basename(source_name)
+    if streamline_class == "cavity_margin_50km":
+        return f"{base}_cavity_margin50km"
+    if streamline_class == "cavity_margin_80km":
+        return f"{base}_cavity_margin80km"
+    if streamline_class == "remote_open_ocean":
+        return f"{base}_remote_open_ocean"
+    return base
+
+
+def extract_connected_component(mask: np.ndarray, seed_row: int, seed_col: int) -> np.ndarray:
+    component = np.zeros_like(mask, dtype=bool)
+    if seed_row < 0 or seed_col < 0 or seed_row >= mask.shape[0] or seed_col >= mask.shape[1]:
+        return component
+    if not bool(mask[seed_row, seed_col]):
+        return component
+
+    queue: deque[tuple[int, int]] = deque([(int(seed_row), int(seed_col))])
+    component[seed_row, seed_col] = True
+    ny, nx = mask.shape
+
+    while queue:
+        row, col = queue.popleft()
+        row_start = max(0, row - 1)
+        row_end = min(ny, row + 2)
+        col_start = max(0, col - 1)
+        col_end = min(nx, col + 2)
+        for next_row in range(row_start, row_end):
+            component_row = component[next_row]
+            mask_row = mask[next_row]
+            for next_col in range(col_start, col_end):
+                if component_row[next_col] or not mask_row[next_col]:
+                    continue
+                component_row[next_col] = True
+                queue.append((next_row, next_col))
+
+    return component
+
+
+def build_main_antarctic_ice_mask(bed_mask: np.ndarray, bed_grid: dict[str, Any]) -> np.ndarray:
+    ice_mask = np.asarray(bed_mask != 0, dtype=bool)
+    if not np.any(ice_mask):
+        raise RuntimeError("BedMachine mask does not contain any Antarctic ice/land cells.")
+
+    x_coords = float(bed_grid["x0_m"]) + np.arange(ice_mask.shape[1], dtype=np.float64) * float(bed_grid["dx_m"])
+    y_coords = float(bed_grid["y0_m"]) + np.arange(ice_mask.shape[0], dtype=np.float64) * float(bed_grid["dy_m"])
+    distance_sq = y_coords[:, None] ** 2 + x_coords[None, :] ** 2
+    distance_sq[~ice_mask] = np.inf
+    seed_index = int(np.argmin(distance_sq))
+    seed_row, seed_col = divmod(seed_index, ice_mask.shape[1])
+
+    main_component = extract_connected_component(ice_mask, seed_row, seed_col)
+    if not np.any(main_component):
+        raise RuntimeError("Failed to isolate the main Antarctic ice component from BedMachine.")
+    return main_component
+
+
 def percentile_range(values: np.ndarray, lo: float, hi: float) -> list[float]:
     finite = values[np.isfinite(values)]
     if finite.size == 0:
@@ -262,7 +334,7 @@ def stats_dict(values: np.ndarray) -> dict[str, float]:
 
 def collect_random_spatial_cells(
     valid2d: np.ndarray,
-    weight2d: np.ndarray,
+    weight2d: np.ndarray | None,
     target_count: int,
     rng: np.random.Generator,
 ) -> list[tuple[int, int]]:
@@ -288,11 +360,14 @@ def collect_random_spatial_cells(
                 block_rows, block_cols = np.nonzero(block_mask)
                 rows = block_rows + row_block
                 cols = block_cols + col_block
-                weights = weight2d[rows, cols].astype(np.float64, copy=False)
-                weights = np.where(np.isfinite(weights) & (weights > 0), weights, 0.0)
-                if float(np.sum(weights)) > 0:
-                    weights = np.power(weights, 1.5)
-                    choice = int(rng.choice(rows.size, p=weights / float(np.sum(weights))))
+                if weight2d is not None:
+                    weights = weight2d[rows, cols].astype(np.float64, copy=False)
+                    weights = np.where(np.isfinite(weights) & (weights > 0), weights, 0.0)
+                    if float(np.sum(weights)) > 0:
+                        weights = np.power(weights, 1.5)
+                        choice = int(rng.choice(rows.size, p=weights / float(np.sum(weights))))
+                    else:
+                        choice = int(rng.integers(0, rows.size))
                 else:
                     choice = int(rng.integers(0, rows.size))
                 selected = (int(rows[choice]), int(cols[choice]))
@@ -316,6 +391,80 @@ def collect_random_spatial_cells(
         if len(seeds) >= target_count:
             break
     return seeds
+
+
+def collect_mask_aware_poisson_disk_cells(
+    valid2d: np.ndarray,
+    target_count: int,
+    rng: np.random.Generator,
+    *,
+    search_iterations: int = 14,
+) -> list[tuple[int, int]]:
+    valid_rows, valid_cols = np.nonzero(valid2d)
+    valid_count = int(valid_rows.size)
+    if valid_count == 0 or target_count <= 0:
+        return []
+    if valid_count <= target_count:
+        order = rng.permutation(valid_count)
+        return [(int(valid_rows[index]), int(valid_cols[index])) for index in order.tolist()]
+
+    order = rng.permutation(valid_count)
+    rows = valid_rows[order].astype(np.int32, copy=False)
+    cols = valid_cols[order].astype(np.int32, copy=False)
+
+    def greedy(radius_cells: float, *, stop_at_target: bool) -> list[tuple[int, int]] | None:
+        if radius_cells <= 1e-6:
+            limit = min(target_count, valid_count) if stop_at_target else valid_count
+            return [(int(rows[index]), int(cols[index])) for index in range(limit)]
+
+        bin_size = max(1.0, float(radius_cells))
+        radius_sq = float(radius_cells) * float(radius_cells)
+        bins: dict[tuple[int, int], list[tuple[int, int]]] = {}
+        accepted: list[tuple[int, int]] = []
+
+        for row, col in zip(rows.tolist(), cols.tolist()):
+            bin_row = int(math.floor(float(row) / bin_size))
+            bin_col = int(math.floor(float(col) / bin_size))
+            allowed = True
+            for neighbor_row in range(bin_row - 1, bin_row + 2):
+                for neighbor_col in range(bin_col - 1, bin_col + 2):
+                    for other_row, other_col in bins.get((neighbor_row, neighbor_col), []):
+                        drow = float(row - other_row)
+                        dcol = float(col - other_col)
+                        if drow * drow + dcol * dcol < radius_sq:
+                            allowed = False
+                            break
+                    if not allowed:
+                        break
+                if not allowed:
+                    break
+            if not allowed:
+                continue
+
+            accepted.append((int(row), int(col)))
+            bins.setdefault((bin_row, bin_col), []).append((int(row), int(col)))
+            if stop_at_target and len(accepted) >= target_count:
+                return accepted
+
+        return accepted
+
+    low_radius = 0.0
+    high_radius = float(max(valid2d.shape))
+    best_radius = 0.0
+
+    for _ in range(max(4, int(search_iterations))):
+        trial_radius = 0.5 * (low_radius + high_radius)
+        accepted = greedy(trial_radius, stop_at_target=True)
+        if accepted is not None and len(accepted) >= target_count:
+            best_radius = trial_radius
+            low_radius = trial_radius
+        else:
+            high_radius = trial_radius
+
+    final_seeds = greedy(best_radius, stop_at_target=True)
+    if final_seeds is None:
+        return []
+    return final_seeds[:target_count]
 
 
 def expand_mask_8_connected(mask: np.ndarray, radius_cells: int) -> np.ndarray:
@@ -342,6 +491,313 @@ def build_seed_masks(open_water_mask: np.ndarray, cavity_water_mask: np.ndarray)
     }
 
 
+def build_cavity_margin_mask(
+    open_water_mask: np.ndarray,
+    cavity_water_mask: np.ndarray,
+    *,
+    sample_dx_m: float,
+    sample_dy_m: float,
+    radius_m: float,
+) -> np.ndarray:
+    cell_size_m = max(1.0, min(float(sample_dx_m), float(sample_dy_m)))
+    radius_cells = max(0, int(math.ceil(float(radius_m) / cell_size_m)))
+    if radius_cells <= 0:
+        return np.asarray(cavity_water_mask, dtype=bool).copy()
+    coastal_open_mask = np.asarray(open_water_mask, dtype=bool) & expand_mask_8_connected(
+        np.asarray(cavity_water_mask, dtype=bool),
+        radius_cells,
+    )
+    return np.asarray(cavity_water_mask, dtype=bool) | coastal_open_mask
+
+
+def resolve_target_streamlines(args: argparse.Namespace) -> int:
+    if args.target_streamlines is not None:
+        return max(1, int(args.target_streamlines))
+    if str(args.streamline_class) in {"cavity_margin_50km", "cavity_margin_80km"}:
+        return DEFAULT_CAVITY_MARGIN_TARGET_STREAMLINES
+    return DEFAULT_TARGET_STREAMLINES
+
+
+def build_streamline_class_definition(
+    streamline_class: str,
+    *,
+    open_water_mask: np.ndarray,
+    cavity_water_mask: np.ndarray,
+    sample_dx_m: float,
+    sample_dy_m: float,
+) -> dict[str, Any]:
+    class_key = str(streamline_class)
+    if class_key == "legacy_multi_bucket":
+        return {
+            "key": class_key,
+            "label": "Legacy mixed cavity/open-ocean buckets",
+            "seed_strategy": "random_spatial_scattered",
+            "depth_sampling_summary": (
+                "Randomized cavity/open-ocean seeding with front-focused retention near ice-shelf margins, "
+                "sector-balanced extra fill, and vertically separated XY-bin balancing."
+            ),
+            "selection_strategy": "spatial_bin_round_robin",
+            "prefer_front_extra_fill": True,
+            "seed_masks": build_seed_masks(open_water_mask, cavity_water_mask),
+            "seed_buckets": LEGACY_SEED_BUCKETS,
+            "region_metadata": {
+                "type": "legacy_mixed_bucket_domain",
+            },
+        }
+    if class_key in {"cavity_margin_50km", "cavity_margin_80km"}:
+        radius_m = 50_000.0 if class_key == "cavity_margin_50km" else float(DEFAULT_CAVITY_MARGIN_RADIUS_M)
+        class_label = (
+            "Ice-shelf cavities and surrounding 50 km ocean"
+            if class_key == "cavity_margin_50km"
+            else "Ice-shelf cavities and surrounding 80 km ocean"
+        )
+        bucket_label = (
+            "Ice-shelf cavity and surrounding 50 km ocean"
+            if class_key == "cavity_margin_50km"
+            else "Ice-shelf cavity and surrounding 80 km ocean"
+        )
+        cavity_margin_mask = build_cavity_margin_mask(
+            open_water_mask,
+            cavity_water_mask,
+            sample_dx_m=sample_dx_m,
+            sample_dy_m=sample_dy_m,
+            radius_m=radius_m,
+        )
+        return {
+            "key": class_key,
+            "label": class_label,
+            "seed_strategy": "uniform_spatial_scattered",
+            "depth_sampling_summary": (
+                f"Uniform random spatial seeding across ice-shelf cavities and the surrounding {int(radius_m / 1000)} km open-ocean band, "
+                "with four vertically stratified seed layers (surface, upper, mid, lower) and sector-proportional spatial selection."
+            ),
+            "selection_strategy": "sector_proportional_spatial_round_robin",
+            "selection_sector_targets": "valid_seed_area",
+            "prefer_front_extra_fill": False,
+            "seed_masks": {
+                class_key: cavity_margin_mask,
+            },
+            "seed_buckets": (
+                {
+                    "key": f"{class_key}_surface",
+                    "label": f"{bucket_label} surface layer",
+                    "mask_name": class_key,
+                    "retain_fraction": 0.25,
+                    "candidate_factor": 1.4,
+                    "min_total_depth_m": 60.0,
+                    "depth_fraction_range": (0.03, 0.18),
+                    "proxy_fraction": 0.10,
+                    "depth_beta": (1.0, 1.0),
+                    "min_seed_speed_mps": 0.0,
+                    "min_proxy_speed_mps": 0.0,
+                    "min_trace_speed_mps": 0.001,
+                    "use_speed_filter_in_seed_mask": False,
+                    "seed_layout_mode": "mask_aware_poisson_disk",
+                    "seed_weight_mode": "uniform",
+                    "seed_depth_mode": "first_valid_with_proxy_fallback",
+                    "selection_rank_mode": "segment_random",
+                    "min_streamline_segments": 5,
+                    "min_unique_xy_cells": 4,
+                    "min_net_displacement_cells": 1.0,
+                },
+                {
+                    "key": f"{class_key}_upper",
+                    "label": f"{bucket_label} upper layer",
+                    "mask_name": class_key,
+                    "retain_fraction": 0.25,
+                    "candidate_factor": 1.4,
+                    "min_total_depth_m": 80.0,
+                    "depth_fraction_range": (0.18, 0.40),
+                    "proxy_fraction": 0.30,
+                    "depth_beta": (1.0, 1.0),
+                    "min_seed_speed_mps": 0.0,
+                    "min_proxy_speed_mps": 0.0,
+                    "min_trace_speed_mps": 0.001,
+                    "use_speed_filter_in_seed_mask": False,
+                    "seed_layout_mode": "mask_aware_poisson_disk",
+                    "seed_weight_mode": "uniform",
+                    "seed_depth_mode": "first_valid_with_proxy_fallback",
+                    "selection_rank_mode": "segment_random",
+                    "min_streamline_segments": 5,
+                    "min_unique_xy_cells": 4,
+                    "min_net_displacement_cells": 1.0,
+                },
+                {
+                    "key": f"{class_key}_mid",
+                    "label": f"{bucket_label} mid-water layer",
+                    "mask_name": class_key,
+                    "retain_fraction": 0.25,
+                    "candidate_factor": 1.4,
+                    "min_total_depth_m": 120.0,
+                    "depth_fraction_range": (0.40, 0.70),
+                    "proxy_fraction": 0.55,
+                    "depth_beta": (1.0, 1.0),
+                    "min_seed_speed_mps": 0.0,
+                    "min_proxy_speed_mps": 0.0,
+                    "min_trace_speed_mps": 0.001,
+                    "use_speed_filter_in_seed_mask": False,
+                    "seed_layout_mode": "mask_aware_poisson_disk",
+                    "seed_weight_mode": "uniform",
+                    "seed_depth_mode": "first_valid_with_proxy_fallback",
+                    "selection_rank_mode": "segment_random",
+                    "min_streamline_segments": 5,
+                    "min_unique_xy_cells": 4,
+                    "min_net_displacement_cells": 1.0,
+                },
+                {
+                    "key": f"{class_key}_lower",
+                    "label": f"{bucket_label} lower layer",
+                    "mask_name": class_key,
+                    "retain_fraction": 0.25,
+                    "candidate_factor": 1.4,
+                    "min_total_depth_m": 180.0,
+                    "depth_fraction_range": (0.70, 0.95),
+                    "proxy_fraction": 0.82,
+                    "depth_beta": (1.0, 1.0),
+                    "min_seed_speed_mps": 0.0,
+                    "min_proxy_speed_mps": 0.0,
+                    "min_trace_speed_mps": 0.001,
+                    "use_speed_filter_in_seed_mask": False,
+                    "seed_layout_mode": "mask_aware_poisson_disk",
+                    "seed_weight_mode": "uniform",
+                    "seed_depth_mode": "first_valid_with_proxy_fallback",
+                    "selection_rank_mode": "segment_random",
+                    "min_streamline_segments": 5,
+                    "min_unique_xy_cells": 4,
+                    "min_net_displacement_cells": 1.0,
+                },
+            ),
+            "region_metadata": {
+                "type": class_key,
+                "radius_m": float(radius_m),
+                "cavity_cell_count": int(np.count_nonzero(cavity_water_mask)),
+                "open_ocean_margin_cell_count": int(np.count_nonzero(cavity_margin_mask & open_water_mask)),
+                "total_region_cell_count": int(np.count_nonzero(cavity_margin_mask)),
+            },
+        }
+    if class_key == "remote_open_ocean":
+        exclusion_mask = build_cavity_margin_mask(
+            open_water_mask,
+            cavity_water_mask,
+            sample_dx_m=sample_dx_m,
+            sample_dy_m=sample_dy_m,
+            radius_m=float(DEFAULT_CAVITY_MARGIN_RADIUS_M),
+        )
+        remote_open_mask = np.asarray(open_water_mask, dtype=bool) & ~np.asarray(exclusion_mask, dtype=bool)
+        return {
+            "key": class_key,
+            "label": "Remote open ocean beyond the ice-shelf cavity + 80 km coastal band",
+            "seed_strategy": "uniform_spatial_scattered",
+            "depth_sampling_summary": (
+                "Mask-aware Poisson-disk seeding across remote open-ocean cells outside the cavity + 80 km coastal band, "
+                "with four vertically stratified seed layers (surface, upper, mid, lower) and sector-proportional spatial selection."
+            ),
+            "selection_strategy": "sector_proportional_spatial_round_robin",
+            "selection_sector_targets": "valid_seed_area",
+            "prefer_front_extra_fill": False,
+            "seed_masks": {
+                class_key: remote_open_mask,
+            },
+            "seed_buckets": (
+                {
+                    "key": "remote_surface",
+                    "label": "Remote open ocean surface layer",
+                    "mask_name": class_key,
+                    "retain_fraction": 0.25,
+                    "candidate_factor": 1.35,
+                    "min_total_depth_m": 60.0,
+                    "depth_fraction_range": (0.03, 0.18),
+                    "proxy_fraction": 0.10,
+                    "depth_beta": (1.0, 1.0),
+                    "min_seed_speed_mps": 0.0,
+                    "min_proxy_speed_mps": 0.0,
+                    "min_trace_speed_mps": 0.001,
+                    "use_speed_filter_in_seed_mask": False,
+                    "seed_layout_mode": "mask_aware_poisson_disk",
+                    "seed_weight_mode": "uniform",
+                    "seed_depth_mode": "first_valid_with_proxy_fallback",
+                    "selection_rank_mode": "segment_random",
+                    "min_streamline_segments": 5,
+                    "min_unique_xy_cells": 4,
+                    "min_net_displacement_cells": 1.0,
+                },
+                {
+                    "key": "remote_upper",
+                    "label": "Remote open ocean upper layer",
+                    "mask_name": class_key,
+                    "retain_fraction": 0.25,
+                    "candidate_factor": 1.35,
+                    "min_total_depth_m": 80.0,
+                    "depth_fraction_range": (0.18, 0.40),
+                    "proxy_fraction": 0.30,
+                    "depth_beta": (1.0, 1.0),
+                    "min_seed_speed_mps": 0.0,
+                    "min_proxy_speed_mps": 0.0,
+                    "min_trace_speed_mps": 0.001,
+                    "use_speed_filter_in_seed_mask": False,
+                    "seed_layout_mode": "mask_aware_poisson_disk",
+                    "seed_weight_mode": "uniform",
+                    "seed_depth_mode": "first_valid_with_proxy_fallback",
+                    "selection_rank_mode": "segment_random",
+                    "min_streamline_segments": 5,
+                    "min_unique_xy_cells": 4,
+                    "min_net_displacement_cells": 1.0,
+                },
+                {
+                    "key": "remote_mid",
+                    "label": "Remote open ocean mid-water layer",
+                    "mask_name": class_key,
+                    "retain_fraction": 0.25,
+                    "candidate_factor": 1.35,
+                    "min_total_depth_m": 120.0,
+                    "depth_fraction_range": (0.40, 0.70),
+                    "proxy_fraction": 0.55,
+                    "depth_beta": (1.0, 1.0),
+                    "min_seed_speed_mps": 0.0,
+                    "min_proxy_speed_mps": 0.0,
+                    "min_trace_speed_mps": 0.001,
+                    "use_speed_filter_in_seed_mask": False,
+                    "seed_layout_mode": "mask_aware_poisson_disk",
+                    "seed_weight_mode": "uniform",
+                    "seed_depth_mode": "first_valid_with_proxy_fallback",
+                    "selection_rank_mode": "segment_random",
+                    "min_streamline_segments": 5,
+                    "min_unique_xy_cells": 4,
+                    "min_net_displacement_cells": 1.0,
+                },
+                {
+                    "key": "remote_lower",
+                    "label": "Remote open ocean lower layer",
+                    "mask_name": class_key,
+                    "retain_fraction": 0.25,
+                    "candidate_factor": 1.35,
+                    "min_total_depth_m": 180.0,
+                    "depth_fraction_range": (0.70, 0.95),
+                    "proxy_fraction": 0.82,
+                    "depth_beta": (1.0, 1.0),
+                    "min_seed_speed_mps": 0.0,
+                    "min_proxy_speed_mps": 0.0,
+                    "min_trace_speed_mps": 0.001,
+                    "use_speed_filter_in_seed_mask": False,
+                    "seed_layout_mode": "mask_aware_poisson_disk",
+                    "seed_weight_mode": "uniform",
+                    "seed_depth_mode": "first_valid_with_proxy_fallback",
+                    "selection_rank_mode": "segment_random",
+                    "min_streamline_segments": 5,
+                    "min_unique_xy_cells": 4,
+                    "min_net_displacement_cells": 1.0,
+                },
+            ),
+            "region_metadata": {
+                "type": class_key,
+                "excluded_radius_m": float(DEFAULT_CAVITY_MARGIN_RADIUS_M),
+                "remote_open_ocean_cell_count": int(np.count_nonzero(remote_open_mask)),
+                "excluded_cavity_margin_cell_count": int(np.count_nonzero(exclusion_mask)),
+            },
+        }
+    raise ValueError(f"Unsupported streamline class: {class_key}")
+
+
 def spatial_bin_key(row: int, col: int, bin_size: int) -> tuple[int, int]:
     safe_size = max(1, int(bin_size))
     return int(row) // safe_size, int(col) // safe_size
@@ -366,8 +822,8 @@ def compute_spatial_bin_size_for_streamlines(candidates: list[dict[str, Any]], t
     return max(DEFAULT_SPATIAL_BIN_SIZE_MIN, min(DEFAULT_SPATIAL_BIN_SIZE_MAX, raw_size))
 
 
-def compute_bucket_targets(target_streamlines: int) -> list[int]:
-    raw_bucket_targets = [float(bucket["retain_fraction"]) * float(target_streamlines) for bucket in SEED_BUCKETS]
+def compute_bucket_targets(target_streamlines: int, seed_buckets: tuple[dict[str, Any], ...] | list[dict[str, Any]]) -> list[int]:
+    raw_bucket_targets = [float(bucket["retain_fraction"]) * float(target_streamlines) for bucket in seed_buckets]
     bucket_targets = [int(math.floor(value)) for value in raw_bucket_targets]
     remaining_slots = max(0, int(target_streamlines) - sum(bucket_targets))
     remainders = sorted(
@@ -379,13 +835,77 @@ def compute_bucket_targets(target_streamlines: int) -> list[int]:
     return bucket_targets
 
 
+def compute_weighted_targets(weights: list[int] | np.ndarray, target_count: int) -> list[int]:
+    weights_array = np.asarray(weights, dtype=np.float64)
+    if target_count <= 0 or weights_array.size == 0:
+        return [0 for _ in range(int(weights_array.size))]
+
+    positive = np.isfinite(weights_array) & (weights_array > 0)
+    if not np.any(positive):
+        return [0 for _ in range(int(weights_array.size))]
+
+    targets = np.zeros(weights_array.shape, dtype=np.int32)
+    positive_indices = np.flatnonzero(positive)
+    guaranteed = min(int(target_count), int(positive_indices.size))
+    if guaranteed > 0:
+        ranked_positive = sorted(
+            positive_indices.tolist(),
+            key=lambda index: (float(weights_array[index]), -int(index)),
+            reverse=True,
+        )
+        for index in ranked_positive[:guaranteed]:
+            targets[index] += 1
+
+    remaining = int(target_count) - int(np.sum(targets))
+    if remaining <= 0:
+        return targets.astype(int).tolist()
+
+    positive_weights = weights_array[positive]
+    weight_sum = float(np.sum(positive_weights))
+    if weight_sum <= 0:
+        return targets.astype(int).tolist()
+
+    raw_additional = (positive_weights / weight_sum) * float(remaining)
+    base_additional = np.floor(raw_additional).astype(np.int32)
+    targets[positive] += base_additional
+    leftover = int(target_count) - int(np.sum(targets))
+    if leftover > 0:
+        remainders = raw_additional - base_additional.astype(np.float64)
+        order = np.argsort(-remainders, kind="stable")
+        for rank in order[:leftover].tolist():
+            targets[positive_indices[rank]] += 1
+    return targets.astype(int).tolist()
+
+
+def sector_indices_from_xy(x_values: np.ndarray, y_values: np.ndarray, sector_count: int = DEFAULT_SECTOR_COUNT) -> np.ndarray:
+    count = max(1, int(sector_count))
+    angles = np.mod(np.arctan2(y_values, x_values), 2.0 * np.pi)
+    sector_width = (2.0 * np.pi) / float(count)
+    indices = np.floor(angles / sector_width).astype(np.int32)
+    return np.clip(indices, 0, count - 1)
+
+
+def mask_sector_counts(mask2d: np.ndarray, x_grid: np.ndarray, y_grid: np.ndarray, sector_count: int = DEFAULT_SECTOR_COUNT) -> list[int]:
+    count = max(1, int(sector_count))
+    rows, cols = np.nonzero(mask2d)
+    if rows.size == 0:
+        return [0 for _ in range(count)]
+    sector_indices = sector_indices_from_xy(x_grid[rows, cols], y_grid[rows, cols], count)
+    counts = np.bincount(sector_indices, minlength=count)
+    return counts.astype(int).tolist()
+
+
 def streamline_rank_key(streamline: dict[str, Any]) -> tuple[int, float]:
-    return int(streamline["segment_count"]), float(streamline["seed_speed"])
+    return int(streamline["segment_count"]), float(streamline.get("selection_rank_secondary", streamline["seed_speed"]))
 
 
 def preferred_streamline_rank_key(streamline: dict[str, Any], *, prefer_front: bool) -> tuple[int, int, float]:
     front_bonus = 1 if prefer_front and str(streamline.get("bucket_key", "")) in FRONT_BUCKET_KEYS else 0
-    return front_bonus, int(streamline["segment_count"]), float(streamline["seed_speed"])
+    return (
+        front_bonus,
+        int(streamline["segment_count"]),
+        float(streamline.get("selection_rank_secondary", streamline["seed_speed"])),
+    )
 
 
 def select_streamlines_spatially(
@@ -473,6 +993,64 @@ def select_streamlines_spatially(
         existing_depths.append(float(candidate["seed_depth_m"]))
 
     return selected, remaining
+
+
+def select_streamlines_spatially_by_sector_targets(
+    candidates: list[dict[str, Any]],
+    *,
+    target_count: int,
+    sector_targets: list[int],
+    selection_bin_size: int,
+    depth_bin_size: int,
+    retained_depths_by_bin: dict[tuple[int, int], list[float]],
+    retained_sector_counts: list[int],
+    rng: np.random.Generator,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    if target_count <= 0 or not candidates:
+        return [], list(candidates)
+
+    sector_count = max(1, int(DEFAULT_SECTOR_COUNT))
+    candidates_by_sector: dict[int, list[dict[str, Any]]] = {sector: [] for sector in range(sector_count)}
+    for candidate in candidates:
+        candidates_by_sector[streamline_sector_index(candidate, sector_count)].append(candidate)
+
+    selected: list[dict[str, Any]] = []
+    leftovers: list[dict[str, Any]] = []
+
+    sector_order = rng.permutation(sector_count).tolist()
+    for sector in sector_order:
+        sector_target = int(sector_targets[sector]) if sector < len(sector_targets) else 0
+        sector_candidates = candidates_by_sector.get(sector, [])
+        if sector_target <= 0:
+            leftovers.extend(sector_candidates)
+            continue
+        sector_selection_bin_size = compute_spatial_bin_size_for_streamlines(sector_candidates, sector_target)
+        selected_sector, leftovers_sector = select_streamlines_spatially(
+            sector_candidates,
+            target_count=sector_target,
+            selection_bin_size=sector_selection_bin_size,
+            depth_bin_size=depth_bin_size,
+            retained_depths_by_bin=retained_depths_by_bin,
+            rng=rng,
+        )
+        selected.extend(selected_sector)
+        retained_sector_counts[sector] += len(selected_sector)
+        leftovers.extend(leftovers_sector)
+
+    if len(selected) < target_count and leftovers:
+        extra_selected, leftovers = select_streamlines_sector_balanced(
+            leftovers,
+            target_count=int(target_count) - len(selected),
+            selection_bin_size=selection_bin_size,
+            depth_bin_size=depth_bin_size,
+            retained_depths_by_bin=retained_depths_by_bin,
+            retained_sector_counts=retained_sector_counts,
+            rng=rng,
+            prefer_front=False,
+        )
+        selected.extend(extra_selected)
+
+    return selected, leftovers
 
 
 def streamline_sector_index(streamline: dict[str, Any], sector_count: int = DEFAULT_SECTOR_COUNT) -> int:
@@ -823,6 +1401,7 @@ def sample_stream_state(
     top_depth_2d: np.ndarray,
     bottom_depth_2d: np.ndarray,
     depth_levels: np.ndarray,
+    w_depth_levels: np.ndarray,
     u_volume: np.ndarray,
     v_volume: np.ndarray,
     w_volume: np.ndarray,
@@ -854,9 +1433,10 @@ def sample_stream_state(
         return None
 
     depth_profile = depth_levels[:, row, col]
+    w_depth_profile = w_depth_levels[:, row, col]
     u = interpolate_profile(depth_profile, u_volume[:, row, col], depth_m)
     v = interpolate_profile(depth_profile, v_volume[:, row, col], depth_m)
-    w = interpolate_profile(depth_profile, w_volume[:, row, col], depth_m)
+    w = interpolate_profile(w_depth_profile, w_volume[:, row, col], depth_m)
     theta = interpolate_profile(depth_profile, theta_volume[:, row, col], depth_m)
     sal = interpolate_profile(depth_profile, sal_volume[:, row, col], depth_m)
     if not all(math.isfinite(value) for value in (u, v, w, theta, sal)):
@@ -898,6 +1478,7 @@ def trace_streamline_direction(
     top_depth_2d: np.ndarray,
     bottom_depth_2d: np.ndarray,
     depth_levels: np.ndarray,
+    w_depth_levels: np.ndarray,
     u_volume: np.ndarray,
     v_volume: np.ndarray,
     w_volume: np.ndarray,
@@ -929,6 +1510,7 @@ def trace_streamline_direction(
             top_depth_2d=top_depth_2d,
             bottom_depth_2d=bottom_depth_2d,
             depth_levels=depth_levels,
+            w_depth_levels=w_depth_levels,
             u_volume=u_volume,
             v_volume=v_volume,
             w_volume=w_volume,
@@ -1011,6 +1593,7 @@ def build_traced_streamline(
     top_depth_2d: np.ndarray,
     bottom_depth_2d: np.ndarray,
     depth_levels: np.ndarray,
+    w_depth_levels: np.ndarray,
     u_volume: np.ndarray,
     v_volume: np.ndarray,
     w_volume: np.ndarray,
@@ -1025,6 +1608,8 @@ def build_traced_streamline(
     min_trace_speed: float,
     max_steps: int,
     min_segment_count: int,
+    min_unique_xy_cells: int,
+    min_net_displacement_cells: float,
 ) -> dict[str, Any] | None:
     forward = trace_streamline_direction(
         seed_x_m=seed_x_m,
@@ -1035,6 +1620,7 @@ def build_traced_streamline(
         top_depth_2d=top_depth_2d,
         bottom_depth_2d=bottom_depth_2d,
         depth_levels=depth_levels,
+        w_depth_levels=w_depth_levels,
         u_volume=u_volume,
         v_volume=v_volume,
         w_volume=w_volume,
@@ -1058,6 +1644,7 @@ def build_traced_streamline(
         top_depth_2d=top_depth_2d,
         bottom_depth_2d=bottom_depth_2d,
         depth_levels=depth_levels,
+        w_depth_levels=w_depth_levels,
         u_volume=u_volume,
         v_volume=v_volume,
         w_volume=w_volume,
@@ -1080,10 +1667,10 @@ def build_traced_streamline(
     y_values = np.asarray([point["y"] for point in merged], dtype=np.float32)
     depth_values = np.asarray([point["depth"] for point in merged], dtype=np.float32)
     unique_xy_cells = count_unique_xy_cells(x_values, y_values, x0_m, y0_m, dx_m, dy_m)
-    if unique_xy_cells < DEFAULT_MIN_UNIQUE_XY_CELLS:
+    if unique_xy_cells < max(1, int(min_unique_xy_cells)):
         return None
 
-    if net_displacement_cells(x_values, y_values, dx_m, dy_m) < DEFAULT_MIN_NET_DISPLACEMENT_CELLS:
+    if net_displacement_cells(x_values, y_values, dx_m, dy_m) < float(min_net_displacement_cells):
         return None
 
     return {
@@ -1144,6 +1731,7 @@ def main() -> None:
 
     bed_meta, bed_mask = load_bedmachine_mask(Path(args.bedmachine_meta), Path(args.bedmachine_bin))
     bed_grid = bed_meta["grid"]
+    bed_main_ice_mask = build_main_antarctic_ice_mask(bed_mask, bed_grid)
 
     with netCDF4.Dataset(input_path) as ds:
         vtransform = int(ds.variables["Vtransform"][:].item())
@@ -1153,6 +1741,8 @@ def main() -> None:
         hc = float(ds.variables["hc"][:].item())
         s_rho = np.asarray(ds.variables["s_rho"][:], dtype=np.float32)
         c_rho = np.asarray(ds.variables["Cs_r"][:], dtype=np.float32)
+        s_w = np.asarray(ds.variables["s_w"][:], dtype=np.float32)
+        c_w = np.asarray(ds.variables["Cs_w"][:], dtype=np.float32)
 
         h_full = read_masked_array(ds.variables["h"], (slice(None), slice(None)))
         zice_full = read_masked_array(ds.variables["zice"], (slice(None), slice(None)))
@@ -1174,6 +1764,7 @@ def main() -> None:
         sample_x = float(args.model_x0_m) + col_idx.astype(np.float64) * float(args.model_dx_m)
         sample_y = float(args.model_y0_m) + row_idx.astype(np.float64) * float(args.model_dy_m)
         x_grid, y_grid = np.meshgrid(sample_x.astype(np.float32), sample_y.astype(np.float32))
+        cell_sector_indices = sector_indices_from_xy(x_grid.astype(np.float64), y_grid.astype(np.float64))
 
         bed_col = np.rint((x_grid - float(bed_grid["x0_m"])) / float(bed_grid["dx_m"])).astype(np.int32)
         bed_row = np.rint((y_grid - float(bed_grid["y0_m"])) / float(bed_grid["dy_m"])).astype(np.int32)
@@ -1185,40 +1776,55 @@ def main() -> None:
         )
         bed_region_mask = np.full(mask_rho.shape, 255, dtype=np.uint8)
         bed_region_mask[in_bed_extent] = bed_mask[bed_row[in_bed_extent], bed_col[in_bed_extent]]
+        bed_main_ice_region = np.zeros(mask_rho.shape, dtype=bool)
+        bed_main_ice_region[in_bed_extent] = bed_main_ice_mask[bed_row[in_bed_extent], bed_col[in_bed_extent]]
         bed_water_mask = np.isin(bed_region_mask, (0, 3))
 
         model_water_mask = (mask_rho > 0.5) & np.isfinite(h) & np.isfinite(zice)
         open_water_mask = model_water_mask & bed_water_mask & (bed_region_mask == 0)
-        cavity_water_mask = model_water_mask & bed_water_mask & (bed_region_mask == 3)
+        cavity_water_mask = model_water_mask & bed_water_mask & (bed_region_mask == 3) & bed_main_ice_region
         water_mask_2d = open_water_mask | cavity_water_mask
         if not np.any(water_mask_2d):
             raise RuntimeError("No Antarctica ocean cells remain after clipping and masking.")
-        seed_masks = build_seed_masks(open_water_mask, cavity_water_mask)
+        target_streamlines = resolve_target_streamlines(args)
+        streamline_class_def = build_streamline_class_definition(
+            str(args.streamline_class),
+            open_water_mask=open_water_mask,
+            cavity_water_mask=cavity_water_mask,
+            sample_dx_m=sample_dx_m,
+            sample_dy_m=sample_dy_m,
+        )
+        seed_masks = {str(key): np.asarray(value, dtype=bool) for key, value in streamline_class_def["seed_masks"].items()}
+        seed_buckets = tuple(streamline_class_def["seed_buckets"])
 
         top_depth = np.maximum(0.0, -(zeta + np.minimum(zice, 0.0))).astype(np.float32)
         bottom_depth = h.astype(np.float32)
         depth_levels = compute_depth_levels(h, zice, zeta, s_rho, c_rho, hc)
+        w_depth_levels = compute_depth_levels(h, zice, zeta, s_w, c_w, hc)
 
         ny_s, nx_s = water_mask_2d.shape
         level_count = s_rho.size
-        w_volume = np.full((level_count, ny_s, nx_s), np.nan, dtype=np.float32)
+        w_level_count = s_w.size
+        w_volume = np.full((w_level_count, ny_s, nx_s), np.nan, dtype=np.float32)
         theta_volume = np.full((level_count, ny_s, nx_s), np.nan, dtype=np.float32)
         sal_volume = np.full((level_count, ny_s, nx_s), np.nan, dtype=np.float32)
 
         xi_u_size = int(ds.dimensions["xi_u"].size)
         eta_v_size = int(ds.dimensions["eta_v"].size)
-        valid_u_positions = np.flatnonzero((col_idx > 0) & (col_idx < xi_u_size))
-        valid_v_positions = np.flatnonzero((row_idx > 0) & (row_idx < eta_v_size))
+        u_left_native_cols = np.clip(col_idx - 1, 0, xi_u_size - 1).astype(np.int32)
+        u_right_native_cols = np.clip(col_idx, 0, xi_u_size - 1).astype(np.int32)
+        v_lower_native_rows = np.clip(row_idx - 1, 0, eta_v_size - 1).astype(np.int32)
+        v_upper_native_rows = np.clip(row_idx, 0, eta_v_size - 1).astype(np.int32)
 
-        needed_u_cols = np.unique(np.concatenate([col_idx[valid_u_positions] - 1, col_idx[valid_u_positions]])).astype(np.int32)
-        needed_v_rows = np.unique(np.concatenate([row_idx[valid_v_positions] - 1, row_idx[valid_v_positions]])).astype(np.int32)
+        needed_u_cols = np.unique(np.concatenate([u_left_native_cols, u_right_native_cols])).astype(np.int32)
+        needed_v_rows = np.unique(np.concatenate([v_lower_native_rows, v_upper_native_rows])).astype(np.int32)
 
         u_col_lookup = {int(col): idx for idx, col in enumerate(needed_u_cols.tolist())}
         v_row_lookup = {int(row): idx for idx, row in enumerate(needed_v_rows.tolist())}
-        u_left_lut = np.asarray([u_col_lookup[int(col - 1)] for col in col_idx[valid_u_positions]], dtype=np.int32)
-        u_right_lut = np.asarray([u_col_lookup[int(col)] for col in col_idx[valid_u_positions]], dtype=np.int32)
-        v_lower_lut = np.asarray([v_row_lookup[int(row - 1)] for row in row_idx[valid_v_positions]], dtype=np.int32)
-        v_upper_lut = np.asarray([v_row_lookup[int(row)] for row in row_idx[valid_v_positions]], dtype=np.int32)
+        u_left_lut = np.asarray([u_col_lookup[int(col)] for col in u_left_native_cols], dtype=np.int32)
+        u_right_lut = np.asarray([u_col_lookup[int(col)] for col in u_right_native_cols], dtype=np.int32)
+        v_lower_lut = np.asarray([v_row_lookup[int(row)] for row in v_lower_native_rows], dtype=np.int32)
+        v_upper_lut = np.asarray([v_row_lookup[int(row)] for row in v_upper_native_rows], dtype=np.int32)
 
         depth_levels_u = compute_depth_levels(
             gather_rho_to_u(h_full, row_idx, needed_u_cols),
@@ -1251,23 +1857,21 @@ def main() -> None:
             salt_slice = read_masked_array(
                 ds.variables["salt"], (0, level, slice(None, None, args.sample_stride), slice(None, None, args.sample_stride))
             )
-            w_upper = read_masked_array(
-                ds.variables["w"], (0, level, slice(None, None, args.sample_stride), slice(None, None, args.sample_stride))
-            )
-            w_lower = read_masked_array(
-                ds.variables["w"], (0, level + 1, slice(None, None, args.sample_stride), slice(None, None, args.sample_stride))
-            )
             u_slice = read_masked_array(ds.variables["u"], (0, level, slice(None), slice(None)))
             v_slice = read_masked_array(ds.variables["v"], (0, level, slice(None), slice(None)))
 
             theta_volume[level] = temp_slice
             sal_volume[level] = salt_slice
-            w_volume[level] = 0.5 * (w_upper + w_lower)
             u_native_volume[level] = u_slice[np.ix_(row_idx, needed_u_cols)]
             v_native_volume[level] = v_slice[np.ix_(needed_v_rows, col_idx)]
+        for level in range(w_level_count):
+            w_volume[level] = read_masked_array(
+                ds.variables["w"], (0, level, slice(None, None, args.sample_stride), slice(None, None, args.sample_stride))
+            )
 
         # ROMS stores rho-levels from the seabed upward; streamline sampling expects shallow to deep.
         depth_levels = depth_levels[::-1].copy()
+        w_depth_levels = w_depth_levels[::-1].copy()
         depth_levels_u = depth_levels_u[::-1].copy()
         depth_levels_v = depth_levels_v[::-1].copy()
         u_native_volume = u_native_volume[::-1].copy()
@@ -1278,32 +1882,29 @@ def main() -> None:
 
         u_volume = np.full((level_count, ny_s, nx_s), np.nan, dtype=np.float32)
         v_volume = np.full((level_count, ny_s, nx_s), np.nan, dtype=np.float32)
-        if valid_u_positions.size:
-            target_u_depths = depth_levels[:, :, valid_u_positions]
-            u_left = interpolate_volume_to_target_depths(
-                u_native_volume[:, :, u_left_lut],
-                depth_levels_u[:, :, u_left_lut],
-                target_u_depths,
-            )
-            u_right = interpolate_volume_to_target_depths(
-                u_native_volume[:, :, u_right_lut],
-                depth_levels_u[:, :, u_right_lut],
-                target_u_depths,
-            )
-            u_volume[:, :, valid_u_positions] = 0.5 * (u_left + u_right)
-        if valid_v_positions.size:
-            target_v_depths = depth_levels[:, valid_v_positions, :]
-            v_lower = interpolate_volume_to_target_depths(
-                v_native_volume[:, v_lower_lut, :],
-                depth_levels_v[:, v_lower_lut, :],
-                target_v_depths,
-            )
-            v_upper = interpolate_volume_to_target_depths(
-                v_native_volume[:, v_upper_lut, :],
-                depth_levels_v[:, v_upper_lut, :],
-                target_v_depths,
-            )
-            v_volume[:, valid_v_positions, :] = 0.5 * (v_lower + v_upper)
+        target_depths = depth_levels
+        u_left = interpolate_volume_to_target_depths(
+            u_native_volume[:, :, u_left_lut],
+            depth_levels_u[:, :, u_left_lut],
+            target_depths,
+        )
+        u_right = interpolate_volume_to_target_depths(
+            u_native_volume[:, :, u_right_lut],
+            depth_levels_u[:, :, u_right_lut],
+            target_depths,
+        )
+        u_volume = 0.5 * (u_left + u_right)
+        v_lower = interpolate_volume_to_target_depths(
+            v_native_volume[:, v_lower_lut, :],
+            depth_levels_v[:, v_lower_lut, :],
+            target_depths,
+        )
+        v_upper = interpolate_volume_to_target_depths(
+            v_native_volume[:, v_upper_lut, :],
+            depth_levels_v[:, v_upper_lut, :],
+            target_depths,
+        )
+        v_volume = 0.5 * (v_lower + v_upper)
 
         u_rot = u_volume * cos_angle[None, ...] - v_volume * sin_angle[None, ...]
         v_rot = u_volume * sin_angle[None, ...] + v_volume * cos_angle[None, ...]
@@ -1323,11 +1924,12 @@ def main() -> None:
         segment_theta1: list[float] = []
         segment_sal1: list[float] = []
         segment_terminal_flag: list[int] = []
-        bucket_streamlines: dict[str, list[dict[str, Any]]] = {str(bucket["key"]): [] for bucket in SEED_BUCKETS}
+        bucket_streamlines: dict[str, list[dict[str, Any]]] = {str(bucket["key"]): [] for bucket in seed_buckets}
         bucket_valid_masks: dict[str, np.ndarray] = {}
-        bucket_labels = {str(bucket["key"]): str(bucket["label"]) for bucket in SEED_BUCKETS}
+        bucket_valid_sector_counts: dict[str, list[int]] = {}
+        bucket_labels = {str(bucket["key"]): str(bucket["label"]) for bucket in seed_buckets}
 
-        for bucket in SEED_BUCKETS:
+        for bucket in seed_buckets:
             bucket_key = str(bucket["key"])
             mask_name = str(bucket["mask_name"])
             base_mask = seed_masks.get(mask_name)
@@ -1345,44 +1947,53 @@ def main() -> None:
             u_proxy = interpolate_plane_at_target_depths(u_volume, depth_levels, proxy_depths)
             v_proxy = interpolate_plane_at_target_depths(v_volume, depth_levels, proxy_depths)
             speed_proxy = np.hypot(u_proxy, v_proxy)
-            valid_seed_cells &= np.isfinite(speed_proxy) & (speed_proxy >= float(args.min_speed_mps))
+            if bool(bucket.get("use_speed_filter_in_seed_mask", True)):
+                min_proxy_speed_mps = float(bucket.get("min_proxy_speed_mps", args.min_speed_mps))
+                valid_seed_cells &= np.isfinite(speed_proxy) & (speed_proxy >= min_proxy_speed_mps)
             bucket_valid_masks[bucket_key] = valid_seed_cells.copy()
+            bucket_valid_sector_counts[bucket_key] = mask_sector_counts(valid_seed_cells, x_grid, y_grid)
 
             candidate_target = max(
                 1,
-                int(round(float(args.target_streamlines) * float(bucket["retain_fraction"]) * float(bucket["candidate_factor"]))),
+                int(round(float(target_streamlines) * float(bucket["retain_fraction"]) * float(bucket["candidate_factor"]))),
             )
-            seeds = collect_random_spatial_cells(
-                valid_seed_cells,
-                np.where(np.isfinite(speed_proxy), np.maximum(speed_proxy, 0.0), 0.0),
-                candidate_target,
-                rng,
-            )
+            seed_layout_mode = str(bucket.get("seed_layout_mode", "block_scattered"))
+            seed_weight_mode = str(bucket.get("seed_weight_mode", "speed_proxy"))
+            if seed_layout_mode == "mask_aware_poisson_disk":
+                seeds = collect_mask_aware_poisson_disk_cells(
+                    valid_seed_cells,
+                    candidate_target,
+                    rng,
+                )
+            else:
+                if seed_weight_mode == "uniform":
+                    seed_weights = None
+                else:
+                    seed_weights = np.where(np.isfinite(speed_proxy), np.maximum(speed_proxy, 0.0), 0.0)
+                seeds = collect_random_spatial_cells(
+                    valid_seed_cells,
+                    seed_weights,
+                    candidate_target,
+                    rng,
+                )
 
             for seed_row, seed_col in seeds:
                 top_here = float(top_depth[seed_row, seed_col])
                 bottom_here = float(bottom_depth[seed_row, seed_col])
                 seed_state_best: dict[str, float] | None = None
                 seed_depth_m = float("nan")
-                for _ in range(DEFAULT_SEED_DEPTH_ATTEMPTS):
-                    candidate_depth_m = choose_seed_depth(
-                        top_depth_m=top_here,
-                        bottom_depth_m=bottom_here,
-                        depth_fraction_range=tuple(bucket["depth_fraction_range"]),
-                        depth_beta=tuple(bucket["depth_beta"]),
-                        clearance_m=DEFAULT_WATER_COLUMN_CLEARANCE_M,
-                        rng=rng,
-                    )
-                    if not math.isfinite(candidate_depth_m):
-                        continue
+                seed_depth_mode = str(bucket.get("seed_depth_mode", "fastest_valid"))
+                proxy_depth_here = float(proxy_depths[seed_row, seed_col])
+                if seed_depth_mode == "proxy_only":
                     state = sample_stream_state(
                         x_m=float(x_grid[seed_row, seed_col]),
                         y_m=float(y_grid[seed_row, seed_col]),
-                        depth_m=candidate_depth_m,
+                        depth_m=proxy_depth_here,
                         water_mask_2d=water_mask_2d,
                         top_depth_2d=top_depth,
                         bottom_depth_2d=bottom_depth,
                         depth_levels=depth_levels,
+                        w_depth_levels=w_depth_levels,
                         u_volume=u_volume,
                         v_volume=v_volume,
                         w_volume=w_volume,
@@ -1394,11 +2005,79 @@ def main() -> None:
                         dy_m=sample_dy_m,
                         clearance_m=DEFAULT_WATER_COLUMN_CLEARANCE_M,
                     )
-                    if state is None or float(state["speed"]) < float(bucket["min_seed_speed_mps"]):
-                        continue
-                    if seed_state_best is None or float(state["speed"]) > float(seed_state_best["speed"]):
+                    if state is not None and float(state["speed"]) >= float(bucket["min_seed_speed_mps"]):
                         seed_state_best = state
-                        seed_depth_m = candidate_depth_m
+                        seed_depth_m = proxy_depth_here
+                else:
+                    for _ in range(DEFAULT_SEED_DEPTH_ATTEMPTS):
+                        candidate_depth_m = choose_seed_depth(
+                            top_depth_m=top_here,
+                            bottom_depth_m=bottom_here,
+                            depth_fraction_range=tuple(bucket["depth_fraction_range"]),
+                            depth_beta=tuple(bucket["depth_beta"]),
+                            clearance_m=DEFAULT_WATER_COLUMN_CLEARANCE_M,
+                            rng=rng,
+                        )
+                        if not math.isfinite(candidate_depth_m):
+                            continue
+                        state = sample_stream_state(
+                            x_m=float(x_grid[seed_row, seed_col]),
+                            y_m=float(y_grid[seed_row, seed_col]),
+                            depth_m=candidate_depth_m,
+                            water_mask_2d=water_mask_2d,
+                            top_depth_2d=top_depth,
+                            bottom_depth_2d=bottom_depth,
+                            depth_levels=depth_levels,
+                            w_depth_levels=w_depth_levels,
+                            u_volume=u_volume,
+                            v_volume=v_volume,
+                            w_volume=w_volume,
+                            theta_volume=theta_volume,
+                            sal_volume=sal_volume,
+                            x0_m=float(args.model_x0_m),
+                            y0_m=float(args.model_y0_m),
+                            dx_m=sample_dx_m,
+                            dy_m=sample_dy_m,
+                            clearance_m=DEFAULT_WATER_COLUMN_CLEARANCE_M,
+                        )
+                        if state is None or float(state["speed"]) < float(bucket["min_seed_speed_mps"]):
+                            continue
+                        if seed_depth_mode in {"first_valid", "first_valid_with_proxy_fallback"}:
+                            seed_state_best = state
+                            seed_depth_m = candidate_depth_m
+                            break
+                        if seed_state_best is None or float(state["speed"]) > float(seed_state_best["speed"]):
+                            seed_state_best = state
+                            seed_depth_m = candidate_depth_m
+
+                    if (
+                        seed_state_best is None
+                        and seed_depth_mode == "first_valid_with_proxy_fallback"
+                        and math.isfinite(proxy_depth_here)
+                    ):
+                        state = sample_stream_state(
+                            x_m=float(x_grid[seed_row, seed_col]),
+                            y_m=float(y_grid[seed_row, seed_col]),
+                            depth_m=proxy_depth_here,
+                            water_mask_2d=water_mask_2d,
+                            top_depth_2d=top_depth,
+                            bottom_depth_2d=bottom_depth,
+                            depth_levels=depth_levels,
+                            w_depth_levels=w_depth_levels,
+                            u_volume=u_volume,
+                            v_volume=v_volume,
+                            w_volume=w_volume,
+                            theta_volume=theta_volume,
+                            sal_volume=sal_volume,
+                            x0_m=float(args.model_x0_m),
+                            y0_m=float(args.model_y0_m),
+                            dx_m=sample_dx_m,
+                            dy_m=sample_dy_m,
+                            clearance_m=DEFAULT_WATER_COLUMN_CLEARANCE_M,
+                        )
+                        if state is not None and float(state["speed"]) >= float(bucket["min_seed_speed_mps"]):
+                            seed_state_best = state
+                            seed_depth_m = proxy_depth_here
 
                 if seed_state_best is None:
                     continue
@@ -1411,6 +2090,7 @@ def main() -> None:
                     top_depth_2d=top_depth,
                     bottom_depth_2d=bottom_depth,
                     depth_levels=depth_levels,
+                    w_depth_levels=w_depth_levels,
                     u_volume=u_volume,
                     v_volume=v_volume,
                     w_volume=w_volume,
@@ -1422,9 +2102,13 @@ def main() -> None:
                     dy_m=sample_dy_m,
                     clearance_m=DEFAULT_WATER_COLUMN_CLEARANCE_M,
                     step_cells=float(args.flowline_step_cells),
-                    min_trace_speed=float(args.min_trace_speed_mps),
+                    min_trace_speed=float(bucket.get("min_trace_speed_mps", args.min_trace_speed_mps)),
                     max_steps=int(args.flowline_max_steps),
-                    min_segment_count=int(args.min_streamline_segments),
+                    min_segment_count=int(bucket.get("min_streamline_segments", args.min_streamline_segments)),
+                    min_unique_xy_cells=int(bucket.get("min_unique_xy_cells", DEFAULT_MIN_UNIQUE_XY_CELLS)),
+                    min_net_displacement_cells=float(
+                        bucket.get("min_net_displacement_cells", DEFAULT_MIN_NET_DISPLACEMENT_CELLS)
+                    ),
                 )
                 if streamline is None:
                     continue
@@ -1434,67 +2118,186 @@ def main() -> None:
                 streamline["seed_speed"] = float(seed_state_best["speed"])
                 streamline["seed_theta"] = float(seed_state_best["theta"])
                 streamline["seed_sal"] = float(seed_state_best["sal"])
+                selection_rank_mode = str(bucket.get("selection_rank_mode", "segment_speed"))
+                if selection_rank_mode == "segment_random":
+                    streamline["selection_rank_secondary"] = float(rng.random())
+                else:
+                    streamline["selection_rank_secondary"] = float(seed_state_best["speed"])
                 bucket_streamlines[bucket_key].append(streamline)
 
-        bucket_targets = compute_bucket_targets(int(args.target_streamlines))
-        global_depth_bin_size = compute_spatial_bin_size(water_mask_2d, int(args.target_streamlines))
+            if str(streamline_class_def.get("sector_fallback_mode", "")) == "proxy_relaxed_if_empty":
+                expected_bucket_target = max(
+                    1,
+                    int(round(float(target_streamlines) * float(bucket["retain_fraction"]))),
+                )
+                sector_targets = compute_weighted_targets(bucket_valid_sector_counts[bucket_key], expected_bucket_target)
+                candidate_sector_counts = retained_seed_sector_counts(bucket_streamlines[bucket_key])
+                for sector_index, sector_target in enumerate(sector_targets):
+                    if sector_target <= 0 or candidate_sector_counts[sector_index] > 0:
+                        continue
+                    sector_valid_mask = valid_seed_cells & (cell_sector_indices == sector_index)
+                    fallback_seed_target = min(
+                        int(np.count_nonzero(sector_valid_mask)),
+                        max(128, int(sector_target) * 8),
+                    )
+                    if fallback_seed_target <= 0:
+                        continue
+                    fallback_seeds = collect_random_spatial_cells(
+                        sector_valid_mask,
+                        None,
+                        fallback_seed_target,
+                        rng,
+                    )
+                    for seed_row, seed_col in fallback_seeds:
+                        proxy_depth_here = float(proxy_depths[seed_row, seed_col])
+                        state = sample_stream_state(
+                            x_m=float(x_grid[seed_row, seed_col]),
+                            y_m=float(y_grid[seed_row, seed_col]),
+                            depth_m=proxy_depth_here,
+                            water_mask_2d=water_mask_2d,
+                            top_depth_2d=top_depth,
+                            bottom_depth_2d=bottom_depth,
+                            depth_levels=depth_levels,
+                            w_depth_levels=w_depth_levels,
+                            u_volume=u_volume,
+                            v_volume=v_volume,
+                            w_volume=w_volume,
+                            theta_volume=theta_volume,
+                            sal_volume=sal_volume,
+                            x0_m=float(args.model_x0_m),
+                            y0_m=float(args.model_y0_m),
+                            dx_m=sample_dx_m,
+                            dy_m=sample_dy_m,
+                            clearance_m=DEFAULT_WATER_COLUMN_CLEARANCE_M,
+                        )
+                        if state is None or float(state["speed"]) < float(bucket["min_seed_speed_mps"]):
+                            continue
+                        streamline = build_traced_streamline(
+                            seed_x_m=float(x_grid[seed_row, seed_col]),
+                            seed_y_m=float(y_grid[seed_row, seed_col]),
+                            seed_depth_m=proxy_depth_here,
+                            water_mask_2d=water_mask_2d,
+                            top_depth_2d=top_depth,
+                            bottom_depth_2d=bottom_depth,
+                            depth_levels=depth_levels,
+                            w_depth_levels=w_depth_levels,
+                            u_volume=u_volume,
+                            v_volume=v_volume,
+                            w_volume=w_volume,
+                            theta_volume=theta_volume,
+                            sal_volume=sal_volume,
+                            x0_m=float(args.model_x0_m),
+                            y0_m=float(args.model_y0_m),
+                            dx_m=sample_dx_m,
+                            dy_m=sample_dy_m,
+                            clearance_m=DEFAULT_WATER_COLUMN_CLEARANCE_M,
+                            step_cells=float(args.flowline_step_cells),
+                            min_trace_speed=float(bucket.get("fallback_min_trace_speed_mps", bucket.get("min_trace_speed_mps", args.min_trace_speed_mps))),
+                            max_steps=int(args.flowline_max_steps),
+                            min_segment_count=int(bucket.get("fallback_min_streamline_segments", bucket.get("min_streamline_segments", args.min_streamline_segments))),
+                            min_unique_xy_cells=int(bucket.get("fallback_min_unique_xy_cells", bucket.get("min_unique_xy_cells", DEFAULT_MIN_UNIQUE_XY_CELLS))),
+                            min_net_displacement_cells=float(
+                                bucket.get("fallback_min_net_displacement_cells", bucket.get("min_net_displacement_cells", DEFAULT_MIN_NET_DISPLACEMENT_CELLS))
+                            ),
+                        )
+                        if streamline is None:
+                            continue
+                        streamline["bucket_key"] = bucket_key
+                        streamline["bucket_label"] = bucket_labels[bucket_key]
+                        streamline["seed_speed"] = float(state["speed"])
+                        streamline["seed_theta"] = float(state["theta"])
+                        streamline["seed_sal"] = float(state["sal"])
+                        streamline["selection_rank_secondary"] = float(rng.random())
+                        bucket_streamlines[bucket_key].append(streamline)
+                    candidate_sector_counts = retained_seed_sector_counts(bucket_streamlines[bucket_key])
+
+        bucket_targets = compute_bucket_targets(int(target_streamlines), seed_buckets)
+        selection_domain_mask = np.zeros_like(water_mask_2d, dtype=bool)
+        for valid_mask in bucket_valid_masks.values():
+            selection_domain_mask |= valid_mask
+        global_depth_bin_size = compute_spatial_bin_size(
+            selection_domain_mask if np.any(selection_domain_mask) else water_mask_2d,
+            int(target_streamlines),
+        )
         selected_streamlines: list[dict[str, Any]] = []
         leftovers: list[dict[str, Any]] = []
         retained_depths_by_global_bin: dict[tuple[int, int], list[float]] = defaultdict(list)
         retained_sector_counts = [0 for _ in range(DEFAULT_SECTOR_COUNT)]
-        front_target_count = sum(
-            bucket_target
-            for bucket, bucket_target in zip(SEED_BUCKETS, bucket_targets)
-            if str(bucket["key"]) in FRONT_BUCKET_KEYS
-        )
-        for bucket, bucket_target in zip(SEED_BUCKETS, bucket_targets):
+        selection_strategy = str(streamline_class_def.get("selection_strategy", "spatial_bin_round_robin"))
+        front_target_count = 0
+        if bool(streamline_class_def.get("prefer_front_extra_fill", False)):
+            front_target_count = sum(
+                bucket_target
+                for bucket, bucket_target in zip(seed_buckets, bucket_targets)
+                if str(bucket["key"]) in FRONT_BUCKET_KEYS
+            )
+        for bucket, bucket_target in zip(seed_buckets, bucket_targets):
             bucket_key = str(bucket["key"])
             selection_bin_size = compute_spatial_bin_size(bucket_valid_masks.get(bucket_key, water_mask_2d), bucket_target)
-            selected_bucket, leftovers_bucket = select_streamlines_spatially(
-                bucket_streamlines[bucket_key],
-                target_count=bucket_target,
-                selection_bin_size=selection_bin_size,
-                depth_bin_size=selection_bin_size,
-                retained_depths_by_bin=retained_depths_by_global_bin,
-                rng=rng,
-            )
+            if selection_strategy == "retain_all_filtered":
+                selected_bucket = list(bucket_streamlines[bucket_key])
+                leftovers_bucket = []
+                for sector_index, count in enumerate(retained_seed_sector_counts(selected_bucket)):
+                    retained_sector_counts[sector_index] += count
+            elif str(streamline_class_def.get("selection_sector_targets", "")) == "valid_seed_area":
+                sector_targets = compute_weighted_targets(bucket_valid_sector_counts.get(bucket_key, []), bucket_target)
+                selected_bucket, leftovers_bucket = select_streamlines_spatially_by_sector_targets(
+                    bucket_streamlines[bucket_key],
+                    target_count=bucket_target,
+                    sector_targets=sector_targets,
+                    selection_bin_size=selection_bin_size,
+                    depth_bin_size=selection_bin_size,
+                    retained_depths_by_bin=retained_depths_by_global_bin,
+                    retained_sector_counts=retained_sector_counts,
+                    rng=rng,
+                )
+            else:
+                selected_bucket, leftovers_bucket = select_streamlines_spatially(
+                    bucket_streamlines[bucket_key],
+                    target_count=bucket_target,
+                    selection_bin_size=selection_bin_size,
+                    depth_bin_size=selection_bin_size,
+                    retained_depths_by_bin=retained_depths_by_global_bin,
+                    rng=rng,
+                )
+                for sector_index, count in enumerate(retained_seed_sector_counts(selected_bucket)):
+                    retained_sector_counts[sector_index] += count
             selected_streamlines.extend(selected_bucket)
-            for sector_index, count in enumerate(retained_seed_sector_counts(selected_bucket)):
-                retained_sector_counts[sector_index] += count
             leftovers.extend(leftovers_bucket)
 
-        if len(selected_streamlines) < int(args.target_streamlines):
-            current_front_count = sum(
-                1 for streamline in selected_streamlines if str(streamline.get("bucket_key", "")) in FRONT_BUCKET_KEYS
-            )
-            remaining_slots = int(args.target_streamlines) - len(selected_streamlines)
-            front_needed = max(0, front_target_count - current_front_count)
-            front_leftovers = [streamline for streamline in leftovers if str(streamline.get("bucket_key", "")) in FRONT_BUCKET_KEYS]
-            non_front_leftovers = [
-                streamline for streamline in leftovers if str(streamline.get("bucket_key", "")) not in FRONT_BUCKET_KEYS
-            ]
-            front_selection_bin_size = global_depth_bin_size
-            selected_front, front_leftovers = select_streamlines_sector_balanced(
-                front_leftovers,
-                target_count=min(remaining_slots, front_needed),
-                selection_bin_size=front_selection_bin_size,
-                depth_bin_size=front_selection_bin_size,
-                retained_depths_by_bin=retained_depths_by_global_bin,
-                retained_sector_counts=retained_sector_counts,
-                rng=rng,
-                prefer_front=True,
-            )
-            selected_streamlines.extend(selected_front)
-            remaining_slots = int(args.target_streamlines) - len(selected_streamlines)
-            leftovers = non_front_leftovers + front_leftovers
+        if selection_strategy != "retain_all_filtered" and len(selected_streamlines) < int(target_streamlines):
+            remaining_slots = int(target_streamlines) - len(selected_streamlines)
+            if bool(streamline_class_def.get("prefer_front_extra_fill", False)) and front_target_count > 0:
+                current_front_count = sum(
+                    1 for streamline in selected_streamlines if str(streamline.get("bucket_key", "")) in FRONT_BUCKET_KEYS
+                )
+                front_needed = max(0, front_target_count - current_front_count)
+                front_leftovers = [
+                    streamline for streamline in leftovers if str(streamline.get("bucket_key", "")) in FRONT_BUCKET_KEYS
+                ]
+                non_front_leftovers = [
+                    streamline for streamline in leftovers if str(streamline.get("bucket_key", "")) not in FRONT_BUCKET_KEYS
+                ]
+                selected_front, front_leftovers = select_streamlines_sector_balanced(
+                    front_leftovers,
+                    target_count=min(remaining_slots, front_needed),
+                    selection_bin_size=global_depth_bin_size,
+                    depth_bin_size=global_depth_bin_size,
+                    retained_depths_by_bin=retained_depths_by_global_bin,
+                    retained_sector_counts=retained_sector_counts,
+                    rng=rng,
+                    prefer_front=True,
+                )
+                selected_streamlines.extend(selected_front)
+                remaining_slots = int(target_streamlines) - len(selected_streamlines)
+                leftovers = non_front_leftovers + front_leftovers
 
             if remaining_slots > 0:
-                extra_selection_bin_size = global_depth_bin_size
                 extra_selected, leftovers = select_streamlines_sector_balanced(
                     leftovers,
                     target_count=remaining_slots,
-                    selection_bin_size=extra_selection_bin_size,
-                    depth_bin_size=extra_selection_bin_size,
+                    selection_bin_size=global_depth_bin_size,
+                    depth_bin_size=global_depth_bin_size,
                     retained_depths_by_bin=retained_depths_by_global_bin,
                     retained_sector_counts=retained_sector_counts,
                     rng=rng,
@@ -1507,11 +2310,11 @@ def main() -> None:
         selected_seed_sal: list[float] = []
         selected_seed_depths: list[float] = []
         selected_seed_sector_counts = retained_seed_sector_counts(selected_streamlines)
-        counts_by_seed_bucket: dict[str, int] = {str(bucket["key"]): 0 for bucket in SEED_BUCKETS}
-        flowlines_by_seed_bucket: dict[str, int] = {str(bucket["key"]): 0 for bucket in SEED_BUCKETS}
+        counts_by_seed_bucket: dict[str, int] = {str(bucket["key"]): 0 for bucket in seed_buckets}
+        flowlines_by_seed_bucket: dict[str, int] = {str(bucket["key"]): 0 for bucket in seed_buckets}
         seed_depth_stats_by_bucket: dict[str, dict[str, float]] = {}
 
-        bucket_depth_samples_selected: dict[str, list[float]] = {str(bucket["key"]): [] for bucket in SEED_BUCKETS}
+        bucket_depth_samples_selected: dict[str, list[float]] = {str(bucket["key"]): [] for bucket in seed_buckets}
         for streamline in selected_streamlines:
             bucket_key = str(streamline["bucket_key"])
             flowlines_by_seed_bucket[bucket_key] += 1
@@ -1536,7 +2339,7 @@ def main() -> None:
                 segment_terminal_flag=segment_terminal_flag,
             )
 
-        for bucket in SEED_BUCKETS:
+        for bucket in seed_buckets:
             bucket_key = str(bucket["key"])
             depth_samples = np.asarray(bucket_depth_samples_selected[bucket_key], dtype=np.float32)
             if depth_samples.size:
@@ -1581,9 +2384,21 @@ def main() -> None:
 
     streamline_count = int(sum(flowlines_by_seed_bucket.values()))
     segment_count = int(x0_all.size)
-    basename = build_default_basename(input_path.name)
+    valid_seed_sector_counts = [0 for _ in range(DEFAULT_SECTOR_COUNT)]
+    for counts in bucket_valid_sector_counts.values():
+        for sector_index, count in enumerate(counts[: DEFAULT_SECTOR_COUNT]):
+            valid_seed_sector_counts[sector_index] += int(count)
+    basename = str(args.output_basename).strip() or build_output_basename(input_path.name, str(streamline_class_def["key"]))
     out_bin = output_dir / f"{basename}.bin"
     out_meta = output_dir / f"{basename}.meta.json"
+    effective_min_proxy_speed_mps = min(float(bucket.get("min_proxy_speed_mps", args.min_speed_mps)) for bucket in seed_buckets)
+    effective_min_seed_speed_mps = min(float(bucket["min_seed_speed_mps"]) for bucket in seed_buckets)
+    effective_min_trace_speed_mps = min(float(bucket.get("min_trace_speed_mps", args.min_trace_speed_mps)) for bucket in seed_buckets)
+    effective_min_streamline_segments = min(int(bucket.get("min_streamline_segments", args.min_streamline_segments)) for bucket in seed_buckets)
+    effective_min_unique_xy_cells = min(int(bucket.get("min_unique_xy_cells", DEFAULT_MIN_UNIQUE_XY_CELLS)) for bucket in seed_buckets)
+    effective_min_net_displacement_cells = min(
+        float(bucket.get("min_net_displacement_cells", DEFAULT_MIN_NET_DISPLACEMENT_CELLS)) for bucket in seed_buckets
+    )
 
     with out_bin.open("wb") as fh:
         offset = 0
@@ -1627,15 +2442,17 @@ def main() -> None:
         "geometry_type": "streamlines_3d",
         "sampling": {
             "sample_stride": int(args.sample_stride),
-            "seed_strategy": "random_spatial_scattered",
-            "depth_sampling_summary": "Randomized cavity/open-ocean seeding with front-focused retention near ice-shelf margins, sector-balanced extra fill, and vertically separated XY-bin balancing.",
-            "min_speed_mps": float(args.min_speed_mps),
-            "min_seed_speed_mps": float(args.min_seed_speed_mps),
-            "min_trace_speed_mps": float(args.min_trace_speed_mps),
+            "streamline_class": str(streamline_class_def["key"]),
+            "streamline_class_label": str(streamline_class_def["label"]),
+            "seed_strategy": str(streamline_class_def["seed_strategy"]),
+            "depth_sampling_summary": str(streamline_class_def["depth_sampling_summary"]),
+            "min_speed_mps": effective_min_proxy_speed_mps,
+            "min_seed_speed_mps": effective_min_seed_speed_mps,
+            "min_trace_speed_mps": effective_min_trace_speed_mps,
             "flowline_step_cells": float(args.flowline_step_cells),
             "flowline_max_steps": int(args.flowline_max_steps),
-            "target_streamline_count": int(args.target_streamlines),
-            "min_streamline_segments": int(args.min_streamline_segments),
+            "target_streamline_count": int(target_streamlines),
+            "min_streamline_segments": effective_min_streamline_segments,
             "random_seed": int(args.random_seed),
             "source_grid_dx_m": float(args.model_dx_m),
             "source_grid_dy_m": float(args.model_dy_m),
@@ -1643,17 +2460,18 @@ def main() -> None:
             "source_grid_y0_m": float(args.model_y0_m),
             "clearance_m": DEFAULT_WATER_COLUMN_CLEARANCE_M,
             "velocity_vertical_mapping": "native_u_v_to_rho_depths",
-            "selection_strategy": "spatial_bin_round_robin",
+            "selection_strategy": str(streamline_class_def["selection_strategy"]),
             "selection_bin_size_cells_global": int(global_depth_bin_size),
             "vertical_seed_separation_m": DEFAULT_VERTICAL_SEED_SEPARATION_M,
             "front_radius_cells": DEFAULT_FRONT_RADIUS_CELLS,
+            "region_definition": streamline_class_def.get("region_metadata", {}),
             "anti_zigzag": {
                 "state_depth_band_m": DEFAULT_STATE_DEPTH_BAND_M,
                 "revisit_window_steps": DEFAULT_REVISIT_WINDOW_STEPS,
                 "reversal_window_steps": DEFAULT_REVERSAL_WINDOW_STEPS,
                 "reversal_angle_deg": DEFAULT_REVERSAL_ANGLE_DEG,
-                "min_unique_xy_cells": DEFAULT_MIN_UNIQUE_XY_CELLS,
-                "min_net_displacement_cells": DEFAULT_MIN_NET_DISPLACEMENT_CELLS,
+                "min_unique_xy_cells": effective_min_unique_xy_cells,
+                "min_net_displacement_cells": effective_min_net_displacement_cells,
             },
             "seed_bucket_labels": bucket_labels,
             "seed_buckets": [
@@ -1667,8 +2485,19 @@ def main() -> None:
                     "depth_fraction_range": [float(value) for value in bucket["depth_fraction_range"]],
                     "proxy_fraction": float(bucket["proxy_fraction"]),
                     "min_seed_speed_mps": float(bucket["min_seed_speed_mps"]),
+                    "min_proxy_speed_mps": float(bucket.get("min_proxy_speed_mps", args.min_speed_mps)),
+                    "min_trace_speed_mps": float(bucket.get("min_trace_speed_mps", args.min_trace_speed_mps)),
+                    "seed_layout_mode": str(bucket.get("seed_layout_mode", "block_scattered")),
+                    "seed_weight_mode": str(bucket.get("seed_weight_mode", "speed_proxy")),
+                    "seed_depth_mode": str(bucket.get("seed_depth_mode", "fastest_valid")),
+                    "selection_rank_mode": str(bucket.get("selection_rank_mode", "segment_speed")),
+                    "min_streamline_segments": int(bucket.get("min_streamline_segments", args.min_streamline_segments)),
+                    "min_unique_xy_cells": int(bucket.get("min_unique_xy_cells", DEFAULT_MIN_UNIQUE_XY_CELLS)),
+                    "min_net_displacement_cells": float(
+                        bucket.get("min_net_displacement_cells", DEFAULT_MIN_NET_DISPLACEMENT_CELLS)
+                    ),
                 }
-                for bucket in SEED_BUCKETS
+                for bucket in seed_buckets
             ],
         },
         "streamline_count": streamline_count,
@@ -1682,6 +2511,7 @@ def main() -> None:
             "depth_max_m": float(np.max(depth_bounds)),
             "seed_depth_min_m": float(np.min(selected_seed_depths)) if selected_seed_depths else 0.0,
             "seed_depth_max_m": float(np.max(selected_seed_depths)) if selected_seed_depths else 0.0,
+            "valid_seed_sector_counts_8": valid_seed_sector_counts,
             "retained_seed_sector_counts_8": selected_seed_sector_counts,
             "segments_by_seed_bucket": counts_by_seed_bucket,
             "streamlines_by_seed_bucket": flowlines_by_seed_bucket,
@@ -1712,8 +2542,8 @@ def main() -> None:
     }
     out_meta.write_text(json.dumps(meta, indent=2), encoding="utf-8")
     print(
-        f"Kept {streamline_count} Antarctica 3D streamlines / {segment_count} segments with front-focused "
-        f"cavity + open-ocean seeding"
+        f"Kept {streamline_count} Antarctica 3D streamlines / {segment_count} segments for "
+        f"{streamline_class_def['label']}"
     )
 
 

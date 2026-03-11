@@ -10,10 +10,21 @@ const CHANNEL_STRIP_WIDTH_M_MIN = 1500;
 const CHANNEL_STRIP_WIDTH_M_MAX = 5000;
 const EFFECTIVE_PRESSURE_SURFACE_OFFSET_M = 10;
 const SUBGLACIAL_CHANNEL_SURFACE_OFFSET_M = 14;
+const OCEAN_CURRENT_BED_CLEARANCE_M = 20;
+const OCEAN_CURRENT_ARROW_HEAD_RATIO = 0.4;
+const OCEAN_CURRENT_ARROW_HEAD_MIN_UNITS = 0.16;
+const OCEAN_CURRENT_ARROW_HEAD_MAX_UNITS = 1.0;
+const OCEAN_CURRENT_ARROW_HEAD_WIDTH_RATIO = 0.65;
+const OCEAN_CURRENT_LAYER_ORDER = ["surface", "upper", "mid", "lower"];
 
 function clamp01(value) {
   if (!Number.isFinite(value)) return 0;
   return Math.min(1, Math.max(0, value));
+}
+
+function clamp(value, min, max) {
+  if (!Number.isFinite(value)) return min;
+  return Math.min(max, Math.max(min, value));
 }
 
 function lerp(a, b, t) {
@@ -87,6 +98,31 @@ function channelDischargeNormalized(dischargeM3PerS) {
   );
 }
 
+function oceanCurrentColor(thetaC, salinityPsu, oceanMeta) {
+  const visualization = oceanMeta?.visualization || {};
+  const thetaRange = Array.isArray(visualization.temperature_range_c) ? visualization.temperature_range_c : [-2, 8];
+  const salinityRange = Array.isArray(visualization.salinity_range_psu) ? visualization.salinity_range_psu : [30, 35];
+  const thetaSpan = Math.max(1e-6, Number(thetaRange[1]) - Number(thetaRange[0]));
+  const salinitySpan = Math.max(1e-6, Number(salinityRange[1]) - Number(salinityRange[0]));
+  const thetaT = clamp01((Number(thetaC) - Number(thetaRange[0])) / thetaSpan);
+  const salinityT = clamp01((Number(salinityPsu) - Number(salinityRange[0])) / salinitySpan);
+
+  const coldFresh = [0.0, 0.87, 0.99];
+  const coldSalty = [0.23, 0.11, 0.88];
+  const warmFresh = [0.0, 0.76, 0.2];
+  const warmSalty = [0.99, 0.28, 0.0];
+
+  const freshBlend = lerpColor(coldFresh, warmFresh, thetaT);
+  const saltyBlend = lerpColor(coldSalty, warmSalty, thetaT);
+  const color = lerpColor(freshBlend, saltyBlend, salinityT);
+  const brightnessLift = 0.022 + thetaT * 0.018;
+  return [
+    clamp01(color[0] + brightnessLift),
+    clamp01(color[1] + brightnessLift * 0.65),
+    clamp01(color[2] + brightnessLift * 0.18),
+  ];
+}
+
 function subglacialChannelColor(dischargeM3PerS, lut) {
   const scaled = channelDischargeNormalized(dischargeM3PerS);
   if (lut && lut.length) {
@@ -144,6 +180,368 @@ function parseField(meta, arrayBuffer, name) {
     return out;
   }
   throw new Error(`Unsupported dtype for ${name}: ${field.dtype}`);
+}
+
+function getOceanCurrentSeedBucketKeys(oceanMeta) {
+  const samplingBuckets = Array.isArray(oceanMeta?.sampling?.seed_buckets) ? oceanMeta.sampling.seed_buckets : [];
+  const bucketKeys = samplingBuckets
+    .map((bucket) => (bucket && typeof bucket.key === "string" ? bucket.key : ""))
+    .filter((key) => key.length > 0);
+  if (bucketKeys.length) return bucketKeys;
+  const bucketCounts = oceanMeta?.coverage?.streamlines_by_seed_bucket;
+  return bucketCounts && typeof bucketCounts === "object" ? Object.keys(bucketCounts) : [];
+}
+
+function getOceanCurrentLayerFromBucketKey(bucketKey) {
+  if (typeof bucketKey !== "string") return "";
+  for (const layer of OCEAN_CURRENT_LAYER_ORDER) {
+    if (bucketKey.endsWith(`_${layer}`) || bucketKey === layer) return layer;
+  }
+  return "";
+}
+
+function getOceanCurrentLayerSplitInfo(oceanMeta) {
+  const availableByLayer = { surface: false, upper: false, mid: false, lower: false };
+  const bucketCounts = oceanMeta?.coverage?.streamlines_by_seed_bucket;
+  if (!bucketCounts || typeof bucketCounts !== "object") {
+    return { enabled: false, availableByLayer, orderedBuckets: [] };
+  }
+  const orderedBuckets = [];
+  for (const bucketKey of getOceanCurrentSeedBucketKeys(oceanMeta)) {
+    const bucketCount = Number(bucketCounts[bucketKey] || 0);
+    if (!(bucketCount > 0)) continue;
+    const layer = getOceanCurrentLayerFromBucketKey(bucketKey);
+    if (!layer) {
+      return { enabled: false, availableByLayer: { surface: false, upper: false, mid: false, lower: false }, orderedBuckets: [] };
+    }
+    availableByLayer[layer] = true;
+    orderedBuckets.push({ key: bucketKey, layer, count: bucketCount });
+  }
+  return { enabled: orderedBuckets.length > 0, availableByLayer, orderedBuckets };
+}
+
+function projectPsPointToGrid(grid, nx, ny, xMeters, yMeters) {
+  if (!grid) return null;
+  if (!Number.isFinite(xMeters) || !Number.isFinite(yMeters)) return null;
+  if (!Number.isFinite(grid.x0_m) || !Number.isFinite(grid.y0_m)) return null;
+  if (!Number.isFinite(grid.dx_m) || !Number.isFinite(grid.dy_m)) return null;
+  if (Math.abs(grid.dx_m) < 1e-9 || Math.abs(grid.dy_m) < 1e-9) return null;
+  const col = (xMeters - grid.x0_m) / grid.dx_m;
+  const row = (yMeters - grid.y0_m) / grid.dy_m;
+  if (!Number.isFinite(col) || !Number.isFinite(row)) return null;
+  if (col < 0 || row < 0 || col > nx - 1 || row > ny - 1) return null;
+  return { col, row };
+}
+
+function gridToSceneXZ(grid, nx, ny, horizontalMetersPerUnit, col, row) {
+  const halfX = (nx - 1) / 2;
+  const halfY = (ny - 1) / 2;
+  return {
+    x: ((col - halfX) * grid.dx_m) / horizontalMetersPerUnit,
+    z: ((row - halfY) * Math.abs(grid.dy_m)) / horizontalMetersPerUnit,
+  };
+}
+
+function sampleBedHeightNearest(nx, ny, bedHeights, bedValid, col, row) {
+  const c = Math.round(col);
+  const r = Math.round(row);
+  if (c < 0 || r < 0 || c >= nx || r >= ny) return Number.NaN;
+  const idx = r * nx + c;
+  if (!bedValid[idx]) return Number.NaN;
+  const value = bedHeights[idx];
+  return Number.isFinite(value) ? value : Number.NaN;
+}
+
+function buildOceanCurrentTask(id, payload) {
+  const {
+    oceanMeta,
+    oceanBuffer,
+    mask,
+    bedHeights,
+    bedValid,
+    nx,
+    ny,
+    grid,
+    baseConfig,
+    reportProgress,
+  } = payload;
+  if (!(oceanBuffer instanceof ArrayBuffer)) {
+    throw new Error("Ocean-current payload is invalid.");
+  }
+
+  postProgress(id, reportProgress, 0.04, "Decoding ocean-current package...");
+  const x0Ps = parseField(oceanMeta, oceanBuffer, "x0_ps_m");
+  const y0Ps = parseField(oceanMeta, oceanBuffer, "y0_ps_m");
+  const depth0M = parseField(oceanMeta, oceanBuffer, "depth0_m");
+  const x1Ps = parseField(oceanMeta, oceanBuffer, "x1_ps_m");
+  const y1Ps = parseField(oceanMeta, oceanBuffer, "y1_ps_m");
+  const depth1M = parseField(oceanMeta, oceanBuffer, "depth1_m");
+  const theta0C = parseField(oceanMeta, oceanBuffer, "theta0_c");
+  const sal0Psu = parseField(oceanMeta, oceanBuffer, "sal0_psu");
+  const theta1C = parseField(oceanMeta, oceanBuffer, "theta1_c");
+  const sal1Psu = parseField(oceanMeta, oceanBuffer, "sal1_psu");
+  const terminalFlag = parseField(oceanMeta, oceanBuffer, "terminal_flag");
+  const count = x0Ps.length;
+  const layerSplitInfo = getOceanCurrentLayerSplitInfo(oceanMeta);
+  const useLayerSplit = layerSplitInfo.enabled;
+  if (
+    y0Ps.length !== count ||
+    depth0M.length !== count ||
+    x1Ps.length !== count ||
+    y1Ps.length !== count ||
+    depth1M.length !== count ||
+    theta0C.length !== count ||
+    sal0Psu.length !== count ||
+    theta1C.length !== count ||
+    sal1Psu.length !== count ||
+    terminalFlag.length !== count
+  ) {
+    throw new Error("Ocean-current package fields are misaligned.");
+  }
+
+  const bucketBoundaries = [];
+  if (useLayerSplit) {
+    let cumulative = 0;
+    for (const bucket of layerSplitInfo.orderedBuckets) {
+      cumulative += bucket.count;
+      bucketBoundaries.push({ layer: bucket.layer, endExclusive: cumulative });
+    }
+  }
+
+  function getLayerName(streamlineIndexState) {
+    if (!useLayerSplit) return "all";
+    while (
+      streamlineIndexState.bucketBoundaryIndex < bucketBoundaries.length - 1 &&
+      streamlineIndexState.streamlineIndex >= bucketBoundaries[streamlineIndexState.bucketBoundaryIndex].endExclusive
+    ) {
+      streamlineIndexState.bucketBoundaryIndex += 1;
+    }
+    return bucketBoundaries[streamlineIndexState.bucketBoundaryIndex]?.layer || "mid";
+  }
+
+  const layerNames = useLayerSplit ? OCEAN_CURRENT_LAYER_ORDER.slice() : ["all"];
+  const pairCounts = Object.fromEntries(layerNames.map((layer) => [layer, 0]));
+  const segmentCounts = Object.fromEntries(layerNames.map((layer) => [layer, 0]));
+  const firstPassState = { streamlineIndex: 0, bucketBoundaryIndex: 0 };
+  const firstPassChunk = Math.max(20000, Math.floor(count / 20));
+
+  for (let i = 0; i < count; i += 1) {
+    const layer = getLayerName(firstPassState);
+    const projected0 = projectPsPointToGrid(grid, nx, ny, x0Ps[i], y0Ps[i]);
+    const projected1 = projectPsPointToGrid(grid, nx, ny, x1Ps[i], y1Ps[i]);
+    let keep = Boolean(projected0 && projected1);
+    if (keep) {
+      const depth0 = Math.max(0, Number(depth0M[i]));
+      const depth1 = Math.max(0, Number(depth1M[i]));
+      const col0 = projected0.col;
+      const row0 = projected0.row;
+      const col1 = projected1.col;
+      const row1 = projected1.row;
+      const col0Nearest = Math.min(nx - 1, Math.max(0, Math.round(col0)));
+      const row0Nearest = Math.min(ny - 1, Math.max(0, Math.round(row0)));
+      const col1Nearest = Math.min(nx - 1, Math.max(0, Math.round(col1)));
+      const row1Nearest = Math.min(ny - 1, Math.max(0, Math.round(row1)));
+      const idx0 = row0Nearest * nx + col0Nearest;
+      const idx1 = row1Nearest * nx + col1Nearest;
+      const mask0 = Number(mask[idx0]);
+      const mask1 = Number(mask[idx1]);
+      const validOceanMask0 = mask0 === 0 || mask0 === 3;
+      const validOceanMask1 = mask1 === 0 || mask1 === 3;
+      const bedHeight0 = sampleBedHeightNearest(nx, ny, bedHeights, bedValid, col0, row0);
+      const bedHeight1 = sampleBedHeightNearest(nx, ny, bedHeights, bedValid, col1, row1);
+      keep =
+        validOceanMask0 &&
+        validOceanMask1 &&
+        Number.isFinite(bedHeight0) &&
+        Number.isFinite(bedHeight1) &&
+        -bedHeight0 >= depth0 + OCEAN_CURRENT_BED_CLEARANCE_M &&
+        -bedHeight1 >= depth1 + OCEAN_CURRENT_BED_CLEARANCE_M;
+    }
+
+    if (keep) {
+      pairCounts[layer] += 1 + (terminalFlag[i] ? 2 : 0);
+      segmentCounts[layer] += 1;
+    }
+    if (terminalFlag[i]) {
+      firstPassState.streamlineIndex += 1;
+    }
+    if (i > 0 && i % firstPassChunk === 0) {
+      const t = i / Math.max(1, count - 1);
+      postProgress(id, reportProgress, 0.08 + t * 0.34, "Scanning ocean-current segments...");
+    }
+  }
+
+  const layerBuffers = {};
+  for (const layer of layerNames) {
+    layerBuffers[layer] = {
+      positions: new Float32Array(pairCounts[layer] * 6),
+      colors: new Float32Array(pairCounts[layer] * 6),
+      cursor: 0,
+      segmentCount: segmentCounts[layer],
+    };
+  }
+
+  function writePair(buffer, x0, y0, z0, x1, y1, z1, c0, c1) {
+    const base = buffer.cursor;
+    buffer.positions[base] = x0;
+    buffer.positions[base + 1] = y0;
+    buffer.positions[base + 2] = z0;
+    buffer.positions[base + 3] = x1;
+    buffer.positions[base + 4] = y1;
+    buffer.positions[base + 5] = z1;
+    buffer.colors[base] = c0[0];
+    buffer.colors[base + 1] = c0[1];
+    buffer.colors[base + 2] = c0[2];
+    buffer.colors[base + 3] = c1[0];
+    buffer.colors[base + 4] = c1[1];
+    buffer.colors[base + 5] = c1[2];
+    buffer.cursor += 6;
+  }
+
+  function appendArrow(buffer, scenePoint1, y1, dx, dy, dz, color1) {
+    const length = Math.hypot(dx, dy, dz);
+    if (!(Number.isFinite(length) && length > 1e-5)) return;
+    const headLength = clamp(
+      length * OCEAN_CURRENT_ARROW_HEAD_RATIO,
+      OCEAN_CURRENT_ARROW_HEAD_MIN_UNITS,
+      OCEAN_CURRENT_ARROW_HEAD_MAX_UNITS
+    );
+    const headWidth = headLength * OCEAN_CURRENT_ARROW_HEAD_WIDTH_RATIO;
+    const invLength = 1 / length;
+    const dirX = dx * invLength;
+    const dirY = dy * invLength;
+    const dirZ = dz * invLength;
+
+    let sideX = -dirZ;
+    let sideY = 0;
+    let sideZ = dirX;
+    let sideLength = Math.hypot(sideX, sideY, sideZ);
+    if (sideLength < 1e-6) {
+      sideX = 0;
+      sideY = dirZ;
+      sideZ = -dirY;
+      sideLength = Math.hypot(sideX, sideY, sideZ);
+    }
+    if (!(Number.isFinite(sideLength) && sideLength > 1e-6)) return;
+    sideX = (sideX / sideLength) * headWidth;
+    sideY = (sideY / sideLength) * headWidth;
+    sideZ = (sideZ / sideLength) * headWidth;
+
+    const tipX = scenePoint1.x;
+    const tipY = y1;
+    const tipZ = scenePoint1.z;
+    const headBaseX = tipX - dirX * headLength;
+    const headBaseY = tipY - dirY * headLength;
+    const headBaseZ = tipZ - dirZ * headLength;
+    const arrowColor = lerpColor(color1, [1, 1, 1], 0.35);
+
+    writePair(
+      buffer,
+      tipX,
+      tipY,
+      tipZ,
+      headBaseX + sideX,
+      headBaseY + sideY,
+      headBaseZ + sideZ,
+      arrowColor,
+      arrowColor
+    );
+    writePair(
+      buffer,
+      tipX,
+      tipY,
+      tipZ,
+      headBaseX - sideX,
+      headBaseY - sideY,
+      headBaseZ - sideZ,
+      arrowColor,
+      arrowColor
+    );
+  }
+
+  const secondPassState = { streamlineIndex: 0, bucketBoundaryIndex: 0 };
+  const secondPassChunk = Math.max(20000, Math.floor(count / 20));
+  for (let i = 0; i < count; i += 1) {
+    const layer = getLayerName(secondPassState);
+    const buffer = layerBuffers[layer];
+    const projected0 = projectPsPointToGrid(grid, nx, ny, x0Ps[i], y0Ps[i]);
+    const projected1 = projectPsPointToGrid(grid, nx, ny, x1Ps[i], y1Ps[i]);
+    let keep = Boolean(projected0 && projected1);
+    let scenePoint0;
+    let scenePoint1;
+    let y0;
+    let y1;
+    let color0;
+    let color1;
+
+    if (keep) {
+      const depth0 = Math.max(0, Number(depth0M[i]));
+      const depth1 = Math.max(0, Number(depth1M[i]));
+      const col0 = projected0.col;
+      const row0 = projected0.row;
+      const col1 = projected1.col;
+      const row1 = projected1.row;
+      const col0Nearest = Math.min(nx - 1, Math.max(0, Math.round(col0)));
+      const row0Nearest = Math.min(ny - 1, Math.max(0, Math.round(row0)));
+      const col1Nearest = Math.min(nx - 1, Math.max(0, Math.round(col1)));
+      const row1Nearest = Math.min(ny - 1, Math.max(0, Math.round(row1)));
+      const idx0 = row0Nearest * nx + col0Nearest;
+      const idx1 = row1Nearest * nx + col1Nearest;
+      const mask0 = Number(mask[idx0]);
+      const mask1 = Number(mask[idx1]);
+      const validOceanMask0 = mask0 === 0 || mask0 === 3;
+      const validOceanMask1 = mask1 === 0 || mask1 === 3;
+      const bedHeight0 = sampleBedHeightNearest(nx, ny, bedHeights, bedValid, col0, row0);
+      const bedHeight1 = sampleBedHeightNearest(nx, ny, bedHeights, bedValid, col1, row1);
+      keep =
+        validOceanMask0 &&
+        validOceanMask1 &&
+        Number.isFinite(bedHeight0) &&
+        Number.isFinite(bedHeight1) &&
+        -bedHeight0 >= depth0 + OCEAN_CURRENT_BED_CLEARANCE_M &&
+        -bedHeight1 >= depth1 + OCEAN_CURRENT_BED_CLEARANCE_M;
+      if (keep) {
+        scenePoint0 = gridToSceneXZ(grid, nx, ny, baseConfig.horizontalMetersPerUnit, col0, row0);
+        scenePoint1 = gridToSceneXZ(grid, nx, ny, baseConfig.horizontalMetersPerUnit, col1, row1);
+        y0 = -depth0 / baseConfig.verticalMetersPerUnit;
+        y1 = -depth1 / baseConfig.verticalMetersPerUnit;
+        color0 = oceanCurrentColor(theta0C[i], sal0Psu[i], oceanMeta);
+        color1 = oceanCurrentColor(theta1C[i], sal1Psu[i], oceanMeta);
+        writePair(buffer, scenePoint0.x, y0, scenePoint0.z, scenePoint1.x, y1, scenePoint1.z, color0, color1);
+        if (terminalFlag[i]) {
+          appendArrow(buffer, scenePoint1, y1, scenePoint1.x - scenePoint0.x, y1 - y0, scenePoint1.z - scenePoint0.z, color1);
+        }
+      }
+    }
+
+    if (terminalFlag[i]) {
+      secondPassState.streamlineIndex += 1;
+    }
+    if (i > 0 && i % secondPassChunk === 0) {
+      const t = i / Math.max(1, count - 1);
+      postProgress(id, reportProgress, 0.44 + t * 0.5, "Building ocean streamline geometry...");
+    }
+  }
+
+  const layers = {};
+  let totalSegmentCount = 0;
+  for (const layer of layerNames) {
+    const buffer = layerBuffers[layer];
+    totalSegmentCount += Number(buffer.segmentCount || 0);
+    layers[layer] = {
+      positions: buffer.positions,
+      colors: buffer.colors,
+      segmentCount: Number(buffer.segmentCount || 0),
+    };
+  }
+
+  postProgress(id, reportProgress, 0.98, "Finalizing ocean streamlines...");
+  return {
+    useLayerSplit,
+    flowlineCount: Number(oceanMeta.streamline_count || oceanMeta.flowline_count || 0),
+    segmentCount: totalSegmentCount,
+    layers,
+  };
 }
 
 function finiteMedian(values, maxSampleSize = 180000) {
@@ -556,20 +954,32 @@ function buildHydrologyTask(id, payload) {
 function collectTransferables(result) {
   const list = [];
   const seen = new Set();
-  for (const value of Object.values(result)) {
+  function visit(value) {
+    if (!value) return;
     if (ArrayBuffer.isView(value)) {
       const buffer = value.buffer;
       if (buffer && !seen.has(buffer)) {
         seen.add(buffer);
         list.push(buffer);
       }
-    } else if (value instanceof ArrayBuffer) {
+      return;
+    }
+    if (value instanceof ArrayBuffer) {
       if (!seen.has(value)) {
         seen.add(value);
         list.push(value);
       }
+      return;
+    }
+    if (Array.isArray(value)) {
+      for (const item of value) visit(item);
+      return;
+    }
+    if (typeof value === "object") {
+      for (const item of Object.values(value)) visit(item);
     }
   }
+  visit(result);
   return list;
 }
 
@@ -581,6 +991,8 @@ self.addEventListener("message", (event) => {
       result = buildVelocityTask(id, payload);
     } else if (task === "buildHydrology") {
       result = buildHydrologyTask(id, payload);
+    } else if (task === "buildOceanCurrents") {
+      result = buildOceanCurrentTask(id, payload);
     } else {
       throw new Error(`Unknown worker task: ${String(task)}`);
     }
