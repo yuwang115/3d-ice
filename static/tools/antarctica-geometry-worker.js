@@ -3,11 +3,14 @@
 const FLOWLINE_SURFACE_OFFSET_M = 18;
 const VELOCITY_VISUALIZATION_MAX = 3000;
 const VELOCITY_VISUALIZATION_KNEE = 20;
+const BASAL_FRICTION_VISUALIZATION_MAX = 0.3;
+const BASAL_FRICTION_VISUALIZATION_KNEE = 0.015;
 const EFFECTIVE_PRESSURE_REFERENCE_PA = 5_000_000;
 const CHANNEL_DISCHARGE_MIN = 1e-3;
 const CHANNEL_DISCHARGE_MAX = 100;
 const CHANNEL_STRIP_WIDTH_M_MIN = 1500;
 const CHANNEL_STRIP_WIDTH_M_MAX = 5000;
+const BASAL_FRICTION_SURFACE_OFFSET_M = 12;
 const EFFECTIVE_PRESSURE_SURFACE_OFFSET_M = 10;
 const SUBGLACIAL_CHANNEL_SURFACE_OFFSET_M = 14;
 const OCEAN_CURRENT_BED_CLEARANCE_M = 20;
@@ -71,6 +74,28 @@ function velocityColor(speedMetersPerYear) {
       [1.0, [0.9, 0.2, 0.12]],
     ],
     scaled
+  );
+}
+
+function basalFrictionScaleT(valueMpa) {
+  const value = Number.isFinite(valueMpa) ? Math.max(0, valueMpa) : 0;
+  const clamped = Math.min(BASAL_FRICTION_VISUALIZATION_MAX, value);
+  return (
+    Math.log1p(clamped / BASAL_FRICTION_VISUALIZATION_KNEE) /
+    Math.log1p(BASAL_FRICTION_VISUALIZATION_MAX / BASAL_FRICTION_VISUALIZATION_KNEE)
+  );
+}
+
+function basalFrictionColor(valueMpa) {
+  return sampleColorStops(
+    [
+      [0.0, [0.047, 0.118, 0.259]],
+      [0.26, [0.125, 0.478, 0.678]],
+      [0.52, [0.88, 0.91, 0.79]],
+      [0.78, [0.851, 0.545, 0.188]],
+      [1.0, [0.588, 0.094, 0.114]],
+    ],
+    basalFrictionScaleT(valueMpa)
   );
 }
 
@@ -951,6 +976,82 @@ function buildHydrologyTask(id, payload) {
   };
 }
 
+function buildBasalFrictionTask(id, payload) {
+  const {
+    basalFrictionMeta,
+    basalFrictionBuffer,
+    nx,
+    ny,
+    cellCount,
+    baseConfig,
+    bedHeights,
+    bedValid,
+    mask,
+    meshStride,
+    reportProgress,
+  } = payload;
+  const safeStride = Math.max(1, Math.floor(Number(meshStride) || 1));
+  const basalFrictionSurfaceOffsetMeters =
+    BASAL_FRICTION_SURFACE_OFFSET_M + (safeStride - 1) * 64;
+
+  if (basalFrictionMeta.grid.nx !== nx || basalFrictionMeta.grid.ny !== ny) {
+    throw new Error("Basal-friction grid is not aligned to BedMachine grid.");
+  }
+
+  postProgress(id, reportProgress, 0.04, "Processing basal friction field...");
+  const basalFriction = parseField(basalFrictionMeta, basalFrictionBuffer, "basal_friction");
+  if (basalFriction.length !== cellCount) {
+    throw new Error("Basal-friction field length mismatch.");
+  }
+  if (!mask || mask.length !== cellCount) {
+    throw new Error("Basal-friction mask length mismatch.");
+  }
+
+  const basalFrictionValid = new Uint8Array(cellCount);
+  const basalFrictionHeights = new Float32Array(cellCount);
+  const chunk = 20000;
+
+  for (let i = 0; i < cellCount; i += 1) {
+    const value = basalFriction[i];
+    const hasValue = bedValid[i] && mask[i] === 2 && Number.isFinite(value) && value >= 0;
+    basalFrictionValid[i] = Number(hasValue);
+    basalFrictionHeights[i] = hasValue
+      ? bedHeights[i] + basalFrictionSurfaceOffsetMeters
+      : Number.NaN;
+
+    if (i > 0 && i % chunk === 0) {
+      const t = i / Math.max(1, cellCount - 1);
+      postProgress(id, reportProgress, 0.12 + t * 0.2, "Processing basal friction field...");
+    }
+  }
+
+  const geometry = buildSurfaceGeometryWithField({
+    nx,
+    ny,
+    dxMeters: baseConfig.dxMeters,
+    dyMeters: baseConfig.dyMeters,
+    horizontalMetersPerUnit: baseConfig.horizontalMetersPerUnit,
+    verticalMetersPerUnit: baseConfig.verticalMetersPerUnit,
+    heights: basalFrictionHeights,
+    valid: basalFrictionValid,
+    fieldValues: basalFriction,
+    colorFn: (value) => basalFrictionColor(value),
+    progress: (p, stage) => postProgress(id, reportProgress, p, stage),
+    progressStart: 0.34,
+    progressEnd: 0.96,
+    progressLabelVertices: "Building basal friction mesh...",
+    progressLabelIndices: "Triangulating basal friction mesh...",
+    sampleStride: meshStride,
+  });
+
+  postProgress(id, reportProgress, 0.98, "Finalizing basal friction layer...");
+  return {
+    positions: geometry.positions,
+    colors: geometry.colors,
+    indices: geometry.indices,
+  };
+}
+
 function collectTransferables(result) {
   const list = [];
   const seen = new Set();
@@ -989,6 +1090,8 @@ self.addEventListener("message", (event) => {
     let result;
     if (task === "buildVelocity") {
       result = buildVelocityTask(id, payload);
+    } else if (task === "buildBasalFriction") {
+      result = buildBasalFrictionTask(id, payload);
     } else if (task === "buildHydrology") {
       result = buildHydrologyTask(id, payload);
     } else if (task === "buildOceanCurrents") {
