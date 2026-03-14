@@ -108,6 +108,19 @@ def quantize_to_int16(values: np.ndarray, scale: float) -> np.ndarray:
     return q.astype(np.int16)
 
 
+def finite_quantiles(values: np.ndarray) -> dict[str, float]:
+    finite = values[np.isfinite(values)]
+    if finite.size == 0:
+        return {"median": math.nan, "q90": math.nan, "q95": math.nan, "q99": math.nan}
+    quantile_values = np.quantile(finite, [0.5, 0.9, 0.95, 0.99])
+    return {
+        "median": float(quantile_values[0]),
+        "q90": float(quantile_values[1]),
+        "q95": float(quantile_values[2]),
+        "q99": float(quantile_values[3]),
+    }
+
+
 def reduce_channel_edges(
     *,
     nx: int,
@@ -226,6 +239,7 @@ def prepare_target(
     ep_max = -math.inf
     ep_sum = 0.0
     ep_valid_count = 0
+    ep_samples: list[np.ndarray] = []
 
     for row in range(ny):
         if not src_iy_valid[row]:
@@ -249,9 +263,11 @@ def prepare_target(
         ep_max = max(ep_max, float(np.max(values)))
         ep_sum += float(np.sum(values))
         ep_valid_count += int(values.size)
+        ep_samples.append(values)
 
     if ep_valid_count == 0:
         raise RuntimeError(f"No valid effective_pressure values for target {target.label}.")
+    ep_quantiles = finite_quantiles(np.concatenate(ep_samples))
 
     col1, row1, col2, row2, q, kept_count = reduce_channel_edges(
         nx=nx,
@@ -274,6 +290,7 @@ def prepare_target(
     q_min = float(np.min(q))
     q_max = float(np.max(q))
     q_mean = float(np.mean(q))
+    q_quantiles = finite_quantiles(q)
 
     out_bin = output_dir / f"{target.output_basename}.bin"
     out_meta = output_dir / f"{target.output_basename}.meta.json"
@@ -338,6 +355,7 @@ def prepare_target(
                     "max": ep_max,
                     "mean": ep_sum / ep_valid_count,
                 },
+                "quantiles_pa": ep_quantiles,
             },
             {
                 "name": "channel_col1",
@@ -378,6 +396,7 @@ def prepare_target(
                     "max": q_max,
                     "mean": q_mean,
                 },
+                "quantiles_m3_per_s": q_quantiles,
             },
         ],
     }

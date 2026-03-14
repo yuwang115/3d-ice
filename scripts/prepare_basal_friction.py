@@ -176,12 +176,13 @@ def prepare_target(
         "max": float(np.max(finite_values)),
         "mean": float(np.mean(finite_values, dtype=np.float64)),
     }
-    quantile_values = np.quantile(finite_values, [0.5, 0.95, 0.99, 0.995])
+    quantile_values = np.quantile(finite_values, [0.5, 0.9, 0.95, 0.99, 0.995])
     quantiles = {
         "median": float(quantile_values[0]),
-        "q95": float(quantile_values[1]),
-        "q99": float(quantile_values[2]),
-        "q995": float(quantile_values[3]),
+        "q90": float(quantile_values[1]),
+        "q95": float(quantile_values[2]),
+        "q99": float(quantile_values[3]),
+        "q995": float(quantile_values[4]),
     }
 
     out_bin = output_dir / f"{target.output_basename}.bin"

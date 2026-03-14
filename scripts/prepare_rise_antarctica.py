@@ -166,6 +166,19 @@ def finite_stats(values: np.ndarray) -> dict[str, float]:
     }
 
 
+def finite_quantiles(values: np.ndarray) -> dict[str, float]:
+    finite = values[np.isfinite(values)]
+    if finite.size == 0:
+        return {"median": math.nan, "q90": math.nan, "q95": math.nan, "q99": math.nan}
+    quantile_values = np.quantile(finite, [0.5, 0.9, 0.95, 0.99])
+    return {
+        "median": float(quantile_values[0]),
+        "q90": float(quantile_values[1]),
+        "q95": float(quantile_values[2]),
+        "q99": float(quantile_values[3]),
+    }
+
+
 def describe_mask(mask_values: np.ndarray) -> dict[str, int]:
     out: dict[str, int] = {}
     unique, counts = np.unique(mask_values.astype(np.uint8), return_counts=True)
@@ -546,6 +559,7 @@ def write_target_package(
                 "fill_value": FILL_INT16,
                 "unit": "m",
                 "stats_m": finite_stats(sampled_zice),
+                "quantiles_m": finite_quantiles(sampled_zice),
             },
             {
                 "name": "ismr",
@@ -557,6 +571,7 @@ def write_target_package(
                 "fill_value": FILL_INT16,
                 "unit": "m/yr",
                 "stats_m_per_year": finite_stats(sampled_ismr),
+                "quantiles_m_per_year": finite_quantiles(sampled_ismr),
             },
             {
                 "name": "tstar_zice",
@@ -568,6 +583,7 @@ def write_target_package(
                 "fill_value": FILL_INT16,
                 "unit": "celsius",
                 "stats_c": finite_stats(sampled_tstar),
+                "quantiles_c": finite_quantiles(sampled_tstar),
             },
         ],
     }

@@ -14,8 +14,8 @@
   "quantization": {
     "int16_fill_value": -32768,
     "effective_pressure_unit": "Pa",
-    "effective_pressure_scale_pa_per_int16": 1000.0,
-    "effective_pressure_offset_pa": 0.0
+    "effective_pressure_scale_pa_per_int16": 1000,
+    "effective_pressure_offset_pa": 0
   },
   "channel_filter": {
     "min_discharge_m3_per_s": 0.001,
@@ -38,8 +38,14 @@
       "unit": "Pa",
       "stats_pa": {
         "min": 45.99897766113281,
-        "max": 17424298.0,
+        "max": 17424298,
         "mean": 1666481.9448144536
+      },
+      "quantiles_pa": {
+        "median": 1383000,
+        "q90": 2939000,
+        "q95": 3694000,
+        "q99": 5457000
       }
     },
     {
@@ -80,6 +86,12 @@
         "min": 0.0010012377751991153,
         "max": 205.6685333251953,
         "mean": 2.5255823135375977
+      },
+      "quantiles_m3_per_s": {
+        "median": 0.5074551701545715,
+        "q90": 3.6108031749725344,
+        "q95": 8.327338886260982,
+        "q99": 48.4396373748782
       }
     }
   ]

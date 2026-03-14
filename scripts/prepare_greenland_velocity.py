@@ -78,6 +78,19 @@ def to_quantized_int16(values: np.ndarray, scale: float) -> np.ndarray:
     return quantized.astype(np.int16)
 
 
+def finite_quantiles(values: np.ndarray) -> dict[str, float]:
+    finite = values[np.isfinite(values)]
+    if finite.size == 0:
+        return {"median": math.nan, "q90": math.nan, "q95": math.nan, "q99": math.nan}
+    quantile_values = np.quantile(finite, [0.5, 0.9, 0.95, 0.99])
+    return {
+        "median": float(quantile_values[0]),
+        "q90": float(quantile_values[1]),
+        "q95": float(quantile_values[2]),
+        "q99": float(quantile_values[3]),
+    }
+
+
 def build_target_axis(grid: dict[str, Any]) -> tuple[np.ndarray, np.ndarray]:
     nx = int(grid["nx"])
     ny = int(grid["ny"])
@@ -145,6 +158,7 @@ def prepare_target(
     speed_max = -math.inf
     speed_sum = 0.0
     valid_count = 0
+    speed_samples: list[np.ndarray] = []
 
     for start in range(0, row_positions.size, ROW_CHUNK_SIZE):
         stop = min(row_positions.size, start + ROW_CHUNK_SIZE)
@@ -181,12 +195,14 @@ def prepare_target(
             speed_max = max(speed_max, float(np.max(speed_valid)))
             speed_sum += float(np.sum(speed_valid, dtype=np.float64))
             valid_count += int(np.count_nonzero(valid))
+            speed_samples.append(speed_valid)
 
         vx_out[target_rows[:, None], col_positions] = quantized_vx
         vy_out[target_rows[:, None], col_positions] = quantized_vy
 
     if valid_count == 0:
         raise RuntimeError(f"No valid velocity samples for target {target.label}.")
+    speed_quantiles = finite_quantiles(np.concatenate(speed_samples))
 
     out_bin = output_dir / f"{target.output_basename}.bin"
     out_meta = output_dir / f"{target.output_basename}.meta.json"
@@ -257,6 +273,7 @@ def prepare_target(
                     "max": speed_max,
                     "mean": speed_sum / valid_count,
                 },
+                "quantiles_m_per_year": speed_quantiles,
             },
         ],
     }

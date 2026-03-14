@@ -44,7 +44,7 @@
       ],
       "palette_stops": [
         {
-          "t": 0.0,
+          "t": 0,
           "color": "#153760"
         },
         {
@@ -60,13 +60,13 @@
           "color": "#f7a35b"
         },
         {
-          "t": 1.0,
+          "t": 1,
           "color": "#8a1117"
         }
       ],
       "recommended_percentiles": [
-        90.0,
-        90.0
+        90,
+        90
       ]
     },
     "thermal_driving": {
@@ -80,7 +80,7 @@
       ],
       "palette_stops": [
         {
-          "t": 0.0,
+          "t": 0,
           "color": "#081d58"
         },
         {
@@ -96,19 +96,19 @@
           "color": "#7fcdbb"
         },
         {
-          "t": 1.0,
+          "t": 1,
           "color": "#fff3a3"
         }
       ],
       "recommended_percentiles": [
-        1.0,
-        99.0
+        1,
+        99
       ]
     },
     "ice_draft": {
       "display_range_m": [
         -1092.75,
-        0.0
+        0
       ],
       "percentile_range_m": [
         -1092.75,
@@ -116,7 +116,7 @@
       ],
       "palette_stops": [
         {
-          "t": 0.0,
+          "t": 0,
           "color": "#edf8fb"
         },
         {
@@ -132,13 +132,13 @@
           "color": "#8c6bb1"
         },
         {
-          "t": 1.0,
+          "t": 1,
           "color": "#5b1f6d"
         }
       ],
       "recommended_percentiles": [
-        1.0,
-        99.0
+        1,
+        99
       ]
     }
   },
@@ -162,8 +162,8 @@
       "byte_offset": 444889,
       "byte_length": 889778,
       "stats": {
-        "min": 0.0,
-        "max": 180.0,
+        "min": 0,
+        "max": 180,
         "mean": 3.5119974613189697
       }
     },
@@ -172,14 +172,20 @@
       "dtype": "int16",
       "byte_offset": 1334667,
       "byte_length": 889778,
-      "scale": 1.0,
-      "offset": 0.0,
+      "scale": 1,
+      "offset": 0,
       "fill_value": -32768,
       "unit": "m",
       "stats_m": {
         "min": -1700.5,
-        "max": -18.0,
+        "max": -18,
         "mean": -380.24755859375
+      },
+      "quantiles_m": {
+        "median": -314,
+        "q90": -148,
+        "q95": -110,
+        "q99": -48.67000000000007
       }
     },
     {
@@ -188,13 +194,19 @@
       "byte_offset": 2224445,
       "byte_length": 889778,
       "scale": 0.001,
-      "offset": 0.0,
+      "offset": 0,
       "fill_value": -32768,
       "unit": "m/yr",
       "stats_m_per_year": {
         "min": -10.56987476348877,
         "max": 12.704899787902832,
         "mean": 0.6414721608161926
+      },
+      "quantiles_m_per_year": {
+        "median": 0.34800000000000003,
+        "q90": 1.6822000000000006,
+        "q95": 2.512,
+        "q99": 5.008959999999999
       }
     },
     {
@@ -203,13 +215,19 @@
       "byte_offset": 3114223,
       "byte_length": 889778,
       "scale": 0.0001,
-      "offset": 0.0,
+      "offset": 0,
       "fill_value": -32768,
       "unit": "celsius",
       "stats_c": {
         "min": -0.09443750232458115,
         "max": 1.7036999464035034,
         "mean": 0.14430119097232819
+      },
+      "quantiles_c": {
+        "median": 0.08600000000000001,
+        "q90": 0.37576000000000026,
+        "q95": 0.5404599999999998,
+        "q99": 0.863964
       }
     }
   ]

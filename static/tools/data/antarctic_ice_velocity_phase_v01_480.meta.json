@@ -17,8 +17,8 @@
   "quantization": {
     "int16_fill_value": -32768,
     "unit": "m/year",
-    "scale": 1.0,
-    "offset": 0.0
+    "scale": 1,
+    "offset": 0
   },
   "coverage": {
     "valid_count": 313600,
@@ -52,9 +52,15 @@
       "name": "speed",
       "unit": "m/year",
       "stats_m_per_year": {
-        "min": 0.0,
+        "min": 0,
         "max": 4305.923555164103,
         "mean": 31.07055807283381
+      },
+      "quantiles_m_per_year": {
+        "median": 0,
+        "q90": 36.013886210738214,
+        "q95": 141.69562413876193,
+        "q99": 744.6430014060874
       }
     }
   ]
