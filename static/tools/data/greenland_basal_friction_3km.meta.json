@@ -1,0 +1,62 @@
+{
+  "title": "Greenland basal friction (taub)",
+  "product_version": "taub_med",
+  "source_file": "taub_med.nc",
+  "source_variable": "taub",
+  "region": "greenland",
+  "resampled_to": "3 km",
+  "units_inferred": true,
+  "inference_note": "MPa units are inferred from the tau_b variable name and value range because the source file does not expose unit metadata.",
+  "netcdf_properties": "version=2,netcdf=4.9.2,hdf5=1.14.3",
+  "grid": {
+    "nx": 511,
+    "ny": 918,
+    "x0_m": -652925,
+    "y0_m": -632675,
+    "dx_m": 3000,
+    "dy_m": -3000
+  },
+  "coverage": {
+    "valid_count": 233368,
+    "cell_count": 469098,
+    "valid_fraction": 0.49748240239779323,
+    "mask_hint": "Render on grounded BedMachine ice cells only."
+  },
+  "visualization": {
+    "display_range_mpa": [
+      0.0,
+      0.3
+    ],
+    "knee_mpa": 0.015,
+    "ticks_mpa": [
+      0.0,
+      0.02,
+      0.04,
+      0.08,
+      0.15,
+      0.3
+    ],
+    "note": ""
+  },
+  "fields": [
+    {
+      "name": "basal_friction",
+      "dtype": "float32",
+      "byte_offset": 0,
+      "byte_length": 1876392,
+      "unit": "MPa",
+      "stats_mpa": {
+        "min": 1.476099350838922e-05,
+        "max": 7.164083480834961,
+        "mean": 0.05984479335557439
+      },
+      "quantiles_mpa": {
+        "median": 0.05950242280960083,
+        "q95": 0.1307768777012825,
+        "q99": 0.19858544945716855,
+        "q995": 0.2357978941500187
+      },
+      "source_name": "taub"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "title": "Antarctica basal friction (taub)",
+  "product_version": "taub_med",
+  "source_file": "taub_med.nc",
+  "source_variable": "taub",
+  "region": "antarctica",
+  "resampled_to": "HD",
+  "units_inferred": true,
+  "inference_note": "MPa units are inferred from the tau_b variable name and value range because the source file does not expose unit metadata.",
+  "netcdf_properties": "version=2,netcdf=4.9.2,hdf5=1.14.3",
+  "grid": {
+    "nx": 1667,
+    "ny": 1667,
+    "x0_m": -3333000,
+    "y0_m": 3333000,
+    "dx_m": 4000,
+    "dy_m": -4000
+  },
+  "coverage": {
+    "valid_count": 849193,
+    "cell_count": 2778889,
+    "valid_fraction": 0.3055872328833573,
+    "mask_hint": "Render on grounded BedMachine ice cells only."
+  },
+  "visualization": {
+    "display_range_mpa": [
+      0.0,
+      0.3
+    ],
+    "knee_mpa": 0.015,
+    "ticks_mpa": [
+      0.0,
+      0.02,
+      0.04,
+      0.08,
+      0.15,
+      0.3
+    ],
+    "note": ""
+  },
+  "fields": [
+    {
+      "name": "basal_friction",
+      "dtype": "float32",
+      "byte_offset": 0,
+      "byte_length": 11115556,
+      "unit": "MPa",
+      "stats_mpa": {
+        "min": 0.00013767888594884425,
+        "max": 11.23066234588623,
+        "mean": 0.05756480531630291
+      },
+      "quantiles_mpa": {
+        "median": 0.0523405559360981,
+        "q95": 0.1227897077798843,
+        "q99": 0.17237582921981776,
+        "q995": 0.20770574748516163
+      },
+      "source_name": "taub"
+    }
+  ]
+}
