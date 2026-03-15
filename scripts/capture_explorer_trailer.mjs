@@ -116,7 +116,7 @@ function buildSceneUrl(baseUrl, scene) {
     params.set("preset", scene.preset);
   }
   const query = params.toString();
-  return `${baseUrl}/tools/antarctica-bedmachine-3d.html${query ? `?${query}` : ""}`;
+  return `${baseUrl}/tools/3D-interactive-cryosphere-explorer.html${query ? `?${query}` : ""}`;
 }
 
 function buildBaseState(scene) {
