@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hold Antarctica and Greenland in your hands with 3D ICE (Interactive Cryosphere Explorer).</title>
+  <title>3D ICE | Yu Wang | Antarctic Researcher</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -1217,7 +1217,7 @@
           </div>
           <div class="capture-panel__field">
             <label for="captureZoomAmount">Zoom Amount <span id="captureZoomAmountValue" class="mono">8%</span></label>
-            <input id="captureZoomAmount" type="range" min="0" max="18" step="0.5" value="8" />
+            <input id="captureZoomAmount" type="range" min="0" max="30" step="0.5" value="8" />
           </div>
           <div class="capture-panel__field">
             <div class="capture-panel__label">Manual Nudge</div>
@@ -1230,7 +1230,7 @@
               <button class="viewer-tool-btn viewer-tool-btn--compact" type="button" data-capture-manual="zoomIn">In</button>
             </div>
           </div>
-          <div class="capture-panel__hint">Hotkeys: J/L orbit, I/K tilt, U/O zoom, H show or hide controls.</div>
+          <div class="capture-panel__hint">Hotkeys: J/L orbit, I/K live tilt during playback, U/O zoom, H show or hide controls.</div>
         </div>
       </div>
       <div class="hud">
@@ -2269,21 +2269,31 @@
       return clamp(radius * 0.18, 1.5, 14);
     }
 
+    function canBlendRecordingPlaybackWithManualAction(action) {
+      return action === "tiltUp" || action === "tiltDown";
+    }
+
     function easeVelocityToward(current, target, deltaSeconds) {
       if (!(deltaSeconds > 0)) return current;
       const alpha = 1 - Math.exp(-deltaSeconds / RECORDING_MANUAL_RESPONSE_SEC);
       return current + (target - current) * alpha;
     }
 
+    function getRecordingOrbitBounds() {
+      return {
+        minDistance: Math.max(0.001, Number.isFinite(orbit?.minDistance) ? orbit.minDistance : 0.001),
+        maxDistance: Number.isFinite(orbit?.maxDistance) ? orbit.maxDistance : Infinity,
+        minPolarAngle: Math.max(RECORDING_MIN_POLAR_EPS, Number.isFinite(orbit?.minPolarAngle) ? orbit.minPolarAngle : 0),
+        maxPolarAngle: Math.min(
+          Math.PI - RECORDING_MIN_POLAR_EPS,
+          Number.isFinite(orbit?.maxPolarAngle) ? orbit.maxPolarAngle : Math.PI
+        ),
+      };
+    }
+
     function applyRecordingOrbitFrame(targetLike, theta, phi, radius) {
       if (!camera || !orbit || !ensureRecordingScratchObjects()) return false;
-      const minDistance = Math.max(0.001, Number.isFinite(orbit.minDistance) ? orbit.minDistance : 0.001);
-      const maxDistance = Number.isFinite(orbit.maxDistance) ? orbit.maxDistance : Infinity;
-      const minPolarAngle = Math.max(RECORDING_MIN_POLAR_EPS, Number.isFinite(orbit.minPolarAngle) ? orbit.minPolarAngle : 0);
-      const maxPolarAngle = Math.min(
-        Math.PI - RECORDING_MIN_POLAR_EPS,
-        Number.isFinite(orbit.maxPolarAngle) ? orbit.maxPolarAngle : Math.PI
-      );
+      const { minDistance, maxDistance, minPolarAngle, maxPolarAngle } = getRecordingOrbitBounds();
 
       recordingScratchTarget.set(Number(targetLike?.x) || 0, Number(targetLike?.y) || 0, Number(targetLike?.z) || 0);
       recordingScratchSpherical.radius = clamp(radius, minDistance, maxDistance);
@@ -2321,7 +2331,7 @@
       const nextValue = Boolean(active);
       if (source[action] === nextValue) return;
       source[action] = nextValue;
-      if (nextValue) {
+      if (nextValue && (!recordingMotionState.playing || !canBlendRecordingPlaybackWithManualAction(action))) {
         stopRecordingPlayback({ syncBasePose: true });
       }
       syncRecordingManualIntent();
@@ -2331,43 +2341,7 @@
       if (!recordingModeEnabled || !camera || !orbit || !ensureRecordingScratchObjects()) return;
       const dt = clamp(Number(deltaSeconds) || 0, 0, RECORDING_FRAME_DT_LIMIT_MS / 1000);
       if (!(dt > 0)) return;
-
-      if (recordingMotionState.playing) {
-        if (!recordingMotionState.baseTarget) {
-          captureRecordingBasePoseFromCurrentView();
-        }
-        const directionSign = recordingMotionState.direction === "ccw" ? 1 : -1;
-        const speedMultiplier = clamp(recordingMotionState.speed, 0.25, 2);
-        const baseTarget = recordingMotionState.baseTarget || {
-          x: Number(orbit.target.x),
-          y: Number(orbit.target.y),
-          z: Number(orbit.target.z),
-        };
-        const baseTheta = Number.isFinite(recordingMotionState.baseTheta) ? recordingMotionState.baseTheta : 0;
-        const basePhi = Number.isFinite(recordingMotionState.basePhi) ? recordingMotionState.basePhi : Math.PI / 2;
-        const baseRadius =
-          Number.isFinite(recordingMotionState.baseRadius) && recordingMotionState.baseRadius > 0
-            ? recordingMotionState.baseRadius
-            : camera.position.distanceTo(orbit.target);
-        recordingMotionState.autoElapsedSec += dt;
-
-        const theta = recordingMotionState.orbitEnabled
-          ? baseTheta + directionSign * RECORDING_AUTO_ORBIT_RAD_PER_SEC * speedMultiplier * recordingMotionState.autoElapsedSec
-          : baseTheta;
-        const zoomOffset =
-          recordingMotionState.zoomEnabled
-            ? Math.sin(recordingMotionState.autoElapsedSec * Math.PI * 2 * RECORDING_AUTO_ZOOM_HZ * speedMultiplier) *
-              baseRadius *
-              recordingMotionState.zoomAmount
-            : 0;
-        applyRecordingOrbitFrame(baseTarget, theta, basePhi, baseRadius + zoomOffset);
-      }
-
-      const currentTarget = {
-        x: Number(orbit.target.x),
-        y: Number(orbit.target.y),
-        z: Number(orbit.target.z),
-      };
+      const { minPolarAngle, maxPolarAngle } = getRecordingOrbitBounds();
       recordingScratchOffset.copy(camera.position).sub(orbit.target);
       recordingScratchSpherical.setFromVector3(recordingScratchOffset);
       if (!(recordingScratchSpherical.radius > 0)) return;
@@ -2392,11 +2366,56 @@
         Math.abs(recordingMotionState.manualVelocity.theta) > 1e-4 ||
         Math.abs(recordingMotionState.manualVelocity.phi) > 1e-4 ||
         Math.abs(recordingMotionState.manualVelocity.radius) > 1e-3;
+
+      if (recordingMotionState.playing) {
+        if (!recordingMotionState.baseTarget) {
+          captureRecordingBasePoseFromCurrentView();
+        }
+        const directionSign = recordingMotionState.direction === "ccw" ? 1 : -1;
+        const speedMultiplier = clamp(recordingMotionState.speed, 0.25, 2);
+        const baseTarget = recordingMotionState.baseTarget || {
+          x: Number(orbit.target.x),
+          y: Number(orbit.target.y),
+          z: Number(orbit.target.z),
+        };
+        const baseTheta = Number.isFinite(recordingMotionState.baseTheta) ? recordingMotionState.baseTheta : 0;
+        const baseRadius =
+          Number.isFinite(recordingMotionState.baseRadius) && recordingMotionState.baseRadius > 0
+            ? recordingMotionState.baseRadius
+            : camera.position.distanceTo(orbit.target);
+        recordingMotionState.basePhi = clamp(
+          Number.isFinite(recordingMotionState.basePhi) ? recordingMotionState.basePhi + recordingMotionState.manualVelocity.phi * dt : Math.PI / 2,
+          minPolarAngle,
+          maxPolarAngle
+        );
+        recordingMotionState.autoElapsedSec += dt;
+
+        const theta = recordingMotionState.orbitEnabled
+          ? baseTheta + directionSign * RECORDING_AUTO_ORBIT_RAD_PER_SEC * speedMultiplier * recordingMotionState.autoElapsedSec
+          : baseTheta;
+        const zoomOffset =
+          recordingMotionState.zoomEnabled
+            ? Math.sin(recordingMotionState.autoElapsedSec * Math.PI * 2 * RECORDING_AUTO_ZOOM_HZ * speedMultiplier) *
+              baseRadius *
+              recordingMotionState.zoomAmount
+            : 0;
+        applyRecordingOrbitFrame(baseTarget, theta, recordingMotionState.basePhi, baseRadius + zoomOffset);
+        if (!hasManualMovement) {
+          zeroRecordingManualVelocity();
+        }
+        return;
+      }
+
       if (!hasManualMovement) {
         zeroRecordingManualVelocity();
         return;
       }
 
+      const currentTarget = {
+        x: Number(orbit.target.x),
+        y: Number(orbit.target.y),
+        z: Number(orbit.target.z),
+      };
       const theta = recordingScratchSpherical.theta + recordingMotionState.manualVelocity.theta * dt;
       const phi = recordingScratchSpherical.phi + recordingMotionState.manualVelocity.phi * dt;
       const radius = recordingScratchSpherical.radius + recordingMotionState.manualVelocity.radius * dt;
@@ -5901,7 +5920,7 @@
 
       if (controlsUI.captureZoomAmount) {
         controlsUI.captureZoomAmount.addEventListener("input", () => {
-          recordingMotionState.zoomAmount = clamp(Number(controlsUI.captureZoomAmount.value) / 100, 0, 0.18);
+          recordingMotionState.zoomAmount = clamp(Number(controlsUI.captureZoomAmount.value) / 100, 0, 0.3);
           updateRecordingControlsUi();
         });
       }
