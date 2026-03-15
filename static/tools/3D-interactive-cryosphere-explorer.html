@@ -1558,6 +1558,9 @@
     const RECORDING_MANUAL_RESPONSE_SEC = 0.12;
     const RECORDING_MANUAL_THETA_RAD_PER_SEC = 0.75;
     const RECORDING_MANUAL_PHI_RAD_PER_SEC = 0.55;
+    const RECORDING_PLAYBACK_TILT_SPEED_RATIO = 1.05;
+    const RECORDING_PLAYBACK_TILT_SPEED_MIN = 0.06;
+    const RECORDING_PLAYBACK_TILT_SPEED_MAX = 0.32;
     const RECORDING_MIN_POLAR_EPS = 0.015;
     const RECORDING_FRAME_DT_LIMIT_MS = 48;
 
@@ -2269,6 +2272,19 @@
       return clamp(radius * 0.18, 1.5, 14);
     }
 
+    function getRecordingManualPhiSpeed() {
+      if (!recordingMotionState.playing) {
+        return RECORDING_MANUAL_PHI_RAD_PER_SEC;
+      }
+      const speedMultiplier = clamp(recordingMotionState.speed, 0.25, 2);
+      const playbackAngularSpeed = RECORDING_AUTO_ORBIT_RAD_PER_SEC * speedMultiplier;
+      return clamp(
+        playbackAngularSpeed * RECORDING_PLAYBACK_TILT_SPEED_RATIO,
+        RECORDING_PLAYBACK_TILT_SPEED_MIN,
+        RECORDING_PLAYBACK_TILT_SPEED_MAX
+      );
+    }
+
     function canBlendRecordingPlaybackWithManualAction(action) {
       return action === "tiltUp" || action === "tiltDown";
     }
@@ -2348,7 +2364,7 @@
       recordingScratchSpherical.makeSafe();
 
       const targetThetaVelocity = recordingMotionState.manualIntent.theta * RECORDING_MANUAL_THETA_RAD_PER_SEC;
-      const targetPhiVelocity = recordingMotionState.manualIntent.phi * RECORDING_MANUAL_PHI_RAD_PER_SEC;
+      const targetPhiVelocity = recordingMotionState.manualIntent.phi * getRecordingManualPhiSpeed();
       const targetRadiusVelocity = recordingMotionState.manualIntent.radius * getRecordingManualRadiusSpeed(recordingScratchSpherical.radius);
       recordingMotionState.manualVelocity.theta = easeVelocityToward(
         recordingMotionState.manualVelocity.theta,
