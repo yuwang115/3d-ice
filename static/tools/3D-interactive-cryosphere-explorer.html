@@ -1004,7 +1004,7 @@
       <div class="panel-brand">
         <img
           class="panel-brand-logo"
-          src="/tools/3d-ice-logo.jpg"
+          src="/tools/3d-ice-logo-light.jpg"
           alt="3D ICE Interactive Cryosphere Explorer"
         />
       </div>
@@ -1567,6 +1567,7 @@
     const RECORDING_PLAYBACK_TILT_SPEED_MAX = 0.32;
     const RECORDING_MIN_POLAR_EPS = 0.015;
     const RECORDING_FRAME_DT_LIMIT_MS = 48;
+    const SHOWCASE_AUTO_ORBIT_RAD_PER_SEC = 0.055;
 
     let THREE;
     let OrbitControlsCtor;
@@ -1669,6 +1670,15 @@
         zoomIn: false,
         zoomOut: false,
       },
+    };
+    const showcaseMotionState = {
+      enabled: isShowcaseMode,
+      active: false,
+      baseTarget: null,
+      baseTheta: Number.NaN,
+      basePhi: Number.NaN,
+      baseRadius: Number.NaN,
+      autoElapsedSec: 0,
     };
     let recordingScratchOffset = null;
     let recordingScratchSpherical = null;
@@ -2236,21 +2246,31 @@
       orbit.enableDamping = previousDamping;
     }
 
-    function captureRecordingBasePoseFromCurrentView() {
-      if (!recordingModeEnabled || !camera || !orbit || !ensureRecordingScratchObjects()) return false;
+    function captureOrbitBasePose(state) {
+      if (!state || !camera || !orbit || !ensureRecordingScratchObjects()) return false;
       recordingScratchOffset.copy(camera.position).sub(orbit.target);
       recordingScratchSpherical.setFromVector3(recordingScratchOffset);
       if (!(recordingScratchSpherical.radius > 0)) return false;
       recordingScratchSpherical.makeSafe();
-      recordingMotionState.baseTarget = {
+      state.baseTarget = {
         x: Number(orbit.target.x),
         y: Number(orbit.target.y),
         z: Number(orbit.target.z),
       };
-      recordingMotionState.baseTheta = Number(recordingScratchSpherical.theta);
-      recordingMotionState.basePhi = Number(recordingScratchSpherical.phi);
-      recordingMotionState.baseRadius = Number(recordingScratchSpherical.radius);
+      state.baseTheta = Number(recordingScratchSpherical.theta);
+      state.basePhi = Number(recordingScratchSpherical.phi);
+      state.baseRadius = Number(recordingScratchSpherical.radius);
       return true;
+    }
+
+    function captureRecordingBasePoseFromCurrentView() {
+      if (!recordingModeEnabled) return false;
+      return captureOrbitBasePose(recordingMotionState);
+    }
+
+    function captureShowcaseBasePoseFromCurrentView() {
+      if (!isShowcaseMode) return false;
+      return captureOrbitBasePose(showcaseMotionState);
     }
 
     function stopRecordingPlayback({ syncBasePose = true } = {}) {
@@ -2353,6 +2373,25 @@
       updateRecordingControlsUi();
     }
 
+    function stopShowcaseAutoOrbit({ syncBasePose = true } = {}) {
+      if (!isShowcaseMode) return;
+      showcaseMotionState.active = false;
+      showcaseMotionState.autoElapsedSec = 0;
+      if (syncBasePose) {
+        syncOrbitImmediately();
+        captureShowcaseBasePoseFromCurrentView();
+      }
+    }
+
+    function startShowcaseAutoOrbit() {
+      if (!isShowcaseMode || !camera || !orbit) return;
+      if (!currentCoreContext || isLoadingOverlayVisible()) return;
+      syncOrbitImmediately();
+      if (!captureShowcaseBasePoseFromCurrentView()) return;
+      showcaseMotionState.autoElapsedSec = 0;
+      showcaseMotionState.active = true;
+    }
+
     function setRecordingManualSource(sourceKey, action, active) {
       if (!recordingModeEnabled) return;
       const source = recordingMotionState[sourceKey];
@@ -2451,8 +2490,40 @@
       applyRecordingOrbitFrame(currentTarget, theta, phi, radius);
     }
 
+    function stepShowcaseMotion(deltaSeconds) {
+      if (!isShowcaseMode || !camera || !orbit) return;
+      if (!currentCoreContext || isLoadingOverlayVisible()) return;
+      if (interactionGateEnabled && interactionGateActive) {
+        stopShowcaseAutoOrbit({ syncBasePose: false });
+        return;
+      }
+      if (!showcaseMotionState.active) {
+        startShowcaseAutoOrbit();
+      }
+      if (!showcaseMotionState.active) return;
+
+      const dt = clamp(Number(deltaSeconds) || 0, 0, RECORDING_FRAME_DT_LIMIT_MS / 1000);
+      if (!(dt > 0)) return;
+
+      const baseTarget = showcaseMotionState.baseTarget;
+      const baseTheta = showcaseMotionState.baseTheta;
+      const basePhi = showcaseMotionState.basePhi;
+      const baseRadius = showcaseMotionState.baseRadius;
+      if (!baseTarget || !Number.isFinite(baseTheta) || !Number.isFinite(basePhi) || !(baseRadius > 0)) {
+        startShowcaseAutoOrbit();
+        return;
+      }
+
+      showcaseMotionState.autoElapsedSec += dt;
+      const theta = baseTheta - SHOWCASE_AUTO_ORBIT_RAD_PER_SEC * showcaseMotionState.autoElapsedSec;
+      applyRecordingOrbitFrame(baseTarget, theta, basePhi, baseRadius);
+    }
+
     function stepRuntime(deltaMs = 16) {
       const safeDeltaMs = clamp(Number(deltaMs) || 0, 0, RECORDING_FRAME_DT_LIMIT_MS);
+      if (isShowcaseMode) {
+        stepShowcaseMotion(safeDeltaMs / 1000);
+      }
       if (recordingModeEnabled) {
         stepRecordingMotion(safeDeltaMs / 1000);
       }
@@ -4615,10 +4686,15 @@
 
     function resetCameraToDefaultPose() {
       if (!camera || !orbit) return;
+      stopShowcaseAutoOrbit({ syncBasePose: false });
       resetRecordingMotionState({ syncBasePose: false });
       const pose = getDefaultCameraPose();
       applyCameraPose(pose);
       captureRecordingBasePoseFromCurrentView();
+      captureShowcaseBasePoseFromCurrentView();
+      if (isShowcaseMode && (!interactionGateEnabled || !interactionGateActive)) {
+        startShowcaseAutoOrbit();
+      }
       updateRecordingControlsUi();
     }
 
@@ -5751,6 +5827,9 @@
         viewerShellEl.classList.remove("showcase-idle");
         updateInteractionHint(true);
         syncInteractionToggleButton();
+        if (isShowcaseMode) {
+          stopShowcaseAutoOrbit({ syncBasePose: false });
+        }
         return;
       }
 
@@ -5764,6 +5843,13 @@
       }
       updateInteractionHint(interactionGateActive);
       syncInteractionToggleButton();
+      if (isShowcaseMode) {
+        if (interactionGateActive) {
+          stopShowcaseAutoOrbit({ syncBasePose: true });
+        } else {
+          startShowcaseAutoOrbit();
+        }
+      }
     }
 
     function bindInteractionGate() {
@@ -8104,6 +8190,10 @@
           pendingViewResetOnLoad = false;
         }
         captureRecordingBasePoseFromCurrentView();
+        captureShowcaseBasePoseFromCurrentView();
+        if (isShowcaseMode && (!interactionGateEnabled || !interactionGateActive)) {
+          startShowcaseAutoOrbit();
+        }
         updateRecordingControlsUi();
         updateMetaFromCurrentState();
         updateFlowlineVisibility();
