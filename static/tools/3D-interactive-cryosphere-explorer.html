@@ -888,6 +888,40 @@
       display: none !important;
     }
 
+    body.preview-embed {
+      background:
+        radial-gradient(circle at 18% 22%, #0f3b57 0%, #0a2d45 36%, transparent 62%),
+        radial-gradient(circle at 86% 80%, #124866 0%, #09293e 40%, transparent 66%),
+        linear-gradient(158deg, #051521 0%, #0a2a3f 62%, #123852 100%);
+    }
+
+    body.preview-embed .app {
+      display: block;
+      height: 100%;
+      padding: 0;
+    }
+
+    body.preview-embed .panel,
+    body.preview-embed .hud,
+    body.preview-embed .status,
+    body.preview-embed .viewer-toolbar {
+      display: none;
+    }
+
+    body.preview-embed .viewer-shell {
+      min-height: 100%;
+      height: 100%;
+      border-radius: 0;
+      border: 0;
+      box-shadow: none;
+      cursor: default;
+    }
+
+    body.preview-embed #fullscreenToggle,
+    body.preview-embed #viewerFullscreenToggle {
+      display: none !important;
+    }
+
     @media (max-width: 980px) {
       body:not(.mobile-drawer) .app {
         grid-template-columns: 1fr;
@@ -1251,10 +1285,10 @@
     const queryParams = new URLSearchParams(window.location.search);
     const mode = (queryParams.get("mode") || "").toLowerCase();
     const regionParam = (queryParams.get("region") || "").toLowerCase();
+    const presetParam = (queryParams.get("preset") || "").toLowerCase();
     const isShowcaseMode = mode === "showcase";
-    const recordingModeEnabled = queryParams.get("recording") === "1" && !isShowcaseMode;
-    const lockedRegionKey = isShowcaseMode ? "antarctica" : null;
-    const lockedDatasetKey = isShowcaseMode ? "balanced" : null;
+    const isPreviewMode = mode === "preview";
+    const recordingModeEnabled = queryParams.get("recording") === "1" && !isShowcaseMode && !isPreviewMode;
     const coarsePointerQuery = window.matchMedia("(pointer: coarse)");
     const compactViewportQuery = window.matchMedia("(max-width: 980px)");
 
@@ -1263,15 +1297,19 @@
     }
 
     function shouldUseMobileDrawer() {
-      return !isShowcaseMode && isCoarsePointerInput() && compactViewportQuery.matches;
+      return !isShowcaseMode && !isPreviewMode && isCoarsePointerInput() && compactViewportQuery.matches;
     }
 
     function shouldUseInteractionGate() {
+      if (isPreviewMode) return false;
       return isShowcaseMode || isCoarsePointerInput();
     }
 
     if (isShowcaseMode) {
       document.body.classList.add("showcase");
+    }
+    if (isPreviewMode) {
+      document.body.classList.add("preview-embed");
     }
     if (recordingModeEnabled) {
       document.body.classList.add("recording-mode");
@@ -1461,7 +1499,111 @@
       };
     }
 
-    const initialRegionKey = lockedRegionKey || (REGIONS[regionParam] ? regionParam : "antarctica");
+    const EXPLORER_PRESETS = {
+      "antarctica-velocity-flowlines": {
+        regionKey: "antarctica",
+        datasetKey: "balanced",
+        exaggeration: 4.8,
+        iceOpacity: 1,
+        toggles: {
+          showBed: true,
+          showIce: true,
+          showIceBottom: true,
+          showVelocity: true,
+          showFlowline: true,
+        },
+      },
+      "antarctica-basin-boundary": {
+        regionKey: "antarctica",
+        datasetKey: "balanced",
+        exaggeration: 4.8,
+        iceOpacity: 1,
+        toggles: {
+          showBed: true,
+          showIce: true,
+          showIceBottom: true,
+          showRefinedBasins: true,
+        },
+      },
+      "antarctica-subglacial-features": {
+        regionKey: "antarctica",
+        datasetKey: "balanced",
+        exaggeration: 4.8,
+        iceOpacity: 1,
+        toggles: {
+          showBed: true,
+          showIce: false,
+          showIceBottom: false,
+          showEffectivePressure: true,
+          showSubglacialChannels: true,
+        },
+      },
+      "antarctica-ocean-circulations": {
+        regionKey: "antarctica",
+        datasetKey: "balanced",
+        exaggeration: 4.8,
+        iceOpacity: 1,
+        toggles: {
+          showBed: true,
+          showIce: true,
+          showIceBottom: true,
+          showOceanCurrents: true,
+          showSea: true,
+        },
+        oceanLayers: {
+          surface: true,
+          upper: true,
+          mid: true,
+          lower: true,
+        },
+      },
+      "greenland-velocity-flowlines": {
+        regionKey: "greenland",
+        datasetKey: "3km",
+        exaggeration: 4.2,
+        iceOpacity: 1,
+        toggles: {
+          showBed: true,
+          showIce: true,
+          showIceBottom: true,
+          showVelocity: true,
+          showFlowline: true,
+        },
+      },
+      "greenland-ocean-circulations": {
+        regionKey: "greenland",
+        datasetKey: "3km",
+        exaggeration: 4.2,
+        iceOpacity: 1,
+        toggles: {
+          showBed: true,
+          showIce: true,
+          showIceBottom: true,
+          showOceanCurrents: true,
+          showSea: true,
+        },
+        oceanLayers: {
+          surface: true,
+          upper: true,
+          mid: true,
+          lower: true,
+        },
+      },
+    };
+
+    function getExplorerPreset(presetKey) {
+      return EXPLORER_PRESETS[presetKey] || null;
+    }
+
+    const initialExplorerPreset = getExplorerPreset(presetParam);
+    const previewRegionKey = initialExplorerPreset?.regionKey || (REGIONS[regionParam] ? regionParam : "antarctica");
+    const lockedRegionKey = isShowcaseMode ? "antarctica" : isPreviewMode ? previewRegionKey : null;
+    const lockedDatasetKey = isShowcaseMode
+      ? "balanced"
+      : isPreviewMode
+      ? initialExplorerPreset?.datasetKey || getDefaultDatasetKey(previewRegionKey)
+      : null;
+    const initialRegionKey = lockedRegionKey || initialExplorerPreset?.regionKey || (REGIONS[regionParam] ? regionParam : "antarctica");
     const datasetSelectionByRegion = {};
 
     const viewerEl = document.getElementById("viewer");
@@ -1603,7 +1745,7 @@
     let riseContinuousSamplingWarningIssued = false;
     let animationHandle;
     let currentRegionKey = initialRegionKey;
-    let currentDatasetKey = lockedDatasetKey || getDefaultDatasetKey(currentRegionKey);
+    let currentDatasetKey = lockedDatasetKey || initialExplorerPreset?.datasetKey || getDefaultDatasetKey(currentRegionKey);
     let loadGeneration = 0;
     let interactionGateEnabled = false;
     let interactionGateActive = true;
@@ -1672,7 +1814,7 @@
       },
     };
     const showcaseMotionState = {
-      enabled: isShowcaseMode,
+      enabled: isShowcaseMode || isPreviewMode,
       active: false,
       baseTarget: null,
       baseTheta: Number.NaN,
@@ -1739,11 +1881,13 @@
 
     function getReadyStatusText(context) {
       if (isShowcaseMode) return "Ready (Balanced Demo)";
+      if (isPreviewMode) return "Preview ready";
       return context ? `Ready (${context.dataset.regionLabel} ${context.dataset.label})` : "Ready";
     }
 
     function getLoadingStatusText(region, dataset) {
       if (isShowcaseMode) return "Loading Balanced demo...";
+      if (isPreviewMode) return `Loading ${region.label} preview...`;
       return `Loading ${region.label} ${dataset.label} core terrain...`;
     }
 
@@ -2023,6 +2167,57 @@
       return resolvedDatasetKey;
     }
 
+    function applyExplorerPresetControls(preset) {
+      if (!preset) return;
+
+      const toggleDefaults = {
+        showBed: true,
+        showIce: true,
+        showIceBottom: true,
+        showVelocity: false,
+        showFlowline: false,
+        showBasalFriction: false,
+        showBasalMelt: false,
+        showThermalDriving: false,
+        showOceanCurrents: false,
+        showRefinedBasins: false,
+        showEffectivePressure: false,
+        showSubglacialChannels: false,
+        showSea: false,
+      };
+      const presetToggles = preset.toggles || {};
+      for (const [key, defaultValue] of Object.entries(toggleDefaults)) {
+        if (!controlsUI[key]) continue;
+        controlsUI[key].checked = Object.prototype.hasOwnProperty.call(presetToggles, key)
+          ? Boolean(presetToggles[key])
+          : defaultValue;
+      }
+
+      if (controlsUI.wireframe) {
+        controlsUI.wireframe.checked = false;
+      }
+
+      if (controlsUI.exaggeration) {
+        const exaggeration = Number.isFinite(preset.exaggeration) ? preset.exaggeration : Number(controlsUI.exaggeration.value);
+        controlsUI.exaggeration.value = String(exaggeration);
+        controlsUI.exaggerationValue.textContent = `${exaggeration.toFixed(1).replace(/\.0$/, "")}x`;
+      }
+
+      if (controlsUI.iceOpacity) {
+        const iceOpacity = Number.isFinite(preset.iceOpacity) ? preset.iceOpacity : Number(controlsUI.iceOpacity.value);
+        controlsUI.iceOpacity.value = String(iceOpacity);
+        controlsUI.iceOpacityValue.textContent = iceOpacity.toFixed(2);
+      }
+
+      const oceanLayers = preset.oceanLayers;
+      if (oceanLayers) {
+        if (controlsUI.showOceanLayerSurface) controlsUI.showOceanLayerSurface.checked = Boolean(oceanLayers.surface);
+        if (controlsUI.showOceanLayerUpper) controlsUI.showOceanLayerUpper.checked = Boolean(oceanLayers.upper);
+        if (controlsUI.showOceanLayerMid) controlsUI.showOceanLayerMid.checked = Boolean(oceanLayers.mid);
+        if (controlsUI.showOceanLayerLower) controlsUI.showOceanLayerLower.checked = Boolean(oceanLayers.lower);
+      }
+    }
+
     datasetSelectionByRegion[currentRegionKey] = currentDatasetKey;
     currentDatasetKey = refreshRegionUi(currentRegionKey, currentDatasetKey);
 
@@ -2057,9 +2252,15 @@
       controlsUI.showEffectivePressure.disabled = true;
       controlsUI.showSubglacialChannels.disabled = true;
       interactionHintEl.innerHTML = SHOWCASE_HINT_IDLE;
-    } else if (shouldUseMobileDrawer()) {
-      controlsUI.iceOpacity.value = "1";
-      controlsUI.iceOpacityValue.textContent = "1.00";
+    } else {
+      applyExplorerPresetControls(initialExplorerPreset);
+      if (shouldUseMobileDrawer()) {
+        controlsUI.iceOpacity.value = "1";
+        controlsUI.iceOpacityValue.textContent = "1.00";
+      }
+      if (isPreviewMode && interactionHintEl) {
+        interactionHintEl.innerHTML = "";
+      }
     }
     updateLegendVisibility();
 
@@ -2269,7 +2470,7 @@
     }
 
     function captureShowcaseBasePoseFromCurrentView() {
-      if (!isShowcaseMode) return false;
+      if (!isShowcaseMode && !isPreviewMode) return false;
       return captureOrbitBasePose(showcaseMotionState);
     }
 
@@ -2374,7 +2575,7 @@
     }
 
     function stopShowcaseAutoOrbit({ syncBasePose = true } = {}) {
-      if (!isShowcaseMode) return;
+      if (!isShowcaseMode && !isPreviewMode) return;
       showcaseMotionState.active = false;
       showcaseMotionState.autoElapsedSec = 0;
       if (syncBasePose) {
@@ -2384,7 +2585,7 @@
     }
 
     function startShowcaseAutoOrbit() {
-      if (!isShowcaseMode || !camera || !orbit) return;
+      if ((!isShowcaseMode && !isPreviewMode) || !camera || !orbit) return;
       if (!currentCoreContext || isLoadingOverlayVisible()) return;
       syncOrbitImmediately();
       if (!captureShowcaseBasePoseFromCurrentView()) return;
@@ -2491,9 +2692,9 @@
     }
 
     function stepShowcaseMotion(deltaSeconds) {
-      if (!isShowcaseMode || !camera || !orbit) return;
+      if ((!isShowcaseMode && !isPreviewMode) || !camera || !orbit) return;
       if (!currentCoreContext || isLoadingOverlayVisible()) return;
-      if (interactionGateEnabled && interactionGateActive) {
+      if (isShowcaseMode && interactionGateEnabled && interactionGateActive) {
         stopShowcaseAutoOrbit({ syncBasePose: false });
         return;
       }
@@ -2521,7 +2722,7 @@
 
     function stepRuntime(deltaMs = 16) {
       const safeDeltaMs = clamp(Number(deltaMs) || 0, 0, RECORDING_FRAME_DT_LIMIT_MS);
-      if (isShowcaseMode) {
+      if (isShowcaseMode || isPreviewMode) {
         stepShowcaseMotion(safeDeltaMs / 1000);
       }
       if (recordingModeEnabled) {
@@ -4652,11 +4853,17 @@
         if (isShowcaseMode) {
           maxPixelRatio = Math.min(maxPixelRatio, 1.55);
         }
+        if (isPreviewMode) {
+          maxPixelRatio = Math.min(maxPixelRatio, 1.15);
+        }
       } else {
         maxPixelRatio = lowEndDevice ? 1.5 : isShowcaseMode ? 1.7 : 2.0;
+        if (isPreviewMode) {
+          maxPixelRatio = Math.min(maxPixelRatio, 1.25);
+        }
       }
       renderer = new THREE.WebGLRenderer({
-        antialias: !lowEndDevice,
+        antialias: !lowEndDevice && !isPreviewMode,
         alpha: false,
         powerPreference: "high-performance",
       });
@@ -4692,7 +4899,7 @@
       applyCameraPose(pose);
       captureRecordingBasePoseFromCurrentView();
       captureShowcaseBasePoseFromCurrentView();
-      if (isShowcaseMode && (!interactionGateEnabled || !interactionGateActive)) {
+      if ((isShowcaseMode && (!interactionGateEnabled || !interactionGateActive)) || isPreviewMode) {
         startShowcaseAutoOrbit();
       }
       updateRecordingControlsUi();
@@ -4817,7 +5024,7 @@
       };
       return {
         ready: isExplorerReady(),
-        mode: isShowcaseMode ? "showcase" : "interactive",
+        mode: isShowcaseMode ? "showcase" : isPreviewMode ? "preview" : "interactive",
         region: currentRegionKey,
         dataset: currentDatasetKey,
         status: statusEl?.textContent || "",
@@ -8191,7 +8398,7 @@
         }
         captureRecordingBasePoseFromCurrentView();
         captureShowcaseBasePoseFromCurrentView();
-        if (isShowcaseMode && (!interactionGateEnabled || !interactionGateActive)) {
+        if ((isShowcaseMode && (!interactionGateEnabled || !interactionGateActive)) || isPreviewMode) {
           startShowcaseAutoOrbit();
         }
         updateRecordingControlsUi();
@@ -8228,7 +8435,7 @@
         if (controlsUI.showRefinedBasins.checked && !controlsUI.showRefinedBasins.disabled) {
           ensureRefinedBasinsLoaded({ trigger: "toggle" });
         }
-        if (!isShowcaseMode) {
+        if (!isShowcaseMode && !isPreviewMode) {
           const warmupDelay = viewerInteracted ? 180 : 900;
           backgroundWarmupTimer = window.setTimeout(() => {
             backgroundWarmupTimer = null;
