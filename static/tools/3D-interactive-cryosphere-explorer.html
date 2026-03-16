@@ -297,6 +297,10 @@
       font-size: 0.9rem;
     }
 
+    .toggle[hidden] {
+      display: none;
+    }
+
     .toggle-group {
       margin: -2px 0 10px 25px;
       padding-left: 11px;
@@ -1886,6 +1890,20 @@
       controlsUI.regionPreset.disabled = Boolean(isLoading || lockedRegionKey);
     }
 
+    function syncRiseToggleRowVisibility(capabilities) {
+      const showRiseRows = Boolean(capabilities?.rise);
+      if (!showRiseRows) {
+        controlsUI.showBasalMelt.checked = false;
+        controlsUI.showThermalDriving.checked = false;
+      }
+      if (controlsUI.showBasalMeltRow) {
+        controlsUI.showBasalMeltRow.hidden = !showRiseRows;
+      }
+      if (controlsUI.showThermalDrivingRow) {
+        controlsUI.showThermalDrivingRow.hidden = !showRiseRows;
+      }
+    }
+
     function updateRegionLayerAvailability(regionKey) {
       const region = getRegionConfig(regionKey);
       const capabilities = region.capabilities;
@@ -1901,12 +1919,7 @@
       const oceanCurrentAvailable = Boolean(
         !isShowcaseMode && capabilities.oceanCurrents && dataset?.oceanCurrentsMetaUrl && dataset?.oceanCurrentsBinUrl
       );
-      if (controlsUI.showBasalMeltRow) {
-        controlsUI.showBasalMeltRow.hidden = !capabilities.rise;
-      }
-      if (controlsUI.showThermalDrivingRow) {
-        controlsUI.showThermalDrivingRow.hidden = !capabilities.rise;
-      }
+      syncRiseToggleRowVisibility(capabilities);
       setToggleAvailability(controlsUI.showVelocity, capabilities.velocity);
       setToggleAvailability(controlsUI.showFlowline, capabilities.velocity && capabilities.flowline);
       setToggleAvailability(controlsUI.showBasalFriction, basalFrictionAvailable);
