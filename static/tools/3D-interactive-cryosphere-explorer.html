@@ -859,23 +859,9 @@
       pointer-events: none;
     }
 
-    body.showcase .hud {
-      left: 16px;
-      right: 16px;
-      bottom: 16px;
-    }
-
-    body.showcase .chip {
-      font-size: 0.78rem;
-      max-width: 560px;
-      background: rgba(4, 18, 28, 0.72);
-      border-color: rgba(178, 222, 244, 0.42);
-    }
-
+    body.showcase .hud,
     body.showcase .status {
-      top: 16px;
-      right: 16px;
-      background: rgba(4, 17, 24, 0.8);
+      display: none;
     }
 
     body.showcase .viewer-toolbar {
@@ -1499,6 +1485,65 @@
       };
     }
 
+    const SHOWCASE_PRESETS = {
+      "home-hero": {
+        regionKey: "antarctica",
+        datasetKey: "balanced",
+        exaggeration: 4.8,
+        iceOpacity: 1,
+        toggles: {
+          showBed: true,
+          showIce: true,
+          showIceBottom: true,
+          showVelocity: false,
+          showFlowline: false,
+          showBasalFriction: false,
+          showBasalMelt: false,
+          showThermalDriving: false,
+          showOceanCurrents: false,
+          showRefinedBasins: false,
+          showEffectivePressure: false,
+          showSubglacialChannels: false,
+          showSea: false,
+        },
+        camera: {
+          position: [11.01, 62.36, 79.95],
+          target: [4.52, -6.48, 1.43],
+          fov: 40,
+        },
+      },
+      "tools-hero": {
+        regionKey: "antarctica",
+        datasetKey: "balanced",
+        exaggeration: 4.8,
+        iceOpacity: 0.9,
+        toggles: {
+          showBed: true,
+          showIce: true,
+          showIceBottom: false,
+          showVelocity: false,
+          showFlowline: false,
+          showBasalFriction: false,
+          showBasalMelt: false,
+          showThermalDriving: false,
+          showOceanCurrents: false,
+          showRefinedBasins: false,
+          showEffectivePressure: false,
+          showSubglacialChannels: false,
+          showSea: true,
+        },
+        camera: {
+          position: [2.86, 69.55, 97.42],
+          target: [3.5, -7, 3],
+          fov: 45,
+        },
+      },
+    };
+
+    function getShowcasePreset(presetKey) {
+      return SHOWCASE_PRESETS[presetKey] || SHOWCASE_PRESETS["home-hero"];
+    }
+
     const EXPLORER_PRESETS = {
       "antarctica-velocity-flowlines": {
         regionKey: "antarctica",
@@ -1595,11 +1640,11 @@
       return EXPLORER_PRESETS[presetKey] || null;
     }
 
-    const initialExplorerPreset = getExplorerPreset(presetParam);
+    const initialExplorerPreset = isShowcaseMode ? getShowcasePreset(presetParam) : getExplorerPreset(presetParam);
     const previewRegionKey = initialExplorerPreset?.regionKey || (REGIONS[regionParam] ? regionParam : "antarctica");
-    const lockedRegionKey = isShowcaseMode ? "antarctica" : isPreviewMode ? previewRegionKey : null;
+    const lockedRegionKey = isShowcaseMode ? initialExplorerPreset?.regionKey || "antarctica" : isPreviewMode ? previewRegionKey : null;
     const lockedDatasetKey = isShowcaseMode
-      ? "balanced"
+      ? initialExplorerPreset?.datasetKey || "balanced"
       : isPreviewMode
       ? initialExplorerPreset?.datasetKey || getDefaultDatasetKey(previewRegionKey)
       : null;
@@ -1710,6 +1755,7 @@
     const RECORDING_MIN_POLAR_EPS = 0.015;
     const RECORDING_FRAME_DT_LIMIT_MS = 48;
     const SHOWCASE_AUTO_ORBIT_RAD_PER_SEC = 0.055;
+    const SHOWCASE_INITIAL_HOLD_SEC = 1.6;
 
     let THREE;
     let OrbitControlsCtor;
@@ -1829,10 +1875,8 @@
     let recordingScratchSpherical = null;
     let recordingScratchTarget = null;
 
-    const SHOWCASE_HINT_IDLE =
-      "<strong>Scroll page:</strong> keep using wheel to continue reading.<br /><strong>Click this scene</strong> to enter 3D interaction.";
-    const SHOWCASE_HINT_ACTIVE =
-      "<strong>Interactive:</strong> drag to orbit, wheel to zoom, right-drag to pan. Press <strong>Esc</strong> to return to page scrolling.";
+    const SHOWCASE_HINT_IDLE = "";
+    const SHOWCASE_HINT_ACTIVE = "";
     const TOUCH_HINT_IDLE =
       "<strong>Scroll page:</strong> swipe naturally.<br /><strong>Tap scene</strong> to enable 3D gestures.";
     const TOUCH_HINT_ACTIVE =
@@ -1883,13 +1927,13 @@
     };
 
     function getReadyStatusText(context) {
-      if (isShowcaseMode) return "Ready (Balanced Demo)";
+      if (isShowcaseMode) return "";
       if (isPreviewMode) return "Preview ready";
       return context ? `Ready (${context.dataset.regionLabel} ${context.dataset.label})` : "Ready";
     }
 
     function getLoadingStatusText(region, dataset) {
-      if (isShowcaseMode) return "Loading Balanced demo...";
+      if (isShowcaseMode) return "";
       if (isPreviewMode) return `Loading ${region.label} preview...`;
       return `Loading ${region.label} ${dataset.label} core terrain...`;
     }
@@ -2225,36 +2269,10 @@
     currentDatasetKey = refreshRegionUi(currentRegionKey, currentDatasetKey);
 
     if (isShowcaseMode) {
-      controlsUI.regionPreset.value = "antarctica";
-      controlsUI.resolutionPreset.value = "balanced";
-      controlsUI.exaggeration.value = "4.8";
-      controlsUI.exaggerationValue.textContent = "4.8x";
-      controlsUI.iceOpacity.value = "1";
-      controlsUI.iceOpacityValue.textContent = "1.00";
-      // Showcase mode: render only core geometry layers for smooth homepage interaction.
-      controlsUI.showBed.checked = true;
-      controlsUI.showIce.checked = true;
-      controlsUI.showIceBottom.checked = true;
-      controlsUI.showVelocity.checked = false;
-      controlsUI.showFlowline.checked = false;
-      controlsUI.showBasalFriction.checked = false;
-      controlsUI.showBasalMelt.checked = false;
-      controlsUI.showThermalDriving.checked = false;
-      controlsUI.showOceanCurrents.checked = false;
-      controlsUI.showRefinedBasins.checked = false;
-      controlsUI.showEffectivePressure.checked = false;
-      controlsUI.showSubglacialChannels.checked = false;
-      controlsUI.showSea.checked = false;
-      controlsUI.showVelocity.disabled = true;
-      controlsUI.showFlowline.disabled = true;
-      controlsUI.showBasalFriction.disabled = true;
-      controlsUI.showBasalMelt.disabled = true;
-      controlsUI.showThermalDriving.disabled = true;
-      controlsUI.showOceanCurrents.disabled = true;
-      controlsUI.showRefinedBasins.disabled = true;
-      controlsUI.showEffectivePressure.disabled = true;
-      controlsUI.showSubglacialChannels.disabled = true;
-      interactionHintEl.innerHTML = SHOWCASE_HINT_IDLE;
+      controlsUI.regionPreset.value = initialExplorerPreset?.regionKey || "antarctica";
+      controlsUI.resolutionPreset.value = initialExplorerPreset?.datasetKey || "balanced";
+      applyExplorerPresetControls(initialExplorerPreset);
+      interactionHintEl.innerHTML = "";
     } else {
       applyExplorerPresetControls(initialExplorerPreset);
       if (shouldUseMobileDrawer()) {
@@ -2282,12 +2300,7 @@
 
     function getDefaultCameraPose(regionKey = currentRegionKey) {
       if (isShowcaseMode) {
-        return {
-          // Closer, slightly angled hero framing for homepage impact.
-          position: [11.01, 62.36, 79.95],
-          target: [4.52, -6.48, 1.43],
-          fov: 40,
-        };
+        return initialExplorerPreset?.camera || SHOWCASE_PRESETS["home-hero"].camera;
       }
       return DEFAULT_CAMERA_POSES[regionKey] || DEFAULT_CAMERA_POSES.antarctica;
     }
@@ -2719,7 +2732,8 @@
       }
 
       showcaseMotionState.autoElapsedSec += dt;
-      const theta = baseTheta - SHOWCASE_AUTO_ORBIT_RAD_PER_SEC * showcaseMotionState.autoElapsedSec;
+      const orbitElapsedSec = Math.max(0, showcaseMotionState.autoElapsedSec - SHOWCASE_INITIAL_HOLD_SEC);
+      const theta = baseTheta - SHOWCASE_AUTO_ORBIT_RAD_PER_SEC * orbitElapsedSec;
       applyRecordingOrbitFrame(baseTarget, theta, basePhi, baseRadius);
     }
 
