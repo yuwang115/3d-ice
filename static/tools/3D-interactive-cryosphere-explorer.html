@@ -859,6 +859,11 @@
       pointer-events: none;
     }
 
+    body.showcase.showcase-preset-tools-hero .viewer-shell.showcase-idle::after {
+      left: auto;
+      right: 16px;
+    }
+
     body.showcase .hud,
     body.showcase .status {
       display: none;
@@ -1293,6 +1298,9 @@
 
     if (isShowcaseMode) {
       document.body.classList.add("showcase");
+      if (presetParam) {
+        document.body.classList.add(`showcase-preset-${presetParam.replace(/[^a-z0-9_-]/g, "")}`);
+      }
     }
     if (isPreviewMode) {
       document.body.classList.add("preview-embed");
@@ -1516,7 +1524,7 @@
         regionKey: "antarctica",
         datasetKey: "balanced",
         exaggeration: 4.8,
-        iceOpacity: 0.9,
+        iceOpacity: 1,
         toggles: {
           showBed: true,
           showIce: true,
@@ -1530,11 +1538,11 @@
           showRefinedBasins: false,
           showEffectivePressure: false,
           showSubglacialChannels: false,
-          showSea: true,
+          showSea: false,
         },
         camera: {
-          position: [2.86, 69.55, 97.42],
-          target: [3.5, -7, 3],
+          position: [2.28, 94.66, 105.23],
+          target: [5.42, -4.04, 0.25],
           fov: 45,
         },
       },
@@ -1756,6 +1764,9 @@
     const RECORDING_FRAME_DT_LIMIT_MS = 48;
     const SHOWCASE_AUTO_ORBIT_RAD_PER_SEC = 0.055;
     const SHOWCASE_INITIAL_HOLD_SEC = 1.6;
+    const ICE_BOTTOM_RENDER_ORDER = 10;
+    const ICE_SURFACE_RENDER_ORDER = 11;
+    const ICE_SIDE_STRICT_OCCLUSION_RENDER_ORDER = 10.5;
 
     let THREE;
     let OrbitControlsCtor;
@@ -5654,6 +5665,39 @@
       iceSideMesh.visible = controlsUI.showIce.checked && controlsUI.showIceBottom.checked;
     }
 
+    function syncIceMaterialMode(opacityValue = Number(controlsUI.iceOpacity?.value)) {
+      const requestedOpacity = clamp01(Number(opacityValue));
+
+      const applyModeToMaterial = (material, nextOpacity) => {
+        if (!material) return;
+        let needsUpdate = false;
+        if (material.transparent !== true) {
+          material.transparent = true;
+          needsUpdate = true;
+        }
+        if (material.depthWrite !== true) {
+          material.depthWrite = true;
+          needsUpdate = true;
+        }
+        if (Math.abs(material.opacity - nextOpacity) > 1e-6) {
+          material.opacity = nextOpacity;
+        }
+        if (needsUpdate) {
+          material.needsUpdate = true;
+        }
+      };
+
+      if (iceMesh) {
+        applyModeToMaterial(iceMesh.material, requestedOpacity);
+        iceMesh.renderOrder = ICE_SURFACE_RENDER_ORDER;
+      }
+
+      if (iceSideMesh) {
+        applyModeToMaterial(iceSideMesh.material, requestedOpacity);
+        iceSideMesh.renderOrder = ICE_SIDE_STRICT_OCCLUSION_RENDER_ORDER;
+      }
+    }
+
     function syncIceSurfaceVisibilityFromControls() {
       if (iceMesh) iceMesh.visible = controlsUI.showIce.checked;
       if (iceBottomMesh) iceBottomMesh.visible = controlsUI.showIceBottom.checked;
@@ -6469,9 +6513,8 @@
       controlsUI.iceOpacity.addEventListener("input", () => {
         const value = Number(controlsUI.iceOpacity.value);
         controlsUI.iceOpacityValue.textContent = value.toFixed(2);
-        if (iceMesh) iceMesh.material.opacity = value;
+        syncIceMaterialMode(value);
         if (iceBottomMesh) iceBottomMesh.material.opacity = Math.max(0.12, value * 0.82);
-        if (iceSideMesh) iceSideMesh.material.opacity = value;
       });
 
       controlsUI.showBed.addEventListener("change", () => {
@@ -7035,7 +7078,7 @@
       iceMesh.scale.y = exaggeration;
       iceMesh.visible = controlsUI.showIce.checked;
       iceMesh.material.wireframe = wireframe;
-      iceMesh.renderOrder = 11;
+      iceMesh.renderOrder = ICE_SURFACE_RENDER_ORDER;
       scene.add(iceMesh);
 
       const iceBottomGeometry = buildSurfaceGeometry({
@@ -7062,7 +7105,7 @@
       iceBottomMesh.scale.y = exaggeration;
       iceBottomMesh.visible = controlsUI.showIceBottom.checked;
       iceBottomMesh.material.wireframe = wireframe;
-      iceBottomMesh.renderOrder = 10;
+      iceBottomMesh.renderOrder = ICE_BOTTOM_RENDER_ORDER;
       scene.add(iceBottomMesh);
 
       const iceSideGeometry = buildIceSideGeometry({
@@ -7080,8 +7123,9 @@
       iceSideMesh = new THREE.Mesh(iceSideGeometry, iceSideMaterial);
       iceSideMesh.scale.y = exaggeration;
       iceSideMesh.material.wireframe = wireframe;
-      iceSideMesh.renderOrder = 11;
+      iceSideMesh.renderOrder = ICE_SURFACE_RENDER_ORDER;
       updateIceSideVisibility();
+      syncIceMaterialMode(Number(controlsUI.iceOpacity.value));
       scene.add(iceSideMesh);
 
       const widthUnits = ((context.nx - 1) * Math.abs(context.meta.grid.dx_m)) / baseConfig.horizontalMetersPerUnit;
