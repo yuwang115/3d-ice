@@ -1424,11 +1424,11 @@
         },
         sources: {
           geometry: {
-            text: "BedMachine Greenland, Version 6",
+            text: "IceBridge BedMachine Greenland, Version 6",
             url: "https://nsidc.org/data/idbmg4/versions/6",
           },
           velocity: {
-            text: "ITS_LIVE Greenland ice surface velocity mosaic (120 m, V02.1)",
+            text: "MEaSUREs ITS_LIVE Regional Glacier and Ice Sheet Surface Velocities, Version 2",
             url: "https://nsidc.org/data/NSIDC-0776/versions/2",
           },
           basalFriction: {
@@ -1772,6 +1772,9 @@
     let backgroundWarmupScheduled = false;
     let backgroundWarmupStarted = false;
     let backgroundWarmupTimer = null;
+    let viewerResizeObserver = null;
+    let viewerResizeAnimationFrame = 0;
+    let viewerResizeStabilizeTimer = null;
     let lastRenderFrameTimeMs = 0;
     let pendingViewResetOnLoad = false;
     let geometryWorker = null;
@@ -4828,7 +4831,71 @@
       const h = Math.max(1, viewerEl.clientHeight);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      renderer.setSize(w, h, false);
+    }
+
+    function syncRendererSizeToViewerIfNeeded() {
+      if (!renderer || !camera) return;
+      const targetWidth = Math.max(1, viewerEl.clientWidth);
+      const targetHeight = Math.max(1, viewerEl.clientHeight);
+      const targetAspect = targetWidth / targetHeight;
+      if (Math.abs(camera.aspect - targetAspect) > 0.001) {
+        resizeRendererToViewer();
+      }
+    }
+
+    function requestViewerResize() {
+      if (viewerResizeAnimationFrame) return;
+      viewerResizeAnimationFrame = window.requestAnimationFrame(() => {
+        viewerResizeAnimationFrame = 0;
+        resizeRendererToViewer();
+      });
+    }
+
+    function scheduleViewerResizeStabilization() {
+      requestViewerResize();
+      window.requestAnimationFrame(() => {
+        requestViewerResize();
+      });
+      if (viewerResizeStabilizeTimer) {
+        window.clearTimeout(viewerResizeStabilizeTimer);
+      }
+      viewerResizeStabilizeTimer = window.setTimeout(() => {
+        viewerResizeStabilizeTimer = null;
+        requestViewerResize();
+      }, 140);
+    }
+
+    function bindViewerResizeHandling() {
+      window.addEventListener("resize", requestViewerResize);
+      if ("ResizeObserver" in window && !viewerResizeObserver) {
+        viewerResizeObserver = new ResizeObserver(() => {
+          requestViewerResize();
+        });
+        viewerResizeObserver.observe(viewerEl);
+        viewerResizeObserver.observe(viewerShellEl);
+      }
+
+      scheduleViewerResizeStabilization();
+      if (document.readyState !== "complete") {
+        window.addEventListener("load", scheduleViewerResizeStabilization, { once: true });
+      }
+    }
+
+    function cleanupViewerResizeHandling() {
+      window.removeEventListener("resize", requestViewerResize);
+      if (viewerResizeObserver) {
+        viewerResizeObserver.disconnect();
+        viewerResizeObserver = null;
+      }
+      if (viewerResizeAnimationFrame) {
+        window.cancelAnimationFrame(viewerResizeAnimationFrame);
+        viewerResizeAnimationFrame = 0;
+      }
+      if (viewerResizeStabilizeTimer) {
+        window.clearTimeout(viewerResizeStabilizeTimer);
+        viewerResizeStabilizeTimer = null;
+      }
     }
 
     function initScene() {
@@ -4837,7 +4904,9 @@
       scene.fog = new THREE.Fog(0x0a2b43, 80, 240);
 
       const initialPose = getDefaultCameraPose();
-      camera = new THREE.PerspectiveCamera(initialPose.fov, viewerEl.clientWidth / viewerEl.clientHeight, 0.1, 200);
+      const initialViewerWidth = Math.max(1, viewerEl.clientWidth);
+      const initialViewerHeight = Math.max(1, viewerEl.clientHeight);
+      camera = new THREE.PerspectiveCamera(initialPose.fov, initialViewerWidth / initialViewerHeight, 0.1, 200);
       camera.position.set(...initialPose.position);
 
       const lowEndDevice = detectLowEndDevice();
@@ -4870,7 +4939,11 @@
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPixelRatio));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       viewerEl.appendChild(renderer.domElement);
+      renderer.domElement.style.display = "block";
+      renderer.domElement.style.width = "100%";
+      renderer.domElement.style.height = "100%";
       resizeRendererToViewer();
+      bindViewerResizeHandling();
 
       orbit = new OrbitControlsCtor(camera, renderer.domElement);
       orbit.enableDamping = true;
@@ -4887,8 +4960,6 @@
       const fill = new THREE.DirectionalLight(0x95c9e7, 0.35);
       fill.position.set(-14, 6, -9);
       scene.add(ambient, key, fill);
-
-      window.addEventListener("resize", resizeRendererToViewer);
     }
 
     function resetCameraToDefaultPose() {
@@ -5097,6 +5168,7 @@
     function renderLoop(frameTimeMs = performance.now()) {
       const deltaMs = lastRenderFrameTimeMs ? frameTimeMs - lastRenderFrameTimeMs : 1000 / 60;
       lastRenderFrameTimeMs = frameTimeMs;
+      syncRendererSizeToViewerIfNeeded();
       stepRuntime(deltaMs);
       renderer.render(scene, camera);
       animationHandle = requestAnimationFrame(renderLoop);
@@ -8496,6 +8568,7 @@
 
     window.addEventListener("beforeunload", () => {
       if (animationHandle) cancelAnimationFrame(animationHandle);
+      cleanupViewerResizeHandling();
       clearModelMeshes();
       terminateGeometryWorker();
       if (renderer) renderer.dispose();
