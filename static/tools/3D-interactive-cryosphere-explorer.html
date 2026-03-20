@@ -12,16 +12,229 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script>
+    (() => {
+      const STORAGE_KEY = "wc-color-theme";
+      const LIGHT_LOGO_SRC = "/tools/3d-ice-logo-light.jpg";
+      const DARK_LOGO_SRC = "/tools/3d-ice-logo.jpg";
+
+      function getTopThemeClass() {
+        try {
+          if (window.top && window.top !== window) {
+            const topRoot = window.top.document?.documentElement;
+            if (topRoot) {
+              return topRoot.classList.contains("dark") ? "dark" : "light";
+            }
+          }
+        } catch (_error) {
+          // Cross-origin access is ignored; storage and system theme become the fallback.
+        }
+        return null;
+      }
+
+      function getStoredTheme() {
+        try {
+          const stored = window.localStorage.getItem(STORAGE_KEY);
+          return stored === "dark" || stored === "light" ? stored : null;
+        } catch (_error) {
+          return null;
+        }
+      }
+
+      function resolveTheme() {
+        return getTopThemeClass() || getStoredTheme() || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      }
+
+      function applyTheme(theme) {
+        const nextTheme = theme === "dark" ? "dark" : "light";
+        document.documentElement.dataset.theme = nextTheme;
+        document.documentElement.style.colorScheme = nextTheme;
+        runtimeTheme.currentTheme = nextTheme;
+        return nextTheme;
+      }
+
+      const runtimeTheme = {
+        storageKey: STORAGE_KEY,
+        lightLogoSrc: LIGHT_LOGO_SRC,
+        darkLogoSrc: DARK_LOGO_SRC,
+        currentTheme: null,
+        getTopThemeClass,
+        getStoredTheme,
+        resolveTheme,
+        applyTheme,
+      };
+
+      window.__iceRuntimeTheme = runtimeTheme;
+      applyTheme(resolveTheme());
+    })();
+  </script>
   <style>
     :root {
-      --bg: #eef6f9;
-      --panel: #ffffffee;
+      --bg:
+        radial-gradient(circle at 14% 18%, #d7eff9 0%, #f3fbff 36%, transparent 60%),
+        radial-gradient(circle at 88% 84%, #eaf6f0 0%, #f9fdff 40%, transparent 62%),
+        linear-gradient(145deg, #f8fcfe 0%, #ebf6fb 100%);
+      --panel: rgba(255, 255, 255, 0.93);
       --panel-border: #bfd7df;
       --ink: #0d2433;
       --muted: #486072;
       --accent: #0f7ea8;
       --accent-2: #1f9f88;
       --shadow: 0 14px 40px rgba(7, 34, 50, 0.14);
+      --panel-header-border: #d6e6ef;
+      --panel-grab-bg: rgba(50, 93, 116, 0.34);
+      --panel-grab-active: rgba(42, 82, 104, 0.54);
+      --panel-close-border: #86aeca;
+      --panel-close-bg: #eef7fc;
+      --panel-close-text: #17425c;
+      --viewer-shell-bg: linear-gradient(180deg, #05253d 0%, #0d3851 56%, #14465f 100%);
+      --brand-logo-border: rgba(116, 163, 190, 0.28);
+      --brand-logo-shadow: 0 10px 24px rgba(9, 30, 46, 0.16);
+      --section-border: #d8e5ec;
+      --section-title: #3c5868;
+      --control-label: #1c3748;
+      --mono: #225168;
+      --select-border: #bfd6e2;
+      --select-bg: #f7fcff;
+      --select-text: #1a3d52;
+      --select-focus-border: #3e9fc3;
+      --select-focus-ring: 0 0 0 3px rgba(70, 156, 191, 0.18);
+      --toggle-text: #244559;
+      --toggle-group-border: rgba(66, 132, 160, 0.2);
+      --toggle-divider: linear-gradient(90deg, rgba(109, 145, 161, 0.1) 0%, rgba(109, 145, 161, 0.4) 18%, rgba(109, 145, 161, 0.4) 82%, rgba(109, 145, 161, 0.1) 100%);
+      --toggle-sub: #3a6173;
+      --button-border: #2f7998;
+      --button-bg: linear-gradient(135deg, #0f7ea8 0%, #1f9f88 100%);
+      --button-text: #f7fdff;
+      --meta-text: #345266;
+      --meta-border: #d7e6ef;
+      --meta-strong: #13344a;
+      --meta-details-border: rgba(137, 177, 196, 0.42);
+      --meta-details-bg: linear-gradient(180deg, rgba(248, 252, 255, 0.98) 0%, rgba(240, 248, 252, 0.96) 100%);
+      --meta-details-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+      --meta-summary-text: #4a6a7f;
+      --meta-summary-hover-bg: rgba(92, 150, 179, 0.08);
+      --meta-summary-hover-text: #355568;
+      --meta-summary-focus: rgba(20, 116, 150, 0.35);
+      --meta-link: #166789;
+      --meta-link-decoration: rgba(22, 103, 137, 0.42);
+      --meta-link-hover: #0f5976;
+      --meta-link-focus: rgba(20, 116, 150, 0.4);
+      --legend-border: #bdd2de;
+      --legend-bg: #000;
+      --legend-text: #3e5d6f;
+      --legend-note: #567486;
+      --ocean-axis-strong: #264a60;
+      --ocean-canvas-border: #bdd2de;
+      --ocean-canvas-bg: #d7e8ef;
+      --ocean-canvas-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+      --ocean-note: #567082;
+      --viewer-chip-bg: rgba(5, 21, 31, 0.66);
+      --viewer-chip-border: rgba(171, 214, 237, 0.36);
+      --viewer-chip-text: #eaf8ff;
+      --viewer-chip-strong: #b6ecff;
+      --viewer-status-bg: rgba(4, 17, 24, 0.72);
+      --viewer-status-border: rgba(169, 214, 232, 0.4);
+      --viewer-status-text: #dbf7ff;
+      --viewer-tool-border: rgba(169, 214, 232, 0.42);
+      --viewer-tool-bg: rgba(4, 17, 24, 0.72);
+      --viewer-tool-text: #dbf7ff;
+      --capture-panel-border: rgba(169, 214, 232, 0.42);
+      --capture-panel-bg: rgba(4, 17, 24, 0.84);
+      --capture-panel-text: #e6f8ff;
+      --capture-eyebrow: #8bdcff;
+      --capture-label: #d7edf7;
+      --capture-toggle-border: rgba(169, 214, 232, 0.22);
+      --capture-toggle-bg: rgba(10, 34, 48, 0.56);
+      --capture-toggle-text: #d9effa;
+      --capture-segment-active-border: rgba(120, 225, 255, 0.62);
+      --capture-segment-active-bg: rgba(20, 73, 96, 0.82);
+      --capture-segment-active-text: #ffffff;
+      --capture-hint: #a6d1e2;
+      --mobile-panel-header-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.94) 100%);
+    }
+
+    :root[data-theme="dark"] {
+      --bg:
+        radial-gradient(circle at 14% 16%, rgba(35, 119, 167, 0.36) 0%, rgba(7, 18, 27, 0) 36%),
+        radial-gradient(circle at 86% 82%, rgba(31, 124, 114, 0.24) 0%, rgba(7, 18, 27, 0) 34%),
+        linear-gradient(155deg, #030b12 0%, #071521 46%, #0a1f2d 100%);
+      --panel: rgba(8, 18, 26, 0.88);
+      --panel-border: rgba(117, 174, 201, 0.22);
+      --ink: #ebf7ff;
+      --muted: #99b9ca;
+      --shadow: 0 18px 44px rgba(2, 8, 13, 0.42);
+      --panel-header-border: rgba(117, 174, 201, 0.14);
+      --panel-grab-bg: rgba(115, 191, 223, 0.36);
+      --panel-grab-active: rgba(146, 219, 244, 0.52);
+      --panel-close-border: rgba(115, 179, 207, 0.34);
+      --panel-close-bg: rgba(10, 25, 36, 0.92);
+      --panel-close-text: #dff4ff;
+      --viewer-shell-bg: linear-gradient(180deg, #04121d 0%, #0a2436 56%, #0d3149 100%);
+      --brand-logo-border: rgba(103, 168, 198, 0.22);
+      --brand-logo-shadow: 0 12px 28px rgba(1, 8, 13, 0.36);
+      --section-border: rgba(117, 174, 201, 0.12);
+      --section-title: #84adc3;
+      --control-label: #dff2ff;
+      --mono: #92c9e4;
+      --select-border: rgba(117, 174, 201, 0.24);
+      --select-bg: rgba(6, 16, 24, 0.92);
+      --select-text: #e8f7ff;
+      --select-focus-border: #57b7de;
+      --select-focus-ring: 0 0 0 3px rgba(62, 160, 195, 0.22);
+      --toggle-text: #c5e0ee;
+      --toggle-group-border: rgba(83, 149, 178, 0.24);
+      --toggle-divider: linear-gradient(90deg, rgba(77, 122, 145, 0.08) 0%, rgba(77, 122, 145, 0.34) 18%, rgba(77, 122, 145, 0.34) 82%, rgba(77, 122, 145, 0.08) 100%);
+      --toggle-sub: #93b8ca;
+      --button-border: rgba(78, 177, 210, 0.38);
+      --button-bg: linear-gradient(135deg, #0d6f96 0%, #15816d 100%);
+      --button-text: #f5fdff;
+      --meta-text: #abc8d8;
+      --meta-border: rgba(117, 174, 201, 0.14);
+      --meta-strong: #e6f6ff;
+      --meta-details-border: rgba(117, 174, 201, 0.22);
+      --meta-details-bg: linear-gradient(180deg, rgba(9, 21, 30, 0.98) 0%, rgba(9, 22, 32, 0.96) 100%);
+      --meta-details-shadow: inset 0 1px 0 rgba(223, 248, 255, 0.05);
+      --meta-summary-text: #8fb4c7;
+      --meta-summary-hover-bg: rgba(83, 149, 178, 0.12);
+      --meta-summary-hover-text: #e1f4ff;
+      --meta-summary-focus: rgba(92, 185, 219, 0.38);
+      --meta-link: #79d6ff;
+      --meta-link-decoration: rgba(121, 214, 255, 0.34);
+      --meta-link-hover: #b7ecff;
+      --meta-link-focus: rgba(121, 214, 255, 0.34);
+      --legend-border: rgba(117, 174, 201, 0.24);
+      --legend-bg: #02070c;
+      --legend-text: #97bacb;
+      --legend-note: #86acbe;
+      --ocean-axis-strong: #d7effa;
+      --ocean-canvas-border: rgba(117, 174, 201, 0.24);
+      --ocean-canvas-bg: #0c2130;
+      --ocean-canvas-shadow: inset 0 1px 0 rgba(223, 248, 255, 0.04);
+      --ocean-note: #8aaec0;
+      --viewer-chip-bg: rgba(3, 14, 21, 0.78);
+      --viewer-chip-border: rgba(132, 198, 228, 0.3);
+      --viewer-chip-text: #e8f7ff;
+      --viewer-chip-strong: #a8e9ff;
+      --viewer-status-bg: rgba(3, 14, 21, 0.8);
+      --viewer-status-border: rgba(132, 198, 228, 0.3);
+      --viewer-status-text: #dff4ff;
+      --viewer-tool-border: rgba(132, 198, 228, 0.3);
+      --viewer-tool-bg: rgba(3, 14, 21, 0.78);
+      --viewer-tool-text: #def3ff;
+      --capture-panel-border: rgba(132, 198, 228, 0.28);
+      --capture-panel-bg: rgba(3, 14, 21, 0.88);
+      --capture-panel-text: #e6f8ff;
+      --capture-eyebrow: #90e2ff;
+      --capture-label: #ddf2fb;
+      --capture-toggle-border: rgba(132, 198, 228, 0.2);
+      --capture-toggle-bg: rgba(10, 34, 48, 0.68);
+      --capture-toggle-text: #d8eef9;
+      --capture-segment-active-border: rgba(138, 226, 255, 0.56);
+      --capture-segment-active-bg: rgba(17, 82, 109, 0.82);
+      --capture-segment-active-text: #ffffff;
+      --capture-hint: #add5e7;
+      --mobile-panel-header-bg: linear-gradient(180deg, rgba(8, 18, 26, 0.98) 0%, rgba(8, 20, 29, 0.94) 100%);
     }
 
     * {
@@ -35,10 +248,7 @@
       height: 100%;
       font-family: "Space Grotesk", sans-serif;
       color: var(--ink);
-      background:
-        radial-gradient(circle at 14% 18%, #d7eff9 0%, #f3fbff 36%, transparent 60%),
-        radial-gradient(circle at 88% 84%, #eaf6f0 0%, #f9fdff 40%, transparent 62%),
-        linear-gradient(145deg, #f8fcfe 0%, #ebf6fb 100%);
+      background: var(--bg);
     }
 
     .app {
@@ -67,7 +277,7 @@
       gap: 10px;
       margin: 0 0 10px;
       padding-bottom: 8px;
-      border-bottom: 1px solid #d6e6ef;
+      border-bottom: 1px solid var(--panel-header-border);
       user-select: none;
       -webkit-user-select: none;
     }
@@ -76,7 +286,7 @@
       width: 46px;
       height: 4px;
       border-radius: 999px;
-      background: rgba(50, 93, 116, 0.34);
+      background: var(--panel-grab-bg);
       cursor: ns-resize;
       touch-action: none;
     }
@@ -89,9 +299,9 @@
       margin: 0;
       padding: 0 12px;
       border-radius: 999px;
-      border: 1px solid #86aeca;
-      background: #eef7fc;
-      color: #17425c;
+      border: 1px solid var(--panel-close-border);
+      background: var(--panel-close-bg);
+      color: var(--panel-close-text);
       font-size: 0.78rem;
       font-weight: 600;
     }
@@ -103,7 +313,7 @@
       border: 1px solid var(--panel-border);
       box-shadow: var(--shadow);
       overflow: hidden;
-      background: linear-gradient(180deg, #05253d 0%, #0d3851 56%, #14465f 100%);
+      background: var(--viewer-shell-bg);
     }
 
     #viewer {
@@ -219,8 +429,8 @@
       max-width: 100%;
       height: auto;
       border-radius: 14px;
-      border: 1px solid rgba(116, 163, 190, 0.28);
-      box-shadow: 0 10px 24px rgba(9, 30, 46, 0.16);
+      border: 1px solid var(--brand-logo-border);
+      box-shadow: var(--brand-logo-shadow);
     }
 
     .subtitle {
@@ -233,7 +443,7 @@
     .section {
       padding-top: 12px;
       margin-top: 12px;
-      border-top: 1px solid #d8e5ec;
+      border-top: 1px solid var(--section-border);
     }
 
     .section:first-of-type {
@@ -247,7 +457,7 @@
       font-size: 0.76rem;
       text-transform: uppercase;
       letter-spacing: 0.11em;
-      color: #3c5868;
+      color: var(--section-title);
       font-weight: 700;
     }
 
@@ -261,12 +471,12 @@
       align-items: baseline;
       font-size: 0.9rem;
       margin-bottom: 6px;
-      color: #1c3748;
+      color: var(--control-label);
     }
 
     .mono {
       font-family: "IBM Plex Mono", monospace;
-      color: #225168;
+      color: var(--mono);
       font-size: 0.78rem;
     }
 
@@ -279,9 +489,9 @@
       width: 100%;
       height: 36px;
       border-radius: 9px;
-      border: 1px solid #bfd6e2;
-      background: #f7fcff;
-      color: #1a3d52;
+      border: 1px solid var(--select-border);
+      background: var(--select-bg);
+      color: var(--select-text);
       font-size: 0.88rem;
       font-family: "Space Grotesk", sans-serif;
       padding: 0 10px;
@@ -289,8 +499,8 @@
     }
 
     select:focus {
-      border-color: #3e9fc3;
-      box-shadow: 0 0 0 3px rgba(70, 156, 191, 0.18);
+      border-color: var(--select-focus-border);
+      box-shadow: var(--select-focus-ring);
     }
 
     .toggle {
@@ -298,7 +508,7 @@
       gap: 8px;
       align-items: center;
       margin-bottom: 8px;
-      color: #244559;
+      color: var(--toggle-text);
       font-size: 0.9rem;
     }
 
@@ -309,13 +519,13 @@
     .toggle-group {
       margin: -2px 0 10px 25px;
       padding-left: 11px;
-      border-left: 2px solid rgba(66, 132, 160, 0.2);
+      border-left: 2px solid var(--toggle-group-border);
     }
 
     .toggle-divider {
       height: 1px;
       margin: 8px 0 6px;
-      background: linear-gradient(90deg, rgba(109, 145, 161, 0.1) 0%, rgba(109, 145, 161, 0.4) 18%, rgba(109, 145, 161, 0.4) 82%, rgba(109, 145, 161, 0.1) 100%);
+      background: var(--toggle-divider);
     }
 
     .toggle-group--grid {
@@ -333,7 +543,7 @@
     .toggle--sub {
       margin-bottom: 6px;
       font-size: 0.84rem;
-      color: #3a6173;
+      color: var(--toggle-sub);
     }
 
     .toggle-group--grid .toggle--sub {
@@ -343,9 +553,9 @@
     button {
       width: 100%;
       margin-top: 6px;
-      border: 1px solid #2f7998;
-      background: linear-gradient(135deg, #0f7ea8 0%, #1f9f88 100%);
-      color: #f7fdff;
+      border: 1px solid var(--button-border);
+      background: var(--button-bg);
+      color: var(--button-text);
       border-radius: 10px;
       height: 38px;
       font-weight: 600;
@@ -365,13 +575,13 @@
       display: grid;
       gap: 8px;
       font-size: 0.84rem;
-      color: #345266;
+      color: var(--meta-text);
       line-height: 1.35;
     }
 
     .meta-list > li {
       padding: 5px 0;
-      border-bottom: 1px dashed #d7e6ef;
+      border-bottom: 1px dashed var(--meta-border);
     }
 
     .meta-list > li:last-child {
@@ -379,7 +589,7 @@
     }
 
     .meta-list strong {
-      color: #13344a;
+      color: var(--meta-strong);
     }
 
     .meta-list > .meta-section {
@@ -388,10 +598,10 @@
     }
 
     .meta-section-details {
-      border: 1px solid rgba(137, 177, 196, 0.42);
+      border: 1px solid var(--meta-details-border);
       border-radius: 12px;
-      background: linear-gradient(180deg, rgba(248, 252, 255, 0.98) 0%, rgba(240, 248, 252, 0.96) 100%);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+      background: var(--meta-details-bg);
+      box-shadow: var(--meta-details-shadow);
       overflow: hidden;
     }
 
@@ -407,7 +617,7 @@
       font-size: 0.72rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: #4a6a7f;
+      color: var(--meta-summary-text);
       font-weight: 700;
       transition: background-color 0.18s ease, color 0.18s ease;
     }
@@ -421,12 +631,12 @@
     }
 
     .meta-section-summary:hover {
-      background: rgba(92, 150, 179, 0.08);
-      color: #355568;
+      background: var(--meta-summary-hover-bg);
+      color: var(--meta-summary-hover-text);
     }
 
     .meta-section-summary:focus-visible {
-      outline: 2px solid rgba(20, 116, 150, 0.35);
+      outline: 2px solid var(--meta-summary-focus);
       outline-offset: -2px;
     }
 
@@ -461,7 +671,7 @@
 
     .meta-section-items li {
       padding: 5px 0;
-      border-bottom: 1px dashed #d7e6ef;
+      border-bottom: 1px dashed var(--meta-border);
     }
 
     .meta-section-items li:last-child {
@@ -474,20 +684,20 @@
     }
 
     .meta-list .meta-link {
-      color: #166789;
+      color: var(--meta-link);
       text-decoration: underline;
-      text-decoration-color: rgba(22, 103, 137, 0.42);
+      text-decoration-color: var(--meta-link-decoration);
       text-underline-offset: 2px;
       font: inherit;
     }
 
     .meta-list .meta-link:hover {
-      color: #0f5976;
+      color: var(--meta-link-hover);
       text-decoration-color: currentColor;
     }
 
     .meta-list .meta-link:focus-visible {
-      outline: 2px solid rgba(20, 116, 150, 0.4);
+      outline: 2px solid var(--meta-link-focus);
       outline-offset: 2px;
       border-radius: 3px;
       text-decoration-color: currentColor;
@@ -506,9 +716,9 @@
     }
 
     .chip {
-      background: rgba(5, 21, 31, 0.66);
-      border: 1px solid rgba(171, 214, 237, 0.36);
-      color: #eaf8ff;
+      background: var(--viewer-chip-bg);
+      border: 1px solid var(--viewer-chip-border);
+      color: var(--viewer-chip-text);
       border-radius: 9px;
       padding: 7px 10px;
       font-size: 0.74rem;
@@ -518,7 +728,7 @@
     }
 
     .chip strong {
-      color: #b6ecff;
+      color: var(--viewer-chip-strong);
     }
 
     .status {
@@ -527,9 +737,9 @@
       right: 12px;
       padding: 6px 10px;
       border-radius: 999px;
-      background: rgba(4, 17, 24, 0.72);
-      color: #dbf7ff;
-      border: 1px solid rgba(169, 214, 232, 0.4);
+      background: var(--viewer-status-bg);
+      color: var(--viewer-status-text);
+      border: 1px solid var(--viewer-status-border);
       font-size: 0.74rem;
       font-family: "IBM Plex Mono", monospace;
       pointer-events: none;
@@ -553,9 +763,9 @@
       margin-top: 0;
       padding: 0 12px;
       border-radius: 999px;
-      border: 1px solid rgba(169, 214, 232, 0.42);
-      background: rgba(4, 17, 24, 0.72);
-      color: #dbf7ff;
+      border: 1px solid var(--viewer-tool-border);
+      background: var(--viewer-tool-bg);
+      color: var(--viewer-tool-text);
       font-size: 0.74rem;
       font-family: "IBM Plex Mono", monospace;
       font-weight: 500;
@@ -598,9 +808,9 @@
       width: min(312px, calc(100% - 24px));
       padding: 12px;
       border-radius: 16px;
-      border: 1px solid rgba(169, 214, 232, 0.42);
-      background: rgba(4, 17, 24, 0.84);
-      color: #e6f8ff;
+      border: 1px solid var(--capture-panel-border);
+      background: var(--capture-panel-bg);
+      color: var(--capture-panel-text);
       box-shadow: 0 18px 34px rgba(2, 10, 16, 0.32);
       backdrop-filter: blur(10px);
     }
@@ -618,7 +828,7 @@
     }
 
     .capture-panel__eyebrow {
-      color: #8bdcff;
+      color: var(--capture-eyebrow);
       font-size: 0.68rem;
       font-family: "IBM Plex Mono", monospace;
       text-transform: uppercase;
@@ -658,7 +868,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 10px;
-      color: #d7edf7;
+      color: var(--capture-label);
       font-size: 0.78rem;
       font-weight: 600;
     }
@@ -681,9 +891,9 @@
       min-height: 34px;
       padding: 0 10px;
       border-radius: 999px;
-      border: 1px solid rgba(169, 214, 232, 0.22);
-      background: rgba(10, 34, 48, 0.56);
-      color: #d9effa;
+      border: 1px solid var(--capture-toggle-border);
+      background: var(--capture-toggle-bg);
+      color: var(--capture-toggle-text);
       font-size: 0.76rem;
       font-family: "IBM Plex Mono", monospace;
     }
@@ -700,9 +910,9 @@
     }
 
     .capture-segmented button.is-active {
-      border-color: rgba(120, 225, 255, 0.62);
-      background: rgba(20, 73, 96, 0.82);
-      color: #ffffff;
+      border-color: var(--capture-segment-active-border);
+      background: var(--capture-segment-active-bg);
+      color: var(--capture-segment-active-text);
     }
 
     .capture-manual-grid {
@@ -716,7 +926,7 @@
     }
 
     .capture-panel__hint {
-      color: #a6d1e2;
+      color: var(--capture-hint);
       font-size: 0.68rem;
       line-height: 1.45;
     }
@@ -725,15 +935,15 @@
       margin-top: 12px;
       height: 10px;
       border-radius: 999px;
-      border: 1px solid #bdd2de;
-      background: #000;
+      border: 1px solid var(--legend-border);
+      background: var(--legend-bg);
     }
 
     .legend-labels {
       margin-top: 5px;
       display: flex;
       justify-content: space-between;
-      color: #3e5d6f;
+      color: var(--legend-text);
       font-size: 0.71rem;
       font-family: "IBM Plex Mono", monospace;
     }
@@ -752,7 +962,7 @@
 
     .legend-note {
       margin-top: 4px;
-      color: #567486;
+      color: var(--legend-note);
       font-size: 0.68rem;
       line-height: 1.35;
     }
@@ -772,7 +982,7 @@
       gap: 10px;
       min-width: 54px;
       padding: 3px 0;
-      color: #3e5d6f;
+      color: var(--legend-text);
       font-size: 0.68rem;
       line-height: 1.2;
       font-family: "IBM Plex Mono", monospace;
@@ -782,7 +992,7 @@
     .ocean-legend-y-axis strong,
     .ocean-legend-x-axis strong {
       display: block;
-      color: #264a60;
+      color: var(--ocean-axis-strong);
       font-family: "Space Grotesk", sans-serif;
       font-size: 0.71rem;
       letter-spacing: 0.01em;
@@ -793,9 +1003,9 @@
       width: 100%;
       height: 126px;
       border-radius: 12px;
-      border: 1px solid #bdd2de;
-      background: #d7e8ef;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+      border: 1px solid var(--ocean-canvas-border);
+      background: var(--ocean-canvas-bg);
+      box-shadow: var(--ocean-canvas-shadow);
     }
 
     .ocean-legend-x-axis {
@@ -805,7 +1015,7 @@
       gap: 10px;
       margin-left: calc(var(--ocean-legend-axis-width, 54px) + 14px);
       width: calc(100% - (var(--ocean-legend-axis-width, 54px) + 14px));
-      color: #3e5d6f;
+      color: var(--legend-text);
       font-size: 0.68rem;
       line-height: 1.2;
       font-family: "IBM Plex Mono", monospace;
@@ -813,7 +1023,7 @@
 
     .ocean-legend-note {
       margin-top: 8px;
-      color: #567082;
+      color: var(--ocean-note);
       font-size: 0.72rem;
       line-height: 1.35;
     }
@@ -869,9 +1079,17 @@
       right: 16px;
     }
 
+    body.coarse-pointer.showcase .viewer-shell.showcase-idle::after {
+      content: "Tap to enter 3D";
+    }
+
     body.showcase .hud,
     body.showcase .status {
       display: none;
+    }
+
+    body.coarse-pointer.showcase .hud {
+      display: flex;
     }
 
     body.showcase .viewer-toolbar {
@@ -995,7 +1213,7 @@
         margin: 0 -14px 10px;
         padding: 12px 14px 10px;
         min-height: 52px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.94) 100%);
+        background: var(--mobile-panel-header-bg);
         backdrop-filter: blur(4px);
         touch-action: none;
         cursor: ns-resize;
@@ -1007,7 +1225,7 @@
       }
 
       body.mobile-drawer .panel-header:active .panel-grab {
-        background: rgba(42, 82, 104, 0.54);
+        background: var(--panel-grab-active);
       }
 
       body.mobile-drawer .panel-close-btn {
@@ -1279,6 +1497,7 @@
 
   <script type="module">
     const queryParams = new URLSearchParams(window.location.search);
+    const runtimeThemeApi = window.__iceRuntimeTheme || null;
     const mode = (queryParams.get("mode") || "").toLowerCase();
     const regionParam = (queryParams.get("region") || "").toLowerCase();
     const presetParam = (queryParams.get("preset") || "").toLowerCase();
@@ -1287,9 +1506,17 @@
     const recordingModeEnabled = queryParams.get("recording") === "1" && !isShowcaseMode && !isPreviewMode;
     const coarsePointerQuery = window.matchMedia("(pointer: coarse)");
     const compactViewportQuery = window.matchMedia("(max-width: 980px)");
+    const runtimeThemeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    let runtimeThemeObserver = null;
+    let runtimeThemeStorageHandler = null;
+    let runtimeThemeMediaHandler = null;
 
     function isCoarsePointerInput() {
       return coarsePointerQuery.matches;
+    }
+
+    function syncPointerModeClass() {
+      document.body.classList.toggle("coarse-pointer", isCoarsePointerInput());
     }
 
     function shouldUseMobileDrawer() {
@@ -1313,6 +1540,7 @@
     if (recordingModeEnabled) {
       document.body.classList.add("recording-mode");
     }
+    syncPointerModeClass();
     if (shouldUseMobileDrawer()) {
       document.body.classList.add("mobile-drawer");
     }
@@ -1667,6 +1895,7 @@
     const viewerEl = document.getElementById("viewer");
     const viewerShellEl = document.getElementById("viewerShell");
     const panelEl = document.querySelector(".panel");
+    const panelBrandLogoEl = document.querySelector(".panel-brand-logo");
     const panelSubtitleEl = document.getElementById("panelSubtitle");
     const panelHeaderEl = document.querySelector(".panel-header");
     const statusEl = document.getElementById("status");
@@ -1680,6 +1909,70 @@
     const loadingPercentEl = document.getElementById("loadingPercent");
     const loadingHintEl = document.getElementById("loadingHint");
     const DEFAULT_INTERACTION_HINT = interactionHintEl ? interactionHintEl.innerHTML : "";
+
+    function getEmbeddedTopRoot() {
+      try {
+        if (window.top && window.top !== window) {
+          return window.top.document?.documentElement || null;
+        }
+      } catch (_error) {
+        return null;
+      }
+      return null;
+    }
+
+    function resolveRuntimeTheme() {
+      if (runtimeThemeApi && typeof runtimeThemeApi.resolveTheme === "function") {
+        return runtimeThemeApi.resolveTheme();
+      }
+      return runtimeThemeMediaQuery.matches ? "dark" : "light";
+    }
+
+    function applyRuntimeTheme(theme) {
+      const nextTheme =
+        runtimeThemeApi && typeof runtimeThemeApi.applyTheme === "function"
+          ? runtimeThemeApi.applyTheme(theme)
+          : theme === "dark"
+          ? "dark"
+          : "light";
+      if (!runtimeThemeApi) {
+        document.documentElement.dataset.theme = nextTheme;
+        document.documentElement.style.colorScheme = nextTheme;
+      }
+      if (panelBrandLogoEl) {
+        panelBrandLogoEl.src =
+          nextTheme === "dark" ? runtimeThemeApi?.darkLogoSrc || "/tools/3d-ice-logo.jpg" : runtimeThemeApi?.lightLogoSrc || "/tools/3d-ice-logo-light.jpg";
+      }
+      return nextTheme;
+    }
+
+    function syncRuntimeTheme() {
+      applyRuntimeTheme(resolveRuntimeTheme());
+    }
+
+    function bindRuntimeTheme() {
+      syncRuntimeTheme();
+
+      const topRoot = getEmbeddedTopRoot();
+      if (topRoot && "MutationObserver" in window) {
+        runtimeThemeObserver = new MutationObserver(() => {
+          syncRuntimeTheme();
+        });
+        runtimeThemeObserver.observe(topRoot, { attributes: true, attributeFilter: ["class"] });
+      }
+
+      runtimeThemeStorageHandler = (event) => {
+        if (!runtimeThemeApi?.storageKey || event.key === runtimeThemeApi.storageKey || event.key === null) {
+          syncRuntimeTheme();
+        }
+      };
+      window.addEventListener("storage", runtimeThemeStorageHandler);
+
+      runtimeThemeMediaHandler = () => {
+        syncRuntimeTheme();
+      };
+      runtimeThemeMediaQuery.addEventListener("change", runtimeThemeMediaHandler);
+    }
 
     const controlsUI = {
       panelCloseButton: document.getElementById("panelCloseButton"),
@@ -1811,6 +2104,7 @@
     let loadGeneration = 0;
     let interactionGateEnabled = false;
     let interactionGateActive = true;
+    let interactionGateTapState = null;
     let mobileDrawerEnabled = false;
     let mobilePanelOpen = false;
     let mobilePanelOffsetPx = 0;
@@ -1891,12 +2185,15 @@
     let recordingScratchSpherical = null;
     let recordingScratchTarget = null;
 
-    const SHOWCASE_HINT_IDLE = "";
-    const SHOWCASE_HINT_ACTIVE = "";
+    const SHOWCASE_HINT_IDLE =
+      "<strong>Scroll page:</strong> swipe naturally.<br /><strong>Tap scene</strong> to enter 3D.";
+    const SHOWCASE_HINT_ACTIVE =
+      "<strong>3D active:</strong> drag to orbit, pinch to zoom.<br /><strong>Tap Scroll</strong> to return to scrolling.";
     const TOUCH_HINT_IDLE =
       "<strong>Scroll page:</strong> swipe naturally.<br /><strong>Tap scene</strong> to enable 3D gestures.";
     const TOUCH_HINT_ACTIVE =
       "<strong>3D active:</strong> drag to orbit, pinch to zoom.<br /><strong>Tap Scroll</strong> to return to page scrolling.";
+    const INTERACTION_TAP_MOVE_THRESHOLD_PX = 8;
     const MOBILE_PANEL_PEEK_PX = 56;
     const MOBILE_PANEL_DRAG_MOVE_THRESHOLD_PX = 3;
     const MOBILE_PANEL_DRAG_SLOW_GAIN = 0.24;
@@ -2288,7 +2585,6 @@
       controlsUI.regionPreset.value = initialExplorerPreset?.regionKey || "antarctica";
       controlsUI.resolutionPreset.value = initialExplorerPreset?.datasetKey || "balanced";
       applyExplorerPresetControls(initialExplorerPreset);
-      interactionHintEl.innerHTML = "";
     } else {
       applyExplorerPresetControls(initialExplorerPreset);
       if (shouldUseMobileDrawer()) {
@@ -6126,7 +6422,12 @@
       controlsUI.interactionToggle.setAttribute("aria-pressed", interactionGateActive ? "true" : "false");
     }
 
+    function getIdleViewerTouchAction() {
+      return interactionGateEnabled && isCoarsePointerInput() ? "pan-y" : "auto";
+    }
+
     function refreshResponsiveLayout() {
+      syncPointerModeClass();
       const previouslyEnabled = mobileDrawerEnabled;
       mobileDrawerEnabled = shouldUseMobileDrawer();
       document.body.classList.toggle("mobile-drawer", mobileDrawerEnabled);
@@ -6158,12 +6459,18 @@
       scheduleTickLegendLayout(controlsUI?.velocityLegendLabels);
       scheduleTickLegendLayout(controlsUI?.basalFrictionLegendLabels, { minGapPx: 8 });
       scheduleTickLegendLayout(controlsUI?.basalMeltLegendLabels);
+      if (renderer && interactionGateEnabled && !interactionGateActive) {
+        renderer.domElement.style.touchAction = getIdleViewerTouchAction();
+      }
+      updateInteractionHint(interactionGateActive);
+      syncInteractionToggleButton();
     }
 
     function setInteractionGateActive(active) {
       if (!orbit || !renderer || !viewerShellEl) return;
       if (!interactionGateEnabled) {
         interactionGateActive = true;
+        interactionGateTapState = null;
         orbit.enabled = true;
         renderer.domElement.style.touchAction = "none";
         viewerShellEl.classList.remove("showcase-idle");
@@ -6176,8 +6483,9 @@
       }
 
       interactionGateActive = Boolean(active);
+      interactionGateTapState = null;
       orbit.enabled = interactionGateActive;
-      renderer.domElement.style.touchAction = interactionGateActive ? "none" : "auto";
+      renderer.domElement.style.touchAction = interactionGateActive ? "none" : getIdleViewerTouchAction();
       if (isShowcaseMode) {
         viewerShellEl.classList.toggle("showcase-idle", !interactionGateActive);
       } else {
@@ -6204,23 +6512,67 @@
         return Boolean(hit && viewerShellEl.contains(hit));
       };
 
-      const activate = () => {
+      const shouldUseTapToArm = (event) => {
+        if (!interactionGateEnabled || !isCoarsePointerInput()) return false;
+        return !event || event.pointerType !== "mouse";
+      };
+
+      const clearTapCandidate = (pointerId = null) => {
+        if (pointerId !== null && interactionGateTapState && interactionGateTapState.pointerId !== pointerId) return;
+        interactionGateTapState = null;
+      };
+
+      const activate = ({ closeMobilePanel = true } = {}) => {
         if (!interactionGateEnabled || interactionGateActive) return;
-        if (mobileDrawerEnabled) {
+        if (closeMobilePanel && mobileDrawerEnabled) {
           setMobilePanelOpen(false);
         }
         setInteractionGateActive(true);
       };
 
       const deactivate = () => {
+        clearTapCandidate();
         if (!interactionGateEnabled || !interactionGateActive) return;
         setInteractionGateActive(false);
       };
 
       interactionGateEnabled = shouldUseInteractionGate();
 
-      // Capture phase: enable controls before OrbitControls handles the same pointerdown.
-      canvas.addEventListener("pointerdown", activate, { capture: true });
+      // Coarse pointers must tap first so a page scroll swipe never doubles as an orbit gesture.
+      canvas.addEventListener(
+        "pointerdown",
+        (event) => {
+          if (!interactionGateEnabled || interactionGateActive) return;
+          if (shouldUseTapToArm(event)) {
+            if (event.isPrimary === false || (interactionGateTapState && interactionGateTapState.pointerId !== event.pointerId)) {
+              clearTapCandidate();
+              return;
+            }
+            interactionGateTapState = {
+              pointerId: event.pointerId,
+              startX: event.clientX,
+              startY: event.clientY,
+              moved: false,
+            };
+            return;
+          }
+          activate();
+        },
+        { capture: true }
+      );
+      canvas.addEventListener(
+        "pointermove",
+        (event) => {
+          if (!interactionGateTapState || event.pointerId !== interactionGateTapState.pointerId) return;
+          if (
+            Math.abs(event.clientX - interactionGateTapState.startX) > INTERACTION_TAP_MOVE_THRESHOLD_PX ||
+            Math.abs(event.clientY - interactionGateTapState.startY) > INTERACTION_TAP_MOVE_THRESHOLD_PX
+          ) {
+            interactionGateTapState.moved = true;
+          }
+        },
+        { capture: true }
+      );
       window.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
           deactivate();
@@ -6233,7 +6585,15 @@
         canvas.addEventListener(
           "pointerup",
           (event) => {
-            if (!pointerIsInsideViewer(event)) {
+            if (interactionGateTapState && event.pointerId === interactionGateTapState.pointerId) {
+              const tapCandidate = interactionGateTapState;
+              clearTapCandidate(event.pointerId);
+              if (!tapCandidate.moved && pointerIsInsideViewer(event)) {
+                activate();
+                return;
+              }
+            }
+            if (interactionGateActive && !pointerIsInsideViewer(event)) {
               deactivate();
             }
           },
@@ -6241,18 +6601,40 @@
         );
         canvas.addEventListener(
           "pointercancel",
-          () => {
+          (event) => {
+            clearTapCandidate(event.pointerId);
             deactivate();
           },
           { capture: true }
         );
         canvas.addEventListener("lostpointercapture", () => {
+          clearTapCandidate();
           window.requestAnimationFrame(() => {
             if (!viewerShellEl.matches(":hover")) {
               deactivate();
             }
           });
         });
+      } else {
+        canvas.addEventListener(
+          "pointerup",
+          (event) => {
+            if (!interactionGateTapState || event.pointerId !== interactionGateTapState.pointerId) return;
+            const tapCandidate = interactionGateTapState;
+            clearTapCandidate(event.pointerId);
+            if (!tapCandidate.moved && pointerIsInsideViewer(event)) {
+              activate();
+            }
+          },
+          { capture: true }
+        );
+        canvas.addEventListener(
+          "pointercancel",
+          (event) => {
+            clearTapCandidate(event.pointerId);
+          },
+          { capture: true }
+        );
       }
 
       window.addEventListener("keydown", (event) => {
@@ -6469,7 +6851,14 @@
       if (controlsUI.interactionToggle) {
         controlsUI.interactionToggle.addEventListener("click", () => {
           if (!interactionGateEnabled) return;
-          setInteractionGateActive(!interactionGateActive);
+          if (!interactionGateActive) {
+            if (mobileDrawerEnabled) {
+              setMobilePanelOpen(false);
+            }
+            setInteractionGateActive(true);
+            return;
+          }
+          setInteractionGateActive(false);
         });
       }
 
@@ -8587,6 +8976,7 @@
     async function main() {
       try {
         updateLoadingProgress(0.01, "Initializing 3D runtime...");
+        bindRuntimeTheme();
         await loadThreeRuntime();
         updateLoadingProgress(0.04, "Initializing renderer...");
 
@@ -8630,6 +9020,15 @@
     };
 
     window.addEventListener("beforeunload", () => {
+      if (runtimeThemeObserver) {
+        runtimeThemeObserver.disconnect();
+      }
+      if (runtimeThemeStorageHandler) {
+        window.removeEventListener("storage", runtimeThemeStorageHandler);
+      }
+      if (runtimeThemeMediaHandler) {
+        runtimeThemeMediaQuery.removeEventListener("change", runtimeThemeMediaHandler);
+      }
       if (animationHandle) cancelAnimationFrame(animationHandle);
       cleanupViewerResizeHandling();
       clearModelMeshes();
