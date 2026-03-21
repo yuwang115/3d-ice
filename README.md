@@ -10,7 +10,7 @@ Standalone source repository for the 3D ICE runtime, data bundles, preview media
 
 ## Compatibility bundle
 
-Build the bundle consumed by `/Users/eddie/Documents/yuwang115.github.io`:
+Build the bundle consumed by the main personal site repo (expected as a sibling checkout at `../yuwang115.github.io`):
 
 ```bash
 npm run bundle:compat
