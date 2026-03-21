@@ -5,7 +5,7 @@ Standalone source repository for the 3D ICE runtime, data bundles, preview media
 ## Repo scope
 
 - `static/tools/` contains the browser runtime and all assets needed to preserve the legacy `/tools/...` public paths.
-- `static/tools/3d-ice/` contains a standalone landing page so this repo can also be published directly with GitHub Pages.
+- `static/index.html` contains the standalone landing page for the custom domain root.
 - `scripts/` contains data preparation utilities and trailer capture tooling related to 3D ICE.
 - `dist/` is generated and contains the compatibility bundle consumed by the main personal site repo.
 
@@ -13,7 +13,7 @@ Standalone source repository for the 3D ICE runtime, data bundles, preview media
 
 This repo can now publish `static/` directly to GitHub Pages. That serves:
 
-- `/tools/3d-ice/` as the standalone landing page
+- `/` as the standalone landing page
 - `/tools/3D-interactive-cryosphere-explorer.html` as the main runtime
 - `/tools/data/*`, `/tools/media/3d-ice/*`, `/tools/vendor/*`, and `/tools/3d-antarctica/` as supporting assets
 
