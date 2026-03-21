@@ -1610,11 +1610,18 @@
       return isShowcaseMode && showcaseMobileLinkoutMode && narrowViewportQuery.matches;
     }
 
+    function isDesktopInteractiveShowcase() {
+      return isShowcaseMode && showcaseDesktopInteractiveMode && !isCoarsePointerInput();
+    }
+
+    function shouldRunShowcaseAutoOrbit() {
+      if (!(isShowcaseMode || isPreviewMode)) return false;
+      return !isDesktopInteractiveShowcase();
+    }
+
     function shouldUseInteractionGate() {
       if (isPreviewMode) return false;
-      if (isShowcaseMode && showcaseDesktopInteractiveMode && !isCoarsePointerInput()) {
-        return false;
-      }
+      if (isDesktopInteractiveShowcase()) return false;
       return isShowcaseMode;
     }
 
@@ -3016,7 +3023,7 @@
     }
 
     function startShowcaseAutoOrbit() {
-      if ((!isShowcaseMode && !isPreviewMode) || !camera || !orbit) return;
+      if (!shouldRunShowcaseAutoOrbit() || !camera || !orbit) return;
       if (!currentCoreContext || isLoadingOverlayVisible()) return;
       syncOrbitImmediately();
       if (!captureShowcaseBasePoseFromCurrentView()) return;
@@ -3124,6 +3131,10 @@
 
     function stepShowcaseMotion(deltaSeconds) {
       if ((!isShowcaseMode && !isPreviewMode) || !camera || !orbit) return;
+      if (!shouldRunShowcaseAutoOrbit()) {
+        stopShowcaseAutoOrbit({ syncBasePose: false });
+        return;
+      }
       if (!currentCoreContext || isLoadingOverlayVisible()) return;
       if (isShowcaseMode && interactionGateEnabled && interactionGateActive) {
         stopShowcaseAutoOrbit({ syncBasePose: false });
