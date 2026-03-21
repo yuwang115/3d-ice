@@ -8,7 +8,7 @@
     name="description"
     content="Interactive 3D cryosphere explorer for Antarctica and Greenland. Launch the full 3D ICE runtime or visit the 3D ICE landing page for context, datasets, and feature walkthroughs."
   />
-  <link rel="canonical" href="https://yuwang.blog/tools/3d-ice/" />
+  <link rel="canonical" href="./3d-ice/" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -24,14 +24,28 @@
         return trimmed.endsWith("/") ? trimmed : `${trimmed}/`;
       }
 
+      function inferAssetBaseFromLocation() {
+        try {
+          const pathname = window.location.pathname || "/";
+          const marker = "/tools/";
+          const markerIndex = pathname.lastIndexOf(marker);
+          if (markerIndex >= 0) {
+            return normalizeAssetBase(pathname.slice(0, markerIndex + marker.length));
+          }
+        } catch (_error) {
+          // Fall through to the site-root default.
+        }
+        return DEFAULT_ASSET_BASE;
+      }
+
       function resolveAssetBase() {
         try {
           const params = new URLSearchParams(window.location.search);
           const queryBase = params.get("assetBase");
           const metaBase = document.querySelector('meta[name="3d-ice-asset-base"]')?.content;
-          return normalizeAssetBase(queryBase || window.__ICE_ASSET_BASE__ || metaBase || DEFAULT_ASSET_BASE);
+          return normalizeAssetBase(queryBase || window.__ICE_ASSET_BASE__ || metaBase || inferAssetBaseFromLocation());
         } catch (_error) {
-          return DEFAULT_ASSET_BASE;
+          return inferAssetBaseFromLocation();
         }
       }
 
@@ -93,7 +107,12 @@
         applyTheme,
       };
 
-      window.__iceAssetBase = { assetBase, assetUrl, defaultAssetBase: DEFAULT_ASSET_BASE };
+      window.__iceAssetBase = {
+        assetBase,
+        assetUrl,
+        defaultAssetBase: inferAssetBaseFromLocation(),
+        siteDefaultAssetBase: DEFAULT_ASSET_BASE,
+      };
       window.__iceRuntimeTheme = runtimeTheme;
       applyTheme(resolveTheme());
     })();
@@ -1294,7 +1313,7 @@
       <div class="panel-brand">
         <img
           class="panel-brand-logo"
-          src="/tools/3d-ice-logo-light.jpg"
+          src="3d-ice-logo-light.jpg"
           alt="3D ICE Interactive Cryosphere Explorer"
         />
         <script>
