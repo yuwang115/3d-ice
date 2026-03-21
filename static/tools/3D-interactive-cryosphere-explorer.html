@@ -3002,7 +3002,7 @@
           : baseTheta;
         const zoomOffset =
           recordingMotionState.zoomEnabled
-            ? Math.sin(recordingMotionState.autoElapsedSec * Math.PI * 2 * RECORDING_AUTO_ZOOM_HZ * speedMultiplier) *
+            ? -Math.sin(recordingMotionState.autoElapsedSec * Math.PI * 2 * RECORDING_AUTO_ZOOM_HZ * speedMultiplier) *
               baseRadius *
               recordingMotionState.zoomAmount
             : 0;
