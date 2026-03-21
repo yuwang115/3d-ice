@@ -1083,6 +1083,18 @@
       content: "Tap to enter 3D";
     }
 
+    @media (max-width: 820px) {
+      body.showcase.showcase-mobile-linkout .viewer-shell.showcase-idle {
+        cursor: default;
+      }
+
+      body.showcase.showcase-mobile-linkout .viewer-shell.showcase-idle::after,
+      body.showcase.showcase-mobile-linkout .hud,
+      body.showcase.showcase-mobile-linkout .viewer-toolbar {
+        display: none !important;
+      }
+    }
+
     body.showcase .hud,
     body.showcase .status {
       display: none;
@@ -1503,9 +1515,11 @@
     const presetParam = (queryParams.get("preset") || "").toLowerCase();
     const isShowcaseMode = mode === "showcase";
     const isPreviewMode = mode === "preview";
+    const showcaseMobileLinkoutMode = queryParams.get("mobileLinkout") === "1";
     const recordingModeEnabled = queryParams.get("recording") === "1" && !isShowcaseMode && !isPreviewMode;
     const coarsePointerQuery = window.matchMedia("(pointer: coarse)");
     const compactViewportQuery = window.matchMedia("(max-width: 980px)");
+    const narrowViewportQuery = window.matchMedia("(max-width: 820px)");
     const runtimeThemeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     let runtimeThemeObserver = null;
     let runtimeThemeStorageHandler = null;
@@ -1523,15 +1537,22 @@
       return !isShowcaseMode && !isPreviewMode && isCoarsePointerInput() && compactViewportQuery.matches;
     }
 
+    function shouldUseShowcaseMobileLinkout() {
+      return isShowcaseMode && showcaseMobileLinkoutMode && narrowViewportQuery.matches;
+    }
+
     function shouldUseInteractionGate() {
       if (isPreviewMode) return false;
-      return isShowcaseMode || isCoarsePointerInput();
+      return isShowcaseMode;
     }
 
     if (isShowcaseMode) {
       document.body.classList.add("showcase");
       if (presetParam) {
         document.body.classList.add(`showcase-preset-${presetParam.replace(/[^a-z0-9_-]/g, "")}`);
+      }
+      if (showcaseMobileLinkoutMode) {
+        document.body.classList.add("showcase-mobile-linkout");
       }
     }
     if (isPreviewMode) {
@@ -6469,6 +6490,9 @@
       scheduleTickLegendLayout(controlsUI?.velocityLegendLabels);
       scheduleTickLegendLayout(controlsUI?.basalFrictionLegendLabels, { minGapPx: 8 });
       scheduleTickLegendLayout(controlsUI?.basalMeltLegendLabels);
+      if (shouldUseShowcaseMobileLinkout() && interactionGateActive) {
+        setInteractionGateActive(false);
+      }
       if (renderer && interactionGateEnabled && !interactionGateActive) {
         renderer.domElement.style.touchAction = getIdleViewerTouchAction();
       }
@@ -6533,6 +6557,7 @@
       };
 
       const activate = ({ closeMobilePanel = true } = {}) => {
+        if (shouldUseShowcaseMobileLinkout()) return;
         if (!interactionGateEnabled || interactionGateActive) return;
         if (closeMobilePanel && mobileDrawerEnabled) {
           setMobilePanelOpen(false);
