@@ -1,0 +1,49 @@
+name: release-compat-bundle
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build compatibility bundle
+        run: node scripts/build_compat_bundle.mjs
+
+      - name: Smoke test compatibility bundle
+        run: node scripts/smoke_compat_bundle.mjs
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 3d-ice-compat-${{ github.ref_name || github.run_id }}
+          path: |
+            dist/3d-ice-compat.tar.gz
+            dist/3d-ice-compat.tar.gz.sha256
+            dist/3d-ice-compat-manifest.json
+
+      - name: Publish GitHub release assets
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/3d-ice-compat.tar.gz
+            dist/3d-ice-compat.tar.gz.sha256
+            dist/3d-ice-compat-manifest.json

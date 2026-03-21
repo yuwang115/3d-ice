@@ -1,0 +1,10 @@
+{
+  "name": "3d-ice",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "bundle:compat": "node scripts/build_compat_bundle.mjs",
+    "smoke:compat": "node scripts/smoke_compat_bundle.mjs"
+  }
+}

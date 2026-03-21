@@ -14,9 +14,36 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script>
     (() => {
+      const DEFAULT_ASSET_BASE = "/tools/";
       const STORAGE_KEY = "wc-color-theme";
-      const LIGHT_LOGO_SRC = "/tools/3d-ice-logo-light.jpg";
-      const DARK_LOGO_SRC = "/tools/3d-ice-logo.jpg";
+
+      function normalizeAssetBase(value) {
+        if (!value) return DEFAULT_ASSET_BASE;
+        const trimmed = String(value).trim();
+        if (!trimmed) return DEFAULT_ASSET_BASE;
+        return trimmed.endsWith("/") ? trimmed : `${trimmed}/`;
+      }
+
+      function resolveAssetBase() {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const queryBase = params.get("assetBase");
+          const metaBase = document.querySelector('meta[name="3d-ice-asset-base"]')?.content;
+          return normalizeAssetBase(queryBase || window.__ICE_ASSET_BASE__ || metaBase || DEFAULT_ASSET_BASE);
+        } catch (_error) {
+          return DEFAULT_ASSET_BASE;
+        }
+      }
+
+      const assetBase = resolveAssetBase();
+
+      function assetUrl(relativePath) {
+        const cleanRelativePath = String(relativePath || "").replace(/^\/+/, "");
+        return new URL(cleanRelativePath, new URL(assetBase, window.location.href)).toString();
+      }
+
+      const LIGHT_LOGO_SRC = assetUrl("3d-ice-logo-light.jpg");
+      const DARK_LOGO_SRC = assetUrl("3d-ice-logo.jpg");
 
       function getTopThemeClass() {
         try {
@@ -54,6 +81,8 @@
       }
 
       const runtimeTheme = {
+        assetBase,
+        assetUrl,
         storageKey: STORAGE_KEY,
         lightLogoSrc: LIGHT_LOGO_SRC,
         darkLogoSrc: DARK_LOGO_SRC,
@@ -64,6 +93,7 @@
         applyTheme,
       };
 
+      window.__iceAssetBase = { assetBase, assetUrl, defaultAssetBase: DEFAULT_ASSET_BASE };
       window.__iceRuntimeTheme = runtimeTheme;
       applyTheme(resolveTheme());
     })();
@@ -1267,6 +1297,17 @@
           src="/tools/3d-ice-logo-light.jpg"
           alt="3D ICE Interactive Cryosphere Explorer"
         />
+        <script>
+          (() => {
+            const logoEl = document.currentScript.previousElementSibling;
+            const runtimeTheme = window.__iceRuntimeTheme;
+            if (!logoEl || !runtimeTheme) return;
+            const nextSrc = document.documentElement.dataset.theme === "dark" ? runtimeTheme.darkLogoSrc : runtimeTheme.lightLogoSrc;
+            if (logoEl.getAttribute("src") !== nextSrc) {
+              logoEl.setAttribute("src", nextSrc);
+            }
+          })();
+        </script>
       </div>
       <p id="panelSubtitle" class="subtitle">
         Explore Antarctica from every angle. Rotate, zoom, and peel back
@@ -1509,7 +1550,15 @@
 
   <script type="module">
     const queryParams = new URLSearchParams(window.location.search);
+    const assetBaseApi = window.__iceAssetBase || null;
     const runtimeThemeApi = window.__iceRuntimeTheme || null;
+    const assetUrl = (relativePath) =>
+      assetBaseApi && typeof assetBaseApi.assetUrl === "function"
+        ? assetBaseApi.assetUrl(relativePath)
+        : new URL(String(relativePath || "").replace(/^\/+/, ""), new URL("/tools/", window.location.href)).toString();
+    const lightLogoUrl = assetUrl("3d-ice-logo-light.jpg");
+    const darkLogoUrl = assetUrl("3d-ice-logo.jpg");
+    const SHOWCASE_SCROLL_MESSAGE_TYPE = "3d-ice:showcase-scroll";
     const mode = (queryParams.get("mode") || "").toLowerCase();
     const regionParam = (queryParams.get("region") || "").toLowerCase();
     const presetParam = (queryParams.get("preset") || "").toLowerCase();
@@ -1572,7 +1621,7 @@
         label: "Antarctica",
         intro:
           "Explore Antarctica from every angle. Rotate, zoom, and peel back the ice to uncover a hidden world in interactive 3D.",
-        refinedBasinsUrl: "/tools/data/imbie_refined_basins_v2.json",
+        refinedBasinsUrl: assetUrl("data/imbie_refined_basins_v2.json"),
         basinToggleLabel: "Show refined basins",
         basinStatusLabel: "refined basins",
         defaultDatasetKey: "balanced",
@@ -1620,35 +1669,35 @@
             id: "balanced",
             label: "Balanced",
             summary: "10 km grid; ~3.0 MB",
-            metaUrl: "/tools/data/bedmachine_antarctica_v4_480.meta.json",
-            binUrl: "/tools/data/bedmachine_antarctica_v4_480.bin",
-            velocityMetaUrl: "/tools/data/antarctic_ice_velocity_phase_v01_480.meta.json",
-            velocityBinUrl: "/tools/data/antarctic_ice_velocity_phase_v01_480.bin",
-            basalFrictionMetaUrl: "/tools/data/antarctica_basal_friction_480.meta.json?v=20260314-taub-v1",
-            basalFrictionBinUrl: "/tools/data/antarctica_basal_friction_480.bin?v=20260314-taub-v1",
-            riseMetaUrl: "/tools/data/rise_antarctica_480.meta.json",
-            riseBinUrl: "/tools/data/rise_antarctica_480.bin",
-            oceanCurrentsMetaUrl: "/tools/data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20260312-waom2-combined-v3",
-            oceanCurrentsBinUrl: "/tools/data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20260312-waom2-combined-v3",
-            hydrologyMetaUrl: "/tools/data/antarctica_subglacial_hydrology_480.meta.json",
-            hydrologyBinUrl: "/tools/data/antarctica_subglacial_hydrology_480.bin",
+            metaUrl: assetUrl("data/bedmachine_antarctica_v4_480.meta.json"),
+            binUrl: assetUrl("data/bedmachine_antarctica_v4_480.bin"),
+            velocityMetaUrl: assetUrl("data/antarctic_ice_velocity_phase_v01_480.meta.json"),
+            velocityBinUrl: assetUrl("data/antarctic_ice_velocity_phase_v01_480.bin"),
+            basalFrictionMetaUrl: assetUrl("data/antarctica_basal_friction_480.meta.json?v=20260314-taub-v1"),
+            basalFrictionBinUrl: assetUrl("data/antarctica_basal_friction_480.bin?v=20260314-taub-v1"),
+            riseMetaUrl: assetUrl("data/rise_antarctica_480.meta.json"),
+            riseBinUrl: assetUrl("data/rise_antarctica_480.bin"),
+            oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20260312-waom2-combined-v3"),
+            oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20260312-waom2-combined-v3"),
+            hydrologyMetaUrl: assetUrl("data/antarctica_subglacial_hydrology_480.meta.json"),
+            hydrologyBinUrl: assetUrl("data/antarctica_subglacial_hydrology_480.bin"),
           },
           hd: {
             id: "hd",
             label: "HD",
             summary: "4 km grid; ~18.6 MB",
-            metaUrl: "/tools/data/bedmachine_antarctica_v4_741.meta.json",
-            binUrl: "/tools/data/bedmachine_antarctica_v4_741.bin",
-            velocityMetaUrl: "/tools/data/antarctic_ice_velocity_phase_v01_741.meta.json",
-            velocityBinUrl: "/tools/data/antarctic_ice_velocity_phase_v01_741.bin",
-            basalFrictionMetaUrl: "/tools/data/antarctica_basal_friction_741.meta.json?v=20260314-taub-v1",
-            basalFrictionBinUrl: "/tools/data/antarctica_basal_friction_741.bin?v=20260314-taub-v1",
-            riseMetaUrl: "/tools/data/rise_antarctica_741.meta.json",
-            riseBinUrl: "/tools/data/rise_antarctica_741.bin",
-            oceanCurrentsMetaUrl: "/tools/data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20260312-waom2-combined-v3",
-            oceanCurrentsBinUrl: "/tools/data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20260312-waom2-combined-v3",
-            hydrologyMetaUrl: "/tools/data/antarctica_subglacial_hydrology_741.meta.json",
-            hydrologyBinUrl: "/tools/data/antarctica_subglacial_hydrology_741.bin",
+            metaUrl: assetUrl("data/bedmachine_antarctica_v4_741.meta.json"),
+            binUrl: assetUrl("data/bedmachine_antarctica_v4_741.bin"),
+            velocityMetaUrl: assetUrl("data/antarctic_ice_velocity_phase_v01_741.meta.json"),
+            velocityBinUrl: assetUrl("data/antarctic_ice_velocity_phase_v01_741.bin"),
+            basalFrictionMetaUrl: assetUrl("data/antarctica_basal_friction_741.meta.json?v=20260314-taub-v1"),
+            basalFrictionBinUrl: assetUrl("data/antarctica_basal_friction_741.bin?v=20260314-taub-v1"),
+            riseMetaUrl: assetUrl("data/rise_antarctica_741.meta.json"),
+            riseBinUrl: assetUrl("data/rise_antarctica_741.bin"),
+            oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20260312-waom2-combined-v3"),
+            oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20260312-waom2-combined-v3"),
+            hydrologyMetaUrl: assetUrl("data/antarctica_subglacial_hydrology_741.meta.json"),
+            hydrologyBinUrl: assetUrl("data/antarctica_subglacial_hydrology_741.bin"),
           },
         },
       },
@@ -1657,7 +1706,7 @@
         label: "Greenland",
         intro:
           "Explore Greenland from every angle. Rotate, zoom, and peel back the ice to uncover a hidden world in interactive 3D.",
-        refinedBasinsUrl: "/tools/data/greenland_basins_ps_v1_4_2.json",
+        refinedBasinsUrl: assetUrl("data/greenland_basins_ps_v1_4_2.json"),
         basinToggleLabel: "Show basins",
         basinStatusLabel: "basins",
         defaultDatasetKey: "3km",
@@ -1694,27 +1743,27 @@
             id: "3km",
             label: "Balanced",
             summary: "3 km grid; ~3.1 MB",
-            metaUrl: "/tools/data/bedmachine_greenland_v6_3km.meta.json",
-            binUrl: "/tools/data/bedmachine_greenland_v6_3km.bin",
-            velocityMetaUrl: "/tools/data/greenland_ice_velocity_3km.meta.json",
-            velocityBinUrl: "/tools/data/greenland_ice_velocity_3km.bin",
-            basalFrictionMetaUrl: "/tools/data/greenland_basal_friction_3km.meta.json?v=20260314-taub-v1",
-            basalFrictionBinUrl: "/tools/data/greenland_basal_friction_3km.bin?v=20260314-taub-v1",
-            oceanCurrentsMetaUrl: "/tools/data/greenland_ocean_currents_cmems_202508.meta.json?v=20260312-greenland-layered-v1",
-            oceanCurrentsBinUrl: "/tools/data/greenland_ocean_currents_cmems_202508.bin?v=20260312-greenland-layered-v1",
+            metaUrl: assetUrl("data/bedmachine_greenland_v6_3km.meta.json"),
+            binUrl: assetUrl("data/bedmachine_greenland_v6_3km.bin"),
+            velocityMetaUrl: assetUrl("data/greenland_ice_velocity_3km.meta.json"),
+            velocityBinUrl: assetUrl("data/greenland_ice_velocity_3km.bin"),
+            basalFrictionMetaUrl: assetUrl("data/greenland_basal_friction_3km.meta.json?v=20260314-taub-v1"),
+            basalFrictionBinUrl: assetUrl("data/greenland_basal_friction_3km.bin?v=20260314-taub-v1"),
+            oceanCurrentsMetaUrl: assetUrl("data/greenland_ocean_currents_cmems_202508.meta.json?v=20260312-greenland-layered-v1"),
+            oceanCurrentsBinUrl: assetUrl("data/greenland_ocean_currents_cmems_202508.bin?v=20260312-greenland-layered-v1"),
           },
           "1km": {
             id: "1km",
             label: "HD",
             summary: "1 km grid; ~28.2 MB",
-            metaUrl: "/tools/data/bedmachine_greenland_v6_1km.meta.json",
-            binUrl: "/tools/data/bedmachine_greenland_v6_1km.bin",
-            velocityMetaUrl: "/tools/data/greenland_ice_velocity_1km.meta.json",
-            velocityBinUrl: "/tools/data/greenland_ice_velocity_1km.bin",
-            basalFrictionMetaUrl: "/tools/data/greenland_basal_friction_1km.meta.json?v=20260314-taub-v1",
-            basalFrictionBinUrl: "/tools/data/greenland_basal_friction_1km.bin?v=20260314-taub-v1",
-            oceanCurrentsMetaUrl: "/tools/data/greenland_ocean_currents_cmems_202508.meta.json?v=20260312-greenland-layered-v1",
-            oceanCurrentsBinUrl: "/tools/data/greenland_ocean_currents_cmems_202508.bin?v=20260312-greenland-layered-v1",
+            metaUrl: assetUrl("data/bedmachine_greenland_v6_1km.meta.json"),
+            binUrl: assetUrl("data/bedmachine_greenland_v6_1km.bin"),
+            velocityMetaUrl: assetUrl("data/greenland_ice_velocity_1km.meta.json"),
+            velocityBinUrl: assetUrl("data/greenland_ice_velocity_1km.bin"),
+            basalFrictionMetaUrl: assetUrl("data/greenland_basal_friction_1km.meta.json?v=20260314-taub-v1"),
+            basalFrictionBinUrl: assetUrl("data/greenland_basal_friction_1km.bin?v=20260314-taub-v1"),
+            oceanCurrentsMetaUrl: assetUrl("data/greenland_ocean_currents_cmems_202508.meta.json?v=20260312-greenland-layered-v1"),
+            oceanCurrentsBinUrl: assetUrl("data/greenland_ocean_currents_cmems_202508.bin?v=20260312-greenland-layered-v1"),
             velocityMeshStride: 3,
             disableBackgroundWarmup: true,
           },
@@ -1962,7 +2011,7 @@
       }
       if (panelBrandLogoEl) {
         panelBrandLogoEl.src =
-          nextTheme === "dark" ? runtimeThemeApi?.darkLogoSrc || "/tools/3d-ice-logo.jpg" : runtimeThemeApi?.lightLogoSrc || "/tools/3d-ice-logo-light.jpg";
+          nextTheme === "dark" ? runtimeThemeApi?.darkLogoSrc || darkLogoUrl : runtimeThemeApi?.lightLogoSrc || lightLogoUrl;
       }
       return nextTheme;
     }
@@ -3180,9 +3229,9 @@
     const HD_VELOCITY_MESH_STRIDE = 2;
     // Effective-pressure overlay should stay conformal to bed to avoid local intersections.
     const HD_HYDROLOGY_MESH_STRIDE = 1;
-    const GMT_RELIEF_RGB_URL = "/tools/data/GMT_relief.rgb";
-    const CMOCEAN_DENSE_RGB_URL = "/tools/data/cmocean_dense.rgb";
-    const CMOCEAN_MATTER_RGB_URL = "/tools/data/cmocean_matter.rgb";
+    const GMT_RELIEF_RGB_URL = assetUrl("data/GMT_relief.rgb");
+    const CMOCEAN_DENSE_RGB_URL = assetUrl("data/cmocean_dense.rgb");
+    const CMOCEAN_MATTER_RGB_URL = assetUrl("data/cmocean_matter.rgb");
     const GMT_RELIEF_OCEAN_ZERO = [0.975613, 0.999387, 0.994608];
     const GMT_RELIEF_LAND_ZERO = [0.284908, 0.466429, 0.196078];
 
@@ -3289,8 +3338,8 @@
       if (THREE && OrbitControlsCtor) return;
       updateLoadingProgress(0.06, "Loading Three.js runtime...");
       const [threeModule, orbitModule] = await Promise.all([
-        import("/tools/vendor/three/three.module.min.js"),
-        import("/tools/vendor/three/OrbitControls.js"),
+        import(assetUrl("vendor/three/three.module.min.js")),
+        import(assetUrl("vendor/three/OrbitControls.js")),
       ]);
       THREE = threeModule;
       OrbitControlsCtor = orbitModule.OrbitControls;
@@ -3355,7 +3404,7 @@
 
     function ensureGeometryWorker() {
       if (geometryWorker) return geometryWorker;
-      geometryWorker = new Worker("/tools/antarctica-geometry-worker.js");
+      geometryWorker = new Worker(assetUrl("antarctica-geometry-worker.js"));
       geometryWorker.addEventListener("message", (event) => {
         const data = event.data || {};
         const pending = geometryWorkerPending.get(data.id);
@@ -6692,12 +6741,23 @@
 
             event.preventDefault();
 
-            const targetWindow = window.parent && window.parent !== window ? window.parent : window;
-            try {
-              targetWindow.scrollBy({ left: event.deltaX, top: event.deltaY, behavior: "auto" });
-            } catch (_err) {
-              window.scrollBy({ left: event.deltaX, top: event.deltaY, behavior: "auto" });
+            if (window.parent && window.parent !== window) {
+              try {
+                window.parent.postMessage(
+                  {
+                    type: SHOWCASE_SCROLL_MESSAGE_TYPE,
+                    deltaX: event.deltaX,
+                    deltaY: event.deltaY,
+                  },
+                  "*"
+                );
+                return;
+              } catch (_err) {
+                // Fall through to local scrolling when postMessage is unavailable.
+              }
             }
+
+            window.scrollBy({ left: event.deltaX, top: event.deltaY, behavior: "auto" });
           },
           { passive: false }
         );
