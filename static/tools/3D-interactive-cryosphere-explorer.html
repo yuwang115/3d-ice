@@ -1584,6 +1584,7 @@
     const isShowcaseMode = mode === "showcase";
     const isPreviewMode = mode === "preview";
     const showcaseMobileLinkoutMode = queryParams.get("mobileLinkout") === "1";
+    const showcaseDesktopInteractiveMode = queryParams.get("desktopInteractive") === "1";
     const recordingModeEnabled = queryParams.get("recording") === "1" && !isShowcaseMode && !isPreviewMode;
     const coarsePointerQuery = window.matchMedia("(pointer: coarse)");
     const compactViewportQuery = window.matchMedia("(max-width: 980px)");
@@ -1611,6 +1612,9 @@
 
     function shouldUseInteractionGate() {
       if (isPreviewMode) return false;
+      if (isShowcaseMode && showcaseDesktopInteractiveMode && !isCoarsePointerInput()) {
+        return false;
+      }
       return isShowcaseMode;
     }
 
