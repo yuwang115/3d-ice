@@ -1482,7 +1482,7 @@
               <button class="viewer-tool-btn viewer-tool-btn--compact" type="button" data-capture-manual="zoomIn">In</button>
             </div>
           </div>
-          <div class="capture-panel__hint">Hotkeys: J/L orbit, I/K live tilt during playback, U/O zoom, H show or hide controls.</div>
+          <div class="capture-panel__hint">Hotkeys: P play/stop, J/L orbit, I/K live tilt during playback, U/O zoom, H show or hide controls.</div>
         </div>
       </div>
       <div class="hud">
@@ -2062,9 +2062,10 @@
     const RECORDING_FRAME_DT_LIMIT_MS = 48;
     const SHOWCASE_AUTO_ORBIT_RAD_PER_SEC = 0.055;
     const SHOWCASE_INITIAL_HOLD_SEC = 1.6;
+    const OCEAN_CURRENT_RENDER_ORDER = 9;
     const ICE_BOTTOM_RENDER_ORDER = 10;
-    const ICE_SURFACE_RENDER_ORDER = 11;
     const ICE_SIDE_STRICT_OCCLUSION_RENDER_ORDER = 10.5;
+    const ICE_SURFACE_RENDER_ORDER = 11;
 
     let THREE;
     let OrbitControlsCtor;
@@ -2900,6 +2901,15 @@
       recordingMotionState.autoElapsedSec = 0;
       recordingMotionState.playing = true;
       updateRecordingControlsUi();
+    }
+
+    function toggleRecordingPlayback() {
+      if (!recordingModeEnabled) return;
+      if (recordingMotionState.playing) {
+        stopRecordingPlayback({ syncBasePose: true });
+      } else {
+        startRecordingPlayback();
+      }
     }
 
     function stopShowcaseAutoOrbit({ syncBasePose = true } = {}) {
@@ -4986,7 +4996,7 @@
           depthTest: true,
         });
         const lines = new THREE.LineSegments(geometry, material);
-        lines.renderOrder = 28;
+        lines.renderOrder = OCEAN_CURRENT_RENDER_ORDER;
         return lines;
       }
 
@@ -5086,7 +5096,7 @@
       }
       if (!Object.keys(layerMeshes).length) return null;
       group.scale.y = Number(controlsUI.exaggeration.value);
-      group.renderOrder = 28;
+      group.renderOrder = OCEAN_CURRENT_RENDER_ORDER;
       group.userData.layerMeshes = layerMeshes;
       group.userData.flowlineCount = Number(oceanMeta.streamline_count || oceanMeta.flowline_count || 0);
       group.userData.segmentCount = totalVisibleSegments;
@@ -5113,7 +5123,7 @@
           depthTest: true,
         });
         const lines = new THREE.LineSegments(geometry, material);
-        lines.renderOrder = 28;
+        lines.renderOrder = OCEAN_CURRENT_RENDER_ORDER;
         return lines;
       }
 
@@ -5143,7 +5153,7 @@
       }
       if (!Object.keys(layerMeshes).length) return null;
       group.scale.y = Number(controlsUI.exaggeration.value);
-      group.renderOrder = 28;
+      group.renderOrder = OCEAN_CURRENT_RENDER_ORDER;
       group.userData.layerMeshes = layerMeshes;
       group.userData.flowlineCount = flowlineCount;
       group.userData.segmentCount = segmentCount;
@@ -5968,16 +5978,19 @@
 
     function syncIceMaterialMode(opacityValue = Number(controlsUI.iceOpacity?.value)) {
       const requestedOpacity = clamp01(Number(opacityValue));
+      // Semi-transparent ice should not write depth, otherwise under-ice layers can disappear
+      // behind a transparent shell when multiple ice surfaces are visible together.
+      const useStrictDepthWrite = requestedOpacity >= 0.98;
 
-      const applyModeToMaterial = (material, nextOpacity) => {
+      const applyModeToMaterial = (material, nextOpacity, depthWriteEnabled) => {
         if (!material) return;
         let needsUpdate = false;
         if (material.transparent !== true) {
           material.transparent = true;
           needsUpdate = true;
         }
-        if (material.depthWrite !== true) {
-          material.depthWrite = true;
+        if (material.depthWrite !== depthWriteEnabled) {
+          material.depthWrite = depthWriteEnabled;
           needsUpdate = true;
         }
         if (Math.abs(material.opacity - nextOpacity) > 1e-6) {
@@ -5989,12 +6002,12 @@
       };
 
       if (iceMesh) {
-        applyModeToMaterial(iceMesh.material, requestedOpacity);
+        applyModeToMaterial(iceMesh.material, requestedOpacity, useStrictDepthWrite);
         iceMesh.renderOrder = ICE_SURFACE_RENDER_ORDER;
       }
 
       if (iceSideMesh) {
-        applyModeToMaterial(iceSideMesh.material, requestedOpacity);
+        applyModeToMaterial(iceSideMesh.material, requestedOpacity, useStrictDepthWrite);
         iceSideMesh.renderOrder = ICE_SIDE_STRICT_OCCLUSION_RENDER_ORDER;
       }
     }
@@ -6698,11 +6711,7 @@
 
       if (controlsUI.capturePlayButton) {
         controlsUI.capturePlayButton.addEventListener("click", () => {
-          if (recordingMotionState.playing) {
-            stopRecordingPlayback({ syncBasePose: true });
-          } else {
-            startRecordingPlayback();
-          }
+          toggleRecordingPlayback();
         });
       }
 
@@ -6792,6 +6801,12 @@
       window.addEventListener("keydown", (event) => {
         if (event.ctrlKey || event.metaKey || event.altKey) return;
         if (isEditableElementActive()) return;
+
+        if (event.code === "KeyP" && !event.repeat) {
+          event.preventDefault();
+          toggleRecordingPlayback();
+          return;
+        }
 
         if (event.code === "KeyH" && !event.repeat) {
           event.preventDefault();
@@ -7517,7 +7532,7 @@
       iceSideMesh = new THREE.Mesh(iceSideGeometry, iceSideMaterial);
       iceSideMesh.scale.y = exaggeration;
       iceSideMesh.material.wireframe = wireframe;
-      iceSideMesh.renderOrder = ICE_SURFACE_RENDER_ORDER;
+      iceSideMesh.renderOrder = ICE_SIDE_STRICT_OCCLUSION_RENDER_ORDER;
       updateIceSideVisibility();
       syncIceMaterialMode(Number(controlsUI.iceOpacity.value));
       scene.add(iceSideMesh);
