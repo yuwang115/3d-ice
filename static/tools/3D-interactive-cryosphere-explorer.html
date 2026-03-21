@@ -2063,9 +2063,9 @@
     const SHOWCASE_AUTO_ORBIT_RAD_PER_SEC = 0.055;
     const SHOWCASE_INITIAL_HOLD_SEC = 1.6;
     const OCEAN_CURRENT_RENDER_ORDER = 9;
-    const ICE_BOTTOM_RENDER_ORDER = 10;
+    const ICE_SURFACE_RENDER_ORDER = 10;
     const ICE_SIDE_STRICT_OCCLUSION_RENDER_ORDER = 10.5;
-    const ICE_SURFACE_RENDER_ORDER = 11;
+    const ICE_BOTTOM_RENDER_ORDER = 11;
 
     let THREE;
     let OrbitControlsCtor;
@@ -5978,19 +5978,16 @@
 
     function syncIceMaterialMode(opacityValue = Number(controlsUI.iceOpacity?.value)) {
       const requestedOpacity = clamp01(Number(opacityValue));
-      // Semi-transparent ice should not write depth, otherwise under-ice layers can disappear
-      // behind a transparent shell when multiple ice surfaces are visible together.
-      const useStrictDepthWrite = requestedOpacity >= 0.98;
 
-      const applyModeToMaterial = (material, nextOpacity, depthWriteEnabled) => {
+      const applyModeToMaterial = (material, nextOpacity) => {
         if (!material) return;
         let needsUpdate = false;
         if (material.transparent !== true) {
           material.transparent = true;
           needsUpdate = true;
         }
-        if (material.depthWrite !== depthWriteEnabled) {
-          material.depthWrite = depthWriteEnabled;
+        if (material.depthWrite !== true) {
+          material.depthWrite = true;
           needsUpdate = true;
         }
         if (Math.abs(material.opacity - nextOpacity) > 1e-6) {
@@ -6002,12 +5999,12 @@
       };
 
       if (iceMesh) {
-        applyModeToMaterial(iceMesh.material, requestedOpacity, useStrictDepthWrite);
+        applyModeToMaterial(iceMesh.material, requestedOpacity);
         iceMesh.renderOrder = ICE_SURFACE_RENDER_ORDER;
       }
 
       if (iceSideMesh) {
-        applyModeToMaterial(iceSideMesh.material, requestedOpacity, useStrictDepthWrite);
+        applyModeToMaterial(iceSideMesh.material, requestedOpacity);
         iceSideMesh.renderOrder = ICE_SIDE_STRICT_OCCLUSION_RENDER_ORDER;
       }
     }
