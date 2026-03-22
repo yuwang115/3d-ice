@@ -1106,15 +1106,16 @@
       cursor: default;
     }
 
-    body.showcase .viewer-shell.showcase-idle {
+    body.showcase .viewer-shell.showcase-idle,
+    body.showcase .viewer-shell.showcase-desktop-idle {
       cursor: pointer;
     }
 
-    body.showcase .viewer-shell.showcase-idle::after {
+    body.showcase .viewer-shell.showcase-idle::after,
+    body.showcase .viewer-shell.showcase-desktop-idle::after {
       content: "Click to interact";
       position: absolute;
       top: 16px;
-      left: 16px;
       z-index: 2;
       padding: 6px 12px;
       border-radius: 999px;
@@ -1124,6 +1125,14 @@
       font-size: 0.75rem;
       letter-spacing: 0.02em;
       pointer-events: none;
+    }
+
+    body.showcase .viewer-shell.showcase-idle::after {
+      left: 16px;
+    }
+
+    body.showcase .viewer-shell.showcase-desktop-idle::after {
+      right: 16px;
     }
 
     body.coarse-pointer.showcase .viewer-shell.showcase-idle::after {
@@ -1614,8 +1623,7 @@
     }
 
     function shouldRunShowcaseAutoOrbit() {
-      if (!(isShowcaseMode || isPreviewMode)) return false;
-      return !isDesktopInteractiveShowcase();
+      return isShowcaseMode || isPreviewMode;
     }
 
     function shouldUseInteractionGate() {
@@ -1628,6 +1636,9 @@
       document.body.classList.add("showcase");
       if (presetParam) {
         document.body.classList.add(`showcase-preset-${presetParam.replace(/[^a-z0-9_-]/g, "")}`);
+      }
+      if (showcaseDesktopInteractiveMode) {
+        document.body.classList.add("showcase-desktop-interactive");
       }
       if (showcaseMobileLinkoutMode) {
         document.body.classList.add("showcase-mobile-linkout");
@@ -2209,6 +2220,7 @@
     let interactionGateActive = true;
     let interactionGateTapState = null;
     let showcaseInteractionResumeTimer = null;
+    let showcaseLastActivityAtMs = 0;
     let mobileDrawerEnabled = false;
     let mobilePanelOpen = false;
     let mobilePanelOffsetPx = 0;
@@ -2279,6 +2291,7 @@
     const showcaseMotionState = {
       enabled: isShowcaseMode || isPreviewMode,
       active: false,
+      userInteracting: false,
       baseTarget: null,
       baseTheta: Number.NaN,
       basePhi: Number.NaN,
@@ -3070,17 +3083,58 @@
       showcaseInteractionResumeTimer = null;
     }
 
+    function syncDesktopInteractiveShowcasePrompt() {
+      if (!viewerShellEl) return;
+      viewerShellEl.classList.toggle(
+        "showcase-desktop-idle",
+        isDesktopInteractiveShowcase() && !showcaseMotionState.userInteracting
+      );
+    }
+
+    function setShowcaseUserInteracting(active) {
+      showcaseMotionState.userInteracting = Boolean(active);
+      syncDesktopInteractiveShowcasePrompt();
+    }
+
+    function noteDesktopInteractiveShowcaseActivity({ scheduleResume = true } = {}) {
+      if (!isDesktopInteractiveShowcase()) return;
+      showcaseLastActivityAtMs = performance.now();
+      if (!showcaseMotionState.userInteracting) {
+        setShowcaseUserInteracting(true);
+        stopShowcaseAutoOrbit({ syncBasePose: true });
+      }
+      if (scheduleResume) {
+        scheduleShowcaseInteractionResume();
+      } else {
+        clearShowcaseInteractionResumeTimer();
+      }
+    }
+
     function shouldAutoResumeShowcaseInteraction() {
-      return isShowcaseMode && interactionGateEnabled && !isCoarsePointerInput() && !shouldUseShowcaseMobileLinkout();
+      return (
+        isShowcaseMode &&
+        !isCoarsePointerInput() &&
+        !shouldUseShowcaseMobileLinkout() &&
+        (interactionGateEnabled || isDesktopInteractiveShowcase())
+      );
     }
 
     function scheduleShowcaseInteractionResume() {
       clearShowcaseInteractionResumeTimer();
-      if (!shouldAutoResumeShowcaseInteraction() || !interactionGateActive) return;
+      if (!shouldAutoResumeShowcaseInteraction()) return;
+      if (interactionGateEnabled && !interactionGateActive) return;
+      if (isDesktopInteractiveShowcase() && !showcaseMotionState.userInteracting) return;
       showcaseInteractionResumeTimer = window.setTimeout(() => {
         showcaseInteractionResumeTimer = null;
-        if (!interactionGateActive) return;
-        setInteractionGateActive(false);
+        if (interactionGateEnabled) {
+          if (!interactionGateActive) return;
+          setInteractionGateActive(false);
+          return;
+        }
+        if (isDesktopInteractiveShowcase()) {
+          setShowcaseUserInteracting(false);
+          startShowcaseAutoOrbit();
+        }
       }, SHOWCASE_INTERACTION_IDLE_RESUME_MS);
     }
 
@@ -3189,6 +3243,16 @@
         return;
       }
       if (!currentCoreContext || isLoadingOverlayVisible()) return;
+      if (isDesktopInteractiveShowcase() && showcaseMotionState.userInteracting) {
+        if (showcaseLastActivityAtMs > 0 && performance.now() - showcaseLastActivityAtMs >= SHOWCASE_INTERACTION_IDLE_RESUME_MS) {
+          setShowcaseUserInteracting(false);
+          startShowcaseAutoOrbit();
+        }
+      }
+      if (isDesktopInteractiveShowcase() && showcaseMotionState.userInteracting) {
+        stopShowcaseAutoOrbit({ syncBasePose: false });
+        return;
+      }
       if (isShowcaseMode && interactionGateEnabled && interactionGateActive) {
         stopShowcaseAutoOrbit({ syncBasePose: false });
         return;
@@ -6641,6 +6705,7 @@
       }
       updateInteractionHint(interactionGateActive);
       syncInteractionToggleButton();
+      syncDesktopInteractiveShowcasePrompt();
     }
 
     function setInteractionGateActive(active) {
@@ -6654,6 +6719,7 @@
         viewerShellEl.classList.remove("showcase-idle");
         updateInteractionHint(true);
         syncInteractionToggleButton();
+        syncDesktopInteractiveShowcasePrompt();
         if (isShowcaseMode) {
           stopShowcaseAutoOrbit({ syncBasePose: false });
         }
@@ -6671,6 +6737,7 @@
       }
       updateInteractionHint(interactionGateActive);
       syncInteractionToggleButton();
+      syncDesktopInteractiveShowcasePrompt();
       if (isShowcaseMode) {
         if (interactionGateActive) {
           stopShowcaseAutoOrbit({ syncBasePose: true });
@@ -6760,11 +6827,50 @@
       window.addEventListener("blur", deactivate);
 
       orbit.addEventListener("start", () => {
+        if (isDesktopInteractiveShowcase()) {
+          noteDesktopInteractiveShowcaseActivity({ scheduleResume: false });
+          return;
+        }
         clearShowcaseInteractionResumeTimer();
+      });
+      orbit.addEventListener("change", () => {
+        if (!isDesktopInteractiveShowcase() || !showcaseMotionState.userInteracting) return;
+        showcaseLastActivityAtMs = performance.now();
       });
       orbit.addEventListener("end", () => {
         scheduleShowcaseInteractionResume();
       });
+
+      if (isDesktopInteractiveShowcase()) {
+        const scheduleDesktopInteractiveResumeIfNeeded = () => {
+          if (!showcaseMotionState.userInteracting) return;
+          scheduleShowcaseInteractionResume();
+        };
+        const bindDesktopInteractiveResumeEvents = (eventTarget) => {
+          if (!eventTarget || typeof eventTarget.addEventListener !== "function") return;
+          eventTarget.addEventListener("mouseup", scheduleDesktopInteractiveResumeIfNeeded, { passive: true });
+          eventTarget.addEventListener("pointerup", scheduleDesktopInteractiveResumeIfNeeded, { passive: true });
+          eventTarget.addEventListener("pointercancel", scheduleDesktopInteractiveResumeIfNeeded, { passive: true });
+        };
+        bindDesktopInteractiveResumeEvents(canvas);
+        bindDesktopInteractiveResumeEvents(window);
+        bindDesktopInteractiveResumeEvents(document);
+        try {
+          if (window.top && window.top !== window) {
+            bindDesktopInteractiveResumeEvents(window.top);
+            bindDesktopInteractiveResumeEvents(window.top.document);
+          }
+        } catch (_error) {
+          // Cross-origin parents are ignored; local listeners still cover standalone mode.
+        }
+        canvas.addEventListener(
+          "wheel",
+          () => {
+            noteDesktopInteractiveShowcaseActivity();
+          },
+          { passive: true }
+        );
+      }
 
       if (isShowcaseMode) {
         viewerShellEl.addEventListener("mouseleave", deactivate);
