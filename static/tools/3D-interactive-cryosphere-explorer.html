@@ -2174,7 +2174,7 @@
     const SHOWCASE_INITIAL_HOLD_SEC = 1.6;
     const SHOWCASE_RECORDING_DEFAULT_SPEED = 0.6;
     const SHOWCASE_RECORDING_DEFAULT_ZOOM_PERCENT = 15;
-    const SHOWCASE_INTERACTION_IDLE_RESUME_MS = 1600;
+    const SHOWCASE_INTERACTION_IDLE_RESUME_MS = 800;
     const OCEAN_CURRENT_RENDER_ORDER = 9;
     const ICE_SURFACE_RENDER_ORDER = 10;
     const ICE_SIDE_STRICT_OCCLUSION_RENDER_ORDER = 10.5;
@@ -3083,6 +3083,21 @@
       showcaseInteractionResumeTimer = null;
     }
 
+    function getShowcaseInteractionHintActiveState() {
+      if (isDesktopInteractiveShowcase()) {
+        return showcaseMotionState.userInteracting;
+      }
+      return interactionGateActive;
+    }
+
+    function shouldForwardShowcaseWheelToPage() {
+      if (!isShowcaseMode) return false;
+      if (interactionGateEnabled) {
+        return !interactionGateActive;
+      }
+      return isDesktopInteractiveShowcase() && !showcaseMotionState.userInteracting;
+    }
+
     function syncDesktopInteractiveShowcasePrompt() {
       if (!viewerShellEl) return;
       viewerShellEl.classList.toggle(
@@ -3093,6 +3108,11 @@
 
     function setShowcaseUserInteracting(active) {
       showcaseMotionState.userInteracting = Boolean(active);
+      if (isDesktopInteractiveShowcase() && orbit && renderer) {
+        orbit.enabled = showcaseMotionState.userInteracting;
+        renderer.domElement.style.touchAction = showcaseMotionState.userInteracting ? "none" : "auto";
+        updateInteractionHint(showcaseMotionState.userInteracting);
+      }
       syncDesktopInteractiveShowcasePrompt();
     }
 
@@ -6703,7 +6723,7 @@
       if (renderer && interactionGateEnabled && !interactionGateActive) {
         renderer.domElement.style.touchAction = getIdleViewerTouchAction();
       }
-      updateInteractionHint(interactionGateActive);
+      updateInteractionHint(getShowcaseInteractionHintActiveState());
       syncInteractionToggleButton();
       syncDesktopInteractiveShowcasePrompt();
     }
@@ -6783,6 +6803,9 @@
       };
 
       interactionGateEnabled = shouldUseInteractionGate();
+      if (isDesktopInteractiveShowcase()) {
+        setShowcaseUserInteracting(false);
+      }
 
       // Coarse pointers must tap first so a page scroll swipe never doubles as an orbit gesture.
       canvas.addEventListener(
@@ -6864,8 +6887,18 @@
           // Cross-origin parents are ignored; local listeners still cover standalone mode.
         }
         canvas.addEventListener(
+          "click",
+          (event) => {
+            if (showcaseMotionState.userInteracting) return;
+            if (!pointerIsInsideViewer(event)) return;
+            noteDesktopInteractiveShowcaseActivity();
+          },
+          { capture: true }
+        );
+        canvas.addEventListener(
           "wheel",
           () => {
+            if (!showcaseMotionState.userInteracting) return;
             noteDesktopInteractiveShowcaseActivity();
           },
           { passive: true }
@@ -6944,10 +6977,11 @@
         canvas.addEventListener(
           "wheel",
           (event) => {
-            if (interactionGateActive) return;
+            if (!shouldForwardShowcaseWheelToPage()) return;
             if (event.ctrlKey || event.metaKey) return;
 
             event.preventDefault();
+            event.stopImmediatePropagation();
 
             if (window.parent && window.parent !== window) {
               try {
@@ -6967,11 +7001,15 @@
 
             window.scrollBy({ left: event.deltaX, top: event.deltaY, behavior: "auto" });
           },
-          { passive: false }
+          { capture: true, passive: false }
         );
       }
 
-      setInteractionGateActive(interactionGateEnabled ? false : true);
+      if (isDesktopInteractiveShowcase()) {
+        setShowcaseUserInteracting(false);
+      } else {
+        setInteractionGateActive(interactionGateEnabled ? false : true);
+      }
     }
 
     function bindBackgroundWarmupTrigger() {
