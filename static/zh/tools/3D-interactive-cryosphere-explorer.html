@@ -1,41 +1,42 @@
 <!DOCTYPE html>
-<html lang="en-US" data-locale="en-US">
+<html lang="zh-CN" data-locale="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3D ICE: Interactive Cryosphere Explorer</title>
+  <title>3D ICE：冰冻圈交互探索平台</title>
   <meta
     name="description"
-    content="Interactive 3D cryosphere explorer for Antarctica and Greenland. Launch the full 3D ICE runtime or visit the 3D ICE landing page for context, datasets, and feature walkthroughs."
+    content="面向南极洲与格陵兰的交互式 3D 冰冻圈探索平台。可直接启动完整 3D ICE 运行时，或返回介绍页查看背景、数据集与功能导览。"
   />
-  <link rel="canonical" href="https://3d-ice.com/tools/3D-interactive-cryosphere-explorer.html" />
+  <meta name="3d-ice-asset-base" content="/tools/" />
+  <link rel="canonical" href="https://3d-ice.com/zh/tools/3D-interactive-cryosphere-explorer.html" />
   <link rel="alternate" hreflang="en-US" href="https://3d-ice.com/tools/3D-interactive-cryosphere-explorer.html" />
   <link rel="alternate" hreflang="zh-CN" href="https://3d-ice.com/zh/tools/3D-interactive-cryosphere-explorer.html" />
   <link rel="alternate" hreflang="x-default" href="https://3d-ice.com/tools/3D-interactive-cryosphere-explorer.html" />
   <meta property="og:site_name" content="3D ICE" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://3d-ice.com/tools/3D-interactive-cryosphere-explorer.html" />
-  <meta property="og:title" content="3D ICE: Interactive Cryosphere Explorer" />
+  <meta property="og:url" content="https://3d-ice.com/zh/tools/3D-interactive-cryosphere-explorer.html" />
+  <meta property="og:title" content="3D ICE：冰冻圈交互探索平台" />
   <meta
     property="og:description"
-    content="Interactive 3D cryosphere explorer for Antarctica and Greenland. Launch the full 3D ICE runtime or visit the 3D ICE landing page for context, datasets, and feature walkthroughs."
+    content="面向南极洲与格陵兰的交互式 3D 冰冻圈探索平台。可直接启动完整 3D ICE 运行时，或返回介绍页查看背景、数据集与功能导览。"
   />
-  <meta property="og:locale" content="en_US" />
-  <meta property="og:locale:alternate" content="zh_CN" />
+  <meta property="og:locale" content="zh_CN" />
+  <meta property="og:locale:alternate" content="en_US" />
   <meta property="twitter:card" content="summary_large_image" />
-  <meta property="twitter:title" content="3D ICE: Interactive Cryosphere Explorer" />
+  <meta property="twitter:title" content="3D ICE：冰冻圈交互探索平台" />
   <meta
     property="twitter:description"
-    content="Interactive 3D cryosphere explorer for Antarctica and Greenland. Launch the full 3D ICE runtime or visit the 3D ICE landing page for context, datasets, and feature walkthroughs."
+    content="面向南极洲与格陵兰的交互式 3D 冰冻圈探索平台。可直接启动完整 3D ICE 运行时，或返回介绍页查看背景、数据集与功能导览。"
   />
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebPage",
-      "name": "3D ICE: Interactive Cryosphere Explorer",
-      "description": "Interactive 3D cryosphere explorer for Antarctica and Greenland. Launch the full 3D ICE runtime or visit the 3D ICE landing page for context, datasets, and feature walkthroughs.",
-      "inLanguage": "en-US",
-      "url": "https://3d-ice.com/tools/3D-interactive-cryosphere-explorer.html"
+      "name": "3D ICE：冰冻圈交互探索平台",
+      "description": "面向南极洲与格陵兰的交互式 3D 冰冻圈探索平台。可直接启动完整 3D ICE 运行时，或返回介绍页查看背景、数据集与功能导览。",
+      "inLanguage": "zh-CN",
+      "url": "https://3d-ice.com/zh/tools/3D-interactive-cryosphere-explorer.html"
     }
   </script>
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
@@ -1191,7 +1192,7 @@
 
     body.showcase .viewer-shell.showcase-idle::after,
     body.showcase .viewer-shell.showcase-desktop-idle::after {
-      content: "Click to interact";
+      content: "点击开始交互";
       position: absolute;
       top: 16px;
       z-index: 2;
@@ -1214,7 +1215,7 @@
     }
 
     body.coarse-pointer.showcase .viewer-shell.showcase-idle::after {
-      content: "Tap to enter 3D";
+      content: "轻触进入 3D";
     }
 
     @media (max-width: 820px) {
@@ -1393,13 +1394,13 @@
     <aside class="panel">
       <div class="panel-header">
         <div class="panel-grab" aria-hidden="true"></div>
-        <button id="panelCloseButton" class="panel-close-btn" type="button">Done</button>
+        <button id="panelCloseButton" class="panel-close-btn" type="button">完成</button>
       </div>
       <div class="panel-brand">
         <img
           class="panel-brand-logo"
-          src="3d-ice-logo-light.jpg"
-          alt="3D ICE Interactive Cryosphere Explorer"
+          src="/tools/3d-ice-logo-light.jpg"
+          alt="3D ICE 冰冻圈交互探索平台"
         />
         <script>
           (() => {
@@ -1414,62 +1415,61 @@
         </script>
       </div>
       <p id="panelSubtitle" class="subtitle">
-        Explore Antarctica from every angle. Rotate, zoom, and peel back
-        the ice to uncover a hidden world in interactive 3D.
+        全方位，探秘南极。旋转、缩放、穿透重重冰盖，在 3D 交互中，唤醒沉睡的冰下世界。
       </p>
       <div id="panelLocaleSwitcher" class="panel-locale-switcher"></div>
 
       <section class="section">
-        <h2 class="section-title">View Controls</h2>
+        <h2 class="section-title">视图控制</h2>
         <div class="control">
-          <label for="regionPreset">Region</label>
+          <label for="regionPreset">区域</label>
           <select id="regionPreset">
-            <option value="antarctica" selected>Antarctica</option>
-            <option value="greenland">Greenland</option>
+            <option value="antarctica" selected>南极洲</option>
+            <option value="greenland">格陵兰</option>
           </select>
         </div>
         <div class="control">
-          <label for="resolutionPreset">Resolution preset</label>
+          <label for="resolutionPreset">分辨率预设</label>
           <select id="resolutionPreset">
-            <option value="balanced" selected>Balanced (10 km, ~3.0 MB)</option>
-            <option value="hd">HD (4 km, ~18.6 MB, desktop recommended)</option>
+            <option value="balanced" selected>标准（10 km，约 3.0 MB）</option>
+            <option value="hd">高清（4 km，约 18.6 MB，推荐桌面端）</option>
           </select>
         </div>
         <div class="control">
-          <label for="exaggeration">Vertical exaggeration <span id="exaggerationValue" class="mono">4.0x</span></label>
+          <label for="exaggeration">高程缩放 <span id="exaggerationValue" class="mono">4.0x</span></label>
           <input id="exaggeration" type="range" min="0.5" max="8" step="0.1" value="4" />
         </div>
         <div class="control">
-          <label for="iceOpacity">Ice opacity <span id="iceOpacityValue" class="mono">0.65</span></label>
+          <label for="iceOpacity">冰层透明度 <span id="iceOpacityValue" class="mono">0.65</span></label>
           <input id="iceOpacity" type="range" min="0" max="1" step="0.01" value="0.65" />
         </div>
-        <label class="toggle"><input id="showBed" type="checkbox" checked /> Show bed topography</label>
-        <label class="toggle"><input id="showIce" type="checkbox" checked /> Show ice surface</label>
-        <label class="toggle"><input id="showIceBottom" type="checkbox" checked /> Show ice bottom surface</label>
-        <label class="toggle"><input id="showRefinedBasins" type="checkbox" /> <span id="showRefinedBasinsLabel">Show refined basins</span></label>
-        <label class="toggle"><input id="showVelocity" type="checkbox" /> Show ice surface velocity</label>
-        <label class="toggle"><input id="showFlowline" type="checkbox" /> Show ice flowlines</label>
-        <label class="toggle"><input id="showBasalFriction" type="checkbox" /> Show basal friction</label>
-        <label class="toggle"><input id="showEffectivePressure" type="checkbox" /> Show effective pressure</label>
-        <label class="toggle"><input id="showSubglacialChannels" type="checkbox" /> Show subglacial channels</label>
+        <label class="toggle"><input id="showBed" type="checkbox" checked /> 显示基岩地形</label>
+        <label class="toggle"><input id="showIce" type="checkbox" checked /> 显示冰表面</label>
+        <label class="toggle"><input id="showIceBottom" type="checkbox" checked /> 显示冰底界面</label>
+        <label class="toggle"><input id="showRefinedBasins" type="checkbox" /> <span id="showRefinedBasinsLabel">显示细化流域</span></label>
+        <label class="toggle"><input id="showVelocity" type="checkbox" /> 显示冰表流速</label>
+        <label class="toggle"><input id="showFlowline" type="checkbox" /> 显示冰流线</label>
+        <label class="toggle"><input id="showBasalFriction" type="checkbox" /> 显示基底摩擦</label>
+        <label class="toggle"><input id="showEffectivePressure" type="checkbox" /> 显示有效压力</label>
+        <label class="toggle"><input id="showSubglacialChannels" type="checkbox" /> 显示冰下通道</label>
         <div class="toggle-divider" aria-hidden="true"></div>
-        <label class="toggle"><input id="showOceanCurrents" type="checkbox" /> Show ocean streamlines</label>
+        <label class="toggle"><input id="showOceanCurrents" type="checkbox" /> 显示海洋流线</label>
         <div id="oceanCurrentLayerControls" class="toggle-group toggle-group--grid" hidden>
-          <label class="toggle toggle--sub"><input id="showOceanLayerSurface" type="checkbox" /> Surface</label>
-          <label class="toggle toggle--sub"><input id="showOceanLayerUpper" type="checkbox" /> Upper</label>
-          <label class="toggle toggle--sub"><input id="showOceanLayerMid" type="checkbox" /> Mid</label>
-          <label class="toggle toggle--sub"><input id="showOceanLayerLower" type="checkbox" /> Lower</label>
+          <label class="toggle toggle--sub"><input id="showOceanLayerSurface" type="checkbox" /> 表层</label>
+          <label class="toggle toggle--sub"><input id="showOceanLayerUpper" type="checkbox" /> 上层</label>
+          <label class="toggle toggle--sub"><input id="showOceanLayerMid" type="checkbox" /> 中层</label>
+          <label class="toggle toggle--sub"><input id="showOceanLayerLower" type="checkbox" /> 下层</label>
         </div>
-        <label id="showBasalMeltRow" class="toggle"><input id="showBasalMelt" type="checkbox" /> Show ice-shelf basal melt</label>
-        <label id="showThermalDrivingRow" class="toggle"><input id="showThermalDriving" type="checkbox" /> Show ice-shelf thermal driving</label>
-        <label class="toggle"><input id="showSea" type="checkbox" /> Show sea level (0 m)</label>
-        <label class="toggle"><input id="wireframe" type="checkbox" /> Wireframe mode</label>
-        <button id="resetView" type="button">Reset Camera</button>
-        <button id="fullscreenToggle" type="button">Enter Fullscreen</button>
+        <label id="showBasalMeltRow" class="toggle"><input id="showBasalMelt" type="checkbox" /> 显示冰架底部融化率</label>
+        <label id="showThermalDrivingRow" class="toggle"><input id="showThermalDriving" type="checkbox" /> 显示冰架底部热驱动</label>
+        <label class="toggle"><input id="showSea" type="checkbox" /> 显示海平面 (0 m)</label>
+        <label class="toggle"><input id="wireframe" type="checkbox" /> 线框模式</label>
+        <button id="resetView" type="button">视角重置</button>
+        <button id="fullscreenToggle" type="button">进入全屏</button>
       </section>
 
       <section id="bedLegendSection" class="section">
-        <h2 class="section-title">Bed Elevation Color</h2>
+        <h2 class="section-title">基岩高程配色</h2>
         <div id="legendBar" class="legend" aria-hidden="true"></div>
         <div class="legend-labels">
           <span>-7000 m</span>
@@ -1479,7 +1479,7 @@
       </section>
 
       <section id="velocityLegendSection" class="section">
-        <h2 class="section-title">Ice Surface Velocity Color</h2>
+        <h2 class="section-title">冰表流速配色</h2>
         <div id="velocityLegendBar" class="legend" aria-hidden="true"></div>
         <div id="velocityLegendLabels" class="legend-labels">
           <span>0 m/yr</span>
@@ -1493,7 +1493,7 @@
       </section>
 
       <section id="basalFrictionLegendSection" class="section">
-        <h2 class="section-title">Basal Friction Color</h2>
+        <h2 class="section-title">基底摩擦配色</h2>
         <div id="basalFrictionLegendBar" class="legend" aria-hidden="true"></div>
         <div id="basalFrictionLegendLabels" class="legend-labels">
           <span>0 Mpa</span>
@@ -1507,7 +1507,7 @@
       </section>
 
       <section id="basalMeltLegendSection" class="section">
-        <h2 class="section-title">Basal Melt Color</h2>
+        <h2 class="section-title">底融配色</h2>
         <div id="basalMeltLegendBar" class="legend" aria-hidden="true"></div>
         <div id="basalMeltLegendLabels" class="legend-labels">
           <span>-1 m/yr</span>
@@ -1518,7 +1518,7 @@
       </section>
 
       <section id="thermalDrivingLegendSection" class="section">
-        <h2 class="section-title">Thermal Driving Color</h2>
+        <h2 class="section-title">热驱动配色</h2>
         <div id="thermalDrivingLegendBar" class="legend" aria-hidden="true"></div>
         <div id="thermalDrivingLegendLabels" class="legend-labels">
           <span>0 °C</span>
@@ -1528,23 +1528,23 @@
       </section>
 
       <section id="oceanLegendSection" class="section" hidden>
-        <h2 class="section-title">Ocean Streamline Color</h2>
+        <h2 class="section-title">海洋流线配色</h2>
         <div class="ocean-legend-wrap">
           <div class="ocean-legend-y-axis">
-            <span id="oceanLegendWarmLabel"><strong>Warm</strong>8.0 °C</span>
-            <span id="oceanLegendColdLabel"><strong>Cold</strong>-2.0 °C</span>
+            <span id="oceanLegendWarmLabel"><strong>暖</strong>8.0 °C</span>
+            <span id="oceanLegendColdLabel"><strong>冷</strong>-2.0 °C</span>
           </div>
           <canvas id="oceanLegendCanvas" class="ocean-legend-canvas" width="184" height="126" aria-hidden="true"></canvas>
         </div>
         <div class="ocean-legend-x-axis">
-          <span id="oceanLegendFreshLabel"><strong>Fresh</strong>30.0 PSU</span>
-          <span id="oceanLegendSaltyLabel"><strong>Salty</strong>35.0 PSU</span>
+          <span id="oceanLegendFreshLabel"><strong>淡</strong>30.0 PSU</span>
+          <span id="oceanLegendSaltyLabel"><strong>咸</strong>35.0 PSU</span>
         </div>
         <div class="ocean-legend-note" hidden></div>
       </section>
 
       <section id="effectivePressureLegendSection" class="section">
-        <h2 class="section-title">Effective Pressure Color</h2>
+        <h2 class="section-title">有效压力配色</h2>
         <div id="effectivePressureLegendBar" class="legend" aria-hidden="true"></div>
         <div class="legend-labels">
           <span>0 MPa</span>
@@ -1555,7 +1555,7 @@
       </section>
 
       <section id="channelLegendSection" class="section">
-        <h2 class="section-title">Channel Discharge Color</h2>
+        <h2 class="section-title">通道流量配色</h2>
         <div id="channelLegendBar" class="legend" aria-hidden="true"></div>
         <div class="legend-labels">
           <span>0.001 m3/s</span>
@@ -1566,9 +1566,9 @@
       </section>
 
       <section class="section">
-        <h2 class="section-title">Data Snapshot</h2>
+        <h2 class="section-title">数据快照</h2>
         <ul id="metaList" class="meta-list">
-          <li>Loading metadata...</li>
+          <li>正在加载元数据...</li>
         </ul>
       </section>
     </aside>
@@ -1577,13 +1577,13 @@
       <div id="viewer"></div>
       <div id="loadingOverlay" class="loading-overlay" aria-live="polite" aria-busy="true">
         <div class="loading-card">
-          <div id="loadingStage" class="loading-stage">Initializing 3D runtime...</div>
+          <div id="loadingStage" class="loading-stage">正在初始化 3D 运行时...</div>
           <div class="loading-track" aria-hidden="true">
             <div id="loadingFill" class="loading-fill"></div>
           </div>
           <div class="loading-meta">
             <span id="loadingPercent">0%</span>
-            <span id="loadingHint">Progressive loading enabled</span>
+            <span id="loadingHint">已启用渐进式加载</span>
           </div>
           <div class="loading-skeleton" aria-hidden="true">
             <div class="skeleton-line"></div>
@@ -1592,62 +1592,62 @@
           </div>
         </div>
       </div>
-      <div id="status" class="status">Loading data...</div>
+      <div id="status" class="status">正在加载数据...</div>
       <div class="viewer-toolbar">
-        <button id="interactionToggle" class="viewer-tool-btn is-hidden" type="button">Enable 3D</button>
-        <button id="viewerFullscreenToggle" class="viewer-tool-btn" type="button">Enter Fullscreen</button>
+        <button id="interactionToggle" class="viewer-tool-btn is-hidden" type="button">启用 3D</button>
+        <button id="viewerFullscreenToggle" class="viewer-tool-btn" type="button">进入全屏</button>
       </div>
       <div id="capturePanel" class="capture-panel" hidden>
         <div class="capture-panel__header">
           <div>
-            <div class="capture-panel__eyebrow">Recording Mode</div>
-            <strong class="capture-panel__title">Capture Controls</strong>
+            <div class="capture-panel__eyebrow">录制模式</div>
+            <strong class="capture-panel__title">录制控制</strong>
           </div>
-          <button id="captureHideButton" class="viewer-tool-btn viewer-tool-btn--compact" type="button">Hide Controls</button>
+          <button id="captureHideButton" class="viewer-tool-btn viewer-tool-btn--compact" type="button">隐藏控制</button>
         </div>
         <div class="capture-panel__body">
           <div class="capture-panel__row capture-panel__row--dual">
-            <button id="capturePlayButton" class="viewer-tool-btn viewer-tool-btn--compact" type="button">Play</button>
-            <button id="captureResetButton" class="viewer-tool-btn viewer-tool-btn--compact" type="button">Reset</button>
+            <button id="capturePlayButton" class="viewer-tool-btn viewer-tool-btn--compact" type="button">播放</button>
+            <button id="captureResetButton" class="viewer-tool-btn viewer-tool-btn--compact" type="button">重置</button>
           </div>
           <div class="capture-panel__toggle-row">
-            <label class="capture-toggle"><input id="captureOrbitToggle" type="checkbox" checked /> Orbit</label>
-            <label class="capture-toggle"><input id="captureZoomToggle" type="checkbox" checked /> Zoom Pulse</label>
+            <label class="capture-toggle"><input id="captureOrbitToggle" type="checkbox" checked /> 旋转</label>
+            <label class="capture-toggle"><input id="captureZoomToggle" type="checkbox" checked /> 缩放脉冲</label>
           </div>
           <div class="capture-panel__field">
-            <div class="capture-panel__label">Direction</div>
+            <div class="capture-panel__label">方向</div>
             <div class="capture-segmented">
-              <button id="captureDirectionCw" class="viewer-tool-btn viewer-tool-btn--compact" type="button">CW</button>
-              <button id="captureDirectionCcw" class="viewer-tool-btn viewer-tool-btn--compact" type="button">CCW</button>
+              <button id="captureDirectionCw" class="viewer-tool-btn viewer-tool-btn--compact" type="button">顺时针</button>
+              <button id="captureDirectionCcw" class="viewer-tool-btn viewer-tool-btn--compact" type="button">逆时针</button>
             </div>
           </div>
           <div class="capture-panel__field">
-            <label for="captureSpeed">Speed <span id="captureSpeedValue" class="mono">0.70x</span></label>
+            <label for="captureSpeed">速度 <span id="captureSpeedValue" class="mono">0.70x</span></label>
             <input id="captureSpeed" type="range" min="0.25" max="2" step="0.01" value="0.7" />
           </div>
           <div class="capture-panel__field">
-            <label for="captureZoomAmount">Zoom Amount <span id="captureZoomAmountValue" class="mono">8%</span></label>
+            <label for="captureZoomAmount">缩放幅度 <span id="captureZoomAmountValue" class="mono">8%</span></label>
             <input id="captureZoomAmount" type="range" min="0" max="30" step="0.5" value="8" />
           </div>
           <div class="capture-panel__field">
-            <div class="capture-panel__label">Manual Nudge</div>
+            <div class="capture-panel__label">手动微调</div>
             <div class="capture-manual-grid">
-              <button class="viewer-tool-btn viewer-tool-btn--compact" type="button" data-capture-manual="orbitLeft">Left</button>
-              <button class="viewer-tool-btn viewer-tool-btn--compact" type="button" data-capture-manual="tiltUp">Up</button>
-              <button class="viewer-tool-btn viewer-tool-btn--compact" type="button" data-capture-manual="orbitRight">Right</button>
-              <button class="viewer-tool-btn viewer-tool-btn--compact" type="button" data-capture-manual="zoomOut">Out</button>
-              <button class="viewer-tool-btn viewer-tool-btn--compact" type="button" data-capture-manual="tiltDown">Down</button>
-              <button class="viewer-tool-btn viewer-tool-btn--compact" type="button" data-capture-manual="zoomIn">In</button>
+              <button class="viewer-tool-btn viewer-tool-btn--compact" type="button" data-capture-manual="orbitLeft">左</button>
+              <button class="viewer-tool-btn viewer-tool-btn--compact" type="button" data-capture-manual="tiltUp">上</button>
+              <button class="viewer-tool-btn viewer-tool-btn--compact" type="button" data-capture-manual="orbitRight">右</button>
+              <button class="viewer-tool-btn viewer-tool-btn--compact" type="button" data-capture-manual="zoomOut">远</button>
+              <button class="viewer-tool-btn viewer-tool-btn--compact" type="button" data-capture-manual="tiltDown">下</button>
+              <button class="viewer-tool-btn viewer-tool-btn--compact" type="button" data-capture-manual="zoomIn">近</button>
             </div>
           </div>
-          <div class="capture-panel__hint">Hotkeys: P play/stop, J/L orbit, I/K live tilt during playback, U/O zoom, H show or hide controls.</div>
+          <div class="capture-panel__hint">快捷键：P 播放/停止，J/L 旋转，I/K 在播放中实时俯仰，U/O 缩放，H 显示或隐藏控制。</div>
         </div>
       </div>
       <div class="hud">
         <div id="interactionHint" class="chip">
-          <strong>Mouse:</strong> drag to orbit, wheel to zoom, right-drag to pan.
+          <strong>鼠标：</strong>拖拽旋转，滚轮缩放，右键拖拽平移。
           <br />
-          <strong>Touch:</strong> one finger orbit, pinch zoom.
+          <strong>触屏：</strong>单指旋转，双指缩放。
         </div>
       </div>
     </section>

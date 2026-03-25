@@ -164,12 +164,13 @@ function subglacialChannelColor(dischargeM3PerS, lut) {
   );
 }
 
-function postProgress(id, enabled, progress, stage) {
+function postProgress(id, enabled, progress, stageKey, stage) {
   if (!enabled) return;
   self.postMessage({
     id,
     kind: "progress",
     progress: clamp01(progress),
+    stageKey: stageKey || "",
     stage: stage || "",
   });
 }
@@ -294,7 +295,7 @@ function buildOceanCurrentTask(id, payload) {
     throw new Error("Ocean-current payload is invalid.");
   }
 
-  postProgress(id, reportProgress, 0.04, "Decoding ocean-current package...");
+  postProgress(id, reportProgress, 0.04, "oceanDecodingPackage", "Decoding ocean-current package...");
   const x0Ps = parseField(oceanMeta, oceanBuffer, "x0_ps_m");
   const y0Ps = parseField(oceanMeta, oceanBuffer, "y0_ps_m");
   const depth0M = parseField(oceanMeta, oceanBuffer, "depth0_m");
@@ -392,7 +393,7 @@ function buildOceanCurrentTask(id, payload) {
     }
     if (i > 0 && i % firstPassChunk === 0) {
       const t = i / Math.max(1, count - 1);
-      postProgress(id, reportProgress, 0.08 + t * 0.34, "Scanning ocean-current segments...");
+      postProgress(id, reportProgress, 0.08 + t * 0.34, "oceanScanningSegments", "Scanning ocean-current segments...");
     }
   }
 
@@ -544,7 +545,7 @@ function buildOceanCurrentTask(id, payload) {
     }
     if (i > 0 && i % secondPassChunk === 0) {
       const t = i / Math.max(1, count - 1);
-      postProgress(id, reportProgress, 0.44 + t * 0.5, "Building ocean streamline geometry...");
+      postProgress(id, reportProgress, 0.44 + t * 0.5, "oceanBuildingGeometry", "Building ocean streamline geometry...");
     }
   }
 
@@ -560,7 +561,7 @@ function buildOceanCurrentTask(id, payload) {
     };
   }
 
-  postProgress(id, reportProgress, 0.98, "Finalizing ocean streamlines...");
+  postProgress(id, reportProgress, 0.98, "oceanFinalizing", "Finalizing ocean streamlines...");
   return {
     useLayerSplit,
     flowlineCount: Number(oceanMeta.streamline_count || oceanMeta.flowline_count || 0),
@@ -618,7 +619,9 @@ function buildSurfaceGeometryWithField({
   progress,
   progressStart,
   progressEnd,
+  progressLabelVerticesKey,
   progressLabelVertices,
+  progressLabelIndicesKey,
   progressLabelIndices,
   sampleStride = 1,
 }) {
@@ -663,7 +666,7 @@ function buildSurfaceGeometryWithField({
     if (sampledRow > 0 && sampledRow % rowStep === 0) {
       const t = sampledRow / Math.max(1, sampledNy - 1);
       const p = progressStart + (progressEnd - progressStart) * t * 0.5;
-      progress(p, progressLabelVertices);
+      progress(p, progressLabelVerticesKey, progressLabelVertices);
     }
   }
 
@@ -689,7 +692,7 @@ function buildSurfaceGeometryWithField({
     if (row > 0 && row % rowStep === 0) {
       const t = row / Math.max(1, sampledNy - 2);
       const p = progressStart + (progressEnd - progressStart) * (0.5 + t * 0.5);
-      progress(p, progressLabelIndices);
+      progress(p, progressLabelIndicesKey, progressLabelIndices);
     }
   }
 
@@ -715,7 +718,7 @@ function buildVelocityTask(id, payload) {
   // Decimated HD mesh can intersect full-res ice surface; add extra lift to keep overlay above ice.
   const velocitySurfaceOffsetMeters = FLOWLINE_SURFACE_OFFSET_M + (safeStride - 1) * 72;
 
-  postProgress(id, reportProgress, 0.02, "Decoding velocity field...");
+  postProgress(id, reportProgress, 0.02, "velocityDecodingField", "Decoding velocity field...");
   const velocityXInt = parseField(velocityMeta, velocityBuffer, "vx");
   const velocityYInt = parseField(velocityMeta, velocityBuffer, "vy");
   if (velocityMeta.grid.nx !== nx || velocityMeta.grid.ny !== ny) {
@@ -751,7 +754,7 @@ function buildVelocityTask(id, payload) {
 
     if (i > 0 && i % chunk === 0) {
       const t = i / Math.max(1, cellCount - 1);
-      postProgress(id, reportProgress, 0.08 + t * 0.3, "Decoding velocity field...");
+      postProgress(id, reportProgress, 0.08 + t * 0.3, "velocityDecodingField", "Decoding velocity field...");
     }
   }
 
@@ -766,16 +769,18 @@ function buildVelocityTask(id, payload) {
     valid: velocitySurfaceValid,
     fieldValues: velocitySpeed,
     colorFn: (speed) => velocityColor(speed),
-    progress: (p, stage) => postProgress(id, reportProgress, p, stage),
+    progress: (p, stageKey, stage) => postProgress(id, reportProgress, p, stageKey, stage),
     progressStart: 0.4,
     progressEnd: 0.92,
+    progressLabelVerticesKey: "velocityBuildingMesh",
     progressLabelVertices: "Building velocity mesh...",
+    progressLabelIndicesKey: "velocityTriangulatingMesh",
     progressLabelIndices: "Triangulating velocity mesh...",
     sampleStride: meshStride,
   });
 
   const velocityMedianSpeed = finiteMedian(velocitySpeed);
-  postProgress(id, reportProgress, 0.98, "Finalizing velocity layer...");
+  postProgress(id, reportProgress, 0.98, "velocityFinalizing", "Finalizing velocity layer...");
   return {
     positions: geometry.positions,
     colors: geometry.colors,
@@ -817,7 +822,7 @@ function buildHydrologyTask(id, payload) {
     throw new Error("Hydrology grid is not aligned to BedMachine grid.");
   }
 
-  postProgress(id, reportProgress, 0.04, "Processing hydrology field...");
+  postProgress(id, reportProgress, 0.04, "hydrologyProcessingField", "Processing hydrology field...");
   const pressureInt = parseField(hydrologyMeta, hydrologyBuffer, "effective_pressure");
   const channelCol1 = parseField(hydrologyMeta, hydrologyBuffer, "channel_col1");
   const channelRow1 = parseField(hydrologyMeta, hydrologyBuffer, "channel_row1");
@@ -856,7 +861,7 @@ function buildHydrologyTask(id, payload) {
 
     if (i > 0 && i % chunk === 0) {
       const t = i / Math.max(1, cellCount - 1);
-      postProgress(id, reportProgress, 0.12 + t * 0.2, "Processing hydrology field...");
+      postProgress(id, reportProgress, 0.12 + t * 0.2, "hydrologyProcessingField", "Processing hydrology field...");
     }
   }
 
@@ -871,10 +876,12 @@ function buildHydrologyTask(id, payload) {
     valid: effectivePressureValid,
     fieldValues: effectivePressure,
     colorFn: (pressure) => effectivePressureColor(pressure, effectivePressureLut),
-    progress: (p, stage) => postProgress(id, reportProgress, p, stage),
+    progress: (p, stageKey, stage) => postProgress(id, reportProgress, p, stageKey, stage),
     progressStart: 0.34,
     progressEnd: 0.72,
+    progressLabelVerticesKey: "hydrologyBuildingMesh",
     progressLabelVertices: "Building hydrology mesh...",
+    progressLabelIndicesKey: "hydrologyTriangulatingMesh",
     progressLabelIndices: "Triangulating hydrology mesh...",
     sampleStride: meshStride,
   });
@@ -961,11 +968,11 @@ function buildHydrologyTask(id, payload) {
 
     if (i > 0 && i % channelChunk === 0) {
       const t = i / Math.max(1, channelCount - 1);
-      postProgress(id, reportProgress, 0.72 + t * 0.24, "Building channel ribbons...");
+      postProgress(id, reportProgress, 0.72 + t * 0.24, "hydrologyBuildingChannels", "Building channel ribbons...");
     }
   }
 
-  postProgress(id, reportProgress, 0.98, "Finalizing hydrology layer...");
+  postProgress(id, reportProgress, 0.98, "hydrologyFinalizing", "Finalizing hydrology layer...");
   return {
     effectivePressurePositions: effectivePressureGeometry.positions,
     effectivePressureColors: effectivePressureGeometry.colors,
@@ -998,7 +1005,7 @@ function buildBasalFrictionTask(id, payload) {
     throw new Error("Basal-friction grid is not aligned to BedMachine grid.");
   }
 
-  postProgress(id, reportProgress, 0.04, "Processing basal friction field...");
+  postProgress(id, reportProgress, 0.04, "basalFrictionProcessingField", "Processing basal friction field...");
   const basalFriction = parseField(basalFrictionMeta, basalFrictionBuffer, "basal_friction");
   if (basalFriction.length !== cellCount) {
     throw new Error("Basal-friction field length mismatch.");
@@ -1021,7 +1028,7 @@ function buildBasalFrictionTask(id, payload) {
 
     if (i > 0 && i % chunk === 0) {
       const t = i / Math.max(1, cellCount - 1);
-      postProgress(id, reportProgress, 0.12 + t * 0.2, "Processing basal friction field...");
+      postProgress(id, reportProgress, 0.12 + t * 0.2, "basalFrictionProcessingField", "Processing basal friction field...");
     }
   }
 
@@ -1036,15 +1043,17 @@ function buildBasalFrictionTask(id, payload) {
     valid: basalFrictionValid,
     fieldValues: basalFriction,
     colorFn: (value) => basalFrictionColor(value),
-    progress: (p, stage) => postProgress(id, reportProgress, p, stage),
+    progress: (p, stageKey, stage) => postProgress(id, reportProgress, p, stageKey, stage),
     progressStart: 0.34,
     progressEnd: 0.96,
+    progressLabelVerticesKey: "basalFrictionBuildingMesh",
     progressLabelVertices: "Building basal friction mesh...",
+    progressLabelIndicesKey: "basalFrictionTriangulatingMesh",
     progressLabelIndices: "Triangulating basal friction mesh...",
     sampleStride: meshStride,
   });
 
-  postProgress(id, reportProgress, 0.98, "Finalizing basal friction layer...");
+  postProgress(id, reportProgress, 0.98, "basalFrictionFinalizing", "Finalizing basal friction layer...");
   return {
     positions: geometry.positions,
     colors: geometry.colors,
