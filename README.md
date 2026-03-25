@@ -121,6 +121,7 @@ legacy `/tools/...` URLs unchanged.
 | Path | Purpose |
 | --- | --- |
 | `static/index.html` | Standalone landing page for the site root. |
+| `static/css/3d-ice-home.css` | Vendored landing-page custom styles used by the site root. |
 | `static/tools/3D-interactive-cryosphere-explorer.html` | Main interactive runtime. |
 | `static/tools/data/` | Web-ready cryosphere datasets and metadata packages. |
 | `static/tools/media/3d-ice/` | Preview stills and loop videos used across the experience. |
@@ -141,6 +142,7 @@ legacy `/tools/...` URLs unchanged.
 This repository publishes `static/` directly to GitHub Pages. That serves:
 
 - `/` as the standalone landing page
+- `/css/3d-ice-home.css` as the vendored landing-page stylesheet
 - `/tools/3D-interactive-cryosphere-explorer.html` as the main runtime
 - `/tools/data/*`, `/tools/media/3d-ice/*`, `/tools/vendor/*`, and `/tools/3d-antarctica/` as supporting assets
 
