@@ -49,11 +49,17 @@ from the visualization to the underlying source products.
 
 <p align="center">
   <a href="https://www.youtube.com/watch?v=J81vJ7ODy6I">
-    <img src="https://img.youtube.com/vi/J81vJ7ODy6I/hqdefault.jpg" alt="Watch the 3D ICE demo on YouTube" width="720">
+    <img src="https://img.shields.io/badge/Watch%20Demo%20on-YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch demo on YouTube">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=J81vJ7ODy6I">
+    <img src="static/tools/media/3d-ice/readme-demo-preview.png" alt="3D ICE demo preview. Click to watch the video on YouTube." width="720">
   </a>
   <br>
   <sub>
-    <strong>Demo video</strong>: a guided look at the interactive Antarctica and Greenland datasets in 3D ICE.
+    <strong>Click to watch</strong> the full 3D ICE demo on YouTube.
   </sub>
 </p>
 
