@@ -47,20 +47,15 @@ The project is designed to bridge rigorous glaciological research and public cur
 people rotate, zoom, and layer Antarctica and Greenland datasets directly in the browser, then jump
 from the visualization to the underlying source products.
 
-<table>
-  <tr>
-    <td width="50%" valign="top">
-      <img src="static/tools/media/3d-ice/antarctica-ocean-streamlines-preview.jpg" alt="Antarctica preview">
-      <br>
-      <sub><strong>Antarctica</strong>: velocity, basin boundaries, subglacial hydrology, ocean circulation, basal friction, and RISE ice-shelf context.</sub>
-    </td>
-    <td width="50%" valign="top">
-      <img src="static/tools/media/3d-ice/greenland-ocean-circulations-preview.jpg" alt="Greenland preview">
-      <br>
-      <sub><strong>Greenland</strong>: bed topography, outlet-glacier velocity, basin structure, basal friction, and fjord-connected ocean circulation.</sub>
-    </td>
-  </tr>
-</table>
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=J81vJ7ODy6I">
+    <img src="https://img.youtube.com/vi/J81vJ7ODy6I/hqdefault.jpg" alt="Watch the 3D ICE demo on YouTube" width="720">
+  </a>
+  <br>
+  <sub>
+    <strong>Demo video</strong>: a guided look at the interactive Antarctica and Greenland datasets in 3D ICE.
+  </sub>
+</p>
 
 ## Why This Repo Exists
 
