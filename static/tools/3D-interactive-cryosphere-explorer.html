@@ -673,6 +673,18 @@
       display: none;
     }
 
+    .flowline-inline-card-slot {
+      margin: 2px 0 12px 25px;
+    }
+
+    .flowline-inline-card-slot[hidden] {
+      display: none;
+    }
+
+    .flowline-inline-card {
+      display: block;
+    }
+
     .toggle--sub {
       margin-bottom: 6px;
       font-size: 0.84rem;
@@ -865,13 +877,51 @@
       width: 100%;
       height: auto;
       display: block;
-      border-radius: 10px;
+      border-radius: 12px;
     }
 
     .meta-flowline-preview-caption {
       color: var(--meta-text);
       font-size: 0.78rem;
       line-height: 1.45;
+    }
+
+    .meta-flowline-empty-item {
+      padding-top: 10px;
+      border-bottom: none;
+    }
+
+    .meta-flowline-empty {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      border: 1px dashed var(--meta-details-border);
+      border-radius: 14px;
+      background:
+        radial-gradient(circle at top left, rgba(153, 218, 245, 0.12), transparent 44%),
+        linear-gradient(180deg, rgba(241, 248, 252, 0.84), rgba(233, 242, 247, 0.94));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    }
+
+    .meta-flowline-empty-title {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--meta-summary-text);
+      font-weight: 700;
+    }
+
+    .meta-flowline-empty-body {
+      color: var(--meta-text);
+      font-size: 0.79rem;
+      line-height: 1.5;
+    }
+
+    .meta-flowline-empty-graphic {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 10px;
     }
 
     .hud {
@@ -1490,6 +1540,7 @@
         <label class="toggle"><input id="showRefinedBasins" type="checkbox" /> <span id="showRefinedBasinsLabel">Show refined basins</span></label>
         <label class="toggle"><input id="showVelocity" type="checkbox" /> Show ice surface velocity</label>
         <label class="toggle"><input id="showFlowline" type="checkbox" /> Show ice flowlines</label>
+        <div id="flowlineProfileCardMount" class="flowline-inline-card-slot" hidden></div>
         <label class="toggle"><input id="showBasalFriction" type="checkbox" /> Show basal friction</label>
         <label class="toggle"><input id="showEffectivePressure" type="checkbox" /> Show effective pressure</label>
         <label class="toggle"><input id="showSubglacialChannels" type="checkbox" /> Show subglacial channels</label>
@@ -2265,6 +2316,7 @@
       showIceBottom: document.getElementById("showIceBottom"),
       showVelocity: document.getElementById("showVelocity"),
       showFlowline: document.getElementById("showFlowline"),
+      flowlineProfileCardMount: document.getElementById("flowlineProfileCardMount"),
       showBasalFriction: document.getElementById("showBasalFriction"),
       showBasalMeltRow: document.getElementById("showBasalMeltRow"),
       showBasalMelt: document.getElementById("showBasalMelt"),
@@ -2424,6 +2476,7 @@
     let flowlinePointerNdc = null;
     let flowlinePickGesture = null;
     let selectedFlowlineState = null;
+    let flowlineGuidanceStatusShown = false;
     const geometryWorkerPending = new Map();
     const refinedBasinLabelTextureCache = new Map();
     const refinedBasinDataCache = new Map();
@@ -2967,6 +3020,23 @@
           statusEl.textContent = previous;
         }
       }, durationMs);
+    }
+
+    function isFlowlineGuidanceVisible() {
+      return Boolean(controlsUI.showFlowline?.checked && flowlineMesh && flowlineMesh.visible);
+    }
+
+    function maybeShowFlowlineGuidanceStatus() {
+      if (flowlineGuidanceStatusShown || isPreviewMode || isShowcaseMode) return;
+      if (!statusEl || isCoarsePointerInput() || selectedFlowlineState) return;
+      if (!isFlowlineGuidanceVisible()) return;
+      flowlineGuidanceStatusShown = true;
+      setTransientStatus(t("explorer.status.flowlineProfileHint"), 2400);
+    }
+
+    function refreshFlowlineGuidanceUi() {
+      updateInteractionHint(getShowcaseInteractionHintActiveState());
+      maybeShowFlowlineGuidanceStatus();
     }
 
     function formatRecordingSpeedLabel(value) {
@@ -6224,6 +6294,7 @@
       seaLevelMesh = disposeMesh(seaLevelMesh);
       clearRefinedBasinOverlays();
       velocityField = null;
+      refreshFlowlineGuidanceUi();
     }
 
     function buildSelectedFlowlineHighlightObject(flowlineSummary) {
@@ -6257,6 +6328,7 @@
       if (updateMeta) {
         updateMetaFromCurrentState();
       }
+      refreshFlowlineGuidanceUi();
     }
 
     function setSelectedFlowline(flowlineSummary) {
@@ -6274,6 +6346,7 @@
       metaSectionOpenState.set("selected-flowline", true);
       updateSelectedFlowlineVisualState();
       updateMetaFromCurrentState();
+      refreshFlowlineGuidanceUi();
     }
 
     function pickVisibleFlowlineAtClientPoint(clientX, clientY) {
@@ -6776,16 +6849,19 @@
       if (!controlsUI.showFlowline.checked) {
         if (flowlineMesh) flowlineMesh.visible = false;
         updateSelectedFlowlineVisualState();
+        refreshFlowlineGuidanceUi();
         return;
       }
 
       if (flowlineMesh) {
         flowlineMesh.visible = true;
         updateSelectedFlowlineVisualState();
+        refreshFlowlineGuidanceUi();
         return;
       }
 
       if (!velocityField) {
+        refreshFlowlineGuidanceUi();
         return;
       }
 
@@ -6814,6 +6890,7 @@
         scene.add(flowlineMesh);
         flowlineMesh.visible = true;
         updateSelectedFlowlineVisualState();
+        refreshFlowlineGuidanceUi();
         if (statusEl.textContent === t("explorer.status.computingFlowlines")) {
           statusEl.textContent = previousStatus;
         }
@@ -6824,6 +6901,10 @@
       console.error(error);
       setLoadingOverlayVisible(false);
       statusEl.textContent = t("explorer.status.loadFailed");
+      if (controlsUI.flowlineProfileCardMount) {
+        controlsUI.flowlineProfileCardMount.innerHTML = "";
+        controlsUI.flowlineProfileCardMount.hidden = true;
+      }
       metaListEl.innerHTML = `<li><strong>${t("explorer.meta.errorLabel")}:</strong> ${escapeHtml(
         localizeErrorMessage(error.message)
       )}</li>`;
@@ -6876,6 +6957,46 @@
       `;
     }
 
+    function createFlowlineEmptyStateSvgMarkup(flowlinesVisible) {
+      const lineStroke = flowlinesVisible ? "rgba(62, 142, 176, 0.96)" : "rgba(104, 126, 139, 0.58)";
+      const lineGlow = flowlinesVisible ? "rgba(166, 226, 248, 0.38)" : "rgba(195, 208, 217, 0.22)";
+      const previewOpacity = flowlinesVisible ? "1" : "0.6";
+      return `
+        <svg class="meta-flowline-empty-graphic" viewBox="0 0 220 92" aria-hidden="true">
+          <rect x="0" y="0" width="220" height="92" rx="10" fill="rgba(223, 241, 249, 0.52)"></rect>
+          <path d="M 64 55 C 86 37, 101 31, 124 34" fill="none" stroke="${lineGlow}" stroke-width="10" stroke-linecap="round"></path>
+          <path d="M 64 55 C 86 37, 101 31, 124 34" fill="none" stroke="${lineStroke}" stroke-width="3.5" stroke-linecap="round"></path>
+          <path d="M 38 24 L 54 38 L 46 40 L 52 56 L 44 59 L 38 43 L 31 49 Z" fill="rgba(245, 252, 255, 0.96)" stroke="rgba(50, 77, 95, 0.48)" stroke-width="1.4"></path>
+          <path d="M 54 30 C 79 30, 97 27, 126 27" fill="none" stroke="rgba(72, 110, 132, 0.4)" stroke-width="1.9" stroke-linecap="round" stroke-dasharray="4.5 5"></path>
+          <path d="M 123 23 L 132 27 L 123 31" fill="none" stroke="rgba(72, 110, 132, 0.4)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+          <g opacity="${previewOpacity}">
+            <rect x="144" y="17" width="54" height="54" rx="8" fill="rgba(255, 255, 255, 0.76)" stroke="rgba(133, 178, 201, 0.5)" stroke-width="1.5"></rect>
+            <path d="M 150 59 L 190 59 L 190 63 L 150 63 Z" fill="rgba(143, 101, 58, 0.3)"></path>
+            <path d="M 150 55 C 160 50, 172 52, 190 46 L 190 59 L 150 59 Z" fill="rgba(143, 101, 58, 0.34)"></path>
+            <path d="M 150 55 C 160 50, 172 52, 190 46" fill="none" stroke="rgba(120, 78, 36, 0.94)" stroke-width="1.8" stroke-linecap="round"></path>
+            <path d="M 150 43 C 161 34, 174 38, 190 29 L 190 46 C 172 52, 160 50, 150 55 Z" fill="rgba(133, 193, 221, 0.5)"></path>
+            <path d="M 150 43 C 161 34, 174 38, 190 29" fill="none" stroke="rgba(246, 252, 255, 0.98)" stroke-width="2.2" stroke-linecap="round"></path>
+          </g>
+        </svg>
+      `;
+    }
+
+    function renderFlowlineEmptyStateCard(flowlinesVisible) {
+      const title = flowlinesVisible
+        ? t("explorer.meta.selectedFlowlineEmptyTitle")
+        : t("explorer.meta.selectedFlowlineDisabledTitle");
+      const body = flowlinesVisible
+        ? t("explorer.meta.selectedFlowlineEmptyBody")
+        : t("explorer.meta.selectedFlowlineDisabledBody");
+      return `
+        <div class="meta-flowline-empty" role="note">
+          <div class="meta-flowline-empty-title">${escapeHtml(title)}</div>
+          <div class="meta-flowline-empty-body">${escapeHtml(body)}</div>
+          ${createFlowlineEmptyStateSvgMarkup(flowlinesVisible)}
+        </div>
+      `;
+    }
+
     function buildSvgPath(points) {
       return points
         .map((point, index) => `${index === 0 ? "M" : "L"} ${formatCoord(point.x, 2)} ${formatCoord(point.y, 2)}`)
@@ -6887,11 +7008,11 @@
       if (samples.length < 2) return "";
 
       const width = 320;
-      const height = 152;
-      const padLeft = 10;
-      const padRight = 10;
-      const padTop = 8;
-      const padBottom = 12;
+      const height = 188;
+      const padLeft = 36;
+      const padRight = 12;
+      const padTop = 12;
+      const padBottom = 32;
       const plotWidth = width - padLeft - padRight;
       const plotHeight = height - padTop - padBottom;
       const elevations = [];
@@ -6941,6 +7062,10 @@
 
       const fillPath = `${buildSvgPath(surfacePoints)} ${buildSvgPath([...bottomPoints].reverse()).replace(/^M /, "L ")} Z`;
       const chartBottomY = padTop + plotHeight;
+      const chartLeftX = padLeft;
+      const chartRightX = padLeft + plotWidth;
+      const yAxisLabelX = 12;
+      const yAxisLabelY = padTop + plotHeight / 2;
       const bedFillPath = `${buildSvgPath(bedPoints)} L ${formatCoord(
         bedPoints[bedPoints.length - 1].x,
         2
@@ -6950,6 +7075,32 @@
       const bedPath = buildSvgPath(bedPoints);
       const gradientId = `flowline-silhouette-fill-${Number(flowlineSummary.index || 0)}`;
       const ariaLabel = escapeHtml(t("explorer.meta.selectedFlowlinePreview"));
+      const axisColor = "rgba(85, 114, 132, 0.72)";
+      const gridColor = "rgba(129, 159, 176, 0.22)";
+      const tickColor = "rgba(88, 116, 131, 0.86)";
+      const unitColor = "rgba(100, 128, 142, 0.78)";
+      const fontFamily = "IBM Plex Mono, ui-monospace, SFMono-Regular, Menlo, monospace";
+      const yTicks = [maxElevation, (maxElevation + minElevation) / 2, minElevation];
+      const xTicks = [0, totalDistanceKm / 2, totalDistanceKm];
+      const yTickMarkup = yTicks
+        .map((value) => {
+          const y = toY(value);
+          return `
+            <line x1="${formatCoord(chartLeftX, 2)}" y1="${formatCoord(y, 2)}" x2="${formatCoord(chartRightX, 2)}" y2="${formatCoord(y, 2)}" stroke="${gridColor}" stroke-width="1"></line>
+            <line x1="${formatCoord(chartLeftX - 4, 2)}" y1="${formatCoord(y, 2)}" x2="${formatCoord(chartLeftX, 2)}" y2="${formatCoord(y, 2)}" stroke="${axisColor}" stroke-width="1.4"></line>
+            <text x="${formatCoord(chartLeftX - 8, 2)}" y="${formatCoord(y + 3.2, 2)}" text-anchor="end" fill="${tickColor}" font-family="${fontFamily}" font-size="9.4">${escapeHtml(formatCoord(value, 0))}</text>
+          `;
+        })
+        .join("");
+      const xTickMarkup = xTicks
+        .map((value, index) => {
+          const x = toX(value, index);
+          return `
+            <line x1="${formatCoord(x, 2)}" y1="${formatCoord(chartBottomY, 2)}" x2="${formatCoord(x, 2)}" y2="${formatCoord(chartBottomY + 4, 2)}" stroke="${axisColor}" stroke-width="1.4"></line>
+            <text x="${formatCoord(x, 2)}" y="${formatCoord(chartBottomY + 15, 2)}" text-anchor="middle" fill="${tickColor}" font-family="${fontFamily}" font-size="9.4">${escapeHtml(formatCoord(value, value >= 100 ? 0 : 1))}</text>
+          `;
+        })
+        .join("");
 
       return `
         <svg class="meta-flowline-silhouette" viewBox="0 0 ${width} ${height}" role="img" aria-label="${ariaLabel}">
@@ -6960,72 +7111,28 @@
               <stop offset="100%" stop-color="#76abca" stop-opacity="0.92" />
             </linearGradient>
           </defs>
-          <rect x="0" y="0" width="${width}" height="${height}" rx="10" fill="rgba(223, 241, 249, 0.58)"></rect>
+          ${yTickMarkup}
           <path d="${bedFillPath}" fill="rgba(143, 101, 58, 0.38)"></path>
           <path d="${fillPath}" fill="url(#${gradientId})"></path>
           <path d="${bedPath}" fill="none" stroke="rgba(120, 78, 36, 0.94)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"></path>
           <path d="${bottomPath}" fill="none" stroke="rgba(44, 79, 107, 0.62)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path>
           <path d="${surfacePath}" fill="none" stroke="rgba(248, 253, 255, 0.98)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <line x1="${formatCoord(chartLeftX, 2)}" y1="${formatCoord(chartBottomY, 2)}" x2="${formatCoord(chartRightX, 2)}" y2="${formatCoord(chartBottomY, 2)}" stroke="${axisColor}" stroke-width="1.5"></line>
+          <line x1="${formatCoord(chartLeftX, 2)}" y1="${formatCoord(padTop, 2)}" x2="${formatCoord(chartLeftX, 2)}" y2="${formatCoord(chartBottomY, 2)}" stroke="${axisColor}" stroke-width="1.5"></line>
+          ${xTickMarkup}
+          <text x="${formatCoord(yAxisLabelX, 2)}" y="${formatCoord(yAxisLabelY, 2)}" text-anchor="middle" fill="${unitColor}" font-family="${fontFamily}" font-size="9.2" transform="rotate(-90 ${formatCoord(yAxisLabelX, 2)} ${formatCoord(yAxisLabelY, 2)})">Y (m)</text>
+          <text x="${formatCoord(chartRightX, 2)}" y="${formatCoord(chartBottomY + 27, 2)}" text-anchor="end" fill="${unitColor}" font-family="${fontFamily}" font-size="9.2">X (km)</text>
         </svg>
       `;
     }
 
-    function renderSelectedFlowlineSection(selectedFlowline, { notApplicableText, fmtInt, fmtShort } = {}) {
-      const items = [];
+    function renderSelectedFlowlineCard(selectedFlowline) {
       if (!selectedFlowline) {
-        items.push(`<li class="meta-compact">${escapeHtml(t("explorer.meta.selectedFlowlineHint"))}</li>`);
-      } else {
-        const flowlineLabel = t("explorer.meta.selectedFlowlineLabel", { index: fmtInt(Number(selectedFlowline.index) + 1) });
-        const lengthKm = Number(selectedFlowline.lengthKm);
-        const speedMin = Number(selectedFlowline.speedMin);
-        const speedMax = Number(selectedFlowline.speedMax);
-        const surfaceMin = Number(selectedFlowline.surfaceMin);
-        const surfaceMax = Number(selectedFlowline.surfaceMax);
-        const thicknessMin = Number(selectedFlowline.thicknessMin);
-        const thicknessMax = Number(selectedFlowline.thicknessMax);
-
-        items.push(`<li><strong>${escapeHtml(t("explorer.meta.selectedFlowlineId"))}:</strong> ${escapeHtml(flowlineLabel)}</li>`);
-        items.push(
-          `<li><strong>${escapeHtml(t("explorer.meta.selectedFlowlineLength"))}:</strong> ${
-            Number.isFinite(lengthKm) ? `${fmtShort(lengthKm, lengthKm >= 100 ? 0 : 1)} km` : notApplicableText
-          }</li>`
-        );
-        items.push(
-          `<li><strong>${escapeHtml(t("explorer.meta.selectedFlowlineSpeedRange"))}:</strong> ${
-            Number.isFinite(speedMin) && Number.isFinite(speedMax)
-              ? `${fmtShort(speedMin, speedMax >= 100 ? 0 : 1)} to ${fmtShort(speedMax, speedMax >= 100 ? 0 : 1)} m/yr`
-              : notApplicableText
-          }</li>`
-        );
-        items.push(
-          `<li><strong>${escapeHtml(t("explorer.meta.selectedFlowlineSurfaceSpan"))}:</strong> ${
-            Number.isFinite(surfaceMin) && Number.isFinite(surfaceMax)
-              ? `${fmtShort(surfaceMin, 0)} to ${fmtShort(surfaceMax, 0)} m`
-              : notApplicableText
-          }</li>`
-        );
-        items.push(
-          `<li><strong>${escapeHtml(t("explorer.meta.selectedFlowlineThickness"))}:</strong> ${
-            Number.isFinite(thicknessMin) && Number.isFinite(thicknessMax)
-              ? `${fmtShort(thicknessMin, 0)} to ${fmtShort(thicknessMax, 0)} m`
-              : notApplicableText
-          }</li>`
-        );
-        const profileSvg = createFlowlineProfileSvgMarkup(selectedFlowline);
-        if (profileSvg) {
-          items.push(`
-            <li class="meta-flowline-preview-item">
-              <div class="meta-flowline-preview">
-                <div class="meta-flowline-preview-title">${escapeHtml(t("explorer.meta.selectedFlowlinePreview"))}</div>
-                ${profileSvg}
-                <div class="meta-flowline-preview-caption">${escapeHtml(t("explorer.meta.selectedFlowlinePreviewCaption"))}</div>
-              </div>
-            </li>
-          `);
-        }
+        return renderFlowlineEmptyStateCard(Boolean(controlsUI.showFlowline?.checked));
       }
-
-      return renderMetaSection("selected-flowline", t("explorer.meta.selectedFlowlineSection"), items, { defaultOpen: true });
+      const profileSvg = createFlowlineProfileSvgMarkup(selectedFlowline);
+      if (!profileSvg) return "";
+      return `<div class="flowline-inline-card">${profileSvg}</div>`;
     }
 
     function bindMetaSectionToggles() {
@@ -7304,6 +7411,10 @@
 
     function updateInteractionHint(active) {
       if (!interactionHintEl) return;
+      if (isPreviewMode) {
+        interactionHintEl.innerHTML = "";
+        return;
+      }
       if (isShowcaseMode) {
         interactionHintEl.innerHTML = active ? SHOWCASE_HINT_ACTIVE : SHOWCASE_HINT_IDLE;
         return;
@@ -7982,6 +8093,8 @@
       controlsUI.showFlowline.addEventListener("change", () => {
         updateLegendVisibility();
         if (controlsUI.showFlowline.checked && !velocityField) {
+          refreshFlowlineGuidanceUi();
+          updateMetaFromCurrentState();
           ensureVelocityLoaded({ trigger: "toggle" });
           return;
         }
@@ -8443,19 +8556,19 @@
         );
       }
 
-      const selectedFlowlineSection =
-        capabilities.velocity && capabilities.flowline
-          ? renderSelectedFlowlineSection(selectedFlowlineState, {
-              notApplicableText,
-              fmtInt,
-              fmtShort,
-            })
+      const selectedFlowlineCard =
+        capabilities.velocity && capabilities.flowline && controlsUI.showFlowline.checked
+          ? renderSelectedFlowlineCard(selectedFlowlineState)
           : "";
+
+      if (controlsUI.flowlineProfileCardMount) {
+        controlsUI.flowlineProfileCardMount.innerHTML = selectedFlowlineCard;
+        controlsUI.flowlineProfileCardMount.hidden = !selectedFlowlineCard;
+      }
 
       const sections = [
         renderMetaSection("geometry-grid", t("explorer.meta.geometrySection"), geometryItems),
         renderMetaSection("surface-velocity", t("explorer.meta.velocitySection"), velocityItems),
-        selectedFlowlineSection,
         renderMetaSection("basal-friction", t("explorer.meta.basalFrictionSection"), basalFrictionItems),
         renderMetaSection("subglacial-hydrology", t("explorer.meta.hydrologySection"), hydrologyItems),
         renderMetaSection("ocean-circulation", t("explorer.meta.oceanSection"), oceanCurrentItems),
@@ -8513,6 +8626,10 @@
       updateBasalMeltLegend();
       updateThermalDrivingLegend();
       if (!currentCoreContext) {
+        if (controlsUI.flowlineProfileCardMount) {
+          controlsUI.flowlineProfileCardMount.innerHTML = "";
+          controlsUI.flowlineProfileCardMount.hidden = true;
+        }
         updateOceanCurrentLegend();
         return;
       }
