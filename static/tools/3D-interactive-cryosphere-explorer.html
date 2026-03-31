@@ -836,6 +836,44 @@
       text-decoration-color: currentColor;
     }
 
+    .meta-flowline-preview-item {
+      padding-top: 10px;
+      border-bottom: none;
+    }
+
+    .meta-flowline-preview {
+      display: grid;
+      gap: 8px;
+      padding: 11px;
+      border: 1px solid var(--meta-details-border);
+      border-radius: 14px;
+      background:
+        radial-gradient(circle at top left, rgba(153, 218, 245, 0.16), transparent 46%),
+        linear-gradient(180deg, rgba(240, 248, 252, 0.88), rgba(231, 242, 248, 0.94));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34);
+    }
+
+    .meta-flowline-preview-title {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--meta-summary-text);
+      font-weight: 700;
+    }
+
+    .meta-flowline-silhouette {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 10px;
+    }
+
+    .meta-flowline-preview-caption {
+      color: var(--meta-text);
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+
     .hud {
       position: absolute;
       left: 12px;
@@ -2327,6 +2365,7 @@
     let effectivePressureMesh;
     let subglacialChannelMesh;
     let flowlineMesh;
+    let selectedFlowlineHighlight;
     let oceanCurrentMesh;
     let seaLevelMesh;
     let refinedBasinBedLines;
@@ -2381,6 +2420,10 @@
     let pendingViewResetOnLoad = false;
     let geometryWorker = null;
     let geometryWorkerRequestSeq = 0;
+    let flowlineRaycaster = null;
+    let flowlinePointerNdc = null;
+    let flowlinePickGesture = null;
+    let selectedFlowlineState = null;
     const geometryWorkerPending = new Map();
     const refinedBasinLabelTextureCache = new Map();
     const refinedBasinDataCache = new Map();
@@ -3466,6 +3509,9 @@
     const BED_ELEVATION_MAX = 3500;
     const TARGET_WORLD_EXTENT_UNITS = 128;
     const BASE_HORIZONTAL_VERTICAL_SCALE_RATIO = 52000 / 3800;
+    const FLOWLINE_PICK_MOVE_THRESHOLD_PX = 7;
+    const FLOWLINE_PROFILE_SAMPLE_TARGET = 88;
+    const FLOWLINE_HIGHLIGHT_SAMPLE_TARGET = 144;
     const FLOWLINE_SURFACE_OFFSET_M = 26;
     const FLOWLINE_SEED_TARGET = 2400;
     const FLOWLINE_SEED_PASSES = 2;
@@ -5113,6 +5159,95 @@
       return Number.isFinite(value) ? value : Number.NaN;
     }
 
+    function sampleIceBottomNearest(field, col, row) {
+      const c = Math.round(col);
+      const r = Math.round(row);
+      if (c < 0 || r < 0 || c >= field.nx || r >= field.ny) return Number.NaN;
+      const idx = r * field.nx + c;
+      if (field.iceBottomValid?.[idx]) {
+        const value = field.iceBottomHeights?.[idx];
+        if (Number.isFinite(value)) return value;
+      }
+      if (field.iceValid?.[idx] && Number.isFinite(field.surfaceHeights?.[idx]) && Number.isFinite(field.thickness?.[idx])) {
+        return field.surfaceHeights[idx] - field.thickness[idx];
+      }
+      return Number.NaN;
+    }
+
+    function sampleIceBottomBilinear(field, col, row) {
+      if (col < 1 || row < 1 || col > field.nx - 2 || row > field.ny - 2) return sampleIceBottomNearest(field, col, row);
+
+      const c0 = Math.floor(col);
+      const c1 = c0 + 1;
+      const r0 = Math.floor(row);
+      const r1 = r0 + 1;
+      const i00 = r0 * field.nx + c0;
+      const i10 = r0 * field.nx + c1;
+      const i01 = r1 * field.nx + c0;
+      const i11 = r1 * field.nx + c1;
+      if (!field.iceBottomValid?.[i00] || !field.iceBottomValid?.[i10] || !field.iceBottomValid?.[i01] || !field.iceBottomValid?.[i11]) {
+        return sampleIceBottomNearest(field, col, row);
+      }
+
+      const h00 = field.iceBottomHeights[i00];
+      const h10 = field.iceBottomHeights[i10];
+      const h01 = field.iceBottomHeights[i01];
+      const h11 = field.iceBottomHeights[i11];
+      if (!Number.isFinite(h00) || !Number.isFinite(h10) || !Number.isFinite(h01) || !Number.isFinite(h11)) {
+        return sampleIceBottomNearest(field, col, row);
+      }
+
+      const tx = col - c0;
+      const ty = row - r0;
+      const w00 = (1 - tx) * (1 - ty);
+      const w10 = tx * (1 - ty);
+      const w01 = (1 - tx) * ty;
+      const w11 = tx * ty;
+      return h00 * w00 + h10 * w10 + h01 * w01 + h11 * w11;
+    }
+
+    function sampleBedNearest(field, col, row) {
+      const c = Math.round(col);
+      const r = Math.round(row);
+      if (c < 0 || r < 0 || c >= field.nx || r >= field.ny) return Number.NaN;
+      const idx = r * field.nx + c;
+      if (!field.bedValid?.[idx]) return Number.NaN;
+      const value = field.bedHeights?.[idx];
+      return Number.isFinite(value) ? value : Number.NaN;
+    }
+
+    function sampleBedBilinear(field, col, row) {
+      if (col < 1 || row < 1 || col > field.nx - 2 || row > field.ny - 2) return sampleBedNearest(field, col, row);
+
+      const c0 = Math.floor(col);
+      const c1 = c0 + 1;
+      const r0 = Math.floor(row);
+      const r1 = r0 + 1;
+      const i00 = r0 * field.nx + c0;
+      const i10 = r0 * field.nx + c1;
+      const i01 = r1 * field.nx + c0;
+      const i11 = r1 * field.nx + c1;
+      if (!field.bedValid?.[i00] || !field.bedValid?.[i10] || !field.bedValid?.[i01] || !field.bedValid?.[i11]) {
+        return sampleBedNearest(field, col, row);
+      }
+
+      const h00 = field.bedHeights[i00];
+      const h10 = field.bedHeights[i10];
+      const h01 = field.bedHeights[i01];
+      const h11 = field.bedHeights[i11];
+      if (!Number.isFinite(h00) || !Number.isFinite(h10) || !Number.isFinite(h01) || !Number.isFinite(h11)) {
+        return sampleBedNearest(field, col, row);
+      }
+
+      const tx = col - c0;
+      const ty = row - r0;
+      const w00 = (1 - tx) * (1 - ty);
+      const w10 = tx * (1 - ty);
+      const w01 = (1 - tx) * ty;
+      const w11 = tx * ty;
+      return h00 * w00 + h10 * w10 + h01 * w01 + h11 * w11;
+    }
+
     function traceFlowlineDirection(field, seedCol, seedRow, direction) {
       const out = [];
       let col = seedCol;
@@ -5199,6 +5334,110 @@
       return seeds;
     }
 
+    function getEvenlySpacedSampleIndices(pointCount, targetCount) {
+      if (!(pointCount > 0)) return [];
+      const safeTarget = Math.max(2, Math.round(targetCount || 0));
+      if (pointCount <= safeTarget) {
+        return Array.from({ length: pointCount }, (_unused, index) => index);
+      }
+
+      const indices = [0];
+      const stride = (pointCount - 1) / (safeTarget - 1);
+      let previous = 0;
+      for (let i = 1; i < safeTarget - 1; i += 1) {
+        const next = Math.round(i * stride);
+        if (next <= previous || next >= pointCount - 1) continue;
+        indices.push(next);
+        previous = next;
+      }
+      if (indices[indices.length - 1] !== pointCount - 1) {
+        indices.push(pointCount - 1);
+      }
+      return indices;
+    }
+
+    function buildFlowlineProfileSummary(field, flowlineIndex, merged) {
+      if (!Array.isArray(merged) || merged.length < 3) return null;
+
+      const absDx = Math.abs(field.dxMeters);
+      const absDy = Math.abs(field.dyMeters);
+      const halfX = (field.nx - 1) / 2;
+      const halfY = (field.ny - 1) / 2;
+      const cumulativeDistancesKm = new Float32Array(merged.length);
+      const bottomHeights = new Float32Array(merged.length);
+      const bedHeights = new Float32Array(merged.length);
+
+      let lengthMeters = 0;
+      let speedMin = Number.POSITIVE_INFINITY;
+      let speedMax = Number.NEGATIVE_INFINITY;
+      let surfaceMin = Number.POSITIVE_INFINITY;
+      let surfaceMax = Number.NEGATIVE_INFINITY;
+      let thicknessMin = Number.POSITIVE_INFINITY;
+      let thicknessMax = Number.NEGATIVE_INFINITY;
+
+      for (let i = 0; i < merged.length; i += 1) {
+        const point = merged[i];
+        if (i > 0) {
+          const prev = merged[i - 1];
+          const dxMeters = (point.col - prev.col) * absDx;
+          const dyMeters = (point.row - prev.row) * absDy;
+          lengthMeters += Math.hypot(dxMeters, dyMeters);
+        }
+        cumulativeDistancesKm[i] = lengthMeters / 1000;
+
+        const surface = Number(point.surface);
+        let bottom = sampleIceBottomBilinear(field, point.col, point.row);
+        if (!Number.isFinite(bottom)) bottom = surface;
+        if (bottom > surface) bottom = surface;
+        bottomHeights[i] = bottom;
+        let bed = sampleBedBilinear(field, point.col, point.row);
+        if (!Number.isFinite(bed)) bed = bottom;
+        if (bed > bottom) bed = bottom;
+        bedHeights[i] = bed;
+
+        const thickness = Math.max(0, surface - bottom);
+        if (Number.isFinite(point.speed)) {
+          speedMin = Math.min(speedMin, point.speed);
+          speedMax = Math.max(speedMax, point.speed);
+        }
+        surfaceMin = Math.min(surfaceMin, surface);
+        surfaceMax = Math.max(surfaceMax, surface);
+        thicknessMin = Math.min(thicknessMin, thickness);
+        thicknessMax = Math.max(thicknessMax, thickness);
+      }
+
+      const profileSampleIndices = getEvenlySpacedSampleIndices(merged.length, FLOWLINE_PROFILE_SAMPLE_TARGET);
+      const samples = profileSampleIndices.map((sampleIndex) => ({
+        distanceKm: cumulativeDistancesKm[sampleIndex],
+        surface: merged[sampleIndex].surface,
+        bottom: bottomHeights[sampleIndex],
+        bed: bedHeights[sampleIndex],
+      }));
+
+      const highlightSampleIndices = getEvenlySpacedSampleIndices(merged.length, FLOWLINE_HIGHLIGHT_SAMPLE_TARGET);
+      const highlightPositions = [];
+      for (const sampleIndex of highlightSampleIndices) {
+        const point = merged[sampleIndex];
+        const x = ((point.col - halfX) * field.dxMeters) / field.horizontalMetersPerUnit;
+        const z = ((point.row - halfY) * absDy) / field.horizontalMetersPerUnit;
+        const y = (point.surface + FLOWLINE_SURFACE_OFFSET_M) / field.verticalMetersPerUnit;
+        highlightPositions.push(x, y, z);
+      }
+
+      return {
+        index: flowlineIndex,
+        lengthKm: lengthMeters / 1000,
+        speedMin: Number.isFinite(speedMin) ? speedMin : Number.NaN,
+        speedMax: Number.isFinite(speedMax) ? speedMax : Number.NaN,
+        surfaceMin: Number.isFinite(surfaceMin) ? surfaceMin : Number.NaN,
+        surfaceMax: Number.isFinite(surfaceMax) ? surfaceMax : Number.NaN,
+        thicknessMin: Number.isFinite(thicknessMin) ? thicknessMin : Number.NaN,
+        thicknessMax: Number.isFinite(thicknessMax) ? thicknessMax : Number.NaN,
+        samples,
+        highlightPositions,
+      };
+    }
+
     function buildFlowlineMesh(field) {
       if (!field) return null;
 
@@ -5211,7 +5450,8 @@
 
       const positions = [];
       const colors = [];
-      let flowlineCount = 0;
+      const segmentFlowlineIndices = [];
+      const flowlines = [];
 
       for (const seed of seeds) {
         const forward = traceFlowlineDirection(field, seed.col, seed.row, 1);
@@ -5220,7 +5460,11 @@
 
         const merged = backward.reverse().concat(forward.slice(1));
         if (merged.length < 3) continue;
-        flowlineCount += 1;
+
+        const flowlineIndex = flowlines.length;
+        const summary = buildFlowlineProfileSummary(field, flowlineIndex, merged);
+        if (!summary) continue;
+        flowlines.push(summary);
 
         for (let i = 1; i < merged.length; i += 1) {
           const p0 = merged[i - 1];
@@ -5239,6 +5483,7 @@
 
           positions.push(x0, y0, z0, x1, y1, z1);
           colors.push(c0[0], c0[1], c0[2], c1[0], c1[1], c1[2]);
+          segmentFlowlineIndices.push(flowlineIndex);
         }
       }
 
@@ -5257,7 +5502,9 @@
       lines.scale.y = Number(controlsUI.exaggeration.value);
       lines.visible = controlsUI.showFlowline.checked;
       lines.renderOrder = 16;
-      lines.userData.flowlineCount = flowlineCount;
+      lines.userData.flowlineCount = flowlines.length;
+      lines.userData.flowlines = flowlines;
+      lines.userData.segmentFlowlineIndices = Uint32Array.from(segmentFlowlineIndices);
       return lines;
     }
 
@@ -5894,6 +6141,12 @@
               (subglacialChannelMesh && subglacialChannelMesh.visible)
           ),
         },
+        selectedFlowline: selectedFlowlineState
+          ? {
+              index: Number(selectedFlowlineState.index),
+              lengthKm: Number(selectedFlowlineState.lengthKm),
+            }
+          : null,
       };
     }
 
@@ -5964,11 +6217,97 @@
       thermalDrivingDataTexture = disposeTexture(thermalDrivingDataTexture);
       effectivePressureMesh = disposeMesh(effectivePressureMesh);
       subglacialChannelMesh = disposeMesh(subglacialChannelMesh);
+      selectedFlowlineHighlight = disposeObject3D(selectedFlowlineHighlight);
+      selectedFlowlineState = null;
       flowlineMesh = disposeMesh(flowlineMesh);
       oceanCurrentMesh = disposeObject3D(oceanCurrentMesh);
       seaLevelMesh = disposeMesh(seaLevelMesh);
       clearRefinedBasinOverlays();
       velocityField = null;
+    }
+
+    function buildSelectedFlowlineHighlightObject(flowlineSummary) {
+      if (!THREE || !flowlineSummary || !Array.isArray(flowlineSummary.highlightPositions) || flowlineSummary.highlightPositions.length < 6) {
+        return null;
+      }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(flowlineSummary.highlightPositions), 3));
+      const material = new THREE.LineBasicMaterial({
+        color: 0xf7feff,
+        transparent: true,
+        opacity: 0.98,
+        depthWrite: false,
+        depthTest: true,
+      });
+      const highlight = new THREE.Line(geometry, material);
+      highlight.renderOrder = 18;
+      highlight.scale.y = Number(controlsUI.exaggeration.value);
+      return highlight;
+    }
+
+    function updateSelectedFlowlineVisualState() {
+      if (!selectedFlowlineHighlight) return;
+      selectedFlowlineHighlight.visible = Boolean(selectedFlowlineState && flowlineMesh && flowlineMesh.visible);
+      selectedFlowlineHighlight.scale.y = Number(controlsUI.exaggeration.value);
+    }
+
+    function clearSelectedFlowline({ updateMeta = true } = {}) {
+      selectedFlowlineState = null;
+      selectedFlowlineHighlight = disposeObject3D(selectedFlowlineHighlight);
+      if (updateMeta) {
+        updateMetaFromCurrentState();
+      }
+    }
+
+    function setSelectedFlowline(flowlineSummary) {
+      if (!flowlineSummary) {
+        clearSelectedFlowline();
+        return;
+      }
+      selectedFlowlineState = flowlineSummary;
+      selectedFlowlineHighlight = disposeObject3D(selectedFlowlineHighlight);
+      const highlight = buildSelectedFlowlineHighlightObject(flowlineSummary);
+      if (highlight) {
+        selectedFlowlineHighlight = highlight;
+        scene.add(selectedFlowlineHighlight);
+      }
+      metaSectionOpenState.set("selected-flowline", true);
+      updateSelectedFlowlineVisualState();
+      updateMetaFromCurrentState();
+    }
+
+    function pickVisibleFlowlineAtClientPoint(clientX, clientY) {
+      if (!(renderer && camera && flowlineMesh && flowlineMesh.visible && flowlineRaycaster && flowlinePointerNdc)) {
+        return false;
+      }
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (!(rect.width > 0 && rect.height > 0)) return false;
+      if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
+        return false;
+      }
+
+      flowlinePointerNdc.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+      flowlineRaycaster.setFromCamera(flowlinePointerNdc, camera);
+      flowlineRaycaster.params.Line.threshold = clamp(
+        camera.position.distanceTo(orbit?.target || new THREE.Vector3()) * 0.0045,
+        0.2,
+        1.25
+      );
+
+      const intersections = flowlineRaycaster.intersectObject(flowlineMesh, false);
+      if (!intersections.length) return false;
+
+      const hit = intersections[0];
+      const segmentOrdinal = Math.max(0, Math.floor(Number(hit.index || 0) / 2));
+      const flowlineIndex = Number(flowlineMesh.userData?.segmentFlowlineIndices?.[segmentOrdinal]);
+      if (!(flowlineIndex >= 0)) return false;
+
+      const flowlineSummary = flowlineMesh.userData?.flowlines?.[flowlineIndex];
+      if (!flowlineSummary) return false;
+
+      setSelectedFlowline(flowlineSummary);
+      return true;
     }
 
     function projectPs71PointToGrid(context, xMeters, yMeters) {
@@ -6436,11 +6775,13 @@
     function updateFlowlineVisibility() {
       if (!controlsUI.showFlowline.checked) {
         if (flowlineMesh) flowlineMesh.visible = false;
+        updateSelectedFlowlineVisualState();
         return;
       }
 
       if (flowlineMesh) {
         flowlineMesh.visible = true;
+        updateSelectedFlowlineVisualState();
         return;
       }
 
@@ -6472,6 +6813,7 @@
         flowlineMesh = built;
         scene.add(flowlineMesh);
         flowlineMesh.visible = true;
+        updateSelectedFlowlineVisualState();
         if (statusEl.textContent === t("explorer.status.computingFlowlines")) {
           statusEl.textContent = previousStatus;
         }
@@ -6532,6 +6874,158 @@
           </details>
         </li>
       `;
+    }
+
+    function buildSvgPath(points) {
+      return points
+        .map((point, index) => `${index === 0 ? "M" : "L"} ${formatCoord(point.x, 2)} ${formatCoord(point.y, 2)}`)
+        .join(" ");
+    }
+
+    function createFlowlineProfileSvgMarkup(flowlineSummary) {
+      const samples = Array.isArray(flowlineSummary?.samples) ? flowlineSummary.samples : [];
+      if (samples.length < 2) return "";
+
+      const width = 320;
+      const height = 152;
+      const padLeft = 10;
+      const padRight = 10;
+      const padTop = 8;
+      const padBottom = 12;
+      const plotWidth = width - padLeft - padRight;
+      const plotHeight = height - padTop - padBottom;
+      const elevations = [];
+
+      for (const sample of samples) {
+        const surface = Number(sample.surface);
+        let bottom = Number(sample.bottom);
+        let bed = Number(sample.bed);
+        if (!Number.isFinite(surface)) continue;
+        if (!Number.isFinite(bottom) || bottom > surface) bottom = surface;
+        if (!Number.isFinite(bed) || bed > bottom) bed = bottom;
+        elevations.push(surface, bottom, bed);
+      }
+      if (elevations.length < 4) return "";
+
+      let minElevation = Math.min(...elevations);
+      let maxElevation = Math.max(...elevations);
+      const padElevation = Math.max(25, (maxElevation - minElevation) * 0.08);
+      minElevation -= padElevation;
+      maxElevation += padElevation;
+      if (Math.abs(maxElevation - minElevation) < 1e-6) {
+        maxElevation += 1;
+        minElevation -= 1;
+      }
+
+      const totalDistanceKm = Math.max(1e-6, Number(flowlineSummary.lengthKm) || 0);
+      const toX = (distanceKm, fallbackIndex) =>
+        padLeft + plotWidth * (totalDistanceKm > 0 ? clamp01(distanceKm / totalDistanceKm) : fallbackIndex / Math.max(1, samples.length - 1));
+      const toY = (elevation) => padTop + ((maxElevation - elevation) / (maxElevation - minElevation)) * plotHeight;
+
+      const surfacePoints = [];
+      const bottomPoints = [];
+      const bedPoints = [];
+      samples.forEach((sample, index) => {
+        const surface = Number(sample.surface);
+        let bottom = Number(sample.bottom);
+        let bed = Number(sample.bed);
+        if (!Number.isFinite(surface)) return;
+        if (!Number.isFinite(bottom) || bottom > surface) bottom = surface;
+        if (!Number.isFinite(bed) || bed > bottom) bed = bottom;
+        const x = toX(Number(sample.distanceKm) || 0, index);
+        surfacePoints.push({ x, y: toY(surface) });
+        bottomPoints.push({ x, y: toY(bottom) });
+        bedPoints.push({ x, y: toY(bed) });
+      });
+      if (surfacePoints.length < 2 || bottomPoints.length < 2 || bedPoints.length < 2) return "";
+
+      const fillPath = `${buildSvgPath(surfacePoints)} ${buildSvgPath([...bottomPoints].reverse()).replace(/^M /, "L ")} Z`;
+      const chartBottomY = padTop + plotHeight;
+      const bedFillPath = `${buildSvgPath(bedPoints)} L ${formatCoord(
+        bedPoints[bedPoints.length - 1].x,
+        2
+      )} ${formatCoord(chartBottomY, 2)} L ${formatCoord(bedPoints[0].x, 2)} ${formatCoord(chartBottomY, 2)} Z`;
+      const surfacePath = buildSvgPath(surfacePoints);
+      const bottomPath = buildSvgPath(bottomPoints);
+      const bedPath = buildSvgPath(bedPoints);
+      const gradientId = `flowline-silhouette-fill-${Number(flowlineSummary.index || 0)}`;
+      const ariaLabel = escapeHtml(t("explorer.meta.selectedFlowlinePreview"));
+
+      return `
+        <svg class="meta-flowline-silhouette" viewBox="0 0 ${width} ${height}" role="img" aria-label="${ariaLabel}">
+          <defs>
+            <linearGradient id="${gradientId}" x1="0%" x2="0%" y1="0%" y2="100%">
+              <stop offset="0%" stop-color="#e0f6ff" stop-opacity="0.95" />
+              <stop offset="60%" stop-color="#aadbf2" stop-opacity="0.88" />
+              <stop offset="100%" stop-color="#76abca" stop-opacity="0.92" />
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="${width}" height="${height}" rx="10" fill="rgba(223, 241, 249, 0.58)"></rect>
+          <path d="${bedFillPath}" fill="rgba(143, 101, 58, 0.38)"></path>
+          <path d="${fillPath}" fill="url(#${gradientId})"></path>
+          <path d="${bedPath}" fill="none" stroke="rgba(120, 78, 36, 0.94)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="${bottomPath}" fill="none" stroke="rgba(44, 79, 107, 0.62)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="${surfacePath}" fill="none" stroke="rgba(248, 253, 255, 0.98)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      `;
+    }
+
+    function renderSelectedFlowlineSection(selectedFlowline, { notApplicableText, fmtInt, fmtShort } = {}) {
+      const items = [];
+      if (!selectedFlowline) {
+        items.push(`<li class="meta-compact">${escapeHtml(t("explorer.meta.selectedFlowlineHint"))}</li>`);
+      } else {
+        const flowlineLabel = t("explorer.meta.selectedFlowlineLabel", { index: fmtInt(Number(selectedFlowline.index) + 1) });
+        const lengthKm = Number(selectedFlowline.lengthKm);
+        const speedMin = Number(selectedFlowline.speedMin);
+        const speedMax = Number(selectedFlowline.speedMax);
+        const surfaceMin = Number(selectedFlowline.surfaceMin);
+        const surfaceMax = Number(selectedFlowline.surfaceMax);
+        const thicknessMin = Number(selectedFlowline.thicknessMin);
+        const thicknessMax = Number(selectedFlowline.thicknessMax);
+
+        items.push(`<li><strong>${escapeHtml(t("explorer.meta.selectedFlowlineId"))}:</strong> ${escapeHtml(flowlineLabel)}</li>`);
+        items.push(
+          `<li><strong>${escapeHtml(t("explorer.meta.selectedFlowlineLength"))}:</strong> ${
+            Number.isFinite(lengthKm) ? `${fmtShort(lengthKm, lengthKm >= 100 ? 0 : 1)} km` : notApplicableText
+          }</li>`
+        );
+        items.push(
+          `<li><strong>${escapeHtml(t("explorer.meta.selectedFlowlineSpeedRange"))}:</strong> ${
+            Number.isFinite(speedMin) && Number.isFinite(speedMax)
+              ? `${fmtShort(speedMin, speedMax >= 100 ? 0 : 1)} to ${fmtShort(speedMax, speedMax >= 100 ? 0 : 1)} m/yr`
+              : notApplicableText
+          }</li>`
+        );
+        items.push(
+          `<li><strong>${escapeHtml(t("explorer.meta.selectedFlowlineSurfaceSpan"))}:</strong> ${
+            Number.isFinite(surfaceMin) && Number.isFinite(surfaceMax)
+              ? `${fmtShort(surfaceMin, 0)} to ${fmtShort(surfaceMax, 0)} m`
+              : notApplicableText
+          }</li>`
+        );
+        items.push(
+          `<li><strong>${escapeHtml(t("explorer.meta.selectedFlowlineThickness"))}:</strong> ${
+            Number.isFinite(thicknessMin) && Number.isFinite(thicknessMax)
+              ? `${fmtShort(thicknessMin, 0)} to ${fmtShort(thicknessMax, 0)} m`
+              : notApplicableText
+          }</li>`
+        );
+        const profileSvg = createFlowlineProfileSvgMarkup(selectedFlowline);
+        if (profileSvg) {
+          items.push(`
+            <li class="meta-flowline-preview-item">
+              <div class="meta-flowline-preview">
+                <div class="meta-flowline-preview-title">${escapeHtml(t("explorer.meta.selectedFlowlinePreview"))}</div>
+                ${profileSvg}
+                <div class="meta-flowline-preview-caption">${escapeHtml(t("explorer.meta.selectedFlowlinePreviewCaption"))}</div>
+              </div>
+            </li>
+          `);
+        }
+      }
+
+      return renderMetaSection("selected-flowline", t("explorer.meta.selectedFlowlineSection"), items, { defaultOpen: true });
     }
 
     function bindMetaSectionToggles() {
@@ -7164,6 +7658,62 @@
       }
     }
 
+    function bindFlowlinePicking() {
+      if (!renderer || !THREE) return;
+      if (!flowlineRaycaster) flowlineRaycaster = new THREE.Raycaster();
+      if (!flowlinePointerNdc) flowlinePointerNdc = new THREE.Vector2();
+
+      const canvas = renderer.domElement;
+
+      const clearGesture = (pointerId = null) => {
+        if (pointerId !== null && flowlinePickGesture && flowlinePickGesture.pointerId !== pointerId) return;
+        flowlinePickGesture = null;
+      };
+
+      canvas.addEventListener(
+        "pointerdown",
+        (event) => {
+          if (event.pointerType === "mouse" && event.button !== 0) return;
+          flowlinePickGesture = {
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            interactionReady: !interactionGateEnabled || interactionGateActive,
+          };
+        },
+        { passive: true }
+      );
+
+      canvas.addEventListener(
+        "pointerup",
+        (event) => {
+          if (!flowlinePickGesture || flowlinePickGesture.pointerId !== event.pointerId) return;
+          const gesture = flowlinePickGesture;
+          clearGesture(event.pointerId);
+
+          const moved =
+            Math.abs(event.clientX - gesture.startX) > FLOWLINE_PICK_MOVE_THRESHOLD_PX ||
+            Math.abs(event.clientY - gesture.startY) > FLOWLINE_PICK_MOVE_THRESHOLD_PX;
+          if (moved || !gesture.interactionReady) return;
+
+          pickVisibleFlowlineAtClientPoint(event.clientX, event.clientY);
+        },
+        { passive: true }
+      );
+
+      canvas.addEventListener(
+        "pointercancel",
+        (event) => {
+          clearGesture(event.pointerId);
+        },
+        { passive: true }
+      );
+
+      canvas.addEventListener("lostpointercapture", () => {
+        clearGesture();
+      });
+    }
+
     function bindBackgroundWarmupTrigger() {
       if (isShowcaseMode || !renderer) return;
       const canvas = renderer.domElement;
@@ -7393,6 +7943,7 @@
         if (effectivePressureMesh) effectivePressureMesh.scale.y = value;
         if (subglacialChannelMesh) subglacialChannelMesh.scale.y = value;
         if (flowlineMesh) flowlineMesh.scale.y = value;
+        if (selectedFlowlineHighlight) selectedFlowlineHighlight.scale.y = value;
         if (oceanCurrentMesh) oceanCurrentMesh.scale.y = value;
         if (refinedBasinBedLines) refinedBasinBedLines.scale.y = value;
         if (refinedBasinSurfaceLines) refinedBasinSurfaceLines.scale.y = value;
@@ -7892,9 +8443,19 @@
         );
       }
 
+      const selectedFlowlineSection =
+        capabilities.velocity && capabilities.flowline
+          ? renderSelectedFlowlineSection(selectedFlowlineState, {
+              notApplicableText,
+              fmtInt,
+              fmtShort,
+            })
+          : "";
+
       const sections = [
         renderMetaSection("geometry-grid", t("explorer.meta.geometrySection"), geometryItems),
         renderMetaSection("surface-velocity", t("explorer.meta.velocitySection"), velocityItems),
+        selectedFlowlineSection,
         renderMetaSection("basal-friction", t("explorer.meta.basalFrictionSection"), basalFrictionItems),
         renderMetaSection("subglacial-hydrology", t("explorer.meta.hydrologySection"), hydrologyItems),
         renderMetaSection("ocean-circulation", t("explorer.meta.oceanSection"), oceanCurrentItems),
@@ -8418,6 +8979,8 @@
 
       velocitySurfaceMesh = disposeMesh(velocitySurfaceMesh);
       flowlineMesh = disposeMesh(flowlineMesh);
+      selectedFlowlineHighlight = disposeObject3D(selectedFlowlineHighlight);
+      selectedFlowlineState = null;
       velocityDataTexture = disposeTexture(velocityDataTexture);
       const velocitySurfaceGeometry = new THREE.BufferGeometry();
       velocitySurfaceGeometry.setAttribute("position", new THREE.BufferAttribute(workerResult.positions, 3));
@@ -8463,6 +9026,11 @@
         verticalMetersPerUnit: context.baseConfig.verticalMetersPerUnit,
         surfaceHeights: context.surfaceHeights,
         iceValid: context.iceValid,
+        iceBottomHeights: context.iceBottomHeights,
+        iceBottomValid: context.iceBottomValid,
+        bedHeights: context.bedHeights,
+        bedValid: context.bedValid,
+        thickness: context.thickness,
         velocityX: workerResult.velocityX,
         velocityY: workerResult.velocityY,
         velocitySpeed: workerResult.velocitySpeed,
@@ -9084,8 +9652,11 @@
             controlsUI.showFlowline.checked = false;
             velocitySurfaceMesh = disposeMesh(velocitySurfaceMesh);
             flowlineMesh = disposeMesh(flowlineMesh);
+            selectedFlowlineHighlight = disposeObject3D(selectedFlowlineHighlight);
+            selectedFlowlineState = null;
             velocityDataTexture = disposeTexture(velocityDataTexture);
             velocityField = null;
+            updateMetaFromCurrentState();
             const readyText = getReadyStatusText(context);
             const transientText = t("explorer.status.velocityUnavailable");
             statusEl.textContent = transientText;
@@ -9617,6 +10188,7 @@
         document.addEventListener("fullscreenchange", handleFullscreenChange);
         document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
         bindInteractionGate();
+        bindFlowlinePicking();
         bindBackgroundWarmupTrigger();
         bindRecordingMode();
         renderLoop();
