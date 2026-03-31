@@ -674,7 +674,7 @@
     }
 
     .flowline-inline-card-slot {
-      margin: 2px 0 12px 25px;
+      margin: 2px 0 12px 21px;
     }
 
     .flowline-inline-card-slot[hidden] {
@@ -7007,11 +7007,11 @@
       const samples = Array.isArray(flowlineSummary?.samples) ? flowlineSummary.samples : [];
       if (samples.length < 2) return "";
 
-      const width = 320;
+      const width = 336;
       const height = 188;
-      const padLeft = 36;
+      const padLeft = 38;
       const padRight = 12;
-      const padTop = 12;
+      const padTop = 24;
       const padBottom = 32;
       const plotWidth = width - padLeft - padRight;
       const plotHeight = height - padTop - padBottom;
@@ -7064,8 +7064,9 @@
       const chartBottomY = padTop + plotHeight;
       const chartLeftX = padLeft;
       const chartRightX = padLeft + plotWidth;
-      const yAxisLabelX = 12;
-      const yAxisLabelY = padTop + plotHeight / 2;
+      const yAxisLabelX = chartLeftX;
+      const yAxisLabelY = 11;
+      const yTickLabelX = chartLeftX - 6;
       const bedFillPath = `${buildSvgPath(bedPoints)} L ${formatCoord(
         bedPoints[bedPoints.length - 1].x,
         2
@@ -7088,7 +7089,7 @@
           return `
             <line x1="${formatCoord(chartLeftX, 2)}" y1="${formatCoord(y, 2)}" x2="${formatCoord(chartRightX, 2)}" y2="${formatCoord(y, 2)}" stroke="${gridColor}" stroke-width="1"></line>
             <line x1="${formatCoord(chartLeftX - 4, 2)}" y1="${formatCoord(y, 2)}" x2="${formatCoord(chartLeftX, 2)}" y2="${formatCoord(y, 2)}" stroke="${axisColor}" stroke-width="1.4"></line>
-            <text x="${formatCoord(chartLeftX - 8, 2)}" y="${formatCoord(y + 3.2, 2)}" text-anchor="end" fill="${tickColor}" font-family="${fontFamily}" font-size="9.4">${escapeHtml(formatCoord(value, 0))}</text>
+            <text x="${formatCoord(yTickLabelX, 2)}" y="${formatCoord(y + 3.4, 2)}" text-anchor="end" fill="${tickColor}" font-family="${fontFamily}" font-size="10.2">${escapeHtml(formatCoord(value, 0))}</text>
           `;
         })
         .join("");
@@ -7097,7 +7098,7 @@
           const x = toX(value, index);
           return `
             <line x1="${formatCoord(x, 2)}" y1="${formatCoord(chartBottomY, 2)}" x2="${formatCoord(x, 2)}" y2="${formatCoord(chartBottomY + 4, 2)}" stroke="${axisColor}" stroke-width="1.4"></line>
-            <text x="${formatCoord(x, 2)}" y="${formatCoord(chartBottomY + 15, 2)}" text-anchor="middle" fill="${tickColor}" font-family="${fontFamily}" font-size="9.4">${escapeHtml(formatCoord(value, value >= 100 ? 0 : 1))}</text>
+            <text x="${formatCoord(x, 2)}" y="${formatCoord(chartBottomY + 16, 2)}" text-anchor="middle" fill="${tickColor}" font-family="${fontFamily}" font-size="10.2">${escapeHtml(formatCoord(value, value >= 100 ? 0 : 1))}</text>
           `;
         })
         .join("");
@@ -7120,8 +7121,8 @@
           <line x1="${formatCoord(chartLeftX, 2)}" y1="${formatCoord(chartBottomY, 2)}" x2="${formatCoord(chartRightX, 2)}" y2="${formatCoord(chartBottomY, 2)}" stroke="${axisColor}" stroke-width="1.5"></line>
           <line x1="${formatCoord(chartLeftX, 2)}" y1="${formatCoord(padTop, 2)}" x2="${formatCoord(chartLeftX, 2)}" y2="${formatCoord(chartBottomY, 2)}" stroke="${axisColor}" stroke-width="1.5"></line>
           ${xTickMarkup}
-          <text x="${formatCoord(yAxisLabelX, 2)}" y="${formatCoord(yAxisLabelY, 2)}" text-anchor="middle" fill="${unitColor}" font-family="${fontFamily}" font-size="9.2" transform="rotate(-90 ${formatCoord(yAxisLabelX, 2)} ${formatCoord(yAxisLabelY, 2)})">Y (m)</text>
-          <text x="${formatCoord(chartRightX, 2)}" y="${formatCoord(chartBottomY + 27, 2)}" text-anchor="end" fill="${unitColor}" font-family="${fontFamily}" font-size="9.2">X (km)</text>
+          <text x="${formatCoord(yAxisLabelX, 2)}" y="${formatCoord(yAxisLabelY, 2)}" text-anchor="middle" fill="${unitColor}" font-family="${fontFamily}" font-size="10.2">Y (m)</text>
+          <text x="${formatCoord(chartRightX, 2)}" y="${formatCoord(chartBottomY + 29, 2)}" text-anchor="end" fill="${unitColor}" font-family="${fontFamily}" font-size="10.2">X (km)</text>
         </svg>
       `;
     }
