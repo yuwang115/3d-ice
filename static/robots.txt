@@ -1,6 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /*?region=
-Disallow: /*?*preset=
 
 Sitemap: https://3d-ice.com/sitemap.xml
