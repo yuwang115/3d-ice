@@ -3,6 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Google tag (gtag.js) — top-level only, so the showcase iframe
+       embedded on the home page does not double-count page views. -->
+  <script>
+    (function () {
+      if (window.top !== window.self) return;
+      var s = document.createElement("script");
+      s.async = true;
+      s.src = "https://www.googletagmanager.com/gtag/js?id=G-YGK0V9S67F";
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { window.dataLayer.push(arguments); };
+      window.gtag("js", new Date());
+      window.gtag("config", "G-YGK0V9S67F", {});
+      window.gtag("set", {cookie_flags: "SameSite=None;Secure"});
+    })();
+  </script>
   <title>3D ICE: Interactive Cryosphere Explorer</title>
   <meta
     name="description"

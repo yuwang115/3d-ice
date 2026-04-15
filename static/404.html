@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-wc-theme-default="system">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Theme init (runs before body renders, mirrors main site behavior,
+       reads localStorage["wc-color-theme"] so toggle carries over). -->
+  <script>
+    (function () {
+      try {
+        var root = document.documentElement;
+        var def = root.dataset.wcThemeDefault || "system";
+        var stored = localStorage.getItem("wc-color-theme");
+        var setDark = function () {
+          root.classList.add("dark");
+          root.style.colorScheme = "dark";
+        };
+        var setLight = function () {
+          root.classList.remove("dark");
+          root.style.colorScheme = "light";
+        };
+        if (stored === "dark") setDark();
+        else if (stored === "light") setLight();
+        else if (def === "dark") setDark();
+        else if (def === "light") setLight();
+        else
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? setDark()
+            : setLight();
+      } catch (_e) {}
+    })();
+  </script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YGK0V9S67F"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag("js", new Date());
+    gtag("config", "G-YGK0V9S67F", {});
+    gtag("set", {cookie_flags: "SameSite=None;Secure"});
+    // Emit a dedicated event so real 3d-ice.com 404s can be separated
+    // from the default page_view in reports.
+    try {
+      gtag("event", "page_not_found", {
+        page_path: window.location.pathname + window.location.search,
+        page_referrer: document.referrer || "(direct)"
+      });
+    } catch (_e) {}
+  </script>
+  <title>404 · Page not found — 3D ICE</title>
+  <meta name="robots" content="noindex" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <style>
+    /* Match the main site font exactly. */
+    @font-face {
+      font-family: "inter var";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url(/css/font/Inter.var.woff2) format("woff2");
+    }
+
+    /* Light mode tokens — lifted verbatim from .explorer-page-shell--ice
+       in /css/3d-ice-home.css so the palette stays 1:1 with the home page. */
+    :root {
+      --ice-ink: #082335;
+      --ice-text: #24475a;
+      --ice-muted: #4f6d7c;
+      --ice-border: #cfe1eb;
+      --ice-panel: #ffffff;
+      --ice-accent: #0f7ea8;
+      --ice-accent-2: #17906b;
+      --ice-card-border: rgba(175, 205, 221, 0.88);
+      --ice-card-border-hover: #a7c9d9;
+      --ice-card-shadow-strong:
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        0 16px 30px rgba(9, 34, 49, 0.055);
+      --ice-panel-hero:
+        radial-gradient(circle at 12% 18%, rgba(124, 216, 255, 0.22), transparent 28%),
+        radial-gradient(circle at 92% 86%, rgba(77, 178, 156, 0.16), transparent 26%),
+        linear-gradient(160deg, #f7fbfe 0%, #edf6fb 54%, #f8fbfd 100%);
+      --ice-panel-card-frost:
+        radial-gradient(circle at 100% 0%, rgba(198, 227, 248, 0.1), transparent 24%),
+        radial-gradient(circle at 0% 100%, rgba(111, 188, 214, 0.045), transparent 30%),
+        linear-gradient(155deg, rgba(255, 255, 255, 0.99) 0%, rgba(248, 251, 253, 0.975) 100%);
+      --ice-button-ghost-bg: #f3f9fc;
+      --ice-button-ghost-border: #c6dce7;
+      --ice-button-ghost-text: #204c61;
+      --ice-code-bg: rgba(15, 126, 168, 0.08);
+    }
+
+    /* Dark mode tokens — mirrors html.dark .explorer-page-shell--ice. */
+    html.dark {
+      --ice-ink: #ebf8ff;
+      --ice-text: #b7d6e6;
+      --ice-muted: #88aabf;
+      --ice-border: rgba(111, 166, 196, 0.28);
+      --ice-panel: rgba(6, 16, 24, 0.9);
+      --ice-card-border: rgba(112, 168, 197, 0.24);
+      --ice-card-border-hover: rgba(146, 215, 241, 0.44);
+      --ice-card-shadow-strong:
+        inset 0 1px 0 rgba(223, 248, 255, 0.08),
+        0 22px 40px rgba(2, 8, 13, 0.42);
+      --ice-panel-hero:
+        radial-gradient(circle at 12% 18%, rgba(53, 169, 219, 0.34), transparent 30%),
+        radial-gradient(circle at 92% 86%, rgba(28, 138, 122, 0.24), transparent 28%),
+        linear-gradient(
+          160deg,
+          rgba(6, 18, 27, 0.98) 0%,
+          rgba(8, 23, 33, 0.96) 54%,
+          rgba(8, 19, 28, 0.98) 100%
+        );
+      --ice-panel-card-frost:
+        radial-gradient(circle at 100% 0%, rgba(99, 180, 222, 0.18), transparent 24%),
+        radial-gradient(circle at 0% 100%, rgba(51, 138, 180, 0.12), transparent 30%),
+        linear-gradient(
+          155deg,
+          rgba(7, 19, 29, 0.98) 0%,
+          rgba(8, 21, 30, 0.96) 100%
+        );
+      --ice-button-ghost-bg: rgba(8, 20, 29, 0.92);
+      --ice-button-ghost-border: rgba(121, 186, 214, 0.24);
+      --ice-button-ghost-text: #c6e7f8;
+      --ice-code-bg: rgba(91, 178, 223, 0.16);
+      color-scheme: dark;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "inter var", ui-sans-serif, system-ui, -apple-system,
+        BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+        "PingFang SC", "Microsoft YaHei", "Noto Sans", sans-serif;
+      background: var(--ice-panel-hero);
+      color: var(--ice-text);
+      padding: 2rem;
+      box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .card {
+      max-width: 560px;
+      width: 100%;
+      text-align: center;
+      padding: clamp(2rem, 4vw, 3rem) clamp(1.5rem, 3vw, 2.5rem);
+      border-radius: 20px;
+      background: var(--ice-panel-card-frost);
+      border: 1px solid var(--ice-card-border);
+      box-shadow: var(--ice-card-shadow-strong);
+      backdrop-filter: blur(8px);
+    }
+
+    .kicker {
+      margin: 0 0 0.65rem;
+      color: var(--ice-accent);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .code {
+      font-size: clamp(4.5rem, 10vw, 6rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      margin: 0;
+      line-height: 0.98;
+      background: linear-gradient(135deg, var(--ice-accent) 0%, var(--ice-accent-2) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    h1 {
+      font-size: clamp(1.4rem, 2.4vw, 1.75rem);
+      margin: 1rem 0 0.75rem;
+      color: var(--ice-ink);
+      letter-spacing: -0.01em;
+    }
+    .lede {
+      margin: 0.5rem 0 1.75rem;
+      color: var(--ice-muted);
+      line-height: 1.6;
+      font-size: 1rem;
+    }
+    .path {
+      display: inline-block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      vertical-align: bottom;
+      padding: 0.15em 0.55em;
+      border-radius: 6px;
+      background: var(--ice-code-bg);
+      font-family: ui-monospace, SFMono-Regular, "IBM Plex Mono", Menlo, Monaco,
+        Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.92em;
+      color: var(--ice-accent);
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0.82rem 1.3rem;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: transform 180ms ease, box-shadow 180ms ease,
+        border-color 180ms ease, background 180ms ease, color 180ms ease;
+    }
+    .btn:hover,
+    .btn:focus-visible {
+      transform: translateY(-1px);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--ice-accent) 0%, var(--ice-accent-2) 100%);
+      color: #f7fdff;
+      box-shadow: 0 16px 28px rgba(16, 104, 139, 0.24);
+    }
+    .btn-primary:hover,
+    .btn-primary:focus-visible {
+      box-shadow: 0 20px 34px rgba(16, 104, 139, 0.32);
+    }
+    .btn-ghost {
+      background: var(--ice-button-ghost-bg);
+      border-color: var(--ice-button-ghost-border);
+      color: var(--ice-button-ghost-text);
+    }
+    .btn-ghost:hover,
+    .btn-ghost:focus-visible {
+      border-color: var(--ice-card-border-hover);
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <p class="kicker" data-i18n="kicker">3D ICE</p>
+    <p class="code">404</p>
+    <h1 data-i18n="title">Page not found</h1>
+    <p class="lede">
+      <span data-i18n="body">We couldn't find</span>
+      <code class="path" id="requested-path">/</code>
+      <span data-i18n="trailing">on 3D ICE.</span>
+    </p>
+    <div class="actions">
+      <a class="btn btn-primary" id="home-link" href="/" data-i18n="home"
+        >Back to 3D ICE home</a
+      >
+      <a
+        class="btn btn-ghost"
+        id="explorer-link"
+        href="/tools/3D-interactive-cryosphere-explorer.html"
+        data-i18n="explorer"
+        >Open the explorer</a
+      >
+    </div>
+  </main>
+  <script>
+    (function () {
+      // Show the requested path so the user sees what was missing.
+      var pathEl = document.getElementById("requested-path");
+      if (pathEl) {
+        pathEl.textContent =
+          (window.location.pathname || "/") + (window.location.search || "");
+      }
+      // Light-touch bilingual switch: if the browser prefers Chinese,
+      // swap visible strings and point CTAs at /zh/.
+      var lang = (navigator.language || navigator.userLanguage || "").toLowerCase();
+      if (lang.indexOf("zh") === 0) {
+        document.documentElement.lang = "zh-CN";
+        document.title = "404 · 页面未找到 — 3D ICE";
+        var zh = {
+          kicker: "3D ICE",
+          title: "页面未找到",
+          body: "我们在 3D ICE 上没有找到",
+          trailing: "。",
+          home: "返回 3D ICE 首页",
+          explorer: "打开交互探索器"
+        };
+        Object.keys(zh).forEach(function (key) {
+          var el = document.querySelector('[data-i18n="' + key + '"]');
+          if (el) el.textContent = zh[key];
+        });
+        var homeLink = document.getElementById("home-link");
+        if (homeLink) homeLink.setAttribute("href", "/zh/");
+        var explorerLink = document.getElementById("explorer-link");
+        if (explorerLink) {
+          explorerLink.setAttribute(
+            "href",
+            "/zh/tools/3D-interactive-cryosphere-explorer.html"
+          );
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
