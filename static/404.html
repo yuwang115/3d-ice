@@ -277,15 +277,17 @@
   <script>
     (function () {
       // Show the requested path so the user sees what was missing.
+      var currentPath = window.location.pathname || "/";
       var pathEl = document.getElementById("requested-path");
       if (pathEl) {
-        pathEl.textContent =
-          (window.location.pathname || "/") + (window.location.search || "");
+        pathEl.textContent = currentPath + (window.location.search || "");
       }
-      // Light-touch bilingual switch: if the browser prefers Chinese,
-      // swap visible strings and point CTAs at /zh/.
-      var lang = (navigator.language || navigator.userLanguage || "").toLowerCase();
-      if (lang.indexOf("zh") === 0) {
+      // Path-based bilingual switch: render Chinese only when the 404
+      // happened inside the /zh/ section. Default is English for
+      // everyone else, even if the browser locale is Chinese — this
+      // matches how the rest of the site picks a language (via URL,
+      // not navigator.language).
+      if (currentPath.indexOf("/zh/") === 0) {
         document.documentElement.lang = "zh-CN";
         document.title = "404 · 页面未找到 — 3D ICE";
         var zh = {
