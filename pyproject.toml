@@ -1,0 +1,27 @@
+[project]
+name = "3d-ice"
+version = "0.1.2"
+description = "Interactive 3D Cryosphere Explorer for Antarctica and Greenland"
+license = "MIT"
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+]
+e2e = [
+    "playwright>=1.40",
+    "pytest-playwright>=0.5",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "unit: Unit tests for pure functions",
+    "integration: Integration tests requiring data files",
+    "e2e: End-to-end browser tests",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]

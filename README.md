@@ -9,6 +9,11 @@
 <h1 align="center">3D ICE</h1>
 
 <p align="center">
+  <a href="https://github.com/yuwang115/3d-ice/actions/workflows/ci.yml"><img src="https://github.com/yuwang115/3d-ice/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
+</p>
+
+<p align="center">
   <strong>Interactive 3D Cryosphere Explorer for Antarctica and Greenland</strong>
 </p>
 
@@ -161,6 +166,69 @@ The release workflow uploads and optionally publishes:
 - `dist/3d-ice-compat.tar.gz`
 - `dist/3d-ice-compat.tar.gz.sha256`
 - `dist/3d-ice-compat-manifest.json`
+
+## Installation
+
+### Browser Runtime (no install needed)
+
+Visit the [live explorer](https://3d-ice.com/tools/3D-interactive-cryosphere-explorer.html) in any WebGL-capable browser, or serve locally:
+
+```bash
+cd static
+python3 -m http.server 4173
+# open http://127.0.0.1:4173/tools/3D-interactive-cryosphere-explorer.html
+```
+
+### Data Preparation Pipeline
+
+To regenerate datasets from source NetCDF/HDF5 files:
+
+```bash
+# Python 3.10+ required
+pip install h5py numpy scipy netCDF4
+
+# Example: prepare BedMachine Antarctica
+python scripts/prepare_bedmachine_antarctica.py --input BedMachineAntarctica_V4.nc
+```
+
+### Running Tests
+
+```bash
+# Create a virtual environment
+python3 -m venv .venv && source .venv/bin/activate
+
+# Install test dependencies
+pip install pytest pytest-cov h5py numpy
+
+# Run unit tests
+pytest tests/ --ignore=tests/e2e -v
+
+# Run bundle smoke test (requires Node.js 20+)
+npm run bundle:compat && npm run smoke:compat
+```
+
+## Citation
+
+If you use 3D ICE in your research or teaching, please cite:
+
+```bibtex
+@article{wang2026,
+  author  = {Wang, Yu},
+  title   = {3D ICE: An Interactive Browser-Based Cryosphere Explorer for Antarctica and Greenland},
+  journal = {Journal of Open Source Software},
+  year    = {2026}
+}
+```
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
 
 ## Project Scope
 

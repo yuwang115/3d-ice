@@ -2,6 +2,7 @@
   "name": "3d-ice",
   "private": true,
   "version": "0.1.2",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "bundle:compat": "node scripts/build_compat_bundle.mjs",

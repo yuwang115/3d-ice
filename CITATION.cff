@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+title: "3D ICE: Interactive 3D Cryosphere Explorer for Antarctica and Greenland"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - given-names: Yu
+    family-names: Wang
+    email: yu.wang0@utas.edu.au
+    affiliation: "Institute for Marine and Antarctic Studies, University of Tasmania"
+    orcid: "https://orcid.org/0009-0003-2644-4February"
+repository-code: "https://github.com/yuwang115/3d-ice"
+url: "https://yuwang.blog/tools/3D-interactive-cryosphere-explorer.html"
+license: MIT
+version: 0.1.2
+date-released: "2026-04-15"
+keywords:
+  - cryosphere
+  - Antarctica
+  - Greenland
+  - ice sheet
+  - WebGL
+  - visualization
+  - glaciology
+  - scientific communication
