@@ -55,12 +55,20 @@
         datasets: {
           antarctica: {
             balanced: {
-              label: "Balanced",
+              label: "BedMachine v4 — Balanced",
               summary: "10 km grid; ~3.0 MB",
             },
             hd: {
-              label: "HD",
+              label: "BedMachine v4 — HD",
               summary: "4 km grid; ~18.6 MB",
+            },
+            bedmap3: {
+              label: "Bedmap3 — Balanced",
+              summary: "10 km grid; ~3.0 MB",
+            },
+            "bedmap3-hd": {
+              label: "Bedmap3 — HD",
+              summary: "4 km grid; ~18.6 MB, desktop recommended",
             },
           },
           greenland: {
@@ -71,6 +79,14 @@
             "1km": {
               label: "HD",
               summary: "1 km grid; ~28.2 MB",
+            },
+            qrf: {
+              label: "QRF 2025 — Balanced",
+              summary: "3 km grid; ~3.1 MB",
+            },
+            "qrf-hd": {
+              label: "QRF 2025 — HD",
+              summary: "1 km grid; ~28.2 MB, desktop recommended",
             },
           },
         },
@@ -336,11 +352,19 @@
         datasets: {
           antarctica: {
             balanced: {
-              label: "标准",
+              label: "BedMachine v4 — 标准",
               summary: "10 km 网格；约 3.0 MB",
             },
             hd: {
-              label: "高清",
+              label: "BedMachine v4 — 高清",
+              summary: "4 km 网格；约 18.6 MB，推荐桌面端",
+            },
+            bedmap3: {
+              label: "Bedmap3 — 标准",
+              summary: "10 km 网格；约 3.0 MB",
+            },
+            "bedmap3-hd": {
+              label: "Bedmap3 — 高清",
               summary: "4 km 网格；约 18.6 MB，推荐桌面端",
             },
           },
@@ -352,6 +376,14 @@
             "1km": {
               label: "高清",
               summary: "1 km 网格；约 28.2 MB",
+            },
+            qrf: {
+              label: "QRF 2025 — 标准",
+              summary: "3 km 网格；约 3.1 MB",
+            },
+            "qrf-hd": {
+              label: "QRF 2025 — 高清",
+              summary: "1 km 网格；约 28.2 MB，推荐桌面端",
             },
           },
         },

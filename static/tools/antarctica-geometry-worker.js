@@ -30,6 +30,12 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
+function gridsMatch(left, right) {
+  return ["nx", "ny", "x0_m", "y0_m", "dx_m", "dy_m"].every(
+    (key) => Number(left?.[key]) === Number(right?.[key])
+  );
+}
+
 function lerp(a, b, t) {
   return a + (b - a) * t;
 }
@@ -709,6 +715,7 @@ function buildVelocityTask(id, payload) {
     iceValid,
     nx,
     ny,
+    grid,
     cellCount,
     baseConfig,
     meshStride,
@@ -721,8 +728,8 @@ function buildVelocityTask(id, payload) {
   postProgress(id, reportProgress, 0.02, "velocityDecodingField", "Decoding velocity field...");
   const velocityXInt = parseField(velocityMeta, velocityBuffer, "vx");
   const velocityYInt = parseField(velocityMeta, velocityBuffer, "vy");
-  if (velocityMeta.grid.nx !== nx || velocityMeta.grid.ny !== ny) {
-    throw new Error("Velocity grid is not aligned to BedMachine grid.");
+  if (!gridsMatch(velocityMeta.grid, grid)) {
+    throw new Error("Velocity grid is not aligned to the active terrain grid.");
   }
   if (velocityXInt.length !== cellCount || velocityYInt.length !== cellCount) {
     throw new Error("Velocity field length mismatch.");
@@ -800,6 +807,7 @@ function buildHydrologyTask(id, payload) {
     hydrologyBuffer,
     nx,
     ny,
+    grid,
     cellCount,
     baseConfig,
     bedHeights,
@@ -818,8 +826,8 @@ function buildHydrologyTask(id, payload) {
     SUBGLACIAL_CHANNEL_SURFACE_OFFSET_M + (safeStride - 1) * 76
   );
 
-  if (hydrologyMeta.grid.nx !== nx || hydrologyMeta.grid.ny !== ny) {
-    throw new Error("Hydrology grid is not aligned to BedMachine grid.");
+  if (!gridsMatch(hydrologyMeta.grid, grid)) {
+    throw new Error("Hydrology grid is not aligned to the active terrain grid.");
   }
 
   postProgress(id, reportProgress, 0.04, "hydrologyProcessingField", "Processing hydrology field...");
@@ -989,6 +997,7 @@ function buildBasalFrictionTask(id, payload) {
     basalFrictionBuffer,
     nx,
     ny,
+    grid,
     cellCount,
     baseConfig,
     bedHeights,
@@ -1001,8 +1010,8 @@ function buildBasalFrictionTask(id, payload) {
   const basalFrictionSurfaceOffsetMeters =
     BASAL_FRICTION_SURFACE_OFFSET_M + (safeStride - 1) * 64;
 
-  if (basalFrictionMeta.grid.nx !== nx || basalFrictionMeta.grid.ny !== ny) {
-    throw new Error("Basal-friction grid is not aligned to BedMachine grid.");
+  if (!gridsMatch(basalFrictionMeta.grid, grid)) {
+    throw new Error("Basal-friction grid is not aligned to the active terrain grid.");
   }
 
   postProgress(id, reportProgress, 0.04, "basalFrictionProcessingField", "Processing basal friction field...");

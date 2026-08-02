@@ -42,8 +42,8 @@ class TestExplorerLoads:
         context.close()
 
     def test_canvas_exists(self, page):
-        canvas = page.query_selector("canvas")
-        assert canvas is not None, "WebGL canvas not found"
+        canvas = page.locator("#viewer canvas")
+        canvas.wait_for(state="visible", timeout=30_000)
         box = canvas.bounding_box()
         assert box is not None
         assert box["width"] > 0
@@ -52,6 +52,136 @@ class TestExplorerLoads:
     def test_title_is_set(self, page):
         title = page.title()
         assert "3D" in title or "ICE" in title or "Cryosphere" in title
+
+    def test_can_switch_to_the_bedmap3_terrain_package(self, page):
+        page.select_option("#resolutionPreset", "bedmap3")
+        page.wait_for_function(
+            """() => {
+                const state = JSON.parse(window.render_game_to_text());
+                return state.ready && state.dataset === 'bedmap3';
+            }""",
+            timeout=30_000,
+        )
+
+        state = page.evaluate("JSON.parse(window.render_game_to_text())")
+        assert state["grid"]["nx"] == 667
+        assert state["grid"]["ny"] == 667
+        assert state["grid"]["dx_m"] == 10_000
+        assert state["grid"]["dy_m"] == -10_000
+        for control in (
+            "#showVelocity",
+            "#showFlowline",
+            "#showBasalFriction",
+            "#showEffectivePressure",
+            "#showSubglacialChannels",
+            "#showOceanCurrents",
+        ):
+            assert not page.locator(control).is_disabled(), control
+        assert "Bedmap3" in (page.text_content("#metaList") or "")
+
+    def test_can_switch_to_the_bedmap3_hd_terrain_package(self, page):
+        page.select_option("#resolutionPreset", "bedmap3-hd")
+        page.wait_for_function(
+            """() => {
+                const state = JSON.parse(window.render_game_to_text());
+                return state.ready && state.dataset === 'bedmap3-hd';
+            }""",
+            timeout=30_000,
+        )
+
+        state = page.evaluate("JSON.parse(window.render_game_to_text())")
+        assert state["grid"]["nx"] == 1667
+        assert state["grid"]["ny"] == 1667
+        assert state["grid"]["dx_m"] == 4000
+        assert state["grid"]["dy_m"] == -4000
+        for control in (
+            "#showVelocity",
+            "#showFlowline",
+            "#showBasalFriction",
+            "#showEffectivePressure",
+            "#showSubglacialChannels",
+            "#showOceanCurrents",
+        ):
+            assert not page.locator(control).is_disabled(), control
+
+    def test_bedmap3_balanced_loads_each_enabled_overlay(self, page):
+        page.select_option("#resolutionPreset", "bedmap3")
+        page.wait_for_function(
+            """() => {
+                const state = JSON.parse(window.render_game_to_text());
+                return state.ready && state.dataset === 'bedmap3';
+            }""",
+            timeout=30_000,
+        )
+
+        for control, mesh in (
+            ("#showVelocity", "velocity"),
+            ("#showFlowline", "flowline"),
+            ("#showBasalFriction", "basalFriction"),
+            ("#showEffectivePressure", "hydrology"),
+            ("#showSubglacialChannels", "hydrology"),
+            ("#showOceanCurrents", "oceanCurrents"),
+        ):
+            page.locator(control).check()
+            page.wait_for_function(
+                f"""() => {{
+                    const state = JSON.parse(window.render_game_to_text());
+                    return state.ready && state.meshes.{mesh};
+                }}""",
+                timeout=90_000,
+            )
+
+    @pytest.mark.parametrize(
+        ("dataset", "nx", "ny", "spacing"),
+        (("qrf", 511, 918, 3000), ("qrf-hd", 1533, 2752, 1000)),
+    )
+    def test_can_switch_to_the_qrf_greenland_terrain_package(self, page, dataset, nx, ny, spacing):
+        page.select_option("#regionPreset", "greenland")
+        page.select_option("#resolutionPreset", dataset)
+        timeout = 90_000 if dataset == "qrf-hd" else 30_000
+        page.wait_for_function(
+            f"""() => {{
+                const state = JSON.parse(window.render_game_to_text());
+                return state.ready && state.region === 'greenland' && state.dataset === '{dataset}';
+            }}""",
+            timeout=timeout,
+        )
+
+        state = page.evaluate("JSON.parse(window.render_game_to_text())")
+        assert state["grid"]["nx"] == nx
+        assert state["grid"]["ny"] == ny
+        assert state["grid"]["dx_m"] == spacing
+        assert state["grid"]["dy_m"] == -spacing
+        meta_text = page.text_content("#metaList") or ""
+        assert "QRF 2025" in meta_text
+        assert "QRF bed for" in meta_text
+
+    def test_qrf_balanced_loads_the_reused_greenland_overlays(self, page):
+        page.select_option("#regionPreset", "greenland")
+        page.select_option("#resolutionPreset", "qrf")
+        page.wait_for_function(
+            """() => {
+                const state = JSON.parse(window.render_game_to_text());
+                return state.ready && state.region === 'greenland' && state.dataset === 'qrf';
+            }""",
+            timeout=30_000,
+        )
+
+        for control, mesh in (
+            ("#showVelocity", "velocity"),
+            ("#showFlowline", "flowline"),
+            ("#showBasalFriction", "basalFriction"),
+            ("#showOceanCurrents", "oceanCurrents"),
+        ):
+            assert not page.locator(control).is_disabled(), control
+            page.locator(control).check()
+            page.wait_for_function(
+                f"""() => {{
+                    const state = JSON.parse(window.render_game_to_text());
+                    return state.ready && state.meshes.{mesh};
+                }}""",
+                timeout=90_000,
+            )
 
 
 class TestHomePage:

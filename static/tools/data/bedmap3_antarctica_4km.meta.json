@@ -1,0 +1,84 @@
+{
+  "title": "Bedmap3 Antarctica",
+  "product_version": "v1.0",
+  "reference": "Pritchard, H.D. et al. (2025) Bedmap3 updated ice bed, surface and thickness gridded datasets for Antarctica. Scientific Data 12, 414. https://doi.org/10.1038/s41597-025-04672-y. Data: https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2",
+  "license": "CC-BY-4.0",
+  "source_files": [
+    "bm3_bed.tif",
+    "bm3_surface.tif",
+    "bm3_thickness.tif",
+    "bm3_masks.tif"
+  ],
+  "source_projection": "EPSG:3031 (WGS 1984 Antarctic Polar Stereographic)",
+  "source_grid": {
+    "nx": 13334,
+    "ny": 13334,
+    "x0_m": -3333250,
+    "y0_m": 3333250,
+    "dx_m": 500,
+    "dy_m": -500
+  },
+  "downsample_resolution_m": 4000,
+  "grid": {
+    "nx": 1667,
+    "ny": 1667,
+    "x0_m": -3333250,
+    "y0_m": 3333250,
+    "dx_m": 4000,
+    "dy_m": -4000
+  },
+  "quantization": {
+    "float_fill_value": -9999,
+    "int16_fill_value": -32768,
+    "unit": "m",
+    "scale": 1.0,
+    "offset": 0.0
+  },
+  "fields": [
+    {
+      "name": "bed",
+      "dtype": "int16",
+      "byte_offset": 0,
+      "byte_length": 5557778,
+      "stats_m": {
+        "min": -7243.0,
+        "max": 4330.0,
+        "mean": -2143.519568013804
+      }
+    },
+    {
+      "name": "surface",
+      "dtype": "int16",
+      "byte_offset": 5557778,
+      "byte_length": 5557778,
+      "stats_m": {
+        "min": 1.0,
+        "max": 4545.0,
+        "mean": 1962.4766755654648
+      }
+    },
+    {
+      "name": "thickness",
+      "dtype": "int16",
+      "byte_offset": 11115556,
+      "byte_length": 5557778,
+      "stats_m": {
+        "min": 0.0,
+        "max": 4722.0,
+        "mean": 1943.3552228122157
+      }
+    },
+    {
+      "name": "mask",
+      "dtype": "uint8",
+      "byte_offset": 16673334,
+      "byte_length": 2778889,
+      "flags": {
+        "0": "ocean_or_no_data",
+        "1": "ice_free_land_or_rock",
+        "2": "grounded_ice",
+        "3": "floating_ice_or_transiently_grounded_ice"
+      }
+    }
+  ]
+}

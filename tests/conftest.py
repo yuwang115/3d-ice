@@ -41,6 +41,21 @@ def bedmachine_greenland_module():
 
 
 @pytest.fixture(scope="session")
+def bedmap3_antarctica_module():
+    return _load_script_module("prepare_bedmap3_antarctica.py")
+
+
+@pytest.fixture(scope="session")
+def bedmap3_overlays_module():
+    return _load_script_module("prepare_bedmap3_antarctica_overlays.py")
+
+
+@pytest.fixture(scope="session")
+def qrf_greenland_module():
+    return _load_script_module("prepare_qrf_greenland.py")
+
+
+@pytest.fixture(scope="session")
 def velocity_module():
     pytest.importorskip("netCDF4", reason="netCDF4 not installed")
     return _load_script_module("prepare_antarctica_velocity.py")

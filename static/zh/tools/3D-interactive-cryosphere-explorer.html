@@ -1536,10 +1536,12 @@
           </select>
         </div>
         <div class="control">
-          <label for="resolutionPreset">分辨率预设</label>
+          <label for="resolutionPreset">数据集与分辨率</label>
           <select id="resolutionPreset">
-            <option value="balanced" selected>标准（10 km，约 3.0 MB）</option>
-            <option value="hd">高清（4 km，约 18.6 MB，推荐桌面端）</option>
+            <option value="balanced" selected>BedMachine v4 — 标准（10 km，约 3.0 MB）</option>
+            <option value="hd">BedMachine v4 — 高清（4 km，约 18.6 MB，推荐桌面端）</option>
+            <option value="bedmap3">Bedmap3 — 标准（10 km，约 3.0 MB）</option>
+            <option value="bedmap3-hd">Bedmap3 — 高清（4 km，约 18.6 MB，推荐桌面端）</option>
           </select>
         </div>
         <div class="control">
@@ -1917,7 +1919,7 @@
         datasets: {
           balanced: {
             id: "balanced",
-            label: "Balanced",
+            label: "BedMachine v4 — Balanced",
             summary: "10 km grid; ~3.0 MB",
             metaUrl: assetUrl("data/bedmachine_antarctica_v4_480.meta.json"),
             binUrl: assetUrl("data/bedmachine_antarctica_v4_480.bin"),
@@ -1934,7 +1936,7 @@
           },
           hd: {
             id: "hd",
-            label: "HD",
+            label: "BedMachine v4 — HD",
             summary: "4 km grid; ~18.6 MB",
             metaUrl: assetUrl("data/bedmachine_antarctica_v4_741.meta.json"),
             binUrl: assetUrl("data/bedmachine_antarctica_v4_741.bin"),
@@ -1948,6 +1950,68 @@
             oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20260312-waom2-combined-v3"),
             hydrologyMetaUrl: assetUrl("data/antarctica_subglacial_hydrology_741.meta.json"),
             hydrologyBinUrl: assetUrl("data/antarctica_subglacial_hydrology_741.bin"),
+          },
+          bedmap3: {
+            id: "bedmap3",
+            label: "Bedmap3 — Balanced",
+            summary: "10 km grid; ~3.0 MB",
+            metaUrl: assetUrl("data/bedmap3_antarctica_10km.meta.json"),
+            binUrl: assetUrl("data/bedmap3_antarctica_10km.bin"),
+            velocityMetaUrl: assetUrl("data/bedmap3_antarctica_velocity_10km.meta.json"),
+            velocityBinUrl: assetUrl("data/bedmap3_antarctica_velocity_10km.bin"),
+            basalFrictionMetaUrl: assetUrl("data/bedmap3_antarctica_basal_friction_10km.meta.json"),
+            basalFrictionBinUrl: assetUrl("data/bedmap3_antarctica_basal_friction_10km.bin"),
+            oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20260312-waom2-combined-v3"),
+            oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20260312-waom2-combined-v3"),
+            hydrologyMetaUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_10km.meta.json"),
+            hydrologyBinUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_10km.bin"),
+            capabilities: {
+              velocity: true,
+              basalFriction: true,
+              flowline: true,
+              rise: false,
+              oceanCurrents: true,
+              refinedBasins: true,
+              hydrology: true,
+            },
+            sources: {
+              geometry: {
+                text: "Bedmap3 Antarctica, Version 1.0",
+                url: "https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2",
+              },
+            },
+            disableBackgroundWarmup: true,
+          },
+          "bedmap3-hd": {
+            id: "bedmap3-hd",
+            label: "Bedmap3 — HD",
+            summary: "4 km grid; ~18.6 MB, desktop recommended",
+            metaUrl: assetUrl("data/bedmap3_antarctica_4km.meta.json"),
+            binUrl: assetUrl("data/bedmap3_antarctica_4km.bin"),
+            velocityMetaUrl: assetUrl("data/bedmap3_antarctica_velocity_4km.meta.json"),
+            velocityBinUrl: assetUrl("data/bedmap3_antarctica_velocity_4km.bin"),
+            basalFrictionMetaUrl: assetUrl("data/bedmap3_antarctica_basal_friction_4km.meta.json"),
+            basalFrictionBinUrl: assetUrl("data/bedmap3_antarctica_basal_friction_4km.bin"),
+            oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20260312-waom2-combined-v3"),
+            oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20260312-waom2-combined-v3"),
+            hydrologyMetaUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_4km.meta.json"),
+            hydrologyBinUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_4km.bin"),
+            capabilities: {
+              velocity: true,
+              basalFriction: true,
+              flowline: true,
+              rise: false,
+              oceanCurrents: true,
+              refinedBasins: true,
+              hydrology: true,
+            },
+            sources: {
+              geometry: {
+                text: "Bedmap3 Antarctica, Version 1.0",
+                url: "https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2",
+              },
+            },
+            disableBackgroundWarmup: true,
           },
         },
       },
@@ -2017,6 +2081,47 @@
             velocityMeshStride: 3,
             disableBackgroundWarmup: true,
           },
+          qrf: {
+            id: "qrf",
+            label: "QRF 2025 — Balanced",
+            summary: "3 km grid; ~3.1 MB",
+            metaUrl: assetUrl("data/greenland_qrf_2025_3km.meta.json"),
+            binUrl: assetUrl("data/greenland_qrf_2025_3km.bin"),
+            velocityMetaUrl: assetUrl("data/greenland_ice_velocity_3km.meta.json"),
+            velocityBinUrl: assetUrl("data/greenland_ice_velocity_3km.bin"),
+            basalFrictionMetaUrl: assetUrl("data/greenland_basal_friction_3km.meta.json?v=20260314-taub-v1"),
+            basalFrictionBinUrl: assetUrl("data/greenland_basal_friction_3km.bin?v=20260314-taub-v1"),
+            oceanCurrentsMetaUrl: assetUrl("data/greenland_ocean_currents_cmems_202508.meta.json?v=20260312-greenland-layered-v1"),
+            oceanCurrentsBinUrl: assetUrl("data/greenland_ocean_currents_cmems_202508.bin?v=20260312-greenland-layered-v1"),
+            sources: {
+              geometry: {
+                text: "Palmer et al. (2025) Quantile Regression Forest Greenland Subglacial Topography",
+                url: "https://doi.org/10.1017/jog.2025.10071",
+              },
+            },
+            disableBackgroundWarmup: true,
+          },
+          "qrf-hd": {
+            id: "qrf-hd",
+            label: "QRF 2025 — HD",
+            summary: "1 km grid; ~28.2 MB, desktop recommended",
+            metaUrl: assetUrl("data/greenland_qrf_2025_1km.meta.json"),
+            binUrl: assetUrl("data/greenland_qrf_2025_1km.bin"),
+            velocityMetaUrl: assetUrl("data/greenland_ice_velocity_1km.meta.json"),
+            velocityBinUrl: assetUrl("data/greenland_ice_velocity_1km.bin"),
+            basalFrictionMetaUrl: assetUrl("data/greenland_basal_friction_1km.meta.json?v=20260314-taub-v1"),
+            basalFrictionBinUrl: assetUrl("data/greenland_basal_friction_1km.bin?v=20260314-taub-v1"),
+            oceanCurrentsMetaUrl: assetUrl("data/greenland_ocean_currents_cmems_202508.meta.json?v=20260312-greenland-layered-v1"),
+            oceanCurrentsBinUrl: assetUrl("data/greenland_ocean_currents_cmems_202508.bin?v=20260312-greenland-layered-v1"),
+            sources: {
+              geometry: {
+                text: "Palmer et al. (2025) Quantile Regression Forest Greenland Subglacial Topography",
+                url: "https://doi.org/10.1017/jog.2025.10071",
+              },
+            },
+            velocityMeshStride: 3,
+            disableBackgroundWarmup: true,
+          },
         },
       },
     };
@@ -2063,8 +2168,8 @@
         ...dataset,
         regionKey: region.key,
         regionLabel: region.label,
-        capabilities: region.capabilities,
-        sources: region.sources,
+        capabilities: { ...region.capabilities, ...(dataset.capabilities || {}) },
+        sources: { ...region.sources, ...(dataset.sources || {}) },
         refinedBasinsUrl: dataset.refinedBasinsUrl || region.refinedBasinsUrl || null,
         basinToggleLabel: dataset.basinToggleLabel || region.basinToggleLabel || t("explorer.regions.antarctica.basinToggleLabel"),
         basinStatusLabel: dataset.basinStatusLabel || region.basinStatusLabel || t("explorer.regions.antarctica.basinStatusLabel"),
@@ -2783,9 +2888,9 @@
 
     function updateRegionLayerAvailability(regionKey) {
       const region = getRegionConfig(regionKey);
-      const capabilities = region.capabilities;
       const datasetKey = datasetSelectionByRegion[region.key] || getDefaultDatasetKey(region.key);
       const dataset = getDatasetConfig(region.key, datasetKey);
+      const capabilities = dataset?.capabilities || region.capabilities;
       const basinAvailable = Boolean(
         !isShowcaseMode && capabilities.refinedBasins && dataset?.refinedBasinsUrl && !getDatasetBasinUnavailable(dataset)
       );
@@ -8359,6 +8464,16 @@
         : isChineseLocale
         ? "模式场"
         : "model field";
+      const qrfCoverageFraction = Number(meta.qrf_coverage?.applied_grounded_ice_fraction);
+      const qrfHybridSummary = meta.hybridization
+        ? isChineseLocale
+          ? `QRF 床面用于 ${
+              Number.isFinite(qrfCoverageFraction) ? fmtShort(qrfCoverageFraction * 100, 1) : "n/a"
+            }% 的接地冰；冰面和掩膜采用 BedMachine Greenland v6，浮冰、非冰区和 QRF 空缺区保留其床面和厚度。`
+          : `QRF bed for ${
+              Number.isFinite(qrfCoverageFraction) ? fmtShort(qrfCoverageFraction * 100, 1) : "n/a"
+            }% of grounded ice; BedMachine Greenland v6 supplies surface and mask, with its bed and thickness retained over floating ice, non-ice, and QRF gaps.`
+        : "";
       const oceanCurrentSummary = !oceanCurrentMeta
         ? availableOnDemandText
         : oceanCurrentSeedStrategy === "merged_streamline_sets" &&
@@ -8404,6 +8519,11 @@
         `<li><strong>${t("explorer.meta.meanIceThickness")}:</strong> ${
           Number.isFinite(thickStats.mean) ? `${fmtInt(thickStats.mean)} m` : notApplicableText
         }</li>`,
+        ...(qrfHybridSummary
+          ? [
+              `<li><strong>${isChineseLocale ? "地形组成" : "Terrain composition"}:</strong> ${qrfHybridSummary}</li>`,
+            ]
+          : []),
       ];
 
       const velocityItems = capabilities.velocity
@@ -9056,12 +9176,18 @@
       if (Number.isFinite(datasetStride) && datasetStride > 0) {
         return Math.max(1, Math.round(datasetStride));
       }
-      return context.dataset.id === "hd" ? HD_VELOCITY_MESH_STRIDE : 1;
+      return context.dataset.id === "hd" || context.dataset.id === "bedmap3-hd" ? HD_VELOCITY_MESH_STRIDE : 1;
     }
 
     function getHydrologyLayerMeshStride(context) {
       if (!context?.dataset) return 1;
-      return context.dataset.id === "hd" ? HD_HYDROLOGY_MESH_STRIDE : 1;
+      return context.dataset.id === "hd" || context.dataset.id === "bedmap3-hd" ? HD_HYDROLOGY_MESH_STRIDE : 1;
+    }
+
+    function gridsMatch(left, right) {
+      return ["nx", "ny", "x0_m", "y0_m", "dx_m", "dy_m"].every(
+        (key) => Number(left?.[key]) === Number(right?.[key])
+      );
     }
 
     function getBasalFrictionLayerMeshStride(context) {
@@ -9074,8 +9200,8 @@
       velocityBuffer,
       { showOverlay = false, updateStatus = true } = {}
     ) {
-      if (velocityMeta.grid.nx !== context.nx || velocityMeta.grid.ny !== context.ny) {
-        throw new Error("Velocity grid is not aligned to BedMachine grid.");
+      if (!gridsMatch(velocityMeta.grid, context.meta.grid)) {
+        throw new Error("Velocity grid is not aligned to the active terrain grid.");
       }
       if (!(velocityBuffer instanceof ArrayBuffer)) {
         throw new Error("Velocity payload is invalid.");
@@ -9094,6 +9220,7 @@
           iceValid: context.iceValid,
           nx: context.nx,
           ny: context.ny,
+          grid: context.meta.grid,
           cellCount: context.cellCount,
           baseConfig: context.baseConfig,
           meshStride: getVelocityLayerMeshStride(context),
@@ -9264,8 +9391,8 @@
 
         context.basalFrictionPrefetchMeta = null;
         context.basalFrictionPrefetchBuffer = null;
-        if (basalFrictionMeta.grid.nx !== context.nx || basalFrictionMeta.grid.ny !== context.ny) {
-          throw new Error("Basal-friction grid is not aligned to BedMachine grid.");
+        if (!gridsMatch(basalFrictionMeta.grid, context.meta.grid)) {
+          throw new Error("Basal-friction grid is not aligned to the active terrain grid.");
         }
 
         if (showOverlay) {
@@ -9279,6 +9406,7 @@
             basalFrictionBuffer,
             nx: context.nx,
             ny: context.ny,
+            grid: context.meta.grid,
             cellCount: context.cellCount,
             baseConfig: context.baseConfig,
             bedHeights: context.bedHeights,
@@ -9888,8 +10016,8 @@
 
         context.hydrologyPrefetchMeta = null;
         context.hydrologyPrefetchBuffer = null;
-        if (hydrologyMeta.grid.nx !== context.nx || hydrologyMeta.grid.ny !== context.ny) {
-          throw new Error("Hydrology grid is not aligned to BedMachine grid.");
+        if (!gridsMatch(hydrologyMeta.grid, context.meta.grid)) {
+          throw new Error("Hydrology grid is not aligned to the active terrain grid.");
         }
 
         await ensureHydrologyColorTables();
@@ -9906,6 +10034,7 @@
             hydrologyBuffer,
             nx: context.nx,
             ny: context.ny,
+            grid: context.meta.grid,
             cellCount: context.cellCount,
             baseConfig: context.baseConfig,
             bedHeights: context.bedHeights,

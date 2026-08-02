@@ -35,8 +35,8 @@ Thank you for your interest in contributing to 3D ICE! This document provides gu
 # Serve the static site
 npx serve static
 
-# Run data preparation (requires source NetCDF files)
-pip install h5py numpy scipy netCDF4
+# Run data preparation (requires source NetCDF/HDF5 or GeoTIFF files)
+pip install h5py numpy scipy netCDF4 tifffile
 python scripts/prepare_bedmachine_antarctica.py
 ```
 

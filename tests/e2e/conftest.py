@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import socket
 import subprocess
 import time
 from pathlib import Path
@@ -9,21 +10,29 @@ from pathlib import Path
 import pytest
 
 STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
-SERVER_PORT = 8765
 
 
 @pytest.fixture(scope="session")
 def server():
     """Start a local HTTP server serving the static/ directory."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+        listener.bind(("127.0.0.1", 0))
+        port = listener.getsockname()[1]
     proc = subprocess.Popen(
-        ["python3", "-m", "http.server", str(SERVER_PORT), "--directory", str(STATIC_DIR)],
+        ["python3", "-m", "http.server", str(port), "--bind", "127.0.0.1", "--directory", str(STATIC_DIR)],
         stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        text=True,
     )
     time.sleep(1)  # give the server a moment to start
-    yield f"http://localhost:{SERVER_PORT}"
-    proc.terminate()
-    proc.wait(timeout=5)
+    if proc.poll() is not None:
+        _, stderr = proc.communicate()
+        raise RuntimeError(f"Could not start the local E2E server: {stderr.strip()}")
+    try:
+        yield f"http://127.0.0.1:{port}"
+    finally:
+        proc.terminate()
+        proc.wait(timeout=5)
 
 
 @pytest.fixture

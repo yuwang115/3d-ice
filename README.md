@@ -140,8 +140,12 @@ legacy `/tools/...` URLs unchanged.
 
 | Region | Layers in the experience | Representative source products |
 | --- | --- | --- |
-| Antarctica | Bed topography, surface elevation, thickness, mask, refined basins, velocity, basal friction, subglacial hydrology, ocean streamlines, basal melt, thermal driving | [BedMachine Antarctica v4](https://nsidc.org/data/NSIDC-0756/versions/4), [MEaSUREs Antarctic Boundaries v2](https://nsidc.org/data/NSIDC-0709/versions/2), [MEaSUREs Phase-Based Antarctica Velocity v1](https://nsidc.org/data/NSIDC-0754/versions/1), [Antarctic basal friction inversions](https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031), [GlaDS Antarctic subglacial hydrology](https://zenodo.org/records/12738170), [WAOM2](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full), [RISE](https://data.aad.gov.au/metadata/RISE) |
-| Greenland | Bed topography, surface elevation, thickness, mask, basin boundaries, velocity, basal friction, ocean streamlines | [BedMachine Greenland v6](https://nsidc.org/data/idbmg4/versions/6), [MEaSUREs ITS_LIVE v2](https://nsidc.org/data/NSIDC-0776/versions/2), [Greenland basal friction ensemble inversion reference](https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248), [Copernicus Marine Arctic Ocean Physics](https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description) |
+| Antarctica | Bed topography, surface elevation, thickness, mask, refined basins, velocity, basal friction, subglacial hydrology, ocean streamlines, basal melt, thermal driving | [BedMachine Antarctica v4](https://nsidc.org/data/NSIDC-0756/versions/4), [Bedmap3 v1.0](https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2) (CC BY 4.0), [MEaSUREs Antarctic Boundaries v2](https://nsidc.org/data/NSIDC-0709/versions/2), [MEaSUREs Phase-Based Antarctica Velocity v1](https://nsidc.org/data/NSIDC-0754/versions/1), [Antarctic basal friction inversions](https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031), [GlaDS Antarctic subglacial hydrology](https://zenodo.org/records/12738170), [WAOM2](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full), [RISE](https://data.aad.gov.au/metadata/RISE) |
+| Greenland | Bed topography, surface elevation, thickness, mask, basin boundaries, velocity, basal friction, ocean streamlines | [BedMachine Greenland v6](https://nsidc.org/data/idbmg4/versions/6), [QRF Greenland subglacial topography (2025)](https://doi.org/10.1017/jog.2025.10071), [MEaSUREs ITS_LIVE v2](https://nsidc.org/data/NSIDC-0776/versions/2), [Greenland basal friction ensemble inversion reference](https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248), [Copernicus Marine Arctic Ocean Physics](https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description) |
+
+Bedmap3 is available as a 10 km Balanced or 4 km HD Antarctica terrain alternative. Both modes support velocity, flowlines, basal friction, effective pressure, subglacial channels, refined basins, and WAOM2 ocean streamlines. The gridded velocity, basal-friction, and hydrology layers are regenerated on Bedmap3's native grid; the projected WAOM2 streamlines are clipped against the active terrain at runtime. RISE basal melt and thermal-driving fields remain exclusive to BedMachine v4.
+
+Greenland QRF subglacial topography (2025) is available as 3 km Balanced and 1 km HD terrain alternatives. The 300 m QRF GeoTIFF is sampled at pixel centres. The package replaces bed elevation only for grounded ice where the QRF prediction is valid, keeps BedMachine Greenland v6 surface elevation and mask, derives internally consistent thickness from those two fields, and falls back to BedMachine values over QRF gaps, ocean, and floating ice. Velocity, flowlines, basal friction, basins, and ocean streamlines reuse their existing BedMachine-aligned grids. The upstream data repository does not state a standalone data licence; confirm redistribution terms with the authors before publishing derived assets.
 
 ## Standalone GitHub Pages Site
 
@@ -181,14 +185,26 @@ python3 -m http.server 4173
 
 ### Data Preparation Pipeline
 
-To regenerate datasets from source NetCDF/HDF5 files:
+To regenerate datasets from source NetCDF/HDF5 or GeoTIFF files:
 
 ```bash
 # Python 3.10+ required
-pip install h5py numpy scipy netCDF4
+pip install h5py numpy scipy netCDF4 tifffile
 
 # Example: prepare BedMachine Antarctica
 python scripts/prepare_bedmachine_antarctica.py --input BedMachineAntarctica_V4.nc
+
+# Example: prepare Bedmap3 Antarctica from the four official GeoTIFF grids
+python scripts/prepare_bedmap3_antarctica.py --input-dir /path/to/bedmap3
+
+# Example: prepare the Bedmap3 HD mode
+python scripts/prepare_bedmap3_antarctica.py --input-dir /path/to/bedmap3 --resolution-m 4000 --basename bedmap3_antarctica_4km
+
+# Translate the Antarctica overlay packages to Bedmap3's native grids
+python scripts/prepare_bedmap3_antarctica_overlays.py
+
+# Prepare Greenland QRF terrain alternatives from the published 300 m GeoTIFF
+python scripts/prepare_qrf_greenland.py --input /path/to/QRF_greenland_ice_predictions_300m.tif
 ```
 
 ### Running Tests

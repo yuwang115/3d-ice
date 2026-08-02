@@ -1,0 +1,98 @@
+{
+  "title": "Greenland QRF subglacial topography (2025)",
+  "product_version": "QRF 2025 hybridized with BedMachine Greenland v6 support fields",
+  "reference": "Palmer et al. (2025), Journal of Glaciology, https://doi.org/10.1017/jog.2025.10071",
+  "source_url": "https://raw.githubusercontent.com/charliekirkwood/greenlandice/5fba8ad8332752ed3b780f15ac5f70580fe0acaf/QRF_greenland_ice_predictions_300m.tif",
+  "source_commit": "5fba8ad8332752ed3b780f15ac5f70580fe0acaf",
+  "source_file": "QRF_greenland_ice_predictions_300m.tif",
+  "source_projection": "EPSG:3413 (specified by the published QRF code and paper)",
+  "source_sampling": {
+    "pixel_anchor": "cell_center",
+    "x0_m": -635750,
+    "y0_m": -666050,
+    "dx_m": 300,
+    "dy_m": -300,
+    "geotiff_tiepoint_is": "upper_left_pixel_edge"
+  },
+  "source_license": "No standalone data license is stated in the upstream repository; preserve article attribution and confirm redistribution terms before release.",
+  "resampled_to": "QRF 2025 \u2014 HD (1 km)",
+  "grid": {
+    "nx": 1533,
+    "ny": 2752,
+    "x0_m": -652925,
+    "y0_m": -632675,
+    "dx_m": 1000,
+    "dy_m": -1000
+  },
+  "quantization": {
+    "float_fill_value": -9999.0,
+    "int16_fill_value": -32768,
+    "unit": "m",
+    "scale": 1.0,
+    "offset": 0.0
+  },
+  "hybridization": {
+    "qrf_bed_applies_to": "grounded_ice_only",
+    "surface": "BedMachine Greenland v6 surface elevation",
+    "thickness": "surface elevation minus QRF bed elevation where QRF applies",
+    "fallback": "BedMachine Greenland v6 surface and mask; BedMachine v6 bed/thickness are retained for floating ice, non-ice, QRF NoData, and incoherent QRF samples."
+  },
+  "qrf_coverage": {
+    "applied_cell_count": 1777583,
+    "grounded_ice_cell_count": 1839966,
+    "applied_grounded_ice_fraction": 0.9660955691572561,
+    "uncertainty_sd_m": {
+      "min": 0.0,
+      "max": 3451.0,
+      "mean": 188.57695027461446
+    },
+    "uncertainty_rendered": false
+  },
+  "fields": [
+    {
+      "name": "bed",
+      "dtype": "int16",
+      "byte_offset": 0,
+      "byte_length": 8437632,
+      "stats_m": {
+        "min": -5570.0,
+        "max": 3361.0,
+        "mean": -325.74232177938075
+      }
+    },
+    {
+      "name": "surface",
+      "dtype": "int16",
+      "byte_offset": 8437632,
+      "byte_length": 8437632,
+      "stats_m": {
+        "min": 0.0,
+        "max": 3597.0,
+        "mean": 934.0085336739028
+      }
+    },
+    {
+      "name": "thickness",
+      "dtype": "int16",
+      "byte_offset": 16875264,
+      "byte_length": 8437632,
+      "stats_m": {
+        "min": 0.0,
+        "max": 3463.0,
+        "mean": 715.6627686535749
+      }
+    },
+    {
+      "name": "mask",
+      "dtype": "uint8",
+      "byte_offset": 25312896,
+      "byte_length": 4218816,
+      "flags": {
+        "0": "ocean",
+        "1": "ice_free_land",
+        "2": "grounded_ice",
+        "3": "floating_ice"
+      }
+    }
+  ]
+}

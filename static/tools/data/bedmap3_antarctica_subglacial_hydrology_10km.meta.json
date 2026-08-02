@@ -1,0 +1,114 @@
+{
+  "title": "Subglacial Hydrology Antarctica",
+  "product_version": "v 1.0 (production date: 29-Oct-2024)",
+  "source_file": "Antarctica_SubglacialHydrology.nc",
+  "resampled_to": "Bedmap3 \u2014 Balanced (10 km)",
+  "grid": {
+    "nx": 667,
+    "ny": 667,
+    "x0_m": -3333250,
+    "y0_m": 3333250,
+    "dx_m": 10000,
+    "dy_m": -10000
+  },
+  "quantization": {
+    "int16_fill_value": -32768,
+    "effective_pressure_unit": "Pa",
+    "effective_pressure_scale_pa_per_int16": 1000,
+    "effective_pressure_offset_pa": 0
+  },
+  "channel_filter": {
+    "min_discharge_m3_per_s": 0.001,
+    "aggregation": "max discharge on collapsed undirected target-cell edge"
+  },
+  "coverage": {
+    "effective_pressure_valid_count": 119391,
+    "cell_count": 444889,
+    "effective_pressure_valid_fraction": 0.2683613215880815,
+    "channel_segment_count_raw": 5929081,
+    "channel_segment_count_after_filter": 5898,
+    "channel_segment_count_unique": 5898
+  },
+  "fields": [
+    {
+      "name": "effective_pressure",
+      "dtype": "int16",
+      "byte_offset": 0,
+      "byte_length": 889778,
+      "unit": "Pa",
+      "stats_pa": {
+        "min": 0.0,
+        "max": 12452000.0,
+        "mean": 1665753.5911417108
+      },
+      "quantiles_pa": {
+        "median": 1383000.0,
+        "q90": 2939000.0,
+        "q95": 3690500.0,
+        "q99": 5440200.000000011
+      }
+    },
+    {
+      "name": "channel_col1",
+      "dtype": "uint16",
+      "byte_offset": 889778,
+      "byte_length": 11796,
+      "unit": "grid_col"
+    },
+    {
+      "name": "channel_row1",
+      "dtype": "uint16",
+      "byte_offset": 901574,
+      "byte_length": 11796,
+      "unit": "grid_row"
+    },
+    {
+      "name": "channel_col2",
+      "dtype": "uint16",
+      "byte_offset": 913370,
+      "byte_length": 11796,
+      "unit": "grid_col"
+    },
+    {
+      "name": "channel_row2",
+      "dtype": "uint16",
+      "byte_offset": 925166,
+      "byte_length": 11796,
+      "unit": "grid_row"
+    },
+    {
+      "name": "channel_discharge",
+      "dtype": "float32",
+      "byte_offset": 936962,
+      "byte_length": 23592,
+      "unit": "m3/s",
+      "stats_m3_per_s": {
+        "min": 0.0010028238175436854,
+        "max": 206.3415069580078,
+        "mean": 3.1420297622680664
+      },
+      "quantiles_m3_per_s": {
+        "median": 0.6113614141941071,
+        "q90": 4.633228540420535,
+        "q95": 11.17921113967895,
+        "q99": 56.07316822052002
+      }
+    }
+  ],
+  "source_package": {
+    "metadata": "antarctica_subglacial_hydrology_480.meta.json",
+    "binary": "antarctica_subglacial_hydrology_480.bin",
+    "source_grid": {
+      "nx": 667,
+      "ny": 667,
+      "x0_m": -3333000,
+      "y0_m": 3333000,
+      "dx_m": 10000,
+      "dy_m": -10000
+    }
+  },
+  "resampling": {
+    "method": "nearest projected source grid cell",
+    "reason": "Bedmap3 grid origin differs from the BedMachine-aligned source package by 250 m."
+  }
+}
