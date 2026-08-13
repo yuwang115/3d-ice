@@ -215,3 +215,20 @@ def test_balanced_selection_removes_same_kind_name_and_alias_duplicates(polar_fe
 def test_balanced_selection_rejects_invalid_inputs(polar_features_module, items, quotas, message) -> None:
     with pytest.raises(ValueError, match=message):
         polar_features_module.select_balanced_features(items, quotas)
+
+
+def test_refined_basin_search_catalogues_match_boundary_sources(data_dir: Path) -> None:
+    pairs = (
+        ("antarctica", "imbie_refined_basins_v2.json", "antarctica_refined_basins_search.json"),
+        ("greenland", "greenland_basins_ps_v1_4_2.json", "greenland_refined_basins_search.json"),
+    )
+
+    for region, boundary_filename, search_filename in pairs:
+        boundary = json.loads((data_dir / boundary_filename).read_text(encoding="utf-8"))
+        search = json.loads((data_dir / search_filename).read_text(encoding="utf-8"))
+        assert search["schema_version"] == 1
+        assert search["region"] == region
+        assert search["layer"] == "refined_basins"
+        assert search["feature_count"] == boundary["basin_count"] == len(search["items"])
+        assert all(item["region"] == region and item["layer"] == "refined_basins" for item in search["items"])
+        assert all("segments_xy_m" not in item for item in search["items"])

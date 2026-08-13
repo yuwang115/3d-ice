@@ -611,6 +611,14 @@
       font-weight: 700;
     }
 
+    .view-control-subsection {
+      margin-bottom: 16px;
+      padding: 12px;
+      border: 1px solid var(--section-border);
+      border-radius: 10px;
+      background: var(--meta-details-bg);
+    }
+
     .control {
       margin-bottom: 12px;
     }
@@ -1637,32 +1645,7 @@
       </p>
       <div id="panelLocaleSwitcher" class="panel-locale-switcher"></div>
 
-      <section id="polarFeatureSection" class="section">
-        <h2 class="section-title">地理标识与重点特征</h2>
-        <div class="control">
-          <label for="polarSearchInput">搜索地点和地理特征</label>
-          <div class="polar-search-combobox">
-            <input
-              id="polarSearchInput"
-              class="polar-search-input"
-              type="search"
-              role="combobox"
-              aria-autocomplete="list"
-              aria-controls="polarSearchResults"
-              aria-label="搜索地点和地理特征"
-              autocomplete="off"
-              placeholder="科考站、山脉、盆地…"
-            />
-            <ul id="polarSearchResults" class="polar-search-results" role="listbox" hidden></ul>
-          </div>
-          <div id="polarSearchStatus" class="polar-search-status" role="status" aria-live="polite"></div>
-        </div>
-        <label class="toggle"><input id="showResearchStations" type="checkbox" /> 显示科考站</label>
-        <label class="toggle"><input id="showGeographicNames" type="checkbox" /> 显示地理名称</label>
-        <div id="polarFeatureDetails" class="polar-feature-details" aria-label="地理信息详情" hidden></div>
-      </section>
-
-      <section class="section">
+      <section id="viewControlsSection" class="section">
         <h2 class="section-title">视图控制</h2>
         <div class="control">
           <label for="regionPreset">区域</label>
@@ -1688,10 +1671,34 @@
           <label for="iceOpacity">冰层透明度 <span id="iceOpacityValue" class="mono">0.65</span></label>
           <input id="iceOpacity" type="range" min="0" max="1" step="0.01" value="0.65" />
         </div>
+        <section id="polarFeatureSection" class="view-control-subsection" aria-labelledby="polarFeatureHeading">
+          <h3 id="polarFeatureHeading" class="section-title">地点与地理特征</h3>
+          <div class="control">
+            <label for="polarSearchInput">搜索地点和地理特征</label>
+            <div class="polar-search-combobox">
+              <input
+                id="polarSearchInput"
+                class="polar-search-input"
+                type="search"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-controls="polarSearchResults"
+                aria-label="搜索地点和地理特征"
+                autocomplete="off"
+                placeholder="科考站、山脉、盆地…"
+              />
+              <ul id="polarSearchResults" class="polar-search-results" role="listbox" hidden></ul>
+            </div>
+            <div id="polarSearchStatus" class="polar-search-status" role="status" aria-live="polite"></div>
+          </div>
+          <label class="toggle"><input id="showResearchStations" type="checkbox" /> 显示科考站</label>
+          <label class="toggle"><input id="showGeographicNames" type="checkbox" /> 显示地理名称</label>
+          <label class="toggle"><input id="showRefinedBasins" type="checkbox" /> <span id="showRefinedBasinsLabel">显示细化流域</span></label>
+          <div id="polarFeatureDetails" class="polar-feature-details" aria-label="地理信息详情" hidden></div>
+        </section>
         <label class="toggle"><input id="showBed" type="checkbox" checked /> 显示基岩地形</label>
         <label class="toggle"><input id="showIce" type="checkbox" checked /> 显示冰表面</label>
         <label class="toggle"><input id="showIceBottom" type="checkbox" checked /> 显示冰底界面</label>
-        <label class="toggle"><input id="showRefinedBasins" type="checkbox" /> <span id="showRefinedBasinsLabel">显示细化流域</span></label>
         <label class="toggle"><input id="showVelocity" type="checkbox" /> 显示冰表流速</label>
         <label class="toggle"><input id="showFlowline" type="checkbox" /> 显示冰流线</label>
         <div id="flowlineProfileCardMount" class="flowline-inline-card-slot" hidden></div>
@@ -1909,14 +1916,17 @@
         ? assetBaseApi.assetUrl(relativePath)
         : new URL(String(relativePath || "").replace(/^\/+/, ""), new URL("/tools/", window.location.href)).toString();
     const { createPolarFeaturesController } = await import(assetUrl("js/polar-features.js"));
+    const { fetchRefinedBasinJson } = await import(assetUrl("js/polar-refined-basins.js"));
     const polarFeatureDataUrls = Object.freeze({
       antarctica: Object.freeze({
         research_stations: assetUrl("data/antarctica_research_stations.json"),
         geographic_names: assetUrl("data/antarctica_geographic_names.json"),
+        refined_basins: assetUrl("data/antarctica_refined_basins_search.json"),
       }),
       greenland: Object.freeze({
         research_stations: assetUrl("data/greenland_research_stations.json"),
         geographic_names: assetUrl("data/greenland_geographic_names.json"),
+        refined_basins: assetUrl("data/greenland_refined_basins_search.json"),
       }),
     });
     const lightLogoUrl = assetUrl("3d-ice-logo-light.jpg");
@@ -2754,7 +2764,9 @@
     let flowlineGuidanceStatusShown = false;
     const geometryWorkerPending = new Map();
     const refinedBasinLabelTextureCache = new Map();
+    let refinedBasinLabelTexturePixels = 0;
     const refinedBasinDataCache = new Map();
+    const refinedBasinDataLoadPromises = new Map();
     const refinedBasinUnavailableUrls = new Set();
     const recordingMotionState = {
       enabled: recordingModeEnabled,
@@ -3906,6 +3918,9 @@
     const REFINED_BASIN_SURFACE_LABEL_OFFSET_M = 42;
     const REFINED_BASIN_LABEL_WORLD_SCALE = 0.0076;
     const GREENLAND_REFINED_BASIN_LABEL_WORLD_SCALE = 0.0104;
+    const MAX_REFINED_BASIN_LABELS = 220;
+    const MAX_REFINED_BASIN_LABEL_CANVAS_WIDTH = 1600;
+    const MAX_REFINED_BASIN_LABEL_TEXTURE_PIXELS = 12_000_000;
     const OCEAN_CURRENT_ARROW_HEAD_RATIO = 0.4;
     const OCEAN_CURRENT_ARROW_HEAD_MIN_UNITS = 0.16;
     const OCEAN_CURRENT_ARROW_HEAD_MAX_UNITS = 1.0;
@@ -6566,6 +6581,9 @@
       refinedBasinSurfaceLines = disposeObject3D(refinedBasinSurfaceLines);
       refinedBasinBedLabels = disposeObject3D(refinedBasinBedLabels);
       refinedBasinSurfaceLabels = disposeObject3D(refinedBasinSurfaceLabels);
+      for (const texture of refinedBasinLabelTextureCache.values()) texture.dispose();
+      refinedBasinLabelTextureCache.clear();
+      refinedBasinLabelTexturePixels = 0;
     }
 
     function clearModelMeshes() {
@@ -6740,13 +6758,17 @@
       };
     }
 
-    function focusPolarFeature(_feature, point) {
+    function focusPolarFeature(feature, point) {
       if (!camera || !orbit || !point) return;
       const exaggeration = Number(controlsUI.exaggeration.value) || 1;
       const target = new THREE.Vector3(point.x, point.baseY * exaggeration, point.z);
       const direction = camera.position.clone().sub(orbit.target);
       if (direction.lengthSq() < 1e-8) direction.set(1, 0.72, 1);
-      const distance = clamp(direction.length() * 0.62, 7.5, 17);
+      const areaKm2 = Number(feature?.area_km2);
+      const basinDistance = feature?.layer === "refined_basins" && Number.isFinite(areaKm2)
+        ? clamp(8 + Math.sqrt(Math.max(0, areaKm2)) / 70, 10, 24)
+        : 0;
+      const distance = basinDistance || clamp(direction.length() * 0.62, 7.5, 17);
       direction.normalize();
       const position = target.clone().addScaledVector(direction, distance);
       applyCameraPose({
@@ -6755,6 +6777,41 @@
         fov: Math.min(Number(camera.fov) || 42, 42),
       });
       viewerInteracted = true;
+    }
+
+    function loadRefinedBasinDataset(basinsUrl) {
+      const cached = refinedBasinDataCache.get(basinsUrl);
+      if (cached) return Promise.resolve(cached);
+      const pending = refinedBasinDataLoadPromises.get(basinsUrl);
+      if (pending) return pending;
+      const loadPromise = fetchRefinedBasinJson(
+        basinsUrl,
+        errorLabel("explorer.errors.failedToLoadBasinBoundaries"),
+      )
+        .then((basinData) => {
+          refinedBasinDataCache.set(basinsUrl, basinData);
+          return basinData;
+        })
+        .finally(() => refinedBasinDataLoadPromises.delete(basinsUrl));
+      refinedBasinDataLoadPromises.set(basinsUrl, loadPromise);
+      return loadPromise;
+    }
+
+    async function activateRefinedBasinFeature(_feature, isCancelled = () => false) {
+      const context = currentCoreContext;
+      if (!context || !context.dataset.capabilities.refinedBasins || controlsUI.showRefinedBasins.disabled) {
+        throw new Error("Refined basins are unavailable for the selected dataset.");
+      }
+      if (!controlsUI.showBed.checked && !controlsUI.showIce.checked) {
+        controlsUI.showIce.checked = true;
+        syncIceSurfaceVisibilityFromControls();
+      }
+      controlsUI.showRefinedBasins.checked = true;
+      const loaded = await ensureRefinedBasinsLoaded({ trigger: "toggle" });
+      if (isCancelled() || !loaded) return false;
+      updateRefinedBasinVisibility();
+      updateMetaFromCurrentState();
+      return true;
     }
 
     function initializePolarFeatures() {
@@ -6769,6 +6826,7 @@
           details: controlsUI.polarFeatureDetails,
           stationToggle: controlsUI.showResearchStations,
           namesToggle: controlsUI.showGeographicNames,
+          basinToggle: controlsUI.showRefinedBasins,
         },
         dataUrls: polarFeatureDataUrls,
         getRegion: () => currentRegionKey,
@@ -6793,6 +6851,7 @@
         getScenePoint: getPolarFeatureScenePoint,
         getExaggeration: () => Number(controlsUI.exaggeration.value) || 1,
         focusScenePoint: focusPolarFeature,
+        activateRefinedBasinFeature,
       });
       polarFeaturesController.initialize();
     }
@@ -6831,13 +6890,23 @@
 
       const padding = 14;
       probe.font = `600 ${fontSize}px ${fontFamily}`;
+      const initialTextWidth = Math.max(1, Math.ceil(probe.measureText(labelText).width));
+      const maximumTextWidth = MAX_REFINED_BASIN_LABEL_CANVAS_WIDTH - padding * 2 - strokeWidth * 2;
+      const renderedFontSize = initialTextWidth > maximumTextWidth
+        ? Math.max(20, Math.floor(fontSize * maximumTextWidth / initialTextWidth))
+        : fontSize;
+      probe.font = `600 ${renderedFontSize}px ${fontFamily}`;
       const textWidth = Math.max(1, Math.ceil(probe.measureText(labelText).width));
-      canvas.width = textWidth + padding * 2 + strokeWidth * 2;
-      canvas.height = Math.ceil(fontSize * 1.45 + padding * 2);
+      const canvasWidth = Math.min(MAX_REFINED_BASIN_LABEL_CANVAS_WIDTH, textWidth + padding * 2 + strokeWidth * 2);
+      const canvasHeight = Math.ceil(renderedFontSize * 1.45 + padding * 2);
+      const texturePixels = canvasWidth * canvasHeight;
+      if (refinedBasinLabelTexturePixels + texturePixels > MAX_REFINED_BASIN_LABEL_TEXTURE_PIXELS) return null;
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return null;
-      ctx.font = `600 ${fontSize}px ${fontFamily}`;
+      ctx.font = `600 ${renderedFontSize}px ${fontFamily}`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.lineJoin = "round";
@@ -6856,6 +6925,7 @@
       texture.magFilter = THREE.LinearFilter;
       texture.generateMipmaps = false;
       refinedBasinLabelTextureCache.set(key, texture);
+      refinedBasinLabelTexturePixels += texturePixels;
       return texture;
     }
 
@@ -6970,7 +7040,8 @@
       const offsetMeters = Number(options.offsetMeters || 0);
       const style = options.labelStyle || {};
 
-      for (const basin of basins) {
+      for (const basin of basins.slice(0, MAX_REFINED_BASIN_LABELS)) {
+        if (refinedBasinLabelTexturePixels >= MAX_REFINED_BASIN_LABEL_TEXTURE_PIXELS) break;
         const labelPoint = basin?.label_xy_m;
         if (!Array.isArray(labelPoint) || labelPoint.length < 2) continue;
         const name = String(basin?.name || "").trim();
@@ -7105,11 +7176,7 @@
           statusEl.textContent = t("explorer.status.loadingBasin", { label: basinStatusLabel });
         }
 
-        let basinData = refinedBasinDataCache.get(basinsUrl);
-        if (!basinData) {
-          basinData = await fetchJsonStrict(basinsUrl, errorLabel("explorer.errors.failedToLoadBasinBoundaries"));
-          refinedBasinDataCache.set(basinsUrl, basinData);
-        }
+        const basinData = await loadRefinedBasinDataset(basinsUrl);
         currentRefinedBasinData = basinData;
 
         if (context !== currentCoreContext || context.generation !== loadGeneration) return false;
@@ -9301,7 +9368,6 @@
 
     function primeLayerMetadata(context) {
       if (!context) return;
-      const basinsUrl = context.dataset.refinedBasinsUrl;
 
       const velocityMetaPromise = !context.dataset.velocityMetaUrl
         ? Promise.resolve(null)
@@ -9363,28 +9429,14 @@
             return null;
           });
 
-      const basinMetaPromise =
-        isShowcaseMode || !context.dataset.capabilities.refinedBasins || !basinsUrl
-          ? Promise.resolve(null)
-          : refinedBasinDataCache.get(basinsUrl)
-          ? Promise.resolve(refinedBasinDataCache.get(basinsUrl))
-          : fetchJsonStrict(
-              basinsUrl,
-              errorLabel("explorer.errors.failedToLoadBasinBoundaries")
-            ).catch((error) => {
-              console.warn("Basin metadata prefetch failed:", error);
-              return null;
-            });
-
       Promise.all([
         velocityMetaPromise,
         basalFrictionMetaPromise,
         riseMetaPromise,
         hydrologyMetaPromise,
         oceanCurrentMetaPromise,
-        basinMetaPromise,
       ]).then(
-        ([velocityMeta, basalFrictionMeta, riseMeta, hydrologyMeta, oceanCurrentMeta, basinData]) => {
+        ([velocityMeta, basalFrictionMeta, riseMeta, hydrologyMeta, oceanCurrentMeta]) => {
         if (context !== currentCoreContext || context.generation !== loadGeneration) return;
 
         let hasUpdate = false;
@@ -9411,11 +9463,6 @@
         if (oceanCurrentMeta) {
           context.oceanCurrentPrefetchMeta = oceanCurrentMeta;
           currentOceanCurrentMeta = oceanCurrentMeta;
-          hasUpdate = true;
-        }
-        if (basinData && basinsUrl) {
-          refinedBasinDataCache.set(basinsUrl, basinData);
-          currentRefinedBasinData = basinData;
           hasUpdate = true;
         }
         if (hasUpdate) {
@@ -10445,9 +10492,6 @@
         if (!context || context !== currentCoreContext || context.generation !== loadGeneration) return;
         await nextAnimationFrame();
         await ensureHydrologyLoaded({ trigger: "warmup" });
-        if (!context || context !== currentCoreContext || context.generation !== loadGeneration) return;
-        await nextAnimationFrame();
-        await ensureRefinedBasinsLoaded({ trigger: "warmup" });
         if (!context || context !== currentCoreContext || context.generation !== loadGeneration) return;
         await nextAnimationFrame();
         await ensureOceanCurrentsLoaded({ trigger: "warmup" });

@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 
 import pytest
+from playwright.sync_api import expect
 
 
 pytestmark = pytest.mark.e2e
@@ -55,6 +56,41 @@ def test_search_selects_feature_enables_layer_and_moves_camera(page):
     assert after != before
 
 
+def test_search_selects_refined_basin_enables_layer_and_moves_camera(page):
+    before = page.evaluate("JSON.parse(window.render_game_to_text()).camera.target")
+    search = page.get_by_role("combobox", name="Search places and features")
+    search.fill("Abbot refined basin")
+    page.get_by_role("option", name=re.compile("Abbot", re.IGNORECASE)).click()
+    page.wait_for_function(
+        """() => {
+          const state = JSON.parse(window.render_game_to_text());
+          return state.selectedFeature?.layer === 'refined_basins' &&
+            state.selectedFeature?.name === 'Abbot' &&
+            state.toggles.showRefinedBasins &&
+            state.meshes.basins;
+        }""",
+        timeout=30_000,
+    )
+    after = page.evaluate("JSON.parse(window.render_game_to_text()).camera.target")
+    assert after != before
+
+
+def test_refined_basin_search_restores_a_visible_surface(page):
+    page.get_by_label("Show bed topography").uncheck()
+    page.get_by_label("Show ice surface", exact=True).uncheck()
+    search = page.get_by_role("combobox", name="Search places and features")
+    search.fill("Abbot refined basin")
+    page.get_by_role("option", name=re.compile("Abbot", re.IGNORECASE)).click()
+    page.wait_for_function(
+        """() => {
+          const state = JSON.parse(window.render_game_to_text());
+          return state.selectedFeature?.id === 'antarctica-refined-basin-1' &&
+            state.toggles.showIce && state.toggles.showRefinedBasins && state.meshes.basins;
+        }""",
+        timeout=30_000,
+    )
+
+
 def test_keyboard_search_can_switch_region_and_focus(page):
     search = page.get_by_role("combobox", name="Search places and features")
     search.fill("Summit Station")
@@ -69,10 +105,27 @@ def test_keyboard_search_can_switch_region_and_focus(page):
     )
 
 
+def test_keyboard_search_can_switch_region_and_focus_refined_basin(page):
+    search = page.get_by_role("combobox", name="Search places and features")
+    search.fill("Central East")
+    search.press("ArrowDown")
+    search.press("Enter")
+    page.wait_for_function(
+        """() => {
+          const state = JSON.parse(window.render_game_to_text());
+          return state.ready && state.region === 'greenland' &&
+            state.selectedFeature?.id === 'greenland-refined-basin-CE' &&
+            state.selectedFeature?.layer === 'refined_basins' &&
+            state.toggles.showRefinedBasins && state.meshes.basins;
+        }""",
+        timeout=90_000,
+    )
+
+
 def test_search_reports_no_results_accessibly(page):
     search = page.get_by_role("combobox", name="Search places and features")
     search.fill("not-a-real-polar-feature-xyz")
-    assert "No matches" in page.get_by_role("status").inner_text()
+    expect(page.get_by_role("status")).to_contain_text("No matches", timeout=30_000)
 
 
 def test_chinese_explorer_searches_localized_feature_names(playwright_browser, server):

@@ -4,10 +4,23 @@ import {
   polarFeatureLanguageKey,
   searchPolarFeatures,
 } from "./polar-feature-search.js";
+import {
+  createPolarLabelCanvas,
+  createPolarMarkerCanvas,
+  getPolarFeatureLabelStyle,
+  getPolarFeatureMarkerMaterialOptions,
+} from "./polar-feature-label-style.js";
 
-export { getPolarFeatureLabel, normalizeSearchText, searchPolarFeatures } from "./polar-feature-search.js";
+export {
+  createRefinedBasinSearchFeatures,
+  getPolarFeatureLabel,
+  normalizeSearchText,
+  searchPolarFeatures,
+} from "./polar-feature-search.js";
 
 const DEFAULT_LIMIT = 12;
+const SEARCH_REGIONS = ["antarctica", "greenland"];
+const BASE_SEARCH_LAYERS = ["research_stations", "geographic_names"];
 
 const TEXT = {
   en: {
@@ -23,10 +36,12 @@ const TEXT = {
     status: "Status",
     coordinates: "Coordinates",
     source: "Source",
+    area: "Area",
     research_station: "Research station",
     ocean: "Ocean",
     sea: "Sea",
     basin: "Basin",
+    refined_basin: "Refined basin",
     mountain_range: "Mountain range",
     mountain: "Mountain",
     plateau: "Plateau",
@@ -52,10 +67,12 @@ const TEXT = {
     status: "状态",
     coordinates: "坐标",
     source: "数据来源",
+    area: "面积",
     research_station: "科考站",
     ocean: "大洋",
     sea: "海域",
     basin: "盆地",
+    refined_basin: "细化流域",
     mountain_range: "山脉",
     mountain: "山峰",
     plateau: "高原",
@@ -78,6 +95,7 @@ const MAX_CATALOGUE_ITEMS = 20_000;
 const MAX_NAME_LENGTH = 180;
 const MAX_FIELD_LENGTH = 500;
 const MAX_ALIASES = 30;
+const MAX_CATALOGUE_RESPONSE_BYTES = 2 * 1024 * 1024;
 const TRUSTED_SOURCE_HOSTS = new Set([
   "www.comnap.aq",
   "www.interact-gis.org",
@@ -108,15 +126,23 @@ function validateCatalogue(payload, expectedRegion, expectedLayer) {
       item.region === expectedRegion &&
       item.layer === expectedLayer &&
       typeof item.id === "string" &&
+      typeof item.kind === "string" &&
       typeof item.name === "string" &&
       item.id.length <= MAX_NAME_LENGTH &&
+      item.kind.trim().length > 0 &&
+      item.kind.length <= MAX_NAME_LENGTH &&
       item.name.trim().length > 0 &&
       item.name.length <= MAX_NAME_LENGTH &&
-      Number.isFinite(Number(item.x_m)) &&
-      Number.isFinite(Number(item.y_m)),
+      typeof item.x_m === "number" &&
+      typeof item.y_m === "number" &&
+      Number.isFinite(item.x_m) &&
+      Number.isFinite(item.y_m),
     )
     .map((item) => ({
-      ...item,
+      id: item.id,
+      region: item.region,
+      layer: item.layer,
+      kind: boundedText(item.kind, MAX_NAME_LENGTH),
       name: boundedText(item.name, MAX_NAME_LENGTH),
       name_zh: boundedText(item.name_zh, MAX_NAME_LENGTH),
       aliases: (Array.isArray(item.aliases) ? item.aliases : [])
@@ -129,8 +155,47 @@ function validateCatalogue(payload, expectedRegion, expectedLayer) {
       feature_type: boundedText(item.feature_type),
       status: boundedText(item.status),
       source_url: safeSourceUrl(item.source_url),
+      display_priority: Number.isFinite(item.display_priority) ? item.display_priority : 99,
+      x_m: item.x_m,
+      y_m: item.y_m,
+      lat: Number.isFinite(item.lat) ? item.lat : null,
+      lon: Number.isFinite(item.lon) ? item.lon : null,
+      area_km2: Number.isFinite(item.area_km2) && item.area_km2 >= 0 ? item.area_km2 : null,
+      subregion: boundedText(item.subregion),
     }));
-  return { ...payload, items };
+  return {
+    schema_version: 1,
+    region: expectedRegion,
+    layer: expectedLayer,
+    feature_count: items.length,
+    items,
+  };
+}
+
+async function readBoundedJsonResponse(response, maximumBytes = MAX_CATALOGUE_RESPONSE_BYTES) {
+  const declaredSize = Number(response.headers?.get?.("content-length") || 0);
+  if (declaredSize > maximumBytes) throw new Error("Polar feature catalogue exceeds the response size limit");
+  if (!response.body?.getReader) throw new Error("Polar feature catalogue requires bounded streaming");
+  const reader = response.body.getReader();
+  const chunks = [];
+  let totalBytes = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    totalBytes += value.byteLength;
+    if (totalBytes > maximumBytes) {
+      await reader.cancel();
+      throw new Error("Polar feature catalogue exceeds the response size limit");
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return JSON.parse(new TextDecoder().decode(bytes));
 }
 
 function safeSourceUrl(value) {
@@ -164,6 +229,7 @@ export function createPolarFeaturesController(options) {
     getScenePoint,
     getExaggeration = () => 1,
     focusScenePoint,
+    activateRefinedBasinFeature = async () => false,
   } = options;
   const language = polarFeatureLanguageKey(locale);
   const labels = TEXT[language];
@@ -178,7 +244,6 @@ export function createPolarFeaturesController(options) {
     search: { query: "", resultCount: 0, activeIndex: -1 },
     selectedFeature: null,
   };
-  let allFeaturesPromise = null;
   let searchResults = [];
   let selectedMarker = null;
   let destroyed = false;
@@ -204,7 +269,7 @@ export function createPolarFeaturesController(options) {
     const promise = fetch(url, { signal: requestAbortController.signal })
       .then((response) => {
         if (!response.ok) throw new Error(`Failed to load polar features (${response.status})`);
-        return response.json();
+        return readBoundedJsonResponse(response);
       })
       .then((payload) => {
         const catalogue = validateCatalogue(payload, region, layer);
@@ -216,19 +281,25 @@ export function createPolarFeaturesController(options) {
     return promise;
   }
 
-  function loadAllFeatures() {
-    if (allFeaturesPromise) return allFeaturesPromise;
-    allFeaturesPromise = Promise.all(
-      ["antarctica", "greenland"].flatMap((region) =>
-        ["research_stations", "geographic_names"].map((layer) => loadCatalogue(region, layer)),
+  function loadSearchCatalogues(layers = BASE_SEARCH_LAYERS) {
+    return Promise.all(
+      SEARCH_REGIONS.flatMap((region) =>
+        layers.map((layer) => loadCatalogue(region, layer)),
       ),
-    )
-      .then((catalogues) => catalogues.flatMap((catalogue) => catalogue.items))
-      .catch((error) => {
-        allFeaturesPromise = null;
-        throw error;
-      });
-    return allFeaturesPromise;
+    );
+  }
+
+  async function loadAllFeatures() {
+    const catalogues = await loadSearchCatalogues();
+    const refinedResults = await Promise.allSettled(
+      SEARCH_REGIONS.map((region) => loadCatalogue(region, "refined_basins")),
+    );
+    const refinedCatalogues = refinedResults.flatMap((result) => {
+      if (result.status === "fulfilled") return [result.value];
+      console.warn("Refined basin search region could not be loaded:", result.reason);
+      return [];
+    });
+    return [...catalogues, ...refinedCatalogues].flatMap((catalogue) => catalogue.items);
   }
 
   function disposeObject(object) {
@@ -244,30 +315,19 @@ export function createPolarFeaturesController(options) {
     });
   }
 
-  function createLabelSprite(text, { selected = false, station = false } = {}) {
-    const fontSize = selected ? 38 : 30;
-    const paddingX = 22;
-    const canvas = documentRef.createElement("canvas");
-    const context = canvas.getContext("2d");
-    context.font = `600 ${fontSize}px system-ui, sans-serif`;
-    canvas.width = Math.min(900, Math.ceil(context.measureText(text).width + paddingX * 2));
-    canvas.height = fontSize + 24;
-    context.font = `600 ${fontSize}px system-ui, sans-serif`;
-    context.textBaseline = "middle";
-    context.fillStyle = selected ? "rgba(5, 25, 38, 0.96)" : "rgba(5, 25, 38, 0.82)";
-    context.strokeStyle = selected ? "#fff5c7" : station ? "#ffbd70" : "#83e8ff";
-    context.lineWidth = selected ? 5 : 3;
-    context.fillRect(2, 2, canvas.width - 4, canvas.height - 4);
-    context.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
-    context.fillStyle = "#ffffff";
-    context.fillText(text, paddingX, canvas.height / 2 + 1);
+  function createLabelSprite(text, { selected = false, layer = "geographic_names", region = getRegion() } = {}) {
+    const canvas = createPolarLabelCanvas(documentRef, text, { layer, region, selected });
+    if (!canvas) return null;
+    const style = getPolarFeatureLabelStyle(layer, region, { selected });
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.generateMipmaps = false;
     const sprite = new THREE.Sprite(
       new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false, depthWrite: false }),
     );
-    const scale = selected ? 0.021 : 0.017;
-    sprite.scale.set(canvas.width * scale, canvas.height * scale, 1);
+    sprite.scale.set(canvas.width * style.worldScale, canvas.height * style.worldScale, 1);
     sprite.renderOrder = selected ? 31 : 30;
     return sprite;
   }
@@ -302,17 +362,17 @@ export function createPolarFeaturesController(options) {
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
       const station = layer === "research_stations";
+      const markerCanvas = createPolarMarkerCanvas(documentRef);
+      const markerTexture = markerCanvas ? new THREE.CanvasTexture(markerCanvas) : null;
+      if (markerTexture) {
+        markerTexture.colorSpace = THREE.SRGBColorSpace;
+        markerTexture.minFilter = THREE.LinearFilter;
+        markerTexture.magFilter = THREE.LinearFilter;
+        markerTexture.generateMipmaps = false;
+      }
       const points = new THREE.Points(
         geometry,
-        new THREE.PointsMaterial({
-          color: station ? 0xff9b42 : 0x5ce1ff,
-          size: station ? 7.5 : 5.5,
-          sizeAttenuation: false,
-          transparent: true,
-          opacity: 0.96,
-          depthTest: false,
-          depthWrite: false,
-        }),
+        new THREE.PointsMaterial(getPolarFeatureMarkerMaterialOptions(layer, markerTexture)),
       );
       points.renderOrder = 29;
       points.userData.baseY = baseY;
@@ -327,7 +387,8 @@ export function createPolarFeaturesController(options) {
         )
         .slice(0, labelLimit)
         .forEach(({ feature, point }) => {
-          const sprite = createLabelSprite(getPolarFeatureLabel(feature, locale), { station });
+          const sprite = createLabelSprite(getPolarFeatureLabel(feature, locale), { layer, region: feature.region });
+          if (!sprite) return;
           sprite.position.set(point.x, point.y + 0.5, point.z);
           sprite.userData.baseY = point.baseY;
           sprite.userData.heightOffset = 0.5;
@@ -365,7 +426,12 @@ export function createPolarFeaturesController(options) {
     const point = scenePointFor(feature);
     if (!point) return null;
     selectedMarker = new THREE.Group();
-    const sprite = createLabelSprite(getPolarFeatureLabel(feature, locale), { selected: true });
+    const sprite = createLabelSprite(getPolarFeatureLabel(feature, locale), {
+      selected: true,
+      layer: feature.layer,
+      region: feature.region,
+    });
+    if (!sprite) return point;
     sprite.position.set(point.x, point.y + 1.2, point.z);
     sprite.userData.baseY = point.baseY;
     sprite.userData.heightOffset = 1.2;
@@ -395,12 +461,20 @@ export function createPolarFeaturesController(options) {
       labels.status,
       labels[feature.status] || String(feature.status || "").replace(/_/g, " "),
     );
-    appendDetailRow(
-      documentRef,
-      list,
-      labels.coordinates,
-      `${Number(feature.lat).toFixed(3)}°, ${Number(feature.lon).toFixed(3)}°`,
-    );
+    const latitude = Number(feature.lat);
+    const longitude = Number(feature.lon);
+    if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+      appendDetailRow(documentRef, list, labels.coordinates, `${latitude.toFixed(3)}°, ${longitude.toFixed(3)}°`);
+    }
+    const areaKm2 = feature.area_km2 === null || feature.area_km2 === "" ? Number.NaN : Number(feature.area_km2);
+    if (Number.isFinite(areaKm2)) {
+      appendDetailRow(
+        documentRef,
+        list,
+        labels.area,
+        `${areaKm2.toLocaleString(undefined, { maximumFractionDigits: 0 })} km²`,
+      );
+    }
     container.append(heading, eyebrow, list);
     const sourceUrl = safeSourceUrl(feature.source_url);
     if (sourceUrl) {
@@ -433,15 +507,21 @@ export function createPolarFeaturesController(options) {
     try {
       elements.results.hidden = true;
       elements.searchInput.setAttribute("aria-expanded", "false");
-      const stateKey = LAYER_KEYS[feature.layer];
-      state[stateKey] = { ...state[stateKey], enabled: true };
-      layerToggle(feature.layer).checked = true;
       if (feature.region !== getRegion()) {
         await changeRegion(feature.region);
         await waitForRegionReady(feature.region, isCancelled);
       }
       if (isCancelled()) return;
-      await ensureLayer(feature.layer);
+      if (feature.layer === "refined_basins") {
+        const activated = await activateRefinedBasinFeature(feature, isCancelled);
+        if (!activated || isCancelled()) return;
+      } else {
+        const stateKey = LAYER_KEYS[feature.layer];
+        if (!stateKey) throw new Error(`Unsupported polar feature layer: ${feature.layer}`);
+        state[stateKey] = { ...state[stateKey], enabled: true };
+        layerToggle(feature.layer).checked = true;
+        await ensureLayer(feature.layer);
+      }
       if (isCancelled() || feature.region !== getRegion()) return;
       state.selectedFeature = feature;
       showDetails(feature);
@@ -497,6 +577,7 @@ export function createPolarFeaturesController(options) {
       elements.searchStatus.textContent = searchResults.length ? labels.resultCount(searchResults.length) : labels.noMatches;
       renderSearchResults(searchResults);
     } catch (error) {
+      if (query !== elements.searchInput.value || destroyed) return;
       console.warn("Polar feature search failed:", error);
       searchResults = [];
       elements.searchStatus.textContent = labels.noMatches;
@@ -544,7 +625,9 @@ export function createPolarFeaturesController(options) {
     groups.delete(layer);
     state[stateKey] = { ...state[stateKey], visibleCount: 0 };
     if (state.selectedFeature?.layer === layer) {
+      state.selectedFeature = null;
       clearSelectedMarker();
+      showDetails(null);
     }
   }
 
@@ -571,7 +654,16 @@ export function createPolarFeaturesController(options) {
     });
     on(elements.stationToggle, "change", () => void handleLayerToggle("research_stations", elements.stationToggle.checked));
     on(elements.namesToggle, "change", () => void handleLayerToggle("geographic_names", elements.namesToggle.checked));
-    void loadAllFeatures().catch((error) => {
+    if (elements.basinToggle) {
+      on(elements.basinToggle, "change", () => {
+        if (!elements.basinToggle.checked && state.selectedFeature?.layer === "refined_basins") {
+          state.selectedFeature = null;
+          clearSelectedMarker();
+          showDetails(null);
+        }
+      });
+    }
+    void loadSearchCatalogues().catch((error) => {
       console.warn("Polar feature preload failed:", error);
     });
   }
