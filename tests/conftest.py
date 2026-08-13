@@ -56,6 +56,11 @@ def qrf_greenland_module():
 
 
 @pytest.fixture(scope="session")
+def polar_features_module():
+    return _load_script_module("prepare_polar_features.py")
+
+
+@pytest.fixture(scope="session")
 def velocity_module():
     pytest.importorskip("netCDF4", reason="netCDF4 not installed")
     return _load_script_module("prepare_antarctica_velocity.py")

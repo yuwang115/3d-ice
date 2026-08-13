@@ -13,6 +13,20 @@ STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
 
 
 @pytest.fixture(scope="session")
+def playwright_browser():
+    """Launch one headless Chromium instance for E2E modules."""
+    from playwright.sync_api import sync_playwright
+
+    runtime = sync_playwright().start()
+    browser = runtime.chromium.launch(headless=True)
+    try:
+        yield browser
+    finally:
+        browser.close()
+        runtime.stop()
+
+
+@pytest.fixture(scope="session")
 def server():
     """Start a local HTTP server serving the static/ directory."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:

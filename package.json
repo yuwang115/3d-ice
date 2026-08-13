@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "bundle:compat": "node scripts/build_compat_bundle.mjs",
-    "smoke:compat": "node scripts/smoke_compat_bundle.mjs"
+    "smoke:compat": "node scripts/smoke_compat_bundle.mjs",
+    "test:polar-features": "node --experimental-test-coverage --test-coverage-include=static/tools/js/polar-feature-search.js --test-coverage-lines=80 --test tests/js/polar-features.test.mjs"
   }
 }

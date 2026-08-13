@@ -652,6 +652,117 @@
       box-shadow: var(--select-focus-ring);
     }
 
+    .polar-search-combobox {
+      position: relative;
+    }
+
+    .polar-search-input {
+      width: 100%;
+      height: 38px;
+      border: 1px solid var(--select-border);
+      border-radius: 9px;
+      background: var(--select-bg);
+      color: var(--select-text);
+      padding: 0 11px;
+      font: 0.88rem "Space Grotesk", sans-serif;
+      outline: none;
+    }
+
+    .polar-search-input:focus {
+      border-color: var(--select-focus-border);
+      box-shadow: var(--select-focus-ring);
+    }
+
+    .polar-search-results {
+      position: absolute;
+      z-index: 50;
+      top: calc(100% + 5px);
+      left: 0;
+      right: 0;
+      max-height: min(330px, 46vh);
+      margin: 0;
+      padding: 5px;
+      overflow-y: auto;
+      list-style: none;
+      border: 1px solid var(--select-border);
+      border-radius: 10px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .polar-search-results[hidden] {
+      display: none;
+    }
+
+    .polar-search-results [role="option"] {
+      display: grid;
+      gap: 2px;
+      padding: 8px 9px;
+      border-radius: 7px;
+      color: var(--select-text);
+      cursor: pointer;
+    }
+
+    .polar-search-results [role="option"]:hover,
+    .polar-search-results [role="option"][aria-selected="true"] {
+      background: rgba(15, 126, 168, 0.14);
+    }
+
+    .polar-search-result__name {
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .polar-search-result__meta,
+    .polar-search-status,
+    .polar-feature-details__type {
+      color: var(--muted);
+      font-size: 0.74rem;
+    }
+
+    .polar-search-status {
+      min-height: 1.1rem;
+      margin-top: 5px;
+    }
+
+    .polar-feature-details {
+      margin-top: 11px;
+      padding: 10px;
+      border: 1px solid var(--meta-border);
+      border-radius: 10px;
+      background: var(--meta-details-bg);
+      font-size: 0.79rem;
+    }
+
+    .polar-feature-details[hidden] {
+      display: none;
+    }
+
+    .polar-feature-details h3,
+    .polar-feature-details p {
+      margin: 0 0 6px;
+    }
+
+    .polar-feature-details dl {
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      gap: 4px 8px;
+      margin: 8px 0;
+    }
+
+    .polar-feature-details dt {
+      color: var(--muted);
+    }
+
+    .polar-feature-details dd {
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .polar-feature-details a {
+      color: var(--meta-link);
+    }
+
     .toggle {
       display: flex;
       gap: 8px;
@@ -1526,6 +1637,31 @@
       </p>
       <div id="panelLocaleSwitcher" class="panel-locale-switcher"></div>
 
+      <section id="polarFeatureSection" class="section">
+        <h2 class="section-title">Places &amp; Key Features</h2>
+        <div class="control">
+          <label for="polarSearchInput">Search places and features</label>
+          <div class="polar-search-combobox">
+            <input
+              id="polarSearchInput"
+              class="polar-search-input"
+              type="search"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-controls="polarSearchResults"
+              aria-label="Search places and features"
+              autocomplete="off"
+              placeholder="Station, mountain, basin…"
+            />
+            <ul id="polarSearchResults" class="polar-search-results" role="listbox" hidden></ul>
+          </div>
+          <div id="polarSearchStatus" class="polar-search-status" role="status" aria-live="polite"></div>
+        </div>
+        <label class="toggle"><input id="showResearchStations" type="checkbox" /> Show research stations</label>
+        <label class="toggle"><input id="showGeographicNames" type="checkbox" /> Show geographic names</label>
+        <div id="polarFeatureDetails" class="polar-feature-details" aria-label="Feature details" hidden></div>
+      </section>
+
       <section class="section">
         <h2 class="section-title">View Controls</h2>
         <div class="control">
@@ -1772,6 +1908,17 @@
       assetBaseApi && typeof assetBaseApi.assetUrl === "function"
         ? assetBaseApi.assetUrl(relativePath)
         : new URL(String(relativePath || "").replace(/^\/+/, ""), new URL("/tools/", window.location.href)).toString();
+    const { createPolarFeaturesController } = await import(assetUrl("js/polar-features.js"));
+    const polarFeatureDataUrls = Object.freeze({
+      antarctica: Object.freeze({
+        research_stations: assetUrl("data/antarctica_research_stations.json"),
+        geographic_names: assetUrl("data/antarctica_geographic_names.json"),
+      }),
+      greenland: Object.freeze({
+        research_stations: assetUrl("data/greenland_research_stations.json"),
+        geographic_names: assetUrl("data/greenland_geographic_names.json"),
+      }),
+    });
     const lightLogoUrl = assetUrl("3d-ice-logo-light.jpg");
     const darkLogoUrl = assetUrl("3d-ice-logo.jpg");
     const pageLocale = localeApi
@@ -2426,6 +2573,12 @@
 
     const controlsUI = {
       panelCloseButton: document.getElementById("panelCloseButton"),
+      polarSearchInput: document.getElementById("polarSearchInput"),
+      polarSearchResults: document.getElementById("polarSearchResults"),
+      polarSearchStatus: document.getElementById("polarSearchStatus"),
+      polarFeatureDetails: document.getElementById("polarFeatureDetails"),
+      showResearchStations: document.getElementById("showResearchStations"),
+      showGeographicNames: document.getElementById("showGeographicNames"),
       regionPreset: document.getElementById("regionPreset"),
       resolutionPreset: document.getElementById("resolutionPreset"),
       exaggeration: document.getElementById("exaggeration"),
@@ -2545,6 +2698,7 @@
     let refinedBasinSurfaceLines;
     let refinedBasinBedLabels;
     let refinedBasinSurfaceLabels;
+    let polarFeaturesController = null;
     let currentRefinedBasinData = null;
     let refinedBasinLoadPromise = null;
     let refinedBasinLoadingUrl = null;
@@ -6231,7 +6385,14 @@
     }
 
     function hasPendingLayerLoads() {
-      return Boolean(riseLoadPromise || velocityLoadPromise || hydrologyLoadPromise || oceanCurrentLoadPromise || refinedBasinLoadPromise);
+      return Boolean(
+        riseLoadPromise ||
+          velocityLoadPromise ||
+          hydrologyLoadPromise ||
+          oceanCurrentLoadPromise ||
+          refinedBasinLoadPromise ||
+          polarFeaturesController?.getState().loading
+      );
     }
 
     function isLoadingOverlayVisible() {
@@ -6243,6 +6404,14 @@
     }
 
     function collectExplorerState() {
+      const polarFeatureState = polarFeaturesController?.getState() || {
+        featureLayers: {
+          researchStations: { enabled: false, loaded: false, totalCount: 0, visibleCount: 0 },
+          geographicNames: { enabled: false, loaded: false, totalCount: 0, visibleCount: 0 },
+        },
+        search: { query: "", resultCount: 0, activeIndex: -1 },
+        selectedFeature: null,
+      };
       const toggles = {
         showBed: Boolean(controlsUI.showBed?.checked),
         showIce: Boolean(controlsUI.showIce?.checked),
@@ -6262,6 +6431,8 @@
         showSubglacialChannels: Boolean(controlsUI.showSubglacialChannels?.checked),
         showSea: Boolean(controlsUI.showSea?.checked),
         wireframe: Boolean(controlsUI.wireframe?.checked),
+        showResearchStations: Boolean(controlsUI.showResearchStations?.checked),
+        showGeographicNames: Boolean(controlsUI.showGeographicNames?.checked),
       };
       return {
         ready: isExplorerReady(),
@@ -6274,6 +6445,9 @@
           panelVisible: Boolean(recordingModeEnabled && recordingMotionState.panelVisible),
         },
         captureMotion: getRecordingStateSnapshot(),
+        featureLayers: polarFeatureState.featureLayers,
+        search: polarFeatureState.search,
+        selectedFeature: polarFeatureState.selectedFeature,
         toggles,
         controls: { ...toggles },
         legends: {
@@ -6395,6 +6569,7 @@
     }
 
     function clearModelMeshes() {
+      polarFeaturesController?.clearScene();
       bedMesh = disposeMesh(bedMesh);
       iceMesh = disposeMesh(iceMesh);
       iceBottomMesh = disposeMesh(iceBottomMesh);
@@ -6541,6 +6716,85 @@
 
       const value = context.surfaceHeights[idx];
       return Number.isFinite(value) ? value : Number.NaN;
+    }
+
+    function getPolarFeatureScenePoint(feature) {
+      const context = currentCoreContext;
+      if (!context || feature?.region !== currentRegionKey) return null;
+      const gridPoint = projectPs71PointToGrid(context, Number(feature.x_m), Number(feature.y_m));
+      if (!gridPoint) return null;
+      const scenePoint = gridToSceneXZ(context, gridPoint.col, gridPoint.row);
+      const seaLevelKinds = new Set(["ocean", "sea", "fjord", "strait"]);
+      const isUnderseaBasin = feature.kind === "basin" && String(feature.id || "").includes("gebco");
+      let heightMeters = seaLevelKinds.has(feature.kind) || isUnderseaBasin
+        ? 0
+        : sampleGridHeightNearest(context, gridPoint.col, gridPoint.row, "surface");
+      if (!Number.isFinite(heightMeters)) {
+        heightMeters = sampleGridHeightNearest(context, gridPoint.col, gridPoint.row, "bed");
+      }
+      if (!Number.isFinite(heightMeters)) heightMeters = 0;
+      return {
+        x: scenePoint.x,
+        baseY: (heightMeters + 220) / context.baseConfig.verticalMetersPerUnit,
+        z: scenePoint.z,
+      };
+    }
+
+    function focusPolarFeature(_feature, point) {
+      if (!camera || !orbit || !point) return;
+      const exaggeration = Number(controlsUI.exaggeration.value) || 1;
+      const target = new THREE.Vector3(point.x, point.baseY * exaggeration, point.z);
+      const direction = camera.position.clone().sub(orbit.target);
+      if (direction.lengthSq() < 1e-8) direction.set(1, 0.72, 1);
+      const distance = clamp(direction.length() * 0.62, 7.5, 17);
+      direction.normalize();
+      const position = target.clone().addScaledVector(direction, distance);
+      applyCameraPose({
+        position: position.toArray(),
+        target: target.toArray(),
+        fov: Math.min(Number(camera.fov) || 42, 42),
+      });
+      viewerInteracted = true;
+    }
+
+    function initializePolarFeatures() {
+      polarFeaturesController = createPolarFeaturesController({
+        THREE,
+        scene,
+        locale: pageLocale,
+        elements: {
+          searchInput: controlsUI.polarSearchInput,
+          results: controlsUI.polarSearchResults,
+          searchStatus: controlsUI.polarSearchStatus,
+          details: controlsUI.polarFeatureDetails,
+          stationToggle: controlsUI.showResearchStations,
+          namesToggle: controlsUI.showGeographicNames,
+        },
+        dataUrls: polarFeatureDataUrls,
+        getRegion: () => currentRegionKey,
+        changeRegion: async (nextRegionKey) => {
+          if (nextRegionKey === currentRegionKey) return;
+          if (!controlsUI.regionPreset || lockedRegionKey) {
+            throw new Error("Region switching is unavailable in this explorer mode.");
+          }
+          controlsUI.regionPreset.value = nextRegionKey;
+          controlsUI.regionPreset.dispatchEvent(new Event("change"));
+        },
+        waitForRegionReady: (regionKey, isCancelled = () => false) =>
+          waitUntilCondition(
+            () =>
+              isCancelled() ||
+              (currentRegionKey === regionKey &&
+                currentCoreContext?.generation === loadGeneration &&
+                !isLoadingOverlayVisible()),
+            90000,
+            `Timed out loading ${regionKey}.`,
+          ),
+        getScenePoint: getPolarFeatureScenePoint,
+        getExaggeration: () => Number(controlsUI.exaggeration.value) || 1,
+        focusScenePoint: focusPolarFeature,
+      });
+      polarFeaturesController.initialize();
     }
 
     function sampleRefinedBasinPoint(context, xMeters, yMeters, layerKey, offsetMeters) {
@@ -8181,6 +8435,7 @@
         if (refinedBasinBedLines) refinedBasinBedLines.scale.y = value;
         if (refinedBasinSurfaceLines) refinedBasinSurfaceLines.scale.y = value;
         updateRefinedBasinLabelPositionsForExaggeration();
+        polarFeaturesController?.updateExaggeration();
       });
 
       controlsUI.iceOpacity.addEventListener("input", () => {
@@ -10382,6 +10637,8 @@
 
         updateLoadingProgress(0.88, t("explorer.loading.buildingBaseMeshes"));
         buildCoreSceneFromContext(currentCoreContext);
+        await polarFeaturesController?.onTerrainReady();
+        if (generation !== loadGeneration || currentCoreContext?.generation !== generation) return;
         if (pendingViewResetOnLoad) {
           resetCameraToDefaultPose();
           pendingViewResetOnLoad = false;
@@ -10447,6 +10704,7 @@
         updateLoadingProgress(0.04, t("explorer.loading.initializingRenderer"));
 
         initScene();
+        initializePolarFeatures();
         bindUI();
         document.addEventListener("fullscreenchange", handleFullscreenChange);
         document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
@@ -10498,6 +10756,8 @@
       }
       if (animationHandle) cancelAnimationFrame(animationHandle);
       cleanupViewerResizeHandling();
+      polarFeaturesController?.destroy();
+      polarFeaturesController = null;
       clearModelMeshes();
       terminateGeometryWorker();
       if (renderer) renderer.dispose();
