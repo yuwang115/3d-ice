@@ -1,0 +1,131 @@
+.explorer-page-shell--ice .explorer-update-section {
+  background: var(--ice-feature-section-bg);
+}
+
+.explorer-page-shell--ice .explorer-update-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.explorer-page-shell--ice .explorer-update-list > li {
+  margin: 0;
+}
+
+.explorer-page-shell--ice .explorer-update-card {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(11rem, 0.32fr) minmax(0, 1fr);
+  gap: clamp(1.1rem, 2.5vw, 2rem);
+  overflow: hidden;
+  padding: clamp(1.1rem, 2.4vw, 1.65rem);
+  border: 1px solid var(--ice-card-border-strong);
+  border-radius: 24px;
+  background: var(--ice-panel-card-sky);
+  box-shadow: var(--ice-card-shadow-soft);
+}
+
+.explorer-page-shell--ice .explorer-update-card::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--ice-card-sheen-feature);
+  content: "";
+  pointer-events: none;
+}
+
+.explorer-page-shell--ice .explorer-update-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding-right: clamp(1rem, 2vw, 1.6rem);
+  border-right: 1px solid var(--ice-border);
+}
+
+.explorer-page-shell--ice .explorer-update-date,
+.explorer-page-shell--ice .explorer-update-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.explorer-page-shell--ice .explorer-update-date {
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--ice-border-strong);
+  background: var(--ice-button-ghost-bg);
+  color: var(--ice-accent);
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+
+.explorer-page-shell--ice .explorer-update-badge {
+  color: var(--ice-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.explorer-page-shell--ice .explorer-update-body h3 {
+  margin: 0 0 0.65rem;
+  color: var(--ice-feature-heading);
+  font-size: clamp(1.25rem, 1.8vw, 1.55rem);
+  line-height: 1.2;
+}
+
+.explorer-page-shell--ice .explorer-update-body > p {
+  margin: 0;
+}
+
+.explorer-page-shell--ice .explorer-update-highlights {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.explorer-page-shell--ice .explorer-update-highlights li {
+  margin: 0;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid var(--ice-card-border);
+  border-radius: 18px;
+  background: var(--ice-highlight-card-bg);
+  box-shadow: var(--ice-highlight-card-shadow);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+.explorer-page-shell--ice .explorer-update-highlights strong {
+  color: var(--ice-feature-heading);
+}
+
+.explorer-page-shell--ice .explorer-update-body .explorer-actions {
+  margin-top: 1rem;
+}
+
+@media (max-width: 900px) {
+  .explorer-page-shell--ice .explorer-update-highlights {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .explorer-page-shell--ice .explorer-update-card {
+    grid-template-columns: 1fr;
+  }
+
+  .explorer-page-shell--ice .explorer-update-meta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 0 0 1rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--ice-border);
+  }
+}
