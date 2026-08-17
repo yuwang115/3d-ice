@@ -20,10 +20,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-cov h5py numpy scipy netCDF4
+          python -m pip install -e ".[dev]"
 
       - name: Run unit tests
-        run: pytest tests/ --ignore=tests/e2e -v --tb=short --cov=scripts --cov-report=term-missing
+        run: python -m pytest tests/ --ignore=tests/e2e -v --tb=short --cov=scripts --cov-report=term-missing
 
   metadata-validation:
     name: Validate .meta.json files
@@ -36,10 +36,29 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install pytest
+        run: python -m pip install pytest cffconvert
 
-      - name: Validate metadata
-        run: pytest tests/test_metadata_schema.py -v --tb=short
+      - name: Validate project metadata
+        run: |
+          cffconvert --validate
+          python -m json.tool codemeta.json > /dev/null
+          python -m json.tool package.json > /dev/null
+
+      - name: Validate dataset metadata
+        run: python -m pytest tests/test_metadata_schema.py -v --tb=short
+
+  javascript-tests:
+    name: JavaScript unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run JavaScript tests
+        run: npm run test:polar-features
 
   bundle-smoke:
     name: Compatibility bundle smoke test
@@ -68,8 +87,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pytest playwright
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[e2e]"
           python -m playwright install chromium --with-deps
 
       - name: Run E2E tests
-        run: pytest tests/e2e/ -v --tb=short
+        run: python -m pytest tests/e2e/ -v --tb=short

@@ -11,12 +11,12 @@ tags:
   - scientific communication
 authors:
   - name: Yu Wang
-    orcid: 0000-0000-0000-0000
+    orcid: 0000-0001-9070-6004
     affiliation: 1
 affiliations:
   - name: Institute for Marine and Antarctic Studies, University of Tasmania, Hobart, Tasmania, Australia
     index: 1
-date: 17 April 2026
+date: 17 August 2026
 bibliography: paper.bib
 ---
 

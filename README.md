@@ -10,6 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/yuwang115/3d-ice/actions/workflows/ci.yml"><img src="https://github.com/yuwang115/3d-ice/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/yuwang115/3d-ice/actions/workflows/draft-pdf.yml"><img src="https://github.com/yuwang115/3d-ice/actions/workflows/draft-pdf.yml/badge.svg" alt="Draft JOSS PDF"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
 </p>
 
@@ -189,7 +190,7 @@ To regenerate datasets from source NetCDF/HDF5 or GeoTIFF files:
 
 ```bash
 # Python 3.10+ required
-pip install h5py numpy scipy netCDF4 tifffile
+python -m pip install -e .
 
 # Example: prepare BedMachine Antarctica
 python scripts/prepare_bedmachine_antarctica.py --input BedMachineAntarctica_V4.nc
@@ -213,26 +214,51 @@ python scripts/prepare_qrf_greenland.py --input /path/to/QRF_greenland_ice_predi
 # Create a virtual environment
 python3 -m venv .venv && source .venv/bin/activate
 
-# Install test dependencies
-pip install pytest pytest-cov h5py numpy
+# Install the data-preparation and development dependencies
+python -m pip install -e ".[dev]"
 
-# Run unit tests
-pytest tests/ --ignore=tests/e2e -v
+# Run Python and JavaScript tests
+python -m pytest tests/ --ignore=tests/e2e -v
+npm run test:polar-features
 
 # Run bundle smoke test (requires Node.js 20+)
 npm run bundle:compat && npm run smoke:compat
+
+# Optional: install and run browser end-to-end tests
+python -m pip install -e ".[e2e]"
+python -m playwright install chromium
+python -m pytest tests/e2e/ -v
+```
+
+## JOSS Paper Draft
+
+Changes to `paper.md`, `paper.bib`, or the paper workflow trigger the
+[Draft JOSS PDF workflow](https://github.com/yuwang115/3d-ice/actions/workflows/draft-pdf.yml).
+The compiled `paper.pdf` is available from each workflow run as the
+`joss-paper` artifact. To use the same Open Journals toolchain locally when
+Docker is available:
+
+```bash
+docker run --rm \
+  --volume "$PWD:/data" \
+  --user "$(id -u):$(id -g)" \
+  --env JOURNAL=joss \
+  openjournals/inara -o pdf paper.md
 ```
 
 ## Citation
 
-If you use 3D ICE in your research or teaching, please cite:
+Until an archival DOI and the JOSS paper are available, cite the latest tagged
+software release. The repository also includes a machine-readable
+[`CITATION.cff`](CITATION.cff) file for GitHub's **Cite this repository** menu.
 
 ```bibtex
-@article{wang2026,
+@misc{wang2026_3dice,
   author  = {Wang, Yu},
-  title   = {3D ICE: An Interactive Browser-Based Cryosphere Explorer for Antarctica and Greenland},
-  journal = {Journal of Open Source Software},
-  year    = {2026}
+  title   = {{3D ICE}: An Interactive Browser-Based Cryosphere Explorer for Antarctica and Greenland},
+  year    = {2026},
+  version = {0.1.2},
+  url     = {https://github.com/yuwang115/3d-ice/releases/tag/v0.1.2}
 }
 ```
 

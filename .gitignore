@@ -11,3 +11,6 @@ __pycache__/
 .coverage
 htmlcov/
 *.egg-info/
+
+# JOSS draft output (published by GitHub Actions as an artifact)
+paper.pdf

@@ -2,13 +2,14 @@
   "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
   "@type": "SoftwareSourceCode",
   "name": "3D ICE",
-  "description": "Interactive 3D Cryosphere Explorer for Antarctica and Greenland",
+  "description": "An interactive browser-based cryosphere explorer for Antarctica and Greenland",
   "license": "https://spdx.org/licenses/MIT",
   "codeRepository": "https://github.com/yuwang115/3d-ice",
   "issueTracker": "https://github.com/yuwang115/3d-ice/issues",
+  "url": "https://3d-ice.com/",
   "version": "0.1.2",
   "dateCreated": "2026-02-14",
-  "dateModified": "2026-04-15",
+  "dateModified": "2026-08-17",
   "programmingLanguage": [
     "JavaScript",
     "Python",
@@ -24,6 +25,7 @@
   "author": [
     {
       "@type": "Person",
+      "@id": "https://orcid.org/0000-0001-9070-6004",
       "givenName": "Yu",
       "familyName": "Wang",
       "email": "yu.wang0@utas.edu.au",

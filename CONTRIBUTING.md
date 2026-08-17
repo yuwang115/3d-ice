@@ -26,28 +26,39 @@ Thank you for your interest in contributing to 3D ICE! This document provides gu
 ### Development Setup
 
 **Prerequisites:**
+
 - Node.js 20+
 - Python 3.10+ (for data preparation scripts)
 - A WebGL-capable browser
 
 **Running locally:**
+
 ```bash
 # Serve the static site
-npx serve static
+python3 -m http.server 4173 --directory static
 
 # Run data preparation (requires source NetCDF/HDF5 or GeoTIFF files)
-pip install h5py numpy scipy netCDF4 tifffile
+python -m pip install -e .
 python scripts/prepare_bedmachine_antarctica.py
 ```
 
 **Running tests:**
+
 ```bash
 # Python tests
-pip install -r requirements-dev.txt
-pytest tests/
+python -m pip install -e ".[dev]"
+python -m pytest tests/ --ignore=tests/e2e -v
+
+# JavaScript unit tests
+npm run test:polar-features
 
 # Bundle smoke test
-npm run smoke:compat
+npm run bundle:compat && npm run smoke:compat
+
+# Optional browser end-to-end tests
+python -m pip install -e ".[e2e]"
+python -m playwright install chromium
+python -m pytest tests/e2e/ -v
 ```
 
 ### Code Style
