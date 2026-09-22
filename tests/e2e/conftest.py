@@ -26,6 +26,30 @@ def playwright_browser():
         runtime.stop()
 
 
+SERVER_STARTUP_TIMEOUT_S = 90
+
+
+def _wait_for_port(proc: subprocess.Popen, port: int, timeout_s: float) -> None:
+    """Block until the server accepts connections, or fail with a useful message.
+
+    A fixed sleep is not enough: on a machine where static/ lives in iCloud Drive the
+    interpreter can take half a minute to bind, which surfaced as ERR_CONNECTION_TIMED_OUT
+    in whichever tests happened to run first.
+    """
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        if proc.poll() is not None:
+            _, stderr = proc.communicate()
+            raise RuntimeError(f"Could not start the local E2E server: {stderr.strip()}")
+        try:
+            with socket.create_connection(("127.0.0.1", port), timeout=0.5):
+                return
+        except OSError:
+            time.sleep(0.1)
+    proc.terminate()
+    raise RuntimeError(f"Local E2E server did not accept connections within {timeout_s:.0f}s")
+
+
 @pytest.fixture(scope="session")
 def server():
     """Start a local HTTP server serving the static/ directory."""
@@ -38,10 +62,7 @@ def server():
         stderr=subprocess.PIPE,
         text=True,
     )
-    time.sleep(1)  # give the server a moment to start
-    if proc.poll() is not None:
-        _, stderr = proc.communicate()
-        raise RuntimeError(f"Could not start the local E2E server: {stderr.strip()}")
+    _wait_for_port(proc, port, SERVER_STARTUP_TIMEOUT_S)
     try:
         yield f"http://127.0.0.1:{port}"
     finally:

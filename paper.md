@@ -22,98 +22,152 @@ bibliography: paper.bib
 
 # Summary
 
-3D ICE (Interactive 3D Cryosphere Explorer) is a browser-based platform that
-transforms authoritative cryosphere datasets into layered, interactive 3D
-visualizations of the Antarctic and Greenland ice sheets. The software consists
-of two components: an offline Python data preparation pipeline that converts
-heterogeneous scientific data products (NetCDF4 / HDF5) into optimized,
-web-ready binary packages with full provenance metadata; and an online
-JavaScript runtime built on Three.js [@threejs] and WebGL that renders these
-packages as explorable 3D scenes directly in the browser, requiring no
-installation, plugins, or server-side computation.
+3D ICE (Interactive 3D Cryosphere Explorer) is an open-source platform for
+exploring research-grade representations of the Antarctic and Greenland ice
+sheets in a web browser. It combines terrain, ice velocity, ocean circulation,
+ice-shelf basal melting, basal conditions, subglacial hydrology, and drainage
+basins in layered three-dimensional scenes. Users can rotate and zoom each ice
+sheet, switch datasets and quality levels, search polar places and geographic
+features, and follow links to the original data products.
 
-3D ICE currently integrates seven major data products spanning bed topography
-[@morlighem2020; @morlighem2017], ice velocity [@mouginot2019; @gardner2018;
-@gardner2025], ocean circulation [@richter2022; @dias2023; @cmems2025],
-ice-shelf basal melt rates [@galtonfenzi2025], basal friction, subglacial
-hydrology [@werder2013; @ehrenfeucht2024], and drainage basin boundaries
-[@rignot2011]. Users can rotate, zoom, and layer these datasets in real time
-while maintaining direct links to the underlying source data for further
-research.
+The software has two stages. An offline Python pipeline converts heterogeneous
+NetCDF, HDF5, GeoTIFF, and vector products into compact binary arrays paired
+with machine-readable provenance metadata. A static JavaScript application,
+built with Three.js [@threejs] and WebGL, decodes these packages and renders
+them without plugins or server-side computation. This separation makes the
+scientific transformations reproducible while keeping the public interface
+simple to deploy, share, and use on desktop and mobile devices.
 
-# Statement of Need
+# Statement of need
 
 Modern cryosphere science generates large, gridded datasets in specialized
-formats such as NetCDF4 and HDF5. Visualizing these datasets typically requires
-desktop GIS software (e.g., QGIS with the Quantarctica data package), numerical
-computing environments (MATLAB, Python with matplotlib), or bespoke analysis
-scripts. Each of these tools demands installation, domain expertise, and
-familiarity with polar stereographic projections and ice-sheet coordinate
-systems. This creates a significant barrier for three important audiences:
-educators who wish to incorporate real ice-sheet data into teaching;
-science communicators who need compelling visuals for public engagement; and
-researchers in adjacent disciplines who want a quick, contextual overview of
-cryosphere conditions without setting up a full analysis environment.
+formats and polar stereographic coordinate systems. Inspecting several products
+together commonly requires a desktop GIS, a numerical computing environment,
+or purpose-built scripts. These workflows are appropriate for quantitative
+analysis but impose installation, data-transfer, projection, and preprocessing
+requirements before a user can obtain a contextual view of an ice sheet.
 
-Existing web-based tools address parts of this problem but leave gaps.
-NASA Worldview provides global satellite imagery in two dimensions but offers no
-3D rendering or cryosphere-specific overlays. The Quantarctica project assembles
-a comprehensive Antarctic GIS dataset, but it is tied to desktop QGIS.
-The NSIDC IceBridge Data Portal and the Australian Antarctic Data Centre focus
-on data access and archival rather than interactive exploration. None of these
-tools allow users to combine bed topography, surface velocity, ocean currents,
-basal melt, and subglacial hydrology into a single, layered 3D view—and none
-run entirely in the browser with zero installation.
+That barrier particularly affects researchers in adjacent disciplines,
+educators who want to use real polar data in teaching, and scientists preparing
+interactive research communication. They need a rapid way to see relationships
+among ice geometry, flow, ocean forcing, and basal processes while retaining a
+path back to the source datasets. 3D ICE addresses this need with a curated,
+zero-install view rather than attempting to replace GIS or numerical analysis.
+Its research purpose is to make heterogeneous cryosphere products easier to
+compare, explain, and select for subsequent analysis.
 
-3D ICE fills this gap by coupling a reproducible data preparation pipeline with
-an accessible, zero-install 3D visualization runtime. The platform is designed
-for three use cases: (1) research communication, where scientists can share
-interactive views of their datasets via URL; (2) teaching, where educators can
-walk students through ice-sheet structure and dynamics using real data; and
-(3) public engagement, where the 3D visual immediacy of ice sheets lowers the
-barrier to understanding cryosphere change.
+# State of the field
 
-# Architecture and Implementation
+Quantarctica is a comprehensive Antarctic data package, analysis environment,
+and visualization platform centred on a desktop QGIS workflow
+[@matsuoka2021]. It is well suited to local geospatial analysis and contains a
+broader range of Antarctic disciplines than 3D ICE. In contrast, 3D ICE trades
+general GIS operations for an immediately shareable, curated 3D experience that
+uses a common interaction model for both Antarctica and Greenland.
 
-## Data Preparation Pipeline
+NASA Worldview provides rapid web access to more than a thousand global
+satellite-imagery layers, including polar views, temporal comparison, animation,
+and data download [@nasa_worldview]. Its focus is two-dimensional, often
+near-real-time Earth observation imagery. 3D ICE instead combines terrain with
+subsurface and model-derived fields such as basal friction, hydrology, basal
+melt, and depth-dependent ocean circulation.
 
-The offline pipeline consists of twelve Python scripts (approximately 7,100
-lines) that read authoritative source products and emit paired `.bin` /
-`.meta.json` files. Each script performs four operations: (1) reading the source
-NetCDF4 or HDF5 file via h5py or netCDF4-python; (2) resampling the data onto
-a target grid aligned with BedMachine coordinates, using nearest-neighbor or
-bilinear interpolation; (3) quantizing floating-point values to int16 with
-configurable scale and offset, mapping invalid or missing data to a sentinel
-fill value; and (4) writing the binary payload alongside a JSON metadata file
-that records source provenance, grid geometry, quantization parameters, and
-per-field statistics.
+General 3D geospatial libraries such as CesiumJS [@cesiumjs] provide a
+high-precision WGS84 globe, scalable data formats, and rendering primitives from
+which developers can build web applications. Three.js provides the lower-level
+graphics foundation used by 3D ICE [@threejs]. Neither library supplies a
+cryosphere data model, polar-grid conversion, provenance records, layer
+semantics, or data curation. Contributing these product-specific transformations
+to a general rendering engine would therefore not address the research need.
+3D ICE reuses established graphics infrastructure while concentrating its
+scholarly contribution in the reproducible polar-data pipeline, explicit data
+contract, and domain-specific interaction design.
 
-The most algorithmically complex component is the ocean current streamline
-generator (`prepare_antarctica_ocean_currents.py`, 2,551 lines), which
-implements Lagrangian particle advection through a 3D velocity field. The
-generator seeds particles using a spatially balanced, depth-stratified strategy
-with configurable sector weighting, traces streamlines through multi-depth
-velocity layers with adaptive step sizing, and applies spatial binning to
-balance visual density. This approach produces visually coherent streamlines
-that convey both the horizontal circulation patterns and the vertical structure
-of Antarctic shelf and cavity currents derived from WAOM2 [@richter2022;
-@dias2023].
+# Software design
 
-Each `.meta.json` file serves as a machine-readable provenance record, enabling
-downstream users to trace any rendered pixel back to its source variable,
-spatial resolution, quantization scheme, and original dataset DOI.
+3D ICE uses a two-stage, contract-oriented architecture. The offline stage reads
+authoritative source products, reconciles their coordinate conventions, and
+resamples fields onto terrain-aligned polar grids. Floating-point grids are
+quantized to signed 16-bit arrays for browser delivery. This introduces a
+controlled precision-versus-transfer-size trade-off: scale, offset, fill value,
+units, grid geometry, statistics, source citation, and processing provenance are
+stored in a paired `.meta.json` file so that decoding is deterministic and the
+loss of precision is inspectable. The metadata schema is the boundary between
+scientific preparation and visualization, rather than implicit assumptions in
+the renderer.
 
-## Browser Runtime
+Computationally expensive transformations are performed before deployment.
+For example, Antarctic ocean-current packages are generated by advecting
+particles through multi-depth WAOM2 velocity fields, balancing seeds by region
+and depth, and controlling streamline density [@richter2022; @dias2023]. This
+offline choice allows the public application to use static hosting: it does not
+need a database, application server, or access to restricted compute resources.
+The trade-off is that integrating or updating a source product requires
+regenerating and versioning its web package.
 
-The runtime is a self-contained HTML application (approximately 10,400 lines)
-that loads binary data packages via `fetch()` and `ArrayBuffer`, constructs
-Three.js geometries from the quantized grids, and renders layered 3D scenes
-with orbit controls. Heavy geometry construction is offloaded to a dedicated
-Web Worker to avoid blocking the main thread during initial loading. The runtime
-supports theme-aware rendering (light and dark modes), bilingual localization
-(English and Chinese), cross-device optimization with selectable quality presets
-(Balanced and HD), and URL-based deep linking to specific regions and layer
-configurations.
+The online stage fetches binary arrays, reconstructs terrain and overlays, and
+renders them with Three.js. Geometry construction runs in a Web Worker so that
+large grids do not block interface updates. Balanced and HD packages make the
+resolution-versus-memory choice explicit across mobile and desktop devices.
+Pure JavaScript modules isolate polar search, label styling, and refined-basin
+validation from the page interface, while URL state, English/Chinese
+localization, and direct source links make views reproducible and shareable.
+
+The domain contract is checked at several levels: unit tests cover
+quantization, coordinate sampling, metadata statistics, search, and bounded
+geometry; integration tests exercise prepared datasets; compatibility tests
+build a distributable static bundle; and Playwright tests load the explorer and
+exercise browser interactions. These checks run in continuous integration and
+make the web application locally verifiable without relying on the production
+website.
+
+# Research impact statement
+
+At the current public-release stage, evidence for 3D ICE is based on
+reproducible research materials and community readiness rather than downstream
+publication citations. The public application and versioned compatibility
+bundle [@wang2026software] integrate representative products for bed geometry
+[@morlighem2020; @morlighem2017], ice velocity [@mouginot2019; @gardner2018;
+@gardner2025], ocean circulation [@richter2022; @dias2023; @cmems2025],
+ice-shelf basal melting [@galtonfenzi2025], subglacial hydrology
+[@werder2013; @ehrenfeucht2024], and drainage boundaries [@rignot2011]. Each
+visual layer retains a citation or link to its source, allowing an exploratory
+view to lead into a reproducible analysis workflow.
+
+One layer is derived rather than ingested. The isostatic-rebound view solves the
+equilibrium deflection of the solid Earth after the present ice load is removed,
+so a user can see which parts of the bed that lie below sea level today would
+emerge once the ice is gone and glacial isostatic adjustment has run to
+completion. It offers an elastic-lithosphere/relaxing-asthenosphere steady state
+[@lemeur1996; @lingle1985] solved spectrally [@bueler2007] and, as an upper
+bound on peak uplift, local Airy isostasy [@turcotte2002]; the spectral solver
+is verified against the analytic point-load Kelvin-function solution
+[@brotchie1969]. Sea-level-equivalent figures follow the terminology and ocean
+area of @gregory2019. Because this layer is computed in the browser from the
+bed, surface, thickness and mask fields of whichever terrain package is already
+loaded, it adds no data dependency and can be reproduced from a clean clone. Its
+assumptions are reported alongside its numbers in the interface, including the
+fact that the present bed is not in balance with the present load
+[@whitehouse2019] and that mantle viscosity beneath parts of West Antarctica is
+low enough to shorten the response time by orders of magnitude [@barletta2018].
+
+The repository supplies English and Chinese interfaces, cross-device quality
+levels, a documented preparation environment, tagged releases, contribution
+and support pathways, and automated verification from data functions through
+browser behaviour. Together these materials provide a concrete basis for reuse
+in research communication, teaching, and dataset discovery. External use,
+presentations, and feedback will be documented as that evidence becomes
+available rather than inferred from intended audiences.
+
+# AI usage disclosure
+
+OpenAI Codex using GPT-5 (accessed August 2026) assisted with CI and metadata
+review, test scaffolding, documentation editing, literature discovery, and the
+drafting and copy-editing of portions of this paper. The author made the
+scientific and architectural decisions; reviewed and edited all AI-assisted
+code and prose; executed the automated tests and JOSS build; checked citations
+against primary sources; and accepts responsibility for the accuracy,
+originality, licensing, and integrity of the submitted work.
 
 # Acknowledgements
 

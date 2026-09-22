@@ -237,6 +237,7 @@ export function createPolarFeaturesController(options) {
   const catalogueCache = new Map();
   const cataloguePromises = new Map();
   const groups = new Map();
+  const labelSprites = new Map();
   const listeners = [];
   const state = {
     researchStations: { enabled: Boolean(elements.stationToggle.checked), loaded: false, totalCount: 0, visibleCount: 0 },
@@ -245,7 +246,7 @@ export function createPolarFeaturesController(options) {
     selectedFeature: null,
   };
   let searchResults = [];
-  let selectedMarker = null;
+  let focusedExistingLabelId = null;
   let destroyed = false;
   let selectionGeneration = 0;
   let blurTimer = null;
@@ -315,10 +316,10 @@ export function createPolarFeaturesController(options) {
     });
   }
 
-  function createLabelSprite(text, { selected = false, layer = "geographic_names", region = getRegion() } = {}) {
-    const canvas = createPolarLabelCanvas(documentRef, text, { layer, region, selected });
+  function createLabelSprite(text, { layer = "geographic_names", region = getRegion() } = {}) {
+    const canvas = createPolarLabelCanvas(documentRef, text, { layer, region });
     if (!canvas) return null;
-    const style = getPolarFeatureLabelStyle(layer, region, { selected });
+    const style = getPolarFeatureLabelStyle(layer, region);
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.minFilter = THREE.LinearFilter;
@@ -328,8 +329,14 @@ export function createPolarFeaturesController(options) {
       new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false, depthWrite: false }),
     );
     sprite.scale.set(canvas.width * style.worldScale, canvas.height * style.worldScale, 1);
-    sprite.renderOrder = selected ? 31 : 30;
+    sprite.renderOrder = 30;
     return sprite;
+  }
+
+  function clearLayerLabels(layer) {
+    for (const [featureId, entry] of labelSprites) {
+      if (entry.layer === layer) labelSprites.delete(featureId);
+    }
   }
 
   function scenePointFor(feature) {
@@ -342,6 +349,7 @@ export function createPolarFeaturesController(options) {
     const previous = groups.get(layer);
     disposeObject(previous);
     groups.delete(layer);
+    clearLayerLabels(layer);
     const group = new THREE.Group();
     group.name = `polar-${layer}`;
     const rendered = [];
@@ -361,7 +369,6 @@ export function createPolarFeaturesController(options) {
       });
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-      const station = layer === "research_stations";
       const markerCanvas = createPolarMarkerCanvas(documentRef);
       const markerTexture = markerCanvas ? new THREE.CanvasTexture(markerCanvas) : null;
       if (markerTexture) {
@@ -378,20 +385,20 @@ export function createPolarFeaturesController(options) {
       points.userData.baseY = baseY;
       group.add(points);
 
-      const labelLimit = station ? 90 : 100;
       rendered
         .slice()
         .sort((left, right) =>
           Number(left.feature.display_priority || 99) - Number(right.feature.display_priority || 99) ||
           left.feature.name.localeCompare(right.feature.name, "en"),
         )
-        .slice(0, labelLimit)
         .forEach(({ feature, point }) => {
           const sprite = createLabelSprite(getPolarFeatureLabel(feature, locale), { layer, region: feature.region });
           if (!sprite) return;
           sprite.position.set(point.x, point.y + 0.5, point.z);
           sprite.userData.baseY = point.baseY;
           sprite.userData.heightOffset = 0.5;
+          sprite.userData.featureId = feature.id;
+          labelSprites.set(feature.id, { sprite, layer, region: feature.region });
           group.add(sprite);
         });
     }
@@ -409,35 +416,25 @@ export function createPolarFeaturesController(options) {
   async function ensureLayer(layer) {
     const stateKey = LAYER_KEYS[layer];
     if (!state[stateKey].enabled || destroyed) return;
+    if (groups.has(layer)) return;
     const region = getRegion();
     const catalogue = await loadCatalogue(region, layer);
-    if (destroyed || getRegion() !== region || !state[stateKey].enabled) return;
+    if (destroyed || getRegion() !== region || !state[stateKey].enabled || groups.has(layer)) return;
     buildLayer(catalogue, layer);
   }
 
-  function clearSelectedMarker() {
-    disposeObject(selectedMarker);
-    selectedMarker = null;
-  }
-
-  function renderSelectedMarker(feature) {
-    clearSelectedMarker();
-    if (!feature || feature.region !== getRegion()) return null;
-    const point = scenePointFor(feature);
-    if (!point) return null;
-    selectedMarker = new THREE.Group();
-    const sprite = createLabelSprite(getPolarFeatureLabel(feature, locale), {
-      selected: true,
-      layer: feature.layer,
-      region: feature.region,
-    });
-    if (!sprite) return point;
-    sprite.position.set(point.x, point.y + 1.2, point.z);
-    sprite.userData.baseY = point.baseY;
-    sprite.userData.heightOffset = 1.2;
-    selectedMarker.add(sprite);
-    scene.add(selectedMarker);
-    return point;
+  function focusPointFor(feature) {
+    const existingLabel = labelSprites.get(feature?.id);
+    if (existingLabel?.region === getRegion()) {
+      focusedExistingLabelId = feature.id;
+      return {
+        x: existingLabel.sprite.position.x,
+        baseY: existingLabel.sprite.userData.baseY,
+        z: existingLabel.sprite.position.z,
+      };
+    }
+    focusedExistingLabelId = null;
+    return scenePointFor(feature);
   }
 
   function showDetails(feature) {
@@ -525,7 +522,7 @@ export function createPolarFeaturesController(options) {
       if (isCancelled() || feature.region !== getRegion()) return;
       state.selectedFeature = feature;
       showDetails(feature);
-      const point = renderSelectedMarker(feature);
+      const point = focusPointFor(feature);
       if (point) focusScenePoint(feature, point);
     } catch (error) {
       if (isCancelled()) return;
@@ -623,10 +620,11 @@ export function createPolarFeaturesController(options) {
     }
     disposeObject(groups.get(layer));
     groups.delete(layer);
+    clearLayerLabels(layer);
     state[stateKey] = { ...state[stateKey], visibleCount: 0 };
     if (state.selectedFeature?.layer === layer) {
       state.selectedFeature = null;
-      clearSelectedMarker();
+      focusedExistingLabelId = null;
       showDetails(null);
     }
   }
@@ -658,7 +656,7 @@ export function createPolarFeaturesController(options) {
       on(elements.basinToggle, "change", () => {
         if (!elements.basinToggle.checked && state.selectedFeature?.layer === "refined_basins") {
           state.selectedFeature = null;
-          clearSelectedMarker();
+          focusedExistingLabelId = null;
           showDetails(null);
         }
       });
@@ -675,7 +673,8 @@ export function createPolarFeaturesController(options) {
       const stateKey = LAYER_KEYS[layer];
       state[stateKey] = { ...state[stateKey], visibleCount: 0 };
     }
-    clearSelectedMarker();
+    labelSprites.clear();
+    focusedExistingLabelId = null;
   }
 
   async function onTerrainReady() {
@@ -687,12 +686,14 @@ export function createPolarFeaturesController(options) {
         }),
       ),
     );
-    if (state.selectedFeature?.region === getRegion()) renderSelectedMarker(state.selectedFeature);
+    if (state.selectedFeature?.region === getRegion() && labelSprites.has(state.selectedFeature.id)) {
+      focusedExistingLabelId = state.selectedFeature.id;
+    }
   }
 
   function updateExaggeration() {
     const exaggeration = Number(getExaggeration() || 1);
-    for (const object of [...groups.values(), selectedMarker].filter(Boolean)) {
+    for (const object of groups.values()) {
       object.traverse((child) => {
         const positions = child.geometry?.getAttribute?.("position");
         const baseY = child.userData?.baseY;
@@ -707,6 +708,10 @@ export function createPolarFeaturesController(options) {
   }
 
   function getState() {
+    let selectionOverlayCount = 0;
+    scene.traverse((object) => {
+      if (object.userData?.isPolarSelectionOverlay) selectionOverlayCount += 1;
+    });
     const selectedFeature = state.selectedFeature
       ? {
           id: state.selectedFeature.id,
@@ -718,11 +723,19 @@ export function createPolarFeaturesController(options) {
       : null;
     return {
       featureLayers: {
-        researchStations: { ...state.researchStations },
-        geographicNames: { ...state.geographicNames },
+        researchStations: {
+          ...state.researchStations,
+          renderedLabelCount: [...labelSprites.values()].filter((entry) => entry.layer === "research_stations").length,
+        },
+        geographicNames: {
+          ...state.geographicNames,
+          renderedLabelCount: [...labelSprites.values()].filter((entry) => entry.layer === "geographic_names").length,
+        },
       },
       search: { ...state.search },
       selectedFeature,
+      focusedExistingLabelId,
+      selectionOverlayCount,
       loading: cataloguePromises.size > 0,
     };
   }

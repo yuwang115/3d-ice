@@ -295,6 +295,7 @@ function buildOceanCurrentTask(id, payload) {
     ny,
     grid,
     baseConfig,
+    buildFlowLights = true,
     reportProgress,
   } = payload;
   if (!(oceanBuffer instanceof ArrayBuffer)) {
@@ -408,13 +409,16 @@ function buildOceanCurrentTask(id, payload) {
     layerBuffers[layer] = {
       positions: new Float32Array(pairCounts[layer] * 6),
       colors: new Float32Array(pairCounts[layer] * 6),
+      flowDistances: buildFlowLights ? new Float32Array(pairCounts[layer] * 2) : null,
+      flowGlows: buildFlowLights ? new Uint8Array(pairCounts[layer] * 2) : null,
       cursor: 0,
       segmentCount: segmentCounts[layer],
     };
   }
 
-  function writePair(buffer, x0, y0, z0, x1, y1, z1, c0, c1) {
+  function writePair(buffer, x0, y0, z0, x1, y1, z1, c0, c1, distance0 = 0, distance1 = 0, flowGlow = 1) {
     const base = buffer.cursor;
+    const vertexBase = base / 3;
     buffer.positions[base] = x0;
     buffer.positions[base + 1] = y0;
     buffer.positions[base + 2] = z0;
@@ -427,6 +431,12 @@ function buildOceanCurrentTask(id, payload) {
     buffer.colors[base + 3] = c1[0];
     buffer.colors[base + 4] = c1[1];
     buffer.colors[base + 5] = c1[2];
+    if (buildFlowLights) {
+      buffer.flowDistances[vertexBase] = distance0;
+      buffer.flowDistances[vertexBase + 1] = distance1;
+      buffer.flowGlows[vertexBase] = flowGlow;
+      buffer.flowGlows[vertexBase + 1] = flowGlow;
+    }
     buffer.cursor += 6;
   }
 
@@ -476,7 +486,10 @@ function buildOceanCurrentTask(id, payload) {
       headBaseY + sideY,
       headBaseZ + sideZ,
       arrowColor,
-      arrowColor
+      arrowColor,
+      0,
+      0,
+      0
     );
     writePair(
       buffer,
@@ -487,11 +500,15 @@ function buildOceanCurrentTask(id, payload) {
       headBaseY - sideY,
       headBaseZ - sideZ,
       arrowColor,
-      arrowColor
+      arrowColor,
+      0,
+      0,
+      0
     );
   }
 
   const secondPassState = { streamlineIndex: 0, bucketBoundaryIndex: 0 };
+  const flowDistanceByLayer = Object.fromEntries(layerNames.map((layer) => [layer, 0]));
   const secondPassChunk = Math.max(20000, Math.floor(count / 20));
   for (let i = 0; i < count; i += 1) {
     const layer = getLayerName(secondPassState);
@@ -539,7 +556,26 @@ function buildOceanCurrentTask(id, payload) {
         y1 = -depth1 / baseConfig.verticalMetersPerUnit;
         color0 = oceanCurrentColor(theta0C[i], sal0Psu[i], oceanMeta);
         color1 = oceanCurrentColor(theta1C[i], sal1Psu[i], oceanMeta);
-        writePair(buffer, scenePoint0.x, y0, scenePoint0.z, scenePoint1.x, y1, scenePoint1.z, color0, color1);
+        const flowDistanceStart = buildFlowLights ? flowDistanceByLayer[layer] : 0;
+        const flowDistanceEnd = buildFlowLights
+          ? flowDistanceStart + Math.hypot(scenePoint1.x - scenePoint0.x, y1 - y0, scenePoint1.z - scenePoint0.z)
+          : 0;
+        writePair(
+          buffer,
+          scenePoint0.x,
+          y0,
+          scenePoint0.z,
+          scenePoint1.x,
+          y1,
+          scenePoint1.z,
+          color0,
+          color1,
+          flowDistanceStart,
+          flowDistanceEnd
+        );
+        if (buildFlowLights) {
+          flowDistanceByLayer[layer] = flowDistanceEnd;
+        }
         if (terminalFlag[i]) {
           appendArrow(buffer, scenePoint1, y1, scenePoint1.x - scenePoint0.x, y1 - y0, scenePoint1.z - scenePoint0.z, color1);
         }
@@ -548,6 +584,9 @@ function buildOceanCurrentTask(id, payload) {
 
     if (terminalFlag[i]) {
       secondPassState.streamlineIndex += 1;
+      if (buildFlowLights) {
+        flowDistanceByLayer[layer] = 0;
+      }
     }
     if (i > 0 && i % secondPassChunk === 0) {
       const t = i / Math.max(1, count - 1);
@@ -563,6 +602,8 @@ function buildOceanCurrentTask(id, payload) {
     layers[layer] = {
       positions: buffer.positions,
       colors: buffer.colors,
+      flowDistances: buffer.flowDistances,
+      flowGlows: buffer.flowGlows,
       segmentCount: Number(buffer.segmentCount || 0),
     };
   }
@@ -570,6 +611,7 @@ function buildOceanCurrentTask(id, payload) {
   postProgress(id, reportProgress, 0.98, "oceanFinalizing", "Finalizing ocean streamlines...");
   return {
     useLayerSplit,
+    flowLightsBuilt: buildFlowLights,
     flowlineCount: Number(oceanMeta.streamline_count || oceanMeta.flowline_count || 0),
     segmentCount: totalSegmentCount,
     layers,

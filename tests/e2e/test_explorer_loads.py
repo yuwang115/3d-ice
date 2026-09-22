@@ -49,6 +49,91 @@ class TestExplorerLoads:
         assert box["width"] > 0
         assert box["height"] > 0
 
+    def test_flow_animation_can_be_toggled(self, page):
+        """Users can pause the directional ice and ocean flow-light effect."""
+        flow_animation = page.locator("#animateFlow")
+        assert flow_animation.is_checked()
+
+        initial_state = page.evaluate("JSON.parse(window.render_game_to_text())")
+        assert initial_state["flowAnimation"]["enabled"]
+
+        flow_animation.uncheck()
+        page.wait_for_function(
+            """() => !JSON.parse(window.render_game_to_text()).flowAnimation.enabled""",
+            timeout=5_000,
+        )
+
+    def test_enabling_flow_animation_reveals_ice_flowlines_when_no_flow_layer_is_visible(self, page):
+        """The animation control avoids an invisible-on-first-use state."""
+        flow_animation = page.locator("#animateFlow")
+        assert not page.locator("#showFlowline").is_checked()
+        assert not page.locator("#showOceanCurrents").is_checked()
+
+        flow_animation.uncheck()
+        flow_animation.check()
+
+        page.wait_for_function(
+            """() => document.querySelector('#showFlowline').checked""",
+            timeout=5_000,
+        )
+
+    def test_flow_animation_time_advances_while_enabled(self, page):
+        """The visible flow-light phase advances rather than remaining a static texture."""
+        initial_state = page.evaluate("JSON.parse(window.render_game_to_text())")
+        initial_time = initial_state["flowAnimation"]["timeSeconds"]
+
+        page.wait_for_timeout(300)
+        updated_state = page.evaluate("JSON.parse(window.render_game_to_text())")
+        assert updated_state["flowAnimation"]["timeSeconds"] > initial_time
+
+    def test_reduced_motion_disables_flow_animation(self, playwright_browser, explorer_url):
+        """The explorer starts static for people who request reduced motion."""
+        context = playwright_browser.new_context(reduced_motion="reduce")
+        page = context.new_page()
+        page.goto(explorer_url, wait_until="networkidle", timeout=30_000)
+
+        flow_animation = page.locator("#animateFlow")
+        assert not flow_animation.is_checked()
+        state = page.evaluate("JSON.parse(window.render_game_to_text())")
+        assert state["flowAnimation"] == {
+            "enabled": False,
+            "reducedMotion": True,
+            "timeSeconds": 0,
+            "iceReady": False,
+            "oceanReady": False,
+            "iceParticles": False,
+            "oceanParticles": False,
+        }
+        context.close()
+
+    def test_flowlines_rebuild_when_animation_is_reenabled_after_reduced_motion(self, page):
+        """A static flowline layer upgrades to a shader flow-light layer on demand."""
+        page.emulate_media(reduced_motion="reduce")
+        page.wait_for_function(
+            """() => JSON.parse(window.render_game_to_text()).flowAnimation.reducedMotion""",
+            timeout=5_000,
+        )
+        page.locator("#showFlowline").check()
+        page.wait_for_function(
+            """() => {
+                const state = JSON.parse(window.render_game_to_text());
+                return state.ready && state.meshes.flowline && !state.flowAnimation.iceReady;
+            }""",
+            timeout=90_000,
+        )
+
+        page.emulate_media(reduced_motion="no-preference")
+        page.locator("#animateFlow").check()
+        page.wait_for_function(
+            """() => {
+                const state = JSON.parse(window.render_game_to_text());
+                return state.flowAnimation.enabled &&
+                  state.flowAnimation.iceReady &&
+                  state.flowAnimation.iceParticles;
+            }""",
+            timeout=30_000,
+        )
+
     def test_title_is_set(self, page):
         title = page.title()
         assert "3D" in title or "ICE" in title or "Cryosphere" in title
@@ -130,6 +215,12 @@ class TestExplorerLoads:
                 }}""",
                 timeout=90_000,
             )
+
+        state = page.evaluate("JSON.parse(window.render_game_to_text())")
+        assert state["flowAnimation"]["iceReady"]
+        assert state["flowAnimation"]["oceanReady"]
+        assert state["flowAnimation"]["iceParticles"]
+        assert state["flowAnimation"]["oceanParticles"]
 
     @pytest.mark.parametrize(
         ("dataset", "nx", "ny", "spacing"),

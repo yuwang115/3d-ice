@@ -4,7 +4,13 @@
     {
       "name": "static-server",
       "runtimeExecutable": "/opt/homebrew/bin/python3",
-      "runtimeArgs": ["-m", "http.server", "8090", "-d", "/Users/eddie/Documents/3d-ice/static"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8090",
+        "-d",
+        "/Users/yuwang/Library/Mobile Documents/com~apple~CloudDocs/Documents/3d-ice/static"
+      ],
       "port": 8090
     }
   ]

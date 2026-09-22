@@ -1622,18 +1622,44 @@
         <button id="panelCloseButton" class="panel-close-btn" type="button">Done</button>
       </div>
       <div class="panel-brand">
+        <!-- The logo carries its URL in data-src rather than src, and the
+             script below assigns it only in modes that actually show the panel.
+
+             `mode=showcase` (the hero embed on yuwang.blog) and
+             `mode=preview-embed` both set the panel to display:none, but the
+             browser still fetches an <img src> inside a non-rendered subtree.
+             Measured on the hero embed, this 244 KB JPEG was the third-largest
+             request of the whole page — ahead of every dataset except the
+             terrain package — for an element that resolves to 0x0 with a null
+             offsetParent and is never painted.
+
+             loading="lazy" does NOT solve this: Chrome loads a lazy image that
+             never gets a layout box, verified empirically (the request still
+             fired and naturalWidth still resolved). Gating the src is the only
+             thing that works. -->
         <img
           class="panel-brand-logo"
-          src="3d-ice-logo-light.jpg"
+          data-src="3d-ice-logo-light.jpg"
           alt="3D ICE Interactive Cryosphere Explorer"
+          width="2631"
+          height="1166"
+          decoding="async"
         />
         <script>
           (() => {
             const logoEl = document.currentScript.previousElementSibling;
+            if (!logoEl) return;
+            /* Keep this predicate in step with applyRuntimeTheme(), the other
+               writer of this element's src. */
+            const mode = new URLSearchParams(window.location.search).get("mode");
+            if (mode === "showcase" || mode === "preview-embed") return;
             const runtimeTheme = window.__iceRuntimeTheme;
-            if (!logoEl || !runtimeTheme) return;
-            const nextSrc = document.documentElement.dataset.theme === "dark" ? runtimeTheme.darkLogoSrc : runtimeTheme.lightLogoSrc;
-            if (logoEl.getAttribute("src") !== nextSrc) {
+            const nextSrc = runtimeTheme
+              ? document.documentElement.dataset.theme === "dark"
+                ? runtimeTheme.darkLogoSrc
+                : runtimeTheme.lightLogoSrc
+              : logoEl.dataset.src;
+            if (nextSrc && logoEl.getAttribute("src") !== nextSrc) {
               logoEl.setAttribute("src", nextSrc);
             }
           })();
@@ -1701,6 +1727,7 @@
         <label class="toggle"><input id="showIceBottom" type="checkbox" checked /> Show ice bottom surface</label>
         <label class="toggle"><input id="showVelocity" type="checkbox" /> Show ice surface velocity</label>
         <label class="toggle"><input id="showFlowline" type="checkbox" /> Show ice flowlines</label>
+        <label class="toggle"><input id="animateFlow" type="checkbox" checked /> Animate ice &amp; ocean flow</label>
         <div id="flowlineProfileCardMount" class="flowline-inline-card-slot" hidden></div>
         <label class="toggle"><input id="showBasalFriction" type="checkbox" /> Show basal friction</label>
         <label class="toggle"><input id="showEffectivePressure" type="checkbox" /> Show effective pressure</label>
@@ -1716,6 +1743,29 @@
         <label id="showBasalMeltRow" class="toggle"><input id="showBasalMelt" type="checkbox" /> Show ice-shelf basal melt</label>
         <label id="showThermalDrivingRow" class="toggle"><input id="showThermalDriving" type="checkbox" /> Show ice-shelf thermal driving</label>
         <label class="toggle"><input id="showSea" type="checkbox" /> Show sea level (0 m)</label>
+        <div class="toggle-divider" aria-hidden="true"></div>
+        <label class="toggle"><input id="showIsostaticRebound" type="checkbox" /> Show ice-free isostatic rebound</label>
+        <div id="isostaticReboundControls" class="toggle-group" hidden>
+          <div class="control">
+            <label for="reboundProgress">Deglaciation &amp; rebound <span id="reboundProgressValue" class="mono">100%</span></label>
+            <input id="reboundProgress" type="range" min="0" max="100" step="1" value="100" />
+            <div id="reboundProgressNote" class="legend-note"></div>
+          </div>
+          <div class="control">
+            <label for="reboundModel">Earth response</label>
+            <select id="reboundModel">
+              <option value="flexural" selected>Regional flexure (ELRA)</option>
+              <option value="local">Local (Airy) isostasy</option>
+            </select>
+            <div id="reboundModelNote" class="legend-note"></div>
+          </div>
+          <div class="control">
+            <label for="reboundSeaLevel">Sea-level datum <span id="reboundSeaLevelValue" class="mono">+0 m</span></label>
+            <input id="reboundSeaLevel" type="range" min="0" max="70" step="1" value="0" />
+            <div id="reboundSeaLevelNote" class="legend-note"></div>
+          </div>
+          <label class="toggle toggle--sub"><input id="highlightEmergentLand" type="checkbox" checked /> Highlight newly emergent land</label>
+        </div>
         <label class="toggle"><input id="wireframe" type="checkbox" /> Wireframe mode</label>
         <button id="resetView" type="button">Reset Camera</button>
         <button id="fullscreenToggle" type="button">Enter Fullscreen</button>
@@ -1729,6 +1779,7 @@
           <span>0</span>
           <span>+3500 m</span>
         </div>
+        <div id="reboundLegendNote" class="legend-note" hidden></div>
       </section>
 
       <section id="velocityLegendSection" class="section">
@@ -1967,6 +2018,7 @@
     const compactViewportQuery = window.matchMedia("(max-width: 980px)");
     const narrowViewportQuery = window.matchMedia("(max-width: 820px)");
     const runtimeThemeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const flowMotionMediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     let runtimeThemeObserver = null;
     let runtimeThemeStorageHandler = null;
     let runtimeThemeMediaHandler = null;
@@ -2042,6 +2094,7 @@
           oceanCurrents: true,
           refinedBasins: true,
           hydrology: true,
+          isostaticRebound: true,
         },
         sources: {
           geometry: {
@@ -2189,6 +2242,7 @@
           oceanCurrents: true,
           refinedBasins: true,
           hydrology: false,
+          isostaticRebound: true,
         },
         sources: {
           geometry: {
@@ -2546,7 +2600,11 @@
         document.documentElement.dataset.theme = nextTheme;
         document.documentElement.style.colorScheme = nextTheme;
       }
-      if (panelBrandLogoEl) {
+      /* Second writer of the brand logo's src. Skipped wherever the panel is
+         hidden, or a theme change would fetch the 244 KB logo that the markup
+         above deliberately withheld — the embed syncs its theme from the host
+         page, so this path does fire there. */
+      if (panelBrandLogoEl && !isShowcaseMode && !isPreviewMode) {
         panelBrandLogoEl.src =
           nextTheme === "dark" ? runtimeThemeApi?.darkLogoSrc || darkLogoUrl : runtimeThemeApi?.lightLogoSrc || lightLogoUrl;
       }
@@ -2600,6 +2658,7 @@
       showIceBottom: document.getElementById("showIceBottom"),
       showVelocity: document.getElementById("showVelocity"),
       showFlowline: document.getElementById("showFlowline"),
+      animateFlow: document.getElementById("animateFlow"),
       flowlineProfileCardMount: document.getElementById("flowlineProfileCardMount"),
       showBasalFriction: document.getElementById("showBasalFriction"),
       showBasalMeltRow: document.getElementById("showBasalMeltRow"),
@@ -2617,6 +2676,18 @@
       showEffectivePressure: document.getElementById("showEffectivePressure"),
       showSubglacialChannels: document.getElementById("showSubglacialChannels"),
       showSea: document.getElementById("showSea"),
+      reboundLegendNote: document.getElementById("reboundLegendNote"),
+      showIsostaticRebound: document.getElementById("showIsostaticRebound"),
+      isostaticReboundControls: document.getElementById("isostaticReboundControls"),
+      reboundProgress: document.getElementById("reboundProgress"),
+      reboundProgressValue: document.getElementById("reboundProgressValue"),
+      reboundProgressNote: document.getElementById("reboundProgressNote"),
+      reboundModel: document.getElementById("reboundModel"),
+      reboundModelNote: document.getElementById("reboundModelNote"),
+      reboundSeaLevel: document.getElementById("reboundSeaLevel"),
+      reboundSeaLevelValue: document.getElementById("reboundSeaLevelValue"),
+      reboundSeaLevelNote: document.getElementById("reboundSeaLevelNote"),
+      highlightEmergentLand: document.getElementById("highlightEmergentLand"),
       wireframe: document.getElementById("wireframe"),
       resetView: document.getElementById("resetView"),
       fullscreenToggle: document.getElementById("fullscreenToggle"),
@@ -2713,6 +2784,16 @@
     let refinedBasinLoadPromise = null;
     let refinedBasinLoadingUrl = null;
     let velocityField;
+    let reboundModule = null;
+    let reboundModulePromise = null;
+    let reboundWorker = null;
+    let reboundWorkerUnavailable = false;
+    const reboundWorkerPending = new Map();
+    let reboundWorkerRequestSeq = 0;
+    let reboundLoadPromise = null;
+    let reboundGeometryFrame = null;
+    let reboundGeometryWantsNormals = false;
+    let reboundSeaLevelDebounce = null;
     let velocityDataTexture = null;
     let velocityContinuousSamplingWarningIssued = false;
     let basalMeltDataTexture = null;
@@ -3077,6 +3158,10 @@
       setToggleAvailability(controlsUI.showRefinedBasins, basinAvailable);
       setToggleAvailability(controlsUI.showEffectivePressure, capabilities.hydrology);
       setToggleAvailability(controlsUI.showSubglacialChannels, capabilities.hydrology);
+      setToggleAvailability(
+        controlsUI.showIsostaticRebound,
+        Boolean(!isShowcaseMode && capabilities.isostaticRebound)
+      );
       updateOceanCurrentLayerControls();
       updateLegendVisibility();
     }
@@ -3102,6 +3187,12 @@
 
       if (controlsUI.bedLegendSection) {
         controlsUI.bedLegendSection.hidden = !controlsUI.showBed.checked;
+      }
+      if (controlsUI.reboundLegendNote) {
+        controlsUI.reboundLegendNote.hidden = !controlsUI.showIsostaticRebound?.checked;
+        if (controlsUI.showIsostaticRebound?.checked) {
+          controlsUI.reboundLegendNote.textContent = t("explorer.rebound.legendNote");
+        }
       }
       if (controlsUI.velocityLegendSection) {
         controlsUI.velocityLegendSection.hidden = !(capabilities.velocity && (controlsUI.showVelocity.checked || controlsUI.showFlowline.checked));
@@ -3178,6 +3269,7 @@
         showEffectivePressure: false,
         showSubglacialChannels: false,
         showSea: false,
+        showIsostaticRebound: false,
       };
       const presetToggles = preset.toggles || {};
       for (const [key, defaultValue] of Object.entries(toggleDefaults)) {
@@ -3202,6 +3294,11 @@
         controlsUI.iceOpacity.value = String(iceOpacity);
         controlsUI.iceOpacityValue.textContent = iceOpacity.toFixed(2);
       }
+
+      if (controlsUI.reboundProgress) controlsUI.reboundProgress.value = "100";
+      if (controlsUI.reboundSeaLevel) controlsUI.reboundSeaLevel.value = "0";
+      if (controlsUI.reboundModel) controlsUI.reboundModel.value = "flexural";
+      if (controlsUI.highlightEmergentLand) controlsUI.highlightEmergentLand.checked = true;
 
       const oceanLayers = preset.oceanLayers;
       if (oceanLayers) {
@@ -3843,6 +3940,39 @@
       applyRecordingOrbitFrame(baseTarget, theta, basePhi, baseRadius + zoomOffset);
     }
 
+    function isFlowLightAnimationEnabled() {
+      return Boolean(controlsUI.animateFlow?.checked && !flowMotionMediaQuery.matches);
+    }
+
+    function revealFlowlineForAnimation() {
+      if (
+        !isFlowLightAnimationEnabled() ||
+        controlsUI.showFlowline.checked ||
+        controlsUI.showOceanCurrents.checked
+      ) {
+        return;
+      }
+      controlsUI.showFlowline.checked = true;
+      controlsUI.showFlowline.dispatchEvent(new Event("change"));
+    }
+
+    function syncFlowLightAnimationPreference() {
+      if (flowMotionMediaQuery.matches && controlsUI.animateFlow) {
+        controlsUI.animateFlow.checked = false;
+      }
+      const enabled = isFlowLightAnimationEnabled();
+      flowLightUniforms.enabled.value = enabled ? 1 : 0;
+      setFlowLightParticleOverlaysVisible(flowlineMesh, enabled);
+      setFlowLightParticleOverlaysVisible(oceanCurrentMesh, enabled);
+    }
+
+    function stepFlowLightAnimation(deltaSeconds) {
+      syncFlowLightAnimationPreference();
+      if (!isFlowLightAnimationEnabled() || document.hidden) return;
+      flowLightElapsedSeconds += clamp(Number(deltaSeconds) || 0, 0, RECORDING_FRAME_DT_LIMIT_MS / 1000);
+      flowLightUniforms.time.value = flowLightElapsedSeconds;
+    }
+
     function stepRuntime(deltaMs = 16) {
       const safeDeltaMs = clamp(Number(deltaMs) || 0, 0, RECORDING_FRAME_DT_LIMIT_MS);
       if (isShowcaseMode || isPreviewMode) {
@@ -3851,6 +3981,7 @@
       if (recordingModeEnabled) {
         stepRecordingMotion(safeDeltaMs / 1000);
       }
+      stepFlowLightAnimation(safeDeltaMs / 1000);
       if (orbit) orbit.update();
     }
 
@@ -3877,6 +4008,22 @@
     const FLOWLINE_MAX_STEPS = 180;
     const FLOWLINE_STEP_CELLS = 0.6;
     const FLOWLINE_REVERSE_DIRECTION_DOT = -0.12;
+    const FLOW_LIGHT_PATTERN_SCALE = 0.16;
+    const FLOW_LIGHT_ICE_RATE = 1.25;
+    const FLOW_LIGHT_OCEAN_RATE = 0.85;
+    const FLOW_LIGHT_STATIC_OPACITY = 0.9;
+    const FLOW_LIGHT_ICE_ACTIVE_BASE_OPACITY = 0.24;
+    const FLOW_LIGHT_OCEAN_ACTIVE_BASE_OPACITY = 0.18;
+    const FLOW_LIGHT_PULSE_OPACITY = 0.76;
+    const FLOW_LIGHT_ICE_PARTICLE_SAMPLE_STRIDE = 4;
+    const FLOW_LIGHT_OCEAN_PARTICLE_SAMPLE_STRIDE = 12;
+    const FLOW_LIGHT_ICE_PARTICLE_SIZE = 7;
+    const FLOW_LIGHT_OCEAN_PARTICLE_SIZE = 5;
+    const flowLightUniforms = {
+      time: { value: 0 },
+      enabled: { value: 1 },
+    };
+    let flowLightElapsedSeconds = 0;
     const VELOCITY_VISUALIZATION = Object.freeze({
       range: [0, 3000],
       knee: 20,
@@ -5798,8 +5945,235 @@
       };
     }
 
+    function createFlowLightMaterial({ staticOpacity, activeBaseOpacity, pulseOpacity, flowRate, useSegmentRates = false, depthTest = true }) {
+      return new THREE.ShaderMaterial({
+        glslVersion: THREE.GLSL1,
+        defines: useSegmentRates ? { USE_SEGMENT_FLOW_RATE: "" } : {},
+        uniforms: {
+          uFlowTime: flowLightUniforms.time,
+          uFlowEnabled: flowLightUniforms.enabled,
+          uStaticOpacity: { value: staticOpacity },
+          uActiveBaseOpacity: { value: activeBaseOpacity },
+          uPulseOpacity: { value: pulseOpacity },
+          uPatternScale: { value: FLOW_LIGHT_PATTERN_SCALE },
+          uFlowRate: { value: flowRate },
+        },
+        vertexShader: `
+          precision highp float;
+
+          attribute vec3 color;
+          attribute float flowDistance;
+          attribute float flowGlow;
+
+          #ifdef USE_SEGMENT_FLOW_RATE
+            attribute float flowRate;
+          #endif
+
+          varying vec3 vColor;
+          varying float vFlowDistance;
+          varying float vFlowRate;
+          varying float vFlowGlow;
+
+          void main() {
+            vColor = color;
+            vFlowDistance = flowDistance;
+            #ifdef USE_SEGMENT_FLOW_RATE
+              vFlowRate = flowRate;
+            #else
+              vFlowRate = 1.0;
+            #endif
+            vFlowGlow = flowGlow;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          precision highp float;
+
+          uniform float uFlowTime;
+          uniform float uFlowEnabled;
+          uniform float uStaticOpacity;
+          uniform float uActiveBaseOpacity;
+          uniform float uPulseOpacity;
+          uniform float uPatternScale;
+          uniform float uFlowRate;
+
+          varying vec3 vColor;
+          varying float vFlowDistance;
+          varying float vFlowRate;
+          varying float vFlowGlow;
+
+          void main() {
+            if (uFlowEnabled < 0.5 || vFlowGlow < 0.5) {
+              gl_FragColor = vec4(vColor, uStaticOpacity);
+              return;
+            }
+            float phase = fract(vFlowDistance * uPatternScale - uFlowTime * uFlowRate * vFlowRate);
+            float leading = smoothstep(0.03, 0.09, phase);
+            float trailing = 1.0 - smoothstep(0.20, 0.34, phase);
+            float pulse = leading * trailing;
+            vec3 color = mix(vColor, vec3(1.0), pulse * 0.9);
+            gl_FragColor = vec4(color, uActiveBaseOpacity + pulse * uPulseOpacity);
+          }
+        `,
+        transparent: true,
+        depthWrite: false,
+        depthTest,
+      });
+    }
+
+    function createStaticFlowLineMaterial({ baseOpacity, depthTest = true }) {
+      return new THREE.LineBasicMaterial({
+        vertexColors: true,
+        transparent: true,
+        opacity: baseOpacity,
+        depthWrite: false,
+        depthTest,
+      });
+    }
+
+    function createFlowLightParticleMaterial({ flowRate, pointSize, useSegmentRates = false }) {
+      return new THREE.ShaderMaterial({
+        glslVersion: THREE.GLSL1,
+        defines: useSegmentRates ? { USE_SEGMENT_FLOW_RATE: "" } : {},
+        uniforms: {
+          uFlowTime: flowLightUniforms.time,
+          uFlowEnabled: flowLightUniforms.enabled,
+          uPatternScale: { value: FLOW_LIGHT_PATTERN_SCALE },
+          uFlowRate: { value: flowRate },
+          uPointSize: { value: pointSize },
+        },
+        vertexShader: `
+          precision highp float;
+
+          attribute vec3 color;
+          attribute float flowDistance;
+
+          #ifdef USE_SEGMENT_FLOW_RATE
+            attribute float flowRate;
+          #endif
+
+          uniform float uPointSize;
+
+          varying vec3 vColor;
+          varying float vFlowDistance;
+          varying float vFlowRate;
+
+          void main() {
+            vColor = color;
+            vFlowDistance = flowDistance;
+            #ifdef USE_SEGMENT_FLOW_RATE
+              vFlowRate = flowRate;
+            #else
+              vFlowRate = 1.0;
+            #endif
+            vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = uPointSize * clamp(90.0 / max(1.0, -viewPosition.z), 0.55, 1.65);
+            gl_Position = projectionMatrix * viewPosition;
+          }
+        `,
+        fragmentShader: `
+          precision highp float;
+
+          uniform float uFlowTime;
+          uniform float uFlowEnabled;
+          uniform float uPatternScale;
+          uniform float uFlowRate;
+
+          varying vec3 vColor;
+          varying float vFlowDistance;
+          varying float vFlowRate;
+
+          void main() {
+            if (uFlowEnabled < 0.5) discard;
+            float phase = fract(vFlowDistance * uPatternScale - uFlowTime * uFlowRate * vFlowRate);
+            float leading = smoothstep(0.03, 0.09, phase);
+            float trailing = 1.0 - smoothstep(0.20, 0.34, phase);
+            float pulse = leading * trailing;
+            if (pulse < 0.02) discard;
+            float radius = length(gl_PointCoord - vec2(0.5));
+            float disc = 1.0 - smoothstep(0.16, 0.5, radius);
+            if (disc < 0.02) discard;
+            vec3 color = mix(vColor, vec3(1.0), 0.95);
+            gl_FragColor = vec4(color, pulse * disc);
+          }
+        `,
+        transparent: true,
+        depthWrite: false,
+        depthTest: true,
+      });
+    }
+
+    function addFlowLightParticleOverlay(lines, { sampleStride, pointSize, flowRate, useSegmentRates = false }) {
+      const geometry = lines?.geometry;
+      const position = geometry?.getAttribute("position");
+      const color = geometry?.getAttribute("color");
+      const flowDistance = geometry?.getAttribute("flowDistance");
+      const flowGlow = geometry?.getAttribute("flowGlow");
+      const segmentRate = geometry?.getAttribute("flowRate");
+      if (!position || !color || !flowDistance || !flowGlow || (useSegmentRates && !segmentRate)) return null;
+
+      const particlePositions = [];
+      const particleColors = [];
+      const particleDistances = [];
+      const particleRates = [];
+      const safeStride = Math.max(1, Math.floor(sampleStride));
+      for (let segmentIndex = 0; segmentIndex < Math.floor(position.count / 2); segmentIndex += safeStride) {
+        const vertexIndex = segmentIndex * 2 + 1;
+        if (flowGlow.getX(vertexIndex) < 0.5) continue;
+        particlePositions.push(position.getX(vertexIndex), position.getY(vertexIndex), position.getZ(vertexIndex));
+        particleColors.push(color.getX(vertexIndex), color.getY(vertexIndex), color.getZ(vertexIndex));
+        particleDistances.push(flowDistance.getX(vertexIndex));
+        if (useSegmentRates) particleRates.push(segmentRate.getX(vertexIndex));
+      }
+      if (!particlePositions.length) return null;
+
+      const particleGeometry = new THREE.BufferGeometry();
+      particleGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(particlePositions), 3));
+      particleGeometry.setAttribute("color", new THREE.BufferAttribute(new Float32Array(particleColors), 3));
+      particleGeometry.setAttribute("flowDistance", new THREE.BufferAttribute(new Float32Array(particleDistances), 1));
+      if (useSegmentRates) {
+        particleGeometry.setAttribute("flowRate", new THREE.BufferAttribute(new Float32Array(particleRates), 1));
+      }
+
+      const particles = new THREE.Points(
+        particleGeometry,
+        createFlowLightParticleMaterial({ flowRate, pointSize, useSegmentRates })
+      );
+      particles.renderOrder = lines.renderOrder + 0.1;
+      particles.userData.isFlowLightParticleOverlay = true;
+      lines.add(particles);
+      return particles;
+    }
+
+    function addFlowLightAttributes(geometry, { distances, rates, glows }) {
+      const vertexCount = geometry.getAttribute("position")?.count || 0;
+      if (
+        !vertexCount ||
+        distances.length !== vertexCount ||
+        (rates && rates.length !== vertexCount) ||
+        glows.length !== vertexCount
+      ) {
+        throw new Error("Flow-light attributes do not match line geometry.");
+      }
+      const flowDistances = distances instanceof Float32Array ? distances : new Float32Array(distances);
+      const flowGlows = glows instanceof Uint8Array ? glows : new Uint8Array(glows);
+      geometry.setAttribute("flowDistance", new THREE.BufferAttribute(flowDistances, 1));
+      if (rates) {
+        const flowRates = rates instanceof Float32Array ? rates : new Float32Array(rates);
+        geometry.setAttribute("flowRate", new THREE.BufferAttribute(flowRates, 1));
+      }
+      geometry.setAttribute("flowGlow", new THREE.BufferAttribute(flowGlows, 1, true));
+    }
+
+    function getIceFlowLightRate(speedMetersPerYear) {
+      const referenceSpeed = Math.max(20, Number.isFinite(currentVelocityMedianSpeed) ? currentVelocityMedianSpeed : 100);
+      const relativeSpeed = Math.sqrt(Math.max(0, Number(speedMetersPerYear) || 0) / referenceSpeed);
+      return clamp(0.62 + relativeSpeed * 0.34, 0.62, 2.1);
+    }
+
     function buildFlowlineMesh(field) {
       if (!field) return null;
+      const buildFlowLights = isFlowLightAnimationEnabled();
 
       const totalCells = field.nx * field.ny;
       const seedSpacing = Math.max(8, Math.round(Math.sqrt(totalCells / FLOWLINE_SEED_TARGET)));
@@ -5810,6 +6184,9 @@
 
       const positions = [];
       const colors = [];
+      const flowDistances = [];
+      const flowRates = [];
+      const flowGlows = [];
       const segmentFlowlineIndices = [];
       const flowlines = [];
 
@@ -5825,6 +6202,7 @@
         const summary = buildFlowlineProfileSummary(field, flowlineIndex, merged);
         if (!summary) continue;
         flowlines.push(summary);
+        let flowDistance = 0;
 
         for (let i = 1; i < merged.length; i += 1) {
           const p0 = merged[i - 1];
@@ -5840,10 +6218,15 @@
 
           const c0 = velocityColor(p0.speed);
           const c1 = velocityColor(p1.speed);
+          const segmentLength = Math.hypot(x1 - x0, y1 - y0, z1 - z0);
 
           positions.push(x0, y0, z0, x1, y1, z1);
           colors.push(c0[0], c0[1], c0[2], c1[0], c1[1], c1[2]);
+          flowDistances.push(flowDistance, flowDistance + segmentLength);
+          flowRates.push(getIceFlowLightRate(p0.speed), getIceFlowLightRate(p1.speed));
+          flowGlows.push(1, 1);
           segmentFlowlineIndices.push(flowlineIndex);
+          flowDistance += segmentLength;
         }
       }
 
@@ -5852,16 +6235,34 @@
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
       geometry.setAttribute("color", new THREE.BufferAttribute(new Float32Array(colors), 3));
-      const material = new THREE.LineBasicMaterial({
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.9,
-        depthWrite: false,
-      });
+      if (buildFlowLights) {
+        addFlowLightAttributes(geometry, {
+          distances: flowDistances,
+          rates: flowRates,
+          glows: flowGlows,
+        });
+      }
+      const material = buildFlowLights
+        ? createFlowLightMaterial({
+            staticOpacity: FLOW_LIGHT_STATIC_OPACITY,
+            activeBaseOpacity: FLOW_LIGHT_ICE_ACTIVE_BASE_OPACITY,
+            pulseOpacity: FLOW_LIGHT_PULSE_OPACITY,
+            flowRate: FLOW_LIGHT_ICE_RATE,
+            useSegmentRates: true,
+          })
+        : createStaticFlowLineMaterial({ baseOpacity: FLOW_LIGHT_STATIC_OPACITY });
       const lines = new THREE.LineSegments(geometry, material);
       lines.scale.y = Number(controlsUI.exaggeration.value);
       lines.visible = controlsUI.showFlowline.checked;
       lines.renderOrder = 16;
+      if (buildFlowLights) {
+        addFlowLightParticleOverlay(lines, {
+          sampleStride: FLOW_LIGHT_ICE_PARTICLE_SAMPLE_STRIDE,
+          pointSize: FLOW_LIGHT_ICE_PARTICLE_SIZE,
+          flowRate: FLOW_LIGHT_ICE_RATE,
+          useSegmentRates: true,
+        });
+      }
       lines.userData.flowlineCount = flowlines.length;
       lines.userData.flowlines = flowlines;
       lines.userData.segmentFlowlineIndices = Uint32Array.from(segmentFlowlineIndices);
@@ -5870,6 +6271,7 @@
 
     function buildOceanCurrentMesh(context, oceanMeta, oceanBuffer) {
       if (!context || !oceanMeta || !(oceanBuffer instanceof ArrayBuffer)) return null;
+      const buildFlowLights = isFlowLightAnimationEnabled();
 
       const x0Ps = parseField(oceanMeta, oceanBuffer, "x0_ps_m");
       const y0Ps = parseField(oceanMeta, oceanBuffer, "y0_ps_m");
@@ -5903,9 +6305,14 @@
 
       const layerBuffers = useLayerSplit
         ? Object.fromEntries(
-            OCEAN_CURRENT_LAYER_ORDER.map((layer) => [layer, { positions: [], colors: [], segmentCount: 0 }])
-          )
+          OCEAN_CURRENT_LAYER_ORDER.map((layer) => [layer, { positions: [], colors: [], segmentCount: 0 }])
+        )
         : { all: { positions: [], colors: [], segmentCount: 0 } };
+      for (const buffer of Object.values(layerBuffers)) {
+        buffer.flowDistances = buildFlowLights ? [] : null;
+        buffer.flowGlows = buildFlowLights ? [] : null;
+        buffer.flowDistance = 0;
+      }
       const bucketBoundaries = [];
       if (useLayerSplit) {
         let cumulative = 0;
@@ -5929,9 +6336,10 @@
         return layerBuffers[currentLayer] || layerBuffers.mid;
       }
 
-      function finalizeStreamlineIfNeeded(i) {
+      function finalizeStreamlineIfNeeded(i, buffer) {
         if (terminalFlag[i]) {
           streamlineIndex += 1;
+          if (buffer) buffer.flowDistance = 0;
         }
       }
 
@@ -5983,6 +6391,10 @@
           arrowColor[1],
           arrowColor[2]
         );
+        if (buildFlowLights) {
+          buffer.flowDistances.push(0, 0, 0, 0);
+          buffer.flowGlows.push(0, 0, 0, 0);
+        }
       }
 
       function createOceanCurrentLines(buffer) {
@@ -5990,16 +6402,30 @@
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(buffer.positions), 3));
         geometry.setAttribute("color", new THREE.BufferAttribute(new Float32Array(buffer.colors), 3));
+        if (buildFlowLights) {
+          addFlowLightAttributes(geometry, {
+            distances: buffer.flowDistances,
+            glows: buffer.flowGlows,
+          });
+        }
         geometry.computeBoundingSphere();
-        const material = new THREE.LineBasicMaterial({
-          vertexColors: true,
-          transparent: true,
-          opacity: 0.98,
-          depthWrite: false,
-          depthTest: true,
-        });
+        const material = buildFlowLights
+          ? createFlowLightMaterial({
+              staticOpacity: 0.98,
+              activeBaseOpacity: FLOW_LIGHT_OCEAN_ACTIVE_BASE_OPACITY,
+              pulseOpacity: FLOW_LIGHT_PULSE_OPACITY,
+              flowRate: FLOW_LIGHT_OCEAN_RATE,
+            })
+          : createStaticFlowLineMaterial({ baseOpacity: 0.98 });
         const lines = new THREE.LineSegments(geometry, material);
         lines.renderOrder = OCEAN_CURRENT_RENDER_ORDER;
+        if (buildFlowLights) {
+          addFlowLightParticleOverlay(lines, {
+            sampleStride: FLOW_LIGHT_OCEAN_PARTICLE_SAMPLE_STRIDE,
+            pointSize: FLOW_LIGHT_OCEAN_PARTICLE_SIZE,
+            flowRate: FLOW_LIGHT_OCEAN_RATE,
+          });
+        }
         return lines;
       }
 
@@ -6008,7 +6434,7 @@
         const projected0 = projectPs71PointToGrid(context, x0Ps[i], y0Ps[i]);
         const projected1 = projectPs71PointToGrid(context, x1Ps[i], y1Ps[i]);
         if (!projected0 || !projected1) {
-          finalizeStreamlineIfNeeded(i);
+          finalizeStreamlineIfNeeded(i, buffer);
           continue;
         }
 
@@ -6019,11 +6445,11 @@
         const col1 = projected1.col;
         const row1 = projected1.row;
         if (col0 < 0 || row0 < 0 || col0 >= context.nx || row0 >= context.ny) {
-          finalizeStreamlineIfNeeded(i);
+          finalizeStreamlineIfNeeded(i, buffer);
           continue;
         }
         if (col1 < 0 || row1 < 0 || col1 >= context.nx || row1 >= context.ny) {
-          finalizeStreamlineIfNeeded(i);
+          finalizeStreamlineIfNeeded(i, buffer);
           continue;
         }
 
@@ -6038,22 +6464,22 @@
         const validOceanMask0 = mask0 === 0 || mask0 === 3;
         const validOceanMask1 = mask1 === 0 || mask1 === 3;
         if (!validOceanMask0 || !validOceanMask1) {
-          finalizeStreamlineIfNeeded(i);
+          finalizeStreamlineIfNeeded(i, buffer);
           continue;
         }
 
         const bedHeight0 = sampleGridHeightNearest(context, col0, row0, "bed");
         const bedHeight1 = sampleGridHeightNearest(context, col1, row1, "bed");
         if (!Number.isFinite(bedHeight0) || !Number.isFinite(bedHeight1)) {
-          finalizeStreamlineIfNeeded(i);
+          finalizeStreamlineIfNeeded(i, buffer);
           continue;
         }
         if (-bedHeight0 < depth0 + OCEAN_CURRENT_BED_CLEARANCE_M) {
-          finalizeStreamlineIfNeeded(i);
+          finalizeStreamlineIfNeeded(i, buffer);
           continue;
         }
         if (-bedHeight1 < depth1 + OCEAN_CURRENT_BED_CLEARANCE_M) {
-          finalizeStreamlineIfNeeded(i);
+          finalizeStreamlineIfNeeded(i, buffer);
           continue;
         }
 
@@ -6066,6 +6492,12 @@
 
         buffer.positions.push(scenePoint0.x, y0, scenePoint0.z, scenePoint1.x, y1, scenePoint1.z);
         buffer.colors.push(color0[0], color0[1], color0[2], color1[0], color1[1], color1[2]);
+        const segmentLength = Math.hypot(scenePoint1.x - scenePoint0.x, y1 - y0, scenePoint1.z - scenePoint0.z);
+        if (buildFlowLights) {
+          buffer.flowDistances.push(buffer.flowDistance, buffer.flowDistance + segmentLength);
+          buffer.flowGlows.push(1, 1);
+        }
+        buffer.flowDistance += segmentLength;
 
         if (terminalFlag[i]) {
           const dx = scenePoint1.x - scenePoint0.x;
@@ -6073,6 +6505,7 @@
           const dz = scenePoint1.z - scenePoint0.z;
           appendOceanCurrentArrow(buffer, scenePoint1, y1, dx, dy, dz, color1);
           streamlineIndex += 1;
+          buffer.flowDistance = 0;
         }
         buffer.segmentCount += 1;
       }
@@ -6109,24 +6542,46 @@
 
     function buildOceanCurrentMeshFromWorkerResult(oceanMeta, workerResult) {
       if (!workerResult || typeof workerResult !== "object") return null;
+      const buildFlowLights = Boolean(workerResult.flowLightsBuilt);
 
-      function createOceanCurrentLinesFromArrays(positionsArray, colorsArray) {
-        if (!(positionsArray instanceof Float32Array) || !(colorsArray instanceof Float32Array) || !positionsArray.length) {
+      function createOceanCurrentLinesFromArrays(positionsArray, colorsArray, flowDistancesArray, flowGlowsArray) {
+        if (
+          !(positionsArray instanceof Float32Array) ||
+          !(colorsArray instanceof Float32Array) ||
+          !positionsArray.length
+        ) {
+          return null;
+        }
+        if (buildFlowLights && (!(flowDistancesArray instanceof Float32Array) || !(flowGlowsArray instanceof Uint8Array))) {
           return null;
         }
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute("position", new THREE.BufferAttribute(positionsArray, 3));
         geometry.setAttribute("color", new THREE.BufferAttribute(colorsArray, 3));
+        if (buildFlowLights) {
+          addFlowLightAttributes(geometry, {
+            distances: flowDistancesArray,
+            glows: flowGlowsArray,
+          });
+        }
         geometry.computeBoundingSphere();
-        const material = new THREE.LineBasicMaterial({
-          vertexColors: true,
-          transparent: true,
-          opacity: 0.98,
-          depthWrite: false,
-          depthTest: true,
-        });
+        const material = buildFlowLights
+          ? createFlowLightMaterial({
+              staticOpacity: 0.98,
+              activeBaseOpacity: FLOW_LIGHT_OCEAN_ACTIVE_BASE_OPACITY,
+              pulseOpacity: FLOW_LIGHT_PULSE_OPACITY,
+              flowRate: FLOW_LIGHT_OCEAN_RATE,
+            })
+          : createStaticFlowLineMaterial({ baseOpacity: 0.98 });
         const lines = new THREE.LineSegments(geometry, material);
         lines.renderOrder = OCEAN_CURRENT_RENDER_ORDER;
+        if (buildFlowLights) {
+          addFlowLightParticleOverlay(lines, {
+            sampleStride: FLOW_LIGHT_OCEAN_PARTICLE_SAMPLE_STRIDE,
+            pointSize: FLOW_LIGHT_OCEAN_PARTICLE_SIZE,
+            flowRate: FLOW_LIGHT_OCEAN_RATE,
+          });
+        }
         return lines;
       }
 
@@ -6136,7 +6591,12 @@
 
       if (!useLayerSplit) {
         const layer = workerResult.layers?.all;
-        const lines = createOceanCurrentLinesFromArrays(layer?.positions, layer?.colors);
+        const lines = createOceanCurrentLinesFromArrays(
+          layer?.positions,
+          layer?.colors,
+          layer?.flowDistances,
+          layer?.flowGlows
+        );
         if (!lines) return null;
         lines.scale.y = Number(controlsUI.exaggeration.value);
         lines.visible = controlsUI.showOceanCurrents.checked;
@@ -6149,7 +6609,12 @@
       const layerMeshes = {};
       for (const layerName of OCEAN_CURRENT_LAYER_ORDER) {
         const layer = workerResult.layers?.[layerName];
-        const lines = createOceanCurrentLinesFromArrays(layer?.positions, layer?.colors);
+        const lines = createOceanCurrentLinesFromArrays(
+          layer?.positions,
+          layer?.colors,
+          layer?.flowDistances,
+          layer?.flowGlows
+        );
         if (!lines) continue;
         group.add(lines);
         layerMeshes[layerName] = lines;
@@ -6418,6 +6883,53 @@
       return Boolean(camera && orbit && currentCoreContext) && !isLoadingOverlayVisible() && !hasPendingLayerLoads();
     }
 
+    function hasFlowLightGeometry(object) {
+      let found = false;
+      object?.traverse((child) => {
+        if (found || !child.geometry || !child.material?.uniforms?.uFlowTime) return;
+        found = Boolean(child.geometry.getAttribute("flowDistance") && child.geometry.getAttribute("flowGlow"));
+      });
+      return found;
+    }
+
+    function hasFlowLightParticleOverlay(object) {
+      let found = false;
+      object?.traverse((child) => {
+        found ||= Boolean(child.userData?.isFlowLightParticleOverlay);
+      });
+      return found;
+    }
+
+    function setFlowLightParticleOverlaysVisible(object, visible) {
+      object?.traverse((child) => {
+        if (child.userData?.isFlowLightParticleOverlay) child.visible = visible;
+      });
+    }
+
+    async function rebuildStaticFlowLightLayers() {
+      if (!isFlowLightAnimationEnabled()) return;
+
+      if (flowlineMesh && velocityField && !hasFlowLightGeometry(flowlineMesh)) {
+        selectedFlowlineHighlight = disposeObject3D(selectedFlowlineHighlight);
+        selectedFlowlineState = null;
+        const rebuiltFlowlines = buildFlowlineMesh(velocityField);
+        flowlineMesh = disposeMesh(flowlineMesh);
+        if (rebuiltFlowlines) {
+          flowlineMesh = rebuiltFlowlines;
+          scene.add(flowlineMesh);
+        }
+        updateFlowlineVisibility();
+      }
+
+      if (!oceanCurrentMesh || hasFlowLightGeometry(oceanCurrentMesh) || !currentCoreContext) return;
+      const context = currentCoreContext;
+      oceanCurrentMesh = disposeObject3D(oceanCurrentMesh);
+      context.oceanCurrentLoaded = false;
+      context.oceanCurrentUnavailable = false;
+      currentOceanCurrentMeta = null;
+      await ensureOceanCurrentsLoaded({ trigger: "toggle" });
+    }
+
     function collectExplorerState() {
       const polarFeatureState = polarFeaturesController?.getState() || {
         featureLayers: {
@@ -6445,6 +6957,8 @@
         showEffectivePressure: Boolean(controlsUI.showEffectivePressure?.checked),
         showSubglacialChannels: Boolean(controlsUI.showSubglacialChannels?.checked),
         showSea: Boolean(controlsUI.showSea?.checked),
+        showIsostaticRebound: Boolean(controlsUI.showIsostaticRebound?.checked),
+        highlightEmergentLand: Boolean(controlsUI.highlightEmergentLand?.checked),
         wireframe: Boolean(controlsUI.wireframe?.checked),
         showResearchStations: Boolean(controlsUI.showResearchStations?.checked),
         showGeographicNames: Boolean(controlsUI.showGeographicNames?.checked),
@@ -6459,10 +6973,50 @@
           enabled: Boolean(recordingModeEnabled),
           panelVisible: Boolean(recordingModeEnabled && recordingMotionState.panelVisible),
         },
+        flowAnimation: {
+          enabled: isFlowLightAnimationEnabled(),
+          reducedMotion: Boolean(flowMotionMediaQuery.matches),
+          timeSeconds: Number(flowLightElapsedSeconds.toFixed(3)),
+          iceReady: hasFlowLightGeometry(flowlineMesh),
+          oceanReady: hasFlowLightGeometry(oceanCurrentMesh),
+          iceParticles: hasFlowLightParticleOverlay(flowlineMesh),
+          oceanParticles: hasFlowLightParticleOverlay(oceanCurrentMesh),
+        },
         captureMotion: getRecordingStateSnapshot(),
+        isostaticRebound: {
+          enabled: Boolean(controlsUI.showIsostaticRebound?.checked),
+          available: Boolean(controlsUI.showIsostaticRebound && !controlsUI.showIsostaticRebound.disabled),
+          solved: Boolean(currentCoreContext?.reboundUplift),
+          // `model` and `seaLevelMeters` report the requested settings, which change the
+          // moment a control moves. The `solved*` pair reports what the cached uplift
+          // field was actually computed with, so a caller can tell a pending re-solve
+          // from a finished one instead of racing it.
+          model: getReboundModelKey(),
+          seaLevelMeters: getReboundSeaLevelMeters(),
+          solvedModel: currentCoreContext?.reboundStats?.model || null,
+          solvedSeaLevelMeters: Number.isFinite(currentCoreContext?.reboundStats?.seaLevelMeters)
+            ? currentCoreContext.reboundStats.seaLevelMeters
+            : null,
+          pendingResolve: Boolean(
+            currentCoreContext?.reboundUplift && currentCoreContext.reboundSolveKey !== getReboundSolveKey()
+          ),
+          progressPercent: Math.round(getReboundFraction() * 100),
+          highlightEmergentLand: Boolean(controlsUI.highlightEmergentLand?.checked),
+          maxUpliftMeters: Number.isFinite(currentCoreContext?.reboundStats?.maxUpliftMeters)
+            ? Number(currentCoreContext.reboundStats.maxUpliftMeters.toFixed(1))
+            : null,
+          emergentAreaKm2: Number.isFinite(currentCoreContext?.reboundStats?.emergentAreaKm2)
+            ? Math.round(currentCoreContext.reboundStats.emergentAreaKm2)
+            : null,
+          seaLevelEquivalentMeters: Number.isFinite(currentCoreContext?.reboundStats?.sleMeters)
+            ? Number(currentCoreContext.reboundStats.sleMeters.toFixed(2))
+            : null,
+        },
         featureLayers: polarFeatureState.featureLayers,
         search: polarFeatureState.search,
         selectedFeature: polarFeatureState.selectedFeature,
+        focusedExistingLabelId: polarFeatureState.focusedExistingLabelId,
+        selectionOverlayCount: polarFeatureState.selectionOverlayCount,
         toggles,
         controls: { ...toggles },
         legends: {
@@ -6502,6 +7056,7 @@
           : null,
         meshes: {
           bed: Boolean(bedMesh && bedMesh.visible),
+          isostaticRebound: Boolean(bedMesh && bedMesh.visible && isReboundActive()),
           ice: Boolean(iceMesh && iceMesh.visible),
           iceBottom: Boolean(iceBottomMesh && iceBottomMesh.visible),
           velocity: Boolean(velocitySurfaceMesh && velocitySurfaceMesh.visible),
@@ -6540,11 +7095,7 @@
     }
 
     function disposeMesh(mesh) {
-      if (!mesh) return null;
-      scene.remove(mesh);
-      if (mesh.geometry) mesh.geometry.dispose();
-      if (mesh.material) mesh.material.dispose();
-      return null;
+      return disposeObject3D(mesh);
     }
 
     function disposeTexture(texture) {
@@ -7274,6 +7825,13 @@
 
     function hideBedStressOverlaysExcept(activeKey = "") {
       let changed = false;
+      if (controlsUI.showIsostaticRebound?.checked) {
+        controlsUI.showIsostaticRebound.checked = false;
+        updateReboundControlsUi();
+        applyReboundGeometry({ recomputeNormals: true });
+        if (iceSideMesh) updateIceSideVisibility();
+        changed = true;
+      }
       if (activeKey !== "basalFriction" && controlsUI.showBasalFriction.checked) {
         controlsUI.showBasalFriction.checked = false;
         changed = true;
@@ -8432,6 +8990,14 @@
     }
 
     function bindUI() {
+      syncFlowLightAnimationPreference();
+      const syncFlowLightForMotionPreference = () => syncFlowLightAnimationPreference();
+      if (typeof flowMotionMediaQuery.addEventListener === "function") {
+        flowMotionMediaQuery.addEventListener("change", syncFlowLightForMotionPreference);
+      } else if (typeof flowMotionMediaQuery.addListener === "function") {
+        flowMotionMediaQuery.addListener(syncFlowLightForMotionPreference);
+      }
+
       bindMobileDrawerDrag();
       if (panelEl && !mobilePanelResizeObserver && "ResizeObserver" in window) {
         mobilePanelResizeObserver = new ResizeObserver(() => {
@@ -8502,6 +9068,7 @@
         if (refinedBasinBedLines) refinedBasinBedLines.scale.y = value;
         if (refinedBasinSurfaceLines) refinedBasinSurfaceLines.scale.y = value;
         updateRefinedBasinLabelPositionsForExaggeration();
+        updateReboundSeaPlane();
         polarFeaturesController?.updateExaggeration();
       });
 
@@ -8544,6 +9111,13 @@
         }
         updateFlowlineVisibility();
         updateMetaFromCurrentState();
+      });
+      controlsUI.animateFlow.addEventListener("change", () => {
+        syncFlowLightAnimationPreference();
+        revealFlowlineForAnimation();
+        rebuildStaticFlowLightLayers().catch((error) => {
+          console.error("Failed to rebuild animated flow layers:", error);
+        });
       });
       controlsUI.showBasalFriction.addEventListener("change", () => {
         if (controlsUI.showBasalFriction.checked) {
@@ -8654,6 +9228,66 @@
       });
       controlsUI.showSea.addEventListener("change", () => {
         if (seaLevelMesh) seaLevelMesh.visible = controlsUI.showSea.checked;
+      });
+
+      controlsUI.showIsostaticRebound?.addEventListener("change", () => {
+        const enabled = controlsUI.showIsostaticRebound.checked;
+        if (enabled) {
+          hideOverlaysForRebound();
+          // Without a waterline the uplift is invisible, so surface the sea plane.
+          if (controlsUI.showSea && !controlsUI.showSea.checked) {
+            controlsUI.showSea.checked = true;
+            if (seaLevelMesh) seaLevelMesh.visible = true;
+          }
+        } else if (iceSideMesh) {
+          updateIceSideVisibility();
+        }
+        updateReboundControlsUi();
+        updateLegendVisibility();
+        if (enabled && currentCoreContext?.reboundSolveKey !== getReboundSolveKey()) {
+          ensureIsostaticReboundLoaded({ trigger: "toggle" });
+          return;
+        }
+        applyReboundGeometry({ recomputeNormals: true });
+        updateMetaFromCurrentState();
+      });
+
+      controlsUI.reboundProgress?.addEventListener("input", () => {
+        updateReboundControlsUi();
+        if (isReboundActive()) scheduleReboundGeometryUpdate({ recomputeNormals: false });
+      });
+      controlsUI.reboundProgress?.addEventListener("change", () => {
+        updateReboundControlsUi();
+        if (!isReboundActive()) return;
+        scheduleReboundGeometryUpdate({ recomputeNormals: true });
+        updateMetaFromCurrentState();
+      });
+
+      controlsUI.reboundModel?.addEventListener("change", () => {
+        updateReboundControlsUi();
+        if (!controlsUI.showIsostaticRebound?.checked) return;
+        ensureIsostaticReboundLoaded({ trigger: "resolve" });
+      });
+
+      controlsUI.reboundSeaLevel?.addEventListener("input", () => {
+        updateReboundControlsUi();
+        // The datum shifts the waterline immediately; the deflection it induces is a
+        // second-order correction (~26 m of ocean-floor subsidence for 58 m of rise), so
+        // it is re-solved once the slider settles rather than on every frame.
+        if (isReboundActive()) scheduleReboundGeometryUpdate({ recomputeNormals: false });
+      });
+      controlsUI.reboundSeaLevel?.addEventListener("change", () => {
+        updateReboundControlsUi();
+        if (!controlsUI.showIsostaticRebound?.checked) return;
+        if (reboundSeaLevelDebounce !== null) window.clearTimeout(reboundSeaLevelDebounce);
+        reboundSeaLevelDebounce = window.setTimeout(() => {
+          reboundSeaLevelDebounce = null;
+          ensureIsostaticReboundLoaded({ trigger: "resolve" });
+        }, 180);
+      });
+
+      controlsUI.highlightEmergentLand?.addEventListener("change", () => {
+        if (isReboundActive()) applyReboundGeometry({ recomputeNormals: false });
       });
 
       controlsUI.wireframe.addEventListener("change", () => {
@@ -9015,6 +9649,115 @@
         );
       }
 
+
+      const reboundStats = currentCoreContext?.reboundStats;
+      const reboundActive = Boolean(controlsUI.showIsostaticRebound?.checked);
+      const fmtMillions = (value, digits = 3) =>
+        Number(value).toLocaleString(numberLocale, {
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits,
+        });
+      const fmtArea = (value) =>
+        Number.isFinite(value)
+          ? t("explorer.meta.reboundMillionKm2", { value: fmtMillions(value / 1e6) })
+          : notApplicableText;
+      const reboundItems =
+        reboundActive && reboundStats
+          ? [
+              `<li><strong>${t("explorer.meta.reboundModelLabel")}:</strong> ${
+                reboundStats.model === "local"
+                  ? t("explorer.meta.reboundModelLocal")
+                  : t("explorer.meta.reboundModelFlexural")
+              }</li>`,
+              ...(reboundStats.model === "local"
+                ? []
+                : [
+                    `<li class="meta-compact"><strong>${t("explorer.meta.reboundRigidity")}:</strong> ${
+                      reboundStats.flexuralRigidityNm.toExponential(0)
+                    } N m; <strong>${t("explorer.meta.reboundLengthScale")}:</strong> ${fmtInt(
+                      reboundStats.flexuralLengthScaleKm
+                    )} km</li>`,
+                  ]),
+              `<li class="meta-compact"><strong>${t("explorer.meta.reboundProgressLabel")}:</strong> ${Math.round(
+                getReboundFraction() * 100
+              )}%; <strong>${t("explorer.meta.reboundRelaxation")}:</strong> ${fmtInt(
+                reboundStats.relaxationTimeYears
+              )} yr; <strong>${t("explorer.meta.reboundSeaLevelLabel")}:</strong> +${fmtInt(
+                reboundStats.seaLevelMeters
+              )} m</li>`,
+              `<li><strong>${t("explorer.meta.reboundMaxUplift")}:</strong> ${fmtInt(
+                reboundStats.maxUpliftMeters
+              )} m at ${formatCoord(reboundStats.maxUpliftXMeters / 1000, 0)}, ${formatCoord(
+                reboundStats.maxUpliftYMeters / 1000,
+                0
+              )} km</li>`,
+              `<li><strong>${t("explorer.meta.reboundMeanGroundedUplift")}:</strong> ${fmtInt(
+                reboundStats.meanGroundedUpliftMeters
+              )} m</li>`,
+              `<li><strong>${t("explorer.meta.reboundEmergent")}:</strong> ${fmtArea(
+                reboundStats.emergentAreaKm2
+              )}</li>`,
+              `<li class="meta-compact"><strong>${t("explorer.meta.reboundLandBefore")}:</strong> ${fmtArea(
+                reboundStats.landAreaNowKm2
+              )}; <strong>${t("explorer.meta.reboundLandAfter")}:</strong> ${fmtArea(
+                reboundStats.landAreaAfterKm2
+              )}</li>`,
+              `<li><strong>${t("explorer.meta.reboundMarineUnderIce")}:</strong> ${fmtArea(
+                reboundStats.marineUnderIceAfterAreaKm2
+              )}</li>`,
+              ...(reboundStats.closedBasinAreaKm2 > 0
+                ? [
+                    `<li><strong>${t("explorer.meta.reboundClosedBasins")}:</strong> ${fmtArea(
+                      reboundStats.closedBasinAreaKm2
+                    )}</li>`,
+                  ]
+                : []),
+              ...(reboundStats.submergedAreaKm2 > 0
+                ? [
+                    `<li><strong>${t("explorer.meta.reboundDrowned")}:</strong> ${fmtInt(
+                      reboundStats.submergedAreaKm2
+                    )} km²</li>`,
+                  ]
+                : []),
+              `<li><strong>${t("explorer.meta.reboundDeepest")}:</strong> ${fmtInt(
+                reboundStats.deepestGroundedBedAfterMeters
+              )} m</li>`,
+              `<li class="meta-compact"><strong>${t(
+                "explorer.meta.reboundVolumeAboveFlotation"
+              )}:</strong> ${t("explorer.meta.reboundVolumeOf", {
+                above: fmtMillions(reboundStats.volumeAboveFlotationKm3 / 1e6, 2),
+                total: fmtMillions(reboundStats.iceVolumeKm3 / 1e6, 2),
+              })}</li>`,
+              `<li><strong>${t("explorer.meta.reboundSle")}:</strong> ${fmtShort(
+                reboundStats.sleMeters,
+                1
+              )} m (${
+                dataset.regionKey === "greenland"
+                  ? t("explorer.meta.reboundSlePublishedGreenland")
+                  : t("explorer.meta.reboundSlePublishedAntarctica")
+              })</li>`,
+              `<li class="meta-compact"><strong>${t("explorer.meta.reboundSolveGrid")}:</strong> ${
+                reboundStats.solveCellKm > 0
+                  ? t("explorer.meta.reboundSolveGridValue", {
+                      cell: fmtShort(reboundStats.solveCellKm, 0),
+                      sizeX: reboundStats.fftSizeX,
+                      sizeY: reboundStats.fftSizeY,
+                    })
+                  : t("explorer.meta.reboundSolveGridPointwise", { cell: fmtShort(stepKm, 0) })
+              }; <strong>${t("explorer.meta.reboundConvergence")}:</strong> ${t(
+                "explorer.meta.reboundConvergenceValue",
+                {
+                  iterations: reboundStats.iterations,
+                  residual: fmtShort(reboundStats.residualMeters, 3),
+                }
+              )}</li>`,
+              `<li><strong>${t("explorer.meta.reboundMethod")}:</strong> ${t("explorer.meta.reboundMethodText")}</li>`,
+              `<li><strong>${t("explorer.meta.reboundAssumptions")}:</strong> ${t(
+                "explorer.meta.reboundAssumptionsText"
+              )}</li>`,
+            ]
+          : [];
+
       const selectedFlowlineCard =
         capabilities.velocity && capabilities.flowline && controlsUI.showFlowline.checked
           ? renderSelectedFlowlineCard(selectedFlowlineState)
@@ -9032,6 +9775,9 @@
         renderMetaSection("subglacial-hydrology", t("explorer.meta.hydrologySection"), hydrologyItems),
         renderMetaSection("ocean-circulation", t("explorer.meta.oceanSection"), oceanCurrentItems),
         renderMetaSection("basal-melt", t("explorer.meta.riseSection"), riseItems),
+        renderMetaSection("isostatic-rebound", t("explorer.meta.isostaticReboundSection"), reboundItems, {
+          defaultOpen: true,
+        }),
         renderMetaSection("sources", t("explorer.meta.sourcesSection"), sourceLines),
       ].filter(Boolean);
 
@@ -9103,6 +9849,481 @@
         currentVelocityMedianSpeed
       );
       updateOceanCurrentLegend();
+    }
+
+
+    // ------------------------------------------------------------------ isostatic rebound
+    //
+    // Recomputes the bed (and the residual ice riding on it) from a cached equilibrium
+    // uplift field. The solve itself lives in js/gia-rebound.js and runs in a dedicated
+    // module worker; everything below is presentation.
+
+    const REBOUND_WORKER_PATH = "gia-rebound-worker.js";
+    const EMERGENT_HIGHLIGHT_RGB = [0.99, 0.6, 0.21];
+    const EMERGENT_HIGHLIGHT_BLEND = 0.55;
+
+    function loadReboundModule() {
+      if (reboundModule) return Promise.resolve(reboundModule);
+      if (!reboundModulePromise) {
+        reboundModulePromise = import(assetUrl("js/gia-rebound.js")).then((module) => {
+          reboundModule = module;
+          return module;
+        });
+      }
+      return reboundModulePromise;
+    }
+
+    function ensureReboundWorker() {
+      if (reboundWorker || reboundWorkerUnavailable) return reboundWorker;
+      try {
+        // A module worker keeps the solver a plain importable ES module, which is what
+        // makes it unit-testable outside the browser.
+        reboundWorker = new Worker(assetUrl(REBOUND_WORKER_PATH), { type: "module" });
+      } catch (error) {
+        console.warn("Isostatic-rebound worker unavailable, solving on the main thread.", error);
+        reboundWorkerUnavailable = true;
+        return null;
+      }
+      reboundWorker.addEventListener("message", (event) => {
+        const data = event.data || {};
+        const pending = reboundWorkerPending.get(data.id);
+        if (!pending) return;
+        if (data.kind === "progress") {
+          if (typeof pending.onProgress === "function") {
+            pending.onProgress(data.progress, localizeWorkerStage(data.stageKey || "", data.stage || ""));
+          }
+          return;
+        }
+        reboundWorkerPending.delete(data.id);
+        if (data.kind === "result" && data.ok) {
+          pending.resolve(data.result);
+          return;
+        }
+        pending.reject(new Error(localizeErrorMessage(data?.error?.message || t("explorer.errors.workerTaskFailed"))));
+      });
+      reboundWorker.addEventListener("error", (event) => {
+        const message = localizeErrorMessage(event?.message || t("explorer.errors.workerCrashed"));
+        reboundWorkerPending.forEach((pending) => pending.reject(new Error(message)));
+        reboundWorkerPending.clear();
+        reboundWorkerUnavailable = true;
+        reboundWorker = null;
+      });
+      return reboundWorker;
+    }
+
+    function terminateReboundWorker() {
+      if (!reboundWorker) return;
+      reboundWorker.terminate();
+      reboundWorker = null;
+      reboundWorkerPending.forEach((pending) => pending.reject(new Error(t("explorer.errors.workerTerminated"))));
+      reboundWorkerPending.clear();
+    }
+
+    function runReboundWorkerTask(payload, onProgress = null) {
+      const worker = ensureReboundWorker();
+      if (!worker) return null;
+      const id = ++reboundWorkerRequestSeq;
+      return new Promise((resolve, reject) => {
+        reboundWorkerPending.set(id, { resolve, reject, onProgress });
+        worker.postMessage({ id, task: "solveIsostaticRebound", payload });
+      });
+    }
+
+    function isReboundCapable(regionKey = currentRegionKey, datasetKey = currentDatasetKey) {
+      const region = getRegionConfig(regionKey);
+      const dataset = getDatasetConfig(region.key, datasetKey);
+      const capabilities = dataset?.capabilities || region.capabilities;
+      return Boolean(!isShowcaseMode && capabilities.isostaticRebound);
+    }
+
+    function isReboundActive() {
+      return Boolean(controlsUI.showIsostaticRebound?.checked && currentCoreContext?.reboundUplift);
+    }
+
+    function getReboundStandardParallel(regionKey = currentRegionKey) {
+      return regionKey === "greenland" ? 70 : -71;
+    }
+
+    function getReboundFraction() {
+      const value = Number(controlsUI.reboundProgress?.value);
+      return Number.isFinite(value) ? clamp01(value / 100) : 1;
+    }
+
+    function getReboundSeaLevelMeters() {
+      const value = Number(controlsUI.reboundSeaLevel?.value);
+      return Number.isFinite(value) ? Math.max(0, value) : 0;
+    }
+
+    function getReboundModelKey() {
+      return controlsUI.reboundModel?.value === "local" ? "local" : "flexural";
+    }
+
+    /** Identifies a cached solve; the uplift field depends on the model and the datum. */
+    function getReboundSolveKey() {
+      return `${getReboundModelKey()}|${getReboundSeaLevelMeters()}`;
+    }
+
+    function blendEmergentHighlight(rgb, blend) {
+      return [
+        lerp(rgb[0], EMERGENT_HIGHLIGHT_RGB[0], blend),
+        lerp(rgb[1], EMERGENT_HIGHLIGHT_RGB[1], blend),
+        lerp(rgb[2], EMERGENT_HIGHLIGHT_RGB[2], blend),
+      ];
+    }
+
+    /**
+     * Rewrite the bed mesh's vertex heights and colours for the current scenario, plus
+     * the residual ice surfaces. Vertex normals are the expensive part, so they are only
+     * recomputed when the interaction settles rather than on every drag frame.
+     */
+    function applyReboundGeometry({ recomputeNormals = true } = {}) {
+      const context = currentCoreContext;
+      if (!context || !bedMesh) return;
+
+      const active = isReboundActive();
+      const fraction = active ? getReboundFraction() : 0;
+      const seaLevelMeters = active ? getReboundSeaLevelMeters() : 0;
+      const highlight = Boolean(active && controlsUI.highlightEmergentLand?.checked);
+      const {
+        cellCount,
+        bedHeights,
+        bedValid,
+        surfaceHeights,
+        iceBottomHeights,
+        iceBottomValid,
+        thickness,
+        mask,
+        iceValid,
+      } = context;
+      const uplift = active ? context.reboundUplift : null;
+      const emergent = active ? context.reboundEmergent : null;
+      const verticalMetersPerUnit = context.baseConfig.verticalMetersPerUnit;
+
+      const positions = bedMesh.geometry.getAttribute("position");
+      const colors = bedMesh.geometry.getAttribute("color");
+      for (let index = 0; index < cellCount; index += 1) {
+        const bed = bedHeights[index];
+        const height = uplift && Number.isFinite(bed) ? bed + fraction * uplift[index] : bed;
+        positions.array[3 * index + 1] = bedValid[index] ? height / verticalMetersPerUnit : 0;
+
+        // Re-datum the colour ramp so the GMT_relief land/ocean break lands on the
+        // waterline rather than on the present-day zero.
+        let rgb = bedColor(height - seaLevelMeters);
+        if (highlight && emergent && emergent[index]) {
+          rgb = blendEmergentHighlight(rgb, EMERGENT_HIGHLIGHT_BLEND * fraction);
+        }
+        colors.array[3 * index] = Math.round(clamp01(rgb[0]) * 255);
+        colors.array[3 * index + 1] = Math.round(clamp01(rgb[1]) * 255);
+        colors.array[3 * index + 2] = Math.round(clamp01(rgb[2]) * 255);
+      }
+      positions.needsUpdate = true;
+      colors.needsUpdate = true;
+      if (recomputeNormals) bedMesh.geometry.computeVertexNormals();
+
+      if (!reboundModule || !iceMesh || !iceBottomMesh) {
+        updateReboundSeaPlane();
+        return;
+      }
+
+      const icePositions = iceMesh.geometry.getAttribute("position");
+      const iceBottomPositions = iceBottomMesh.geometry.getAttribute("position");
+
+      if (!active) {
+        // Restore the dataset's own ice geometry rather than re-deriving it at fraction
+        // zero: BedMachine's shelf draft is not exactly the hydrostatic value, so
+        // re-deriving would leave the ice a few metres off its pristine position.
+        for (let index = 0; index < cellCount; index += 1) {
+          icePositions.array[3 * index + 1] = iceValid[index]
+            ? surfaceHeights[index] / verticalMetersPerUnit
+            : 0;
+          iceBottomPositions.array[3 * index + 1] = iceBottomValid[index]
+            ? iceBottomHeights[index] / verticalMetersPerUnit
+            : 0;
+        }
+      } else {
+        const reboundedBed = context.reboundScratchBed || new Float32Array(cellCount);
+        context.reboundScratchBed = reboundedBed;
+        reboundModule.applyReboundFraction({ cellCount, bedHeights, uplift, fraction, out: reboundedBed });
+        const surfaces = reboundModule.deriveReboundedIceSurfaces({
+          cellCount,
+          reboundedBedHeights: reboundedBed,
+          thickness,
+          mask,
+          iceValid,
+          fraction,
+          seaLevelMeters,
+          surfaceOut: context.reboundScratchSurface || new Float32Array(cellCount),
+          bottomOut: context.reboundScratchBottom || new Float32Array(cellCount),
+        });
+        context.reboundScratchSurface = surfaces.surface;
+        context.reboundScratchBottom = surfaces.bottom;
+
+        for (let index = 0; index < cellCount; index += 1) {
+          const top = surfaces.surface[index];
+          const bottom = surfaces.bottom[index];
+          icePositions.array[3 * index + 1] = Number.isFinite(top) ? top / verticalMetersPerUnit : 0;
+          iceBottomPositions.array[3 * index + 1] = Number.isFinite(bottom)
+            ? bottom / verticalMetersPerUnit
+            : 0;
+        }
+      }
+      icePositions.needsUpdate = true;
+      iceBottomPositions.needsUpdate = true;
+      if (recomputeNormals) {
+        iceMesh.geometry.computeVertexNormals();
+        iceBottomMesh.geometry.computeVertexNormals();
+      }
+
+      // The ice side skirt is built from boundary edges rather than one vertex per cell,
+      // so it cannot be rewritten in place; hide it while the scenario is running.
+      if (iceSideMesh) iceSideMesh.visible = active ? false : iceSideMesh.visible;
+
+      // Fade the ice out as it thins away. At full deglaciation the ice meshes collapse
+      // onto the bed with zero thickness, and leaving them at the user's opacity would
+      // veil the rebounded bed with a uniform tint.
+      const iceOpacity = Number(controlsUI.iceOpacity.value);
+      const remainingIce = active ? 1 - fraction : 1;
+      syncIceMaterialMode(iceOpacity * remainingIce);
+      if (iceBottomMesh) {
+        iceBottomMesh.material.opacity = active
+          ? iceOpacity * 0.82 * remainingIce
+          : Math.max(0.12, iceOpacity * 0.82);
+      }
+      updateReboundSeaPlane();
+    }
+
+    function scheduleReboundGeometryUpdate({ recomputeNormals = false } = {}) {
+      reboundGeometryWantsNormals = reboundGeometryWantsNormals || recomputeNormals;
+      if (reboundGeometryFrame !== null) return;
+      reboundGeometryFrame = window.requestAnimationFrame(() => {
+        reboundGeometryFrame = null;
+        const wantsNormals = reboundGeometryWantsNormals;
+        reboundGeometryWantsNormals = false;
+        applyReboundGeometry({ recomputeNormals: wantsNormals });
+      });
+    }
+
+    function updateReboundSeaPlane() {
+      if (!seaLevelMesh || !currentCoreContext) return;
+      const seaLevelMeters = isReboundActive() ? getReboundSeaLevelMeters() : 0;
+      const exaggeration = Number(controlsUI.exaggeration.value);
+      // seaLevelMesh is a flat plane with no scale.y of its own, so the exaggeration the
+      // terrain meshes get from scale.y has to be folded into its position instead.
+      seaLevelMesh.position.y =
+        (seaLevelMeters / currentCoreContext.baseConfig.verticalMetersPerUnit) * exaggeration;
+    }
+
+    function hideOverlaysForRebound() {
+      // Every one of these overlays is baked onto the present-day bed or ice surface, so
+      // it would float or sink once the bed moves. Ocean streamlines are placed against
+      // the present bathymetry for the same reason.
+      let changed = false;
+      for (const key of [
+        "showVelocity",
+        "showBasalFriction",
+        "showEffectivePressure",
+        "showSubglacialChannels",
+        "showBasalMelt",
+        "showThermalDriving",
+        "showOceanCurrents",
+        "showFlowline",
+        "showRefinedBasins",
+      ]) {
+        const control = controlsUI[key];
+        if (control?.checked) {
+          control.checked = false;
+          changed = true;
+        }
+      }
+      if (!changed) return false;
+      if (velocitySurfaceMesh) velocitySurfaceMesh.visible = false;
+      if (basalFrictionMesh) basalFrictionMesh.visible = false;
+      if (effectivePressureMesh) effectivePressureMesh.visible = false;
+      if (subglacialChannelMesh) subglacialChannelMesh.visible = false;
+      updateRiseOverlayVisibility();
+      updateOceanCurrentLayerControls();
+      updateOceanCurrentLayerVisibility();
+      updateRefinedBasinVisibility();
+      updateFlowlineVisibility();
+      return true;
+    }
+
+    function formatReboundYears(years) {
+      if (!Number.isFinite(years)) return "";
+      if (years >= 1000) {
+        return t("explorer.rebound.kiloyears", {
+          value: (years / 1000).toLocaleString(numberLocale, {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1,
+          }),
+        });
+      }
+      return t("explorer.rebound.years", { value: Math.round(years / 10) * 10 });
+    }
+
+    function updateReboundControlsUi() {
+      const enabled = Boolean(controlsUI.showIsostaticRebound?.checked);
+      if (controlsUI.isostaticReboundControls) controlsUI.isostaticReboundControls.hidden = !enabled;
+
+      const percent = Math.round(getReboundFraction() * 100);
+      if (controlsUI.reboundProgressValue) controlsUI.reboundProgressValue.textContent = `${percent}%`;
+      const seaLevelMeters = getReboundSeaLevelMeters();
+      if (controlsUI.reboundSeaLevelValue) {
+        controlsUI.reboundSeaLevelValue.textContent = `+${seaLevelMeters} m`;
+      }
+
+      if (controlsUI.reboundProgressNote) {
+        const relaxation = reboundModule?.REBOUND_RELAXATION_TIME_YEARS || 3000;
+        const years = reboundModule ? reboundModule.reboundElapsedYears(getReboundFraction()) : Number.NaN;
+        controlsUI.reboundProgressNote.textContent =
+          percent >= 100
+            ? t("explorer.rebound.progressNoteComplete", { tau: relaxation })
+            : t("explorer.rebound.progressNote", {
+                percent,
+                elapsed: formatReboundYears(years),
+                tau: relaxation,
+              });
+      }
+
+      if (controlsUI.reboundModelNote) {
+        const stats = currentCoreContext?.reboundStats;
+        controlsUI.reboundModelNote.textContent =
+          getReboundModelKey() === "local"
+            ? t("explorer.rebound.modelNoteLocal")
+            : t("explorer.rebound.modelNoteFlexural", {
+                lengthScale: Math.round(stats?.flexuralLengthScaleKm || 133),
+              });
+      }
+
+      if (controlsUI.reboundSeaLevelNote) {
+        const stats = currentCoreContext?.reboundStats;
+        controlsUI.reboundSeaLevelNote.textContent =
+          seaLevelMeters > 0
+            ? t("explorer.rebound.seaLevelNoteRaised", { datum: seaLevelMeters })
+            : t("explorer.rebound.seaLevelNoteZero", {
+                sle: (stats?.sleMeters || 0).toLocaleString(numberLocale, {
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 1,
+                }),
+              });
+      }
+    }
+
+    async function ensureIsostaticReboundLoaded({ trigger = "toggle" } = {}) {
+      const context = currentCoreContext;
+      if (!context || context.generation !== loadGeneration) return false;
+      if (!isReboundCapable()) {
+        context.reboundUnavailable = true;
+        return false;
+      }
+      const solveKey = getReboundSolveKey();
+      if (context.reboundUplift && context.reboundSolveKey === solveKey) return true;
+      if (reboundLoadPromise) {
+        // A solve is already running for whatever the controls said when it started.
+        // Wait for it, then re-check: if the user has since changed the model or the
+        // datum, that in-flight result is stale and a fresh solve is needed. Returning
+        // the running promise directly would leave the display pinned to the old
+        // settings with no way to recover.
+        const settled = await reboundLoadPromise;
+        if (
+          context === currentCoreContext &&
+          context.generation === loadGeneration &&
+          !context.reboundUnavailable &&
+          context.reboundSolveKey !== getReboundSolveKey()
+        ) {
+          return ensureIsostaticReboundLoaded({ trigger });
+        }
+        return settled;
+      }
+
+      const showOverlay = trigger === "toggle" || trigger === "resolve";
+      reboundLoadPromise = (async () => {
+        if (showOverlay) {
+          setLoadingOverlayVisible(true);
+          updateLoadingProgress(0.1, t("explorer.loading.solvingIsostaticRebound"));
+          statusEl.textContent = t("explorer.status.loadingIsostaticRebound");
+        }
+
+        const module = await loadReboundModule();
+        if (context !== currentCoreContext || context.generation !== loadGeneration) return false;
+
+        const payload = {
+          nx: context.nx,
+          ny: context.ny,
+          cellCount: context.cellCount,
+          grid: context.meta.grid,
+          bedHeights: context.bedHeights,
+          surfaceHeights: context.surfaceHeights,
+          thickness: context.thickness,
+          mask: context.mask,
+          model: getReboundModelKey(),
+          seaLevelMeters: getReboundSeaLevelMeters(),
+          standardParallelDegrees: getReboundStandardParallel(context.dataset.regionKey),
+          reportProgress: showOverlay,
+        };
+        const onProgress = showOverlay
+          ? (progress, stage) => {
+              updateLoadingProgress(
+                0.12 + clamp01(progress) * 0.82,
+                stage || t("explorer.loading.solvingIsostaticRebound")
+              );
+            }
+          : null;
+
+        let result = null;
+        const workerTask = runReboundWorkerTask(payload, onProgress);
+        if (workerTask) {
+          try {
+            result = await workerTask;
+          } catch (workerError) {
+            console.warn("Isostatic-rebound worker failed, retrying on the main thread.", workerError);
+            reboundWorkerUnavailable = true;
+          }
+        }
+        if (!result) {
+          // Main-thread fallback: a sub-second blocking solve behind the loading overlay
+          // is preferable to losing the layer on browsers without module workers.
+          await nextAnimationFrame();
+          result = module.solveIsostaticRebound({ ...payload, onProgress: null });
+        }
+        if (context !== currentCoreContext || context.generation !== loadGeneration) return false;
+
+        context.reboundUplift = result.uplift;
+        context.reboundEmergent = result.emergent;
+        context.reboundStats = result.stats;
+        context.reboundSolveKey = solveKey;
+        context.reboundUnavailable = false;
+
+        applyReboundGeometry({ recomputeNormals: true });
+        updateReboundControlsUi();
+        updateMetaFromCurrentState();
+        if (showOverlay) {
+          statusEl.textContent = getReadyStatusText(context);
+          updateLoadingProgress(1, t("explorer.loading.isostaticReboundReady"));
+          setLoadingOverlayVisible(false);
+        }
+        return true;
+      })()
+        .catch((error) => {
+          console.error("Isostatic-rebound solve failed:", error);
+          if (context === currentCoreContext && context.generation === loadGeneration) {
+            context.reboundUnavailable = true;
+            if (controlsUI.showIsostaticRebound) {
+              controlsUI.showIsostaticRebound.checked = false;
+              controlsUI.showIsostaticRebound.disabled = true;
+            }
+            updateReboundControlsUi();
+            applyReboundGeometry({ recomputeNormals: true });
+            setTransientStatus(t("explorer.status.isostaticReboundUnavailable"));
+            setLoadingOverlayVisible(false);
+          }
+          return false;
+        })
+        .finally(() => {
+          if (context === currentCoreContext) reboundLoadPromise = null;
+        });
+
+      return reboundLoadPromise;
     }
 
     function buildCoreSceneFromContext(context) {
@@ -10048,6 +11269,7 @@
               ny: context.ny,
               grid: context.meta.grid,
               baseConfig: context.baseConfig,
+              buildFlowLights: isFlowLightAnimationEnabled(),
               reportProgress: showOverlay,
             },
             {
@@ -10082,6 +11304,14 @@
         scene.add(oceanCurrentMesh);
         updateOceanCurrentLayerVisibility();
         updateMetaFromCurrentState();
+        if (isFlowLightAnimationEnabled() && !hasFlowLightGeometry(oceanCurrentMesh)) {
+          window.setTimeout(() => {
+            if (context !== currentCoreContext || context.generation !== loadGeneration) return;
+            rebuildStaticFlowLightLayers().catch((error) => {
+              console.error("Failed to upgrade ocean flow lights after loading:", error);
+            });
+          }, 0);
+        }
         if (showOverlay) {
           statusEl.textContent = getReadyStatusText(context);
           updateLoadingProgress(1, t("explorer.loading.oceanStreamlinesReady"));
@@ -10555,6 +11785,16 @@
         backgroundWarmupTimer = null;
       }
       terminateGeometryWorker();
+      terminateReboundWorker();
+      reboundLoadPromise = null;
+      if (reboundGeometryFrame !== null) {
+        window.cancelAnimationFrame(reboundGeometryFrame);
+        reboundGeometryFrame = null;
+      }
+      if (reboundSeaLevelDebounce !== null) {
+        window.clearTimeout(reboundSeaLevelDebounce);
+        reboundSeaLevelDebounce = null;
+      }
       currentDatasetKey = refreshRegionUi(currentRegionKey, currentDatasetKey);
       updateRegionControlAvailability({ isLoading: true });
       updateResolutionControlAvailability({ isLoading: true });
@@ -10676,6 +11916,14 @@
           oceanCurrentUnavailable: false,
           oceanCurrentPrefetchMeta: null,
           oceanCurrentPrefetchBuffer: null,
+          reboundUplift: null,
+          reboundEmergent: null,
+          reboundStats: null,
+          reboundSolveKey: "",
+          reboundUnavailable: false,
+          reboundScratchBed: null,
+          reboundScratchSurface: null,
+          reboundScratchBottom: null,
         };
         primeLayerMetadata(currentCoreContext);
 
@@ -10725,6 +11973,11 @@
         }
         if (controlsUI.showRefinedBasins.checked && !controlsUI.showRefinedBasins.disabled) {
           ensureRefinedBasinsLoaded({ trigger: "toggle" });
+        }
+        if (controlsUI.showIsostaticRebound?.checked && !controlsUI.showIsostaticRebound.disabled) {
+          ensureIsostaticReboundLoaded({ trigger: "toggle" });
+        } else {
+          updateReboundControlsUi();
         }
         if (!isShowcaseMode && !isPreviewMode) {
           const warmupDelay = viewerInteracted ? 180 : 900;
