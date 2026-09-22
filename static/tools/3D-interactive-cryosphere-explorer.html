@@ -6162,7 +6162,11 @@
         const flowRates = rates instanceof Float32Array ? rates : new Float32Array(rates);
         geometry.setAttribute("flowRate", new THREE.BufferAttribute(flowRates, 1));
       }
-      geometry.setAttribute("flowGlow", new THREE.BufferAttribute(flowGlows, 1, true));
+      // Not normalized: flowGlow is a 0/1 flag, not a 0-255 value scaled into 0..1.
+      // Marking it normalized makes both readers see 1/255, so `getX() < 0.5` skips every
+      // vertex in the particle builder and `vFlowGlow < 0.5` sends every fragment down the
+      // static branch of the shader -- silently disabling the whole flow-light effect.
+      geometry.setAttribute("flowGlow", new THREE.BufferAttribute(flowGlows, 1, false));
     }
 
     function getIceFlowLightRate(speedMetersPerYear) {
