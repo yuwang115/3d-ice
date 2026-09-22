@@ -23,6 +23,19 @@ HOME_CASES = (
     ),
 )
 
+REBOUND_CASES = (
+    (
+        ROOT_DIR / "static" / "index.html",
+        "September 22, 2026",
+        ("isostatic-rebound layer", "Deglaciation", "Earth response"),
+    ),
+    (
+        ROOT_DIR / "static" / "zh" / "index.html",
+        "2026年9月22日",
+        ("地壳均衡回弹", "冰消与回弹进度", "地球响应"),
+    ),
+)
+
 
 class _HomeStructureParser(HTMLParser):
     def __init__(self) -> None:
@@ -107,3 +120,46 @@ def test_latest_updates_is_localized_and_between_region_and_features(
     assert visible_date in section_text
     for term in expected_terms:
         assert term in section_text
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(("page_path", "visible_date", "expected_terms"), REBOUND_CASES)
+def test_latest_updates_announces_the_isostatic_rebound_layer(
+    page_path: Path,
+    visible_date: str,
+    expected_terms: tuple[str, ...],
+) -> None:
+    """The newest card sits first and follows the same structure as the existing one."""
+    parser = _HomeStructureParser()
+    parser.feed(page_path.read_text(encoding="utf-8"))
+
+    assert parser.id_counts.get("isostatic-rebound-update-title") == 1
+    assert any(
+        tag == "article"
+        and attrs.get("aria-labelledby") == "isostatic-rebound-update-title"
+        for tag, attrs in parser.latest_tags
+    )
+    assert any(
+        tag == "h3" and attrs.get("id") == "isostatic-rebound-update-title"
+        for tag, attrs in parser.latest_tags
+    )
+    assert any(
+        tag == "time"
+        and attrs.get("datetime") == "2026-09-22"
+        and attrs.get("class") == "explorer-update-date"
+        for tag, attrs in parser.latest_tags
+    )
+
+    section_text = " ".join(parser.latest_text)
+    assert visible_date in section_text
+    for term in expected_terms:
+        assert term in section_text
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("page_path", [case[0] for case in HOME_CASES])
+def test_latest_updates_lists_the_newest_release_first(page_path: Path) -> None:
+    html = page_path.read_text(encoding="utf-8")
+    assert html.index("isostatic-rebound-update-title") < html.index(
+        "polar-place-search-update-title"
+    ), "the newest update card should come first in the list"

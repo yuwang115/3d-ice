@@ -1,13 +1,16 @@
 {
   "name": "3d-ice",
   "private": true,
-  "version": "0.1.2",
+  "version": "0.2.0",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "bundle:compat": "node scripts/build_compat_bundle.mjs",
     "smoke:compat": "node scripts/smoke_compat_bundle.mjs",
     "prepare:refined-basin-search": "node scripts/prepare_refined_basin_search.mjs",
-    "test:polar-features": "node --experimental-test-coverage --test-coverage-include=static/tools/js/polar-feature-search.js --test-coverage-include=static/tools/js/polar-feature-label-style.js --test-coverage-include=static/tools/js/polar-refined-basins.js --test-coverage-lines=80 --test tests/js/polar-features.test.mjs"
+    "test:polar-features": "node --experimental-test-coverage --test-coverage-include=static/tools/js/polar-feature-search.js --test-coverage-include=static/tools/js/polar-feature-label-style.js --test-coverage-include=static/tools/js/polar-refined-basins.js --test-coverage-lines=80 --test tests/js/polar-features.test.mjs",
+    "test:gia-rebound": "node --experimental-test-coverage --test-coverage-include=static/tools/js/gia-rebound.js --test-coverage-include=static/tools/js/gia-grid.js --test-coverage-include=static/tools/js/fft2d.js --test-coverage-lines=80 --test tests/js/gia-rebound.test.mjs",
+    "test:locale": "node --test tests/js/locale-coverage.test.mjs",
+    "test:js": "npm run test:polar-features && npm run test:gia-rebound && npm run test:locale"
   }
 }

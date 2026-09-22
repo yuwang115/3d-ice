@@ -7,9 +7,9 @@
   "codeRepository": "https://github.com/yuwang115/3d-ice",
   "issueTracker": "https://github.com/yuwang115/3d-ice/issues",
   "url": "https://3d-ice.com/",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "dateCreated": "2026-02-14",
-  "dateModified": "2026-08-17",
+  "dateModified": "2026-09-22",
   "programmingLanguage": [
     "JavaScript",
     "Python",

@@ -58,7 +58,7 @@ jobs:
           node-version: "24"
 
       - name: Run JavaScript tests
-        run: npm run test:polar-features
+        run: npm run test:js
 
   bundle-smoke:
     name: Compatibility bundle smoke test

@@ -141,12 +141,82 @@ legacy `/tools/...` URLs unchanged.
 
 | Region | Layers in the experience | Representative source products |
 | --- | --- | --- |
-| Antarctica | Bed topography, surface elevation, thickness, mask, refined basins, velocity, basal friction, subglacial hydrology, ocean streamlines, basal melt, thermal driving | [BedMachine Antarctica v4](https://nsidc.org/data/NSIDC-0756/versions/4), [Bedmap3 v1.0](https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2) (CC BY 4.0), [MEaSUREs Antarctic Boundaries v2](https://nsidc.org/data/NSIDC-0709/versions/2), [MEaSUREs Phase-Based Antarctica Velocity v1](https://nsidc.org/data/NSIDC-0754/versions/1), [Antarctic basal friction inversions](https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031), [GlaDS Antarctic subglacial hydrology](https://zenodo.org/records/12738170), [WAOM2](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full), [RISE](https://data.aad.gov.au/metadata/RISE) |
-| Greenland | Bed topography, surface elevation, thickness, mask, basin boundaries, velocity, basal friction, ocean streamlines | [BedMachine Greenland v6](https://nsidc.org/data/idbmg4/versions/6), [QRF Greenland subglacial topography (2025)](https://doi.org/10.1017/jog.2025.10071), [MEaSUREs ITS_LIVE v2](https://nsidc.org/data/NSIDC-0776/versions/2), [Greenland basal friction ensemble inversion reference](https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248), [Copernicus Marine Arctic Ocean Physics](https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description) |
+| Antarctica | Bed topography, surface elevation, thickness, mask, refined basins, velocity, basal friction, subglacial hydrology, ocean streamlines, basal melt, thermal driving, isostatic rebound | [BedMachine Antarctica v4](https://nsidc.org/data/NSIDC-0756/versions/4), [Bedmap3 v1.0](https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2) (CC BY 4.0), [MEaSUREs Antarctic Boundaries v2](https://nsidc.org/data/NSIDC-0709/versions/2), [MEaSUREs Phase-Based Antarctica Velocity v1](https://nsidc.org/data/NSIDC-0754/versions/1), [Antarctic basal friction inversions](https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031), [GlaDS Antarctic subglacial hydrology](https://zenodo.org/records/12738170), [WAOM2](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full), [RISE](https://data.aad.gov.au/metadata/RISE) |
+| Greenland | Bed topography, surface elevation, thickness, mask, basin boundaries, velocity, basal friction, ocean streamlines, isostatic rebound | [BedMachine Greenland v6](https://nsidc.org/data/idbmg4/versions/6), [QRF Greenland subglacial topography (2025)](https://doi.org/10.1017/jog.2025.10071), [MEaSUREs ITS_LIVE v2](https://nsidc.org/data/NSIDC-0776/versions/2), [Greenland basal friction ensemble inversion reference](https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248), [Copernicus Marine Arctic Ocean Physics](https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description) |
 
 Bedmap3 is available as a 10 km Balanced or 4 km HD Antarctica terrain alternative. Both modes support velocity, flowlines, basal friction, effective pressure, subglacial channels, refined basins, and WAOM2 ocean streamlines. The gridded velocity, basal-friction, and hydrology layers are regenerated on Bedmap3's native grid; the projected WAOM2 streamlines are clipped against the active terrain at runtime. RISE basal melt and thermal-driving fields remain exclusive to BedMachine v4.
 
 Greenland QRF subglacial topography (2025) is available as 3 km Balanced and 1 km HD terrain alternatives. The 300 m QRF GeoTIFF is sampled at pixel centres. The package replaces bed elevation only for grounded ice where the QRF prediction is valid, keeps BedMachine Greenland v6 surface elevation and mask, derives internally consistent thickness from those two fields, and falls back to BedMachine values over QRF gaps, ocean, and floating ice. Velocity, flowlines, basal friction, basins, and ocean streamlines reuse their existing BedMachine-aligned grids. The upstream data repository does not state a standalone data licence; confirm redistribution terms with the authors before publishing derived assets.
+
+### Isostatic rebound (ice-free equilibrium)
+
+The isostatic-rebound layer answers "what would the bed look like with the ice gone and
+rebound complete?" It is the only scientific layer that ships no data of its own: it is
+solved in the browser from the bed, surface, thickness and mask fields of whichever
+terrain package is loaded, so it is available for every region and resolution and can be
+reproduced from a clean clone with no upstream download.
+
+**What it computes.** The equilibrium vertical displacement of the solid Earth after the
+present ice load is removed, from the thin-plate flexure equation
+
+```
+D grad^4 u + rho_m g u = sigma_now - sigma_after
+```
+
+solved in the spectral domain, where `u` is uplift (positive up), `D` is flexural
+rigidity and `sigma` is the vertical stress the overburden applies to the bed. Two Earth
+responses are offered: **regional flexure** (an elastic lithosphere over a fluid
+asthenosphere, the ELRA steady state, `D = 1e25 N m`, flexural length scale 133 km) and
+**local Airy isostasy** (`D = 0`), which bounds the peak uplift from above.
+
+The present-day load is case-split by mask, which matters: grounded ice contributes
+`rho_i g H`; a subglacial lake adds its own fresh-water column; and floating ice
+contributes exactly the load of the seawater it displaces, so removing an ice shelf
+produces no rebound at all. After deglaciation each column is either dry or flooded to
+the chosen sea-level datum, but only where it still drains to the open ocean — basins that
+rebound into closed hollows carry no marine water. Both the flooded depth and the flooded
+footprint depend on the uplift, so the system is non-linear and is closed by Picard
+iteration, which contracts at `rho_w / rho_m ~ 0.31` and converges to centimetre residuals
+in about eight iterations.
+
+**Numerical choices.** The deflection is band-limited near the flexural length scale, so
+the transform is taken on a ~16–20 km grid and bicubically upsampled with half-cell
+registration; against a native-resolution solve this moves the peak uplift by under 0.1 %.
+The water load is evaluated against each coarse cell's sub-cell bathymetry rather than its
+mean bed, which removes a Jensen bias worth roughly 3 m RMS of uplift and half a percent
+of the emergent-area figure. Areas are integrated with the polar-stereographic point scale
+factor, which varies true cell area by about −3 % to +8 % across Antarctica. The solver is
+validated against the analytic point-load Kelvin-function solution to four significant
+figures and against the closed-form Airy limit exactly.
+
+**What it is not.** It is a steady state, so it says where the bed ends up and not how it
+gets there: it is neither a transient GIA simulation nor a sea-level projection. It assumes
+the present bed is in balance with the present load, which it is not — Antarctica is still
+responding to the Last Glacial Maximum at up to ~40 mm/yr. It omits the sea-level equation,
+geoid change and rotational feedback, and replaces real lateral Earth structure with a
+single rigidity and mantle density. The UI states these assumptions alongside the figures.
+
+The scenario slider advances ice thinning and bed relaxation together, which is an
+illustrative coupling rather than a simulated deglaciation path. Because every other
+overlay is baked onto the present-day bed or ice surface, enabling this layer clears them.
+
+**Cost.** The solve runs once per (region, dataset, Earth response, sea-level datum) in a
+dedicated module worker, and takes 0.2–0.9 s across the shipped packages; there is a
+main-thread fallback for browsers without module workers. Moving the scenario slider
+afterwards only rewrites vertex heights and colours from the cached uplift field, holding
+~13 ms frames on the 10 km Antarctic grid.
+
+**Where the code lives.** `static/tools/js/gia-rebound.js` (physics),
+`static/tools/js/gia-grid.js` (coarsening, upsampling, connectivity, area weighting),
+`static/tools/js/fft2d.js` (transform) and `static/tools/gia-rebound-worker.js` (module
+worker). Unit tests: `tests/js/gia-rebound.test.mjs` (`npm run test:gia-rebound`).
+Browser tests: `tests/e2e/test_isostatic_rebound.py`.
+
+Key references: Turcotte & Schubert (2002) for plate flexure; Le Meur & Huybrechts (1996)
+for the ELRA formulation and parameter defaults; Lingle & Clark (1985) and Bueler et al.
+(2007) for the deformable-Earth response and its spectral solution; Brotchie & Silvester
+(1969) for the Kelvin-function validation case; Whitehouse et al. (2019) for present-day
+Antarctic uplift rates and lateral viscosity structure.
 
 ## Standalone GitHub Pages Site
 
@@ -219,7 +289,7 @@ python -m pip install -e ".[dev]"
 
 # Run Python and JavaScript tests
 python -m pytest tests/ --ignore=tests/e2e -v
-npm run test:polar-features
+npm run test:js
 
 # Run bundle smoke test (requires Node.js 20+)
 npm run bundle:compat && npm run smoke:compat
@@ -257,8 +327,8 @@ software release. The repository also includes a machine-readable
   author  = {Wang, Yu},
   title   = {{3D ICE}: An Interactive Browser-Based Cryosphere Explorer for Antarctica and Greenland},
   year    = {2026},
-  version = {0.1.2},
-  url     = {https://github.com/yuwang115/3d-ice/releases/tag/v0.1.2}
+  version = {0.2.0},
+  url     = {https://github.com/yuwang115/3d-ice/releases/tag/v0.2.0}
 }
 ```
 

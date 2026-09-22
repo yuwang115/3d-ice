@@ -52,6 +52,31 @@ def test_search_selects_feature_enables_layer_and_moves_camera(page):
         }""",
         timeout=30_000,
     )
+    state = page.evaluate("JSON.parse(window.render_game_to_text())")
+    assert state["featureLayers"]["researchStations"]["renderedLabelCount"] == 82
+    assert state["focusedExistingLabelId"] == state["selectedFeature"]["id"]
+    assert state["selectionOverlayCount"] == 0
+    after = page.evaluate("JSON.parse(window.render_game_to_text()).camera.target")
+    assert after != before
+
+
+def test_search_focuses_existing_geographic_label_without_selection_overlay(page):
+    before = page.evaluate("JSON.parse(window.render_game_to_text()).camera.target")
+    search = page.get_by_role("combobox", name="Search places and features")
+    search.fill("Transantarctic Mountains")
+    page.get_by_role("option", name=re.compile("Transantarctic Mountains", re.IGNORECASE)).click()
+    page.wait_for_function(
+        """() => {
+          const state = JSON.parse(window.render_game_to_text());
+          return state.selectedFeature?.kind === 'mountain_range' &&
+            state.featureLayers.geographicNames.enabled;
+        }""",
+        timeout=30_000,
+    )
+    state = page.evaluate("JSON.parse(window.render_game_to_text())")
+    assert state["featureLayers"]["geographicNames"]["renderedLabelCount"] == 160
+    assert state["focusedExistingLabelId"] == state["selectedFeature"]["id"]
+    assert state["selectionOverlayCount"] == 0
     after = page.evaluate("JSON.parse(window.render_game_to_text()).camera.target")
     assert after != before
 
@@ -71,6 +96,8 @@ def test_search_selects_refined_basin_enables_layer_and_moves_camera(page):
         }""",
         timeout=30_000,
     )
+    state = page.evaluate("JSON.parse(window.render_game_to_text())")
+    assert state["selectionOverlayCount"] == 0
     after = page.evaluate("JSON.parse(window.render_game_to_text()).camera.target")
     assert after != before
 
