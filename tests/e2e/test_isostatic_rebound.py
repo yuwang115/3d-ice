@@ -26,14 +26,16 @@ READY_TIMEOUT_MS = 60_000
 def page(playwright_browser, explorer_url):
     """A fresh page on the English explorer, using the session-scoped browser."""
     context = playwright_browser.new_context(viewport={"width": 1280, "height": 800})
-    page = context.new_page()
-    page.goto(explorer_url, wait_until="domcontentloaded", timeout=30_000)
-    page.wait_for_function(
-        "() => window.render_game_to_text && JSON.parse(window.render_game_to_text()).ready",
-        timeout=READY_TIMEOUT_MS,
-    )
-    yield page
-    context.close()
+    try:
+        page = context.new_page()
+        page.goto(explorer_url, wait_until="domcontentloaded", timeout=30_000)
+        page.wait_for_function(
+            "() => window.render_game_to_text && JSON.parse(window.render_game_to_text()).ready",
+            timeout=READY_TIMEOUT_MS,
+        )
+        yield page
+    finally:
+        context.close()
 
 
 def _state(page) -> dict:

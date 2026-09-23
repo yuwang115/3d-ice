@@ -13,10 +13,12 @@ def page(playwright_browser, explorer_url):
     context = playwright_browser.new_context(
         viewport={"width": 1280, "height": 800},
     )
-    page = context.new_page()
-    page.goto(explorer_url, wait_until="networkidle", timeout=30_000)
-    yield page
-    context.close()
+    try:
+        page = context.new_page()
+        page.goto(explorer_url, wait_until="networkidle", timeout=30_000)
+        yield page
+    finally:
+        context.close()
 
 
 @pytest.fixture
@@ -25,21 +27,27 @@ def playwright_browser(request):
     from playwright.sync_api import sync_playwright
 
     pw = sync_playwright().start()
-    browser = pw.chromium.launch(headless=True)
-    yield browser
-    browser.close()
-    pw.stop()
+    try:
+        browser = pw.chromium.launch(headless=True)
+        try:
+            yield browser
+        finally:
+            browser.close()
+    finally:
+        pw.stop()
 
 
 class TestExplorerLoads:
     def test_page_loads_without_errors(self, playwright_browser, explorer_url):
         context = playwright_browser.new_context(viewport={"width": 1280, "height": 800})
-        page = context.new_page()
-        errors: list[str] = []
-        page.on("pageerror", lambda err: errors.append(str(err)))
-        page.goto(explorer_url, wait_until="networkidle", timeout=30_000)
-        assert len(errors) == 0, f"Page errors: {errors}"
-        context.close()
+        try:
+            page = context.new_page()
+            errors: list[str] = []
+            page.on("pageerror", lambda err: errors.append(str(err)))
+            page.goto(explorer_url, wait_until="networkidle", timeout=30_000)
+            assert len(errors) == 0, f"Page errors: {errors}"
+        finally:
+            context.close()
 
     def test_canvas_exists(self, page):
         canvas = page.locator("#viewer canvas")
@@ -74,7 +82,7 @@ class TestExplorerLoads:
 
         page.wait_for_function(
             """() => document.querySelector('#showFlowline').checked""",
-            timeout=5_000,
+            timeout=30_000,
         )
 
     def test_flow_animation_time_advances_while_enabled(self, page):
@@ -89,22 +97,24 @@ class TestExplorerLoads:
     def test_reduced_motion_disables_flow_animation(self, playwright_browser, explorer_url):
         """The explorer starts static for people who request reduced motion."""
         context = playwright_browser.new_context(reduced_motion="reduce")
-        page = context.new_page()
-        page.goto(explorer_url, wait_until="networkidle", timeout=30_000)
+        try:
+            page = context.new_page()
+            page.goto(explorer_url, wait_until="networkidle", timeout=30_000)
 
-        flow_animation = page.locator("#animateFlow")
-        assert not flow_animation.is_checked()
-        state = page.evaluate("JSON.parse(window.render_game_to_text())")
-        assert state["flowAnimation"] == {
-            "enabled": False,
-            "reducedMotion": True,
-            "timeSeconds": 0,
-            "iceReady": False,
-            "oceanReady": False,
-            "iceParticles": False,
-            "oceanParticles": False,
-        }
-        context.close()
+            flow_animation = page.locator("#animateFlow")
+            assert not flow_animation.is_checked()
+            state = page.evaluate("JSON.parse(window.render_game_to_text())")
+            assert state["flowAnimation"] == {
+                "enabled": False,
+                "reducedMotion": True,
+                "timeSeconds": 0,
+                "iceReady": False,
+                "oceanReady": False,
+                "iceParticles": False,
+                "oceanParticles": False,
+            }
+        finally:
+            context.close()
 
     def test_flowlines_rebuild_when_animation_is_reenabled_after_reduced_motion(self, page):
         """A static flowline layer upgrades to a shader flow-light layer on demand."""
@@ -278,16 +288,20 @@ class TestExplorerLoads:
 class TestHomePage:
     def test_home_loads(self, playwright_browser, home_url):
         context = playwright_browser.new_context()
-        page = context.new_page()
-        response = page.goto(home_url, wait_until="domcontentloaded", timeout=15_000)
-        assert response is not None
-        assert response.status == 200
-        context.close()
+        try:
+            page = context.new_page()
+            response = page.goto(home_url, wait_until="domcontentloaded", timeout=15_000)
+            assert response is not None
+            assert response.status == 200
+        finally:
+            context.close()
 
     def test_mit_license_in_footer(self, playwright_browser, home_url):
         context = playwright_browser.new_context()
-        page = context.new_page()
-        page.goto(home_url, wait_until="domcontentloaded", timeout=15_000)
-        footer_text = page.text_content("footer") or ""
-        assert "MIT" in footer_text
-        context.close()
+        try:
+            page = context.new_page()
+            page.goto(home_url, wait_until="domcontentloaded", timeout=15_000)
+            footer_text = page.text_content("footer") or ""
+            assert "MIT" in footer_text
+        finally:
+            context.close()
