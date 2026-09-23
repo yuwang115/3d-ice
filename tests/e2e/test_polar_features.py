@@ -14,10 +14,12 @@ pytestmark = pytest.mark.e2e
 @pytest.fixture
 def page(playwright_browser, explorer_url):
     context = playwright_browser.new_context(viewport={"width": 1280, "height": 800})
-    page = context.new_page()
-    page.goto(explorer_url, wait_until="networkidle", timeout=30_000)
-    yield page
-    context.close()
+    try:
+        page = context.new_page()
+        page.goto(explorer_url, wait_until="networkidle", timeout=30_000)
+        yield page
+    finally:
+        context.close()
 
 
 def test_feature_layers_can_be_toggled_independently(page):
@@ -157,16 +159,18 @@ def test_search_reports_no_results_accessibly(page):
 
 def test_chinese_explorer_searches_localized_feature_names(playwright_browser, server):
     context = playwright_browser.new_context(viewport={"width": 1280, "height": 800})
-    page = context.new_page()
-    page.goto(f"{server}/zh/tools/3D-interactive-cryosphere-explorer.html", wait_until="networkidle", timeout=30_000)
-    search = page.get_by_role("combobox", name="搜索地点和地理特征")
-    search.fill("横贯南极山脉")
-    page.get_by_role("option", name=re.compile("横贯南极山脉")).click()
-    page.wait_for_function(
-        """() => {
-          const state = JSON.parse(window.render_game_to_text());
-          return state.selectedFeature?.id?.includes('14887') && state.featureLayers.geographicNames.enabled;
-        }""",
-        timeout=30_000,
-    )
-    context.close()
+    try:
+        page = context.new_page()
+        page.goto(f"{server}/zh/tools/3D-interactive-cryosphere-explorer.html", wait_until="networkidle", timeout=30_000)
+        search = page.get_by_role("combobox", name="搜索地点和地理特征")
+        search.fill("横贯南极山脉")
+        page.get_by_role("option", name=re.compile("横贯南极山脉")).click()
+        page.wait_for_function(
+            """() => {
+              const state = JSON.parse(window.render_game_to_text());
+              return state.selectedFeature?.id?.includes('14887') && state.featureLayers.geographicNames.enabled;
+            }""",
+            timeout=30_000,
+        )
+    finally:
+        context.close()
