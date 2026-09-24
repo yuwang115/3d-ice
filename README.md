@@ -38,7 +38,7 @@
   <a href="https://github.com/yuwang115/3d-ice/actions/workflows/release-compat-bundle.yml">
     <img src="https://github.com/yuwang115/3d-ice/actions/workflows/release-compat-bundle.yml/badge.svg" alt="Release compat bundle workflow">
   </a>
-  <img src="https://img.shields.io/badge/Node-20%2B-0f766e?style=flat-square" alt="Node 20+">
+  <img src="https://img.shields.io/badge/Node-22.12%2B-0f766e?style=flat-square" alt="Node 22.12+">
   <img src="https://img.shields.io/badge/Runtime-WebGL%20in%20the%20browser-0a7ea4?style=flat-square" alt="WebGL browser runtime">
   <img src="https://img.shields.io/badge/Scope-Antarctica%20%2B%20Greenland-175cd3?style=flat-square" alt="Antarctica and Greenland">
 </p>
@@ -88,6 +88,16 @@ from the visualization to the underlying source products.
 | Cross-platform delivery | Balanced presets support mobile touchscreens, while HD options target larger desktop displays. |
 | Flexible deployment | The runtime auto-detects project-path prefixes, so it works both at a site root and under GitHub Pages project paths such as `/3d-ice/tools/...`. |
 
+## Documentation
+
+| Document | Contents |
+| --- | --- |
+| [docs/architecture.md](docs/architecture.md) | The two-stage design, module boundaries, deployment and verification |
+| [docs/data-contract.md](docs/data-contract.md) | The binary and metadata format every data package follows |
+| [docs/data-pipeline.md](docs/data-pipeline.md) | Where each package's source product comes from and how to rebuild it |
+| [docs/example.md](docs/example.md) | Worked examples that run from a clean clone |
+| [CHANGELOG.md](CHANGELOG.md) | Changes by release |
+
 ## Quick Start
 
 ### Preview the site locally
@@ -106,8 +116,8 @@ Then open:
 
 ### Build the compatibility bundle
 
-The bundling utilities use only built-in Node APIs. Node 20+ is the expected environment because
-that is what the release workflow uses.
+The bundling scripts need no npm packages: they use Node built-ins and the system `tar`, and run
+on Node 20 (the release workflow's version) or newer.
 
 ```bash
 npm run bundle:compat
@@ -127,15 +137,21 @@ legacy `/tools/...` URLs unchanged.
 
 | Path | Purpose |
 | --- | --- |
-| `static/index.html` | Standalone landing page for the site root. |
-| `static/css/3d-ice-home.css` | Vendored landing-page custom styles used by the site root. |
-| `static/tools/3D-interactive-cryosphere-explorer.html` | Main interactive runtime. |
-| `static/tools/data/` | Web-ready cryosphere datasets and metadata packages. |
+| `static/index.html`, `static/zh/index.html` | Landing pages (English and Chinese). |
+| `static/css/` | Landing-page styles. |
+| `static/tools/3D-interactive-cryosphere-explorer.html`, `static/zh/tools/…` | Explorer pages (English and Chinese); both load the shared runtime. |
+| `static/tools/js/explorer-app.js`, `static/tools/css/explorer.css` | The shared explorer runtime and its styles. |
+| `static/tools/js/` (other modules) | Data-package decoder, isostatic-rebound solver, and place and feature search. |
+| `static/tools/*-worker.js` | Web Workers for overlay geometry and the rebound solve. |
+| `static/js/3d-ice-locale.js` | English and Chinese interface strings. |
+| `static/tools/data/` | Prepared data packages (`.bin` + `.meta.json`) and feature catalogues. |
 | `static/tools/media/3d-ice/` | Preview stills and loop videos used across the experience. |
-| `static/tools/vendor/three/` | Vendored Three.js runtime dependencies. |
-| `scripts/` | Data preparation, visualization support, trailer capture, and release utilities. |
-| `dist/` | Generated compatibility bundle artifacts. |
-| `.github/workflows/` | GitHub Pages deployment and compatibility release automation. |
+| `static/tools/vendor/three/` | Vendored Three.js r161. |
+| `scripts/` | Data preparation, bundle and release utilities, and trailer capture. |
+| `tests/` | Python, JavaScript and browser tests. |
+| `docs/`, `examples/` | Design documentation and runnable examples. |
+| `dist/` | Generated compatibility bundle (not committed). |
+| `.github/workflows/` | CI, the JOSS paper draft, GitHub Pages deployment and release automation. |
 
 ## Core Data Layers
 
@@ -244,61 +260,68 @@ The release workflow uploads and optionally publishes:
 
 ## Installation
 
-### Browser Runtime (no install needed)
+### Browser runtime (no install needed)
 
-Visit the [live explorer](https://3d-ice.com/tools/3D-interactive-cryosphere-explorer.html) in any WebGL-capable browser, or serve locally:
+Visit the [live explorer](https://3d-ice.com/tools/3D-interactive-cryosphere-explorer.html) in a
+WebGL-capable browser (Chrome or Edge 89+, Firefox 114+, Safari 15+), or serve `static/` locally:
 
 ```bash
-cd static
-python3 -m http.server 4173
+python3 -m http.server 4173 --directory static
 # open http://127.0.0.1:4173/tools/3D-interactive-cryosphere-explorer.html
 ```
 
-### Data Preparation Pipeline
+### Development environment
 
-To regenerate datasets from source NetCDF/HDF5 or GeoTIFF files:
+- **Python 3.10 or newer** for the data-preparation scripts and the Python tests. Dependencies
+  are declared in `pyproject.toml`.
+- **Node.js 22.12 or newer** for the JavaScript tests; CI uses Node 24. The runtime has no npm
+  dependencies, and the bundle scripts also run on Node 20.
 
 ```bash
-# Python 3.10+ required
-python -m pip install -e .
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
+```
 
-# Example: prepare BedMachine Antarctica
-python scripts/prepare_bedmachine_antarctica.py --input BedMachineAntarctica_V4.nc
+### Data preparation pipeline
 
-# Example: prepare Bedmap3 Antarctica from the four official GeoTIFF grids
-python scripts/prepare_bedmap3_antarctica.py --input-dir /path/to/bedmap3
+The prepared packages are committed, so nothing needs rebuilding to run the explorer or the
+tests. [docs/data-pipeline.md](docs/data-pipeline.md) gives, for every package, its source
+product, where to obtain it and the exact command, and lists the steps that rebuild packages
+from the repository alone. For example:
 
-# Example: prepare the Bedmap3 HD mode
-python scripts/prepare_bedmap3_antarctica.py --input-dir /path/to/bedmap3 --resolution-m 4000 --basename bedmap3_antarctica_4km
-
-# Translate the Antarctica overlay packages to Bedmap3's native grids
+```bash
+# Rebuild the six Bedmap3 overlay packages from committed inputs (identical payloads)
 python scripts/prepare_bedmap3_antarctica_overlays.py
 
-# Prepare Greenland QRF terrain alternatives from the published 300 m GeoTIFF
-python scripts/prepare_qrf_greenland.py --input /path/to/QRF_greenland_ice_predictions_300m.tif
+# Rebuild BedMachine Antarctica from the NSIDC file: Balanced, then HD
+python scripts/prepare_bedmachine_antarctica.py --input BedMachineAntarctica_V4.nc
+python scripts/prepare_bedmachine_antarctica.py --input BedMachineAntarctica_V4.nc --step 8 --basename bedmachine_antarctica_v4_741
 ```
 
-### Running Tests
+Scripts write into `static/tools/data/` by default and overwrite the committed package of the
+same name.
+
+### Running tests
+
+With the environment active:
 
 ```bash
-# Create a virtual environment
-python3 -m venv .venv && source .venv/bin/activate
+python -m pytest tests/ --ignore=tests/e2e     # Python unit and integration tests
+npm run test:js                                 # JavaScript unit, data-contract and example tests
+npm run bundle:compat && npm run smoke:compat   # build and check the distributable bundle
 
-# Install the data-preparation and development dependencies
-python -m pip install -e ".[dev]"
-
-# Run Python and JavaScript tests
-python -m pytest tests/ --ignore=tests/e2e -v
-npm run test:js
-
-# Run bundle smoke test (requires Node.js 20+)
-npm run bundle:compat && npm run smoke:compat
-
-# Optional: install and run browser end-to-end tests
+# Browser end-to-end tests (Playwright; about 10 to 15 minutes)
 python -m pip install -e ".[e2e]"
-python -m playwright install chromium
-python -m pytest tests/e2e/ -v
+python -m playwright install chromium           # on Linux, add --with-deps as CI does
+python -m pytest tests/e2e/
 ```
+
+### Worked examples
+
+`node examples/isostatic-rebound.mjs` reproduces the isostatic-rebound figures the explorer shows
+for Antarctica, with the explorer's own decoder and solver. [docs/example.md](docs/example.md)
+walks through it and through a rebuild of part of the data pipeline from the repository alone.
 
 ## JOSS Paper Draft
 
