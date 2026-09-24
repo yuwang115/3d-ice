@@ -34,8 +34,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--step",
         type=int,
-        default=28,
-        help="Stride for downsampling in x/y directions.",
+        default=20,
+        help="Stride for downsampling in x/y directions (20 gives the 10 km Balanced grid, 8 the 4 km HD grid).",
     )
     parser.add_argument(
         "--output-dir",
