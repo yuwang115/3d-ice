@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.explorer_sources import explorer_source
+
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT_DIR / "static" / "tools" / "data"
 EXPLORER_PATHS = (
@@ -37,7 +39,7 @@ class TestBedmap3Integration:
 
     def test_explorer_registers_bedmap3_as_a_dataset(self):
         for explorer_path in EXPLORER_PATHS:
-            explorer = explorer_path.read_text(encoding="utf-8")
+            explorer = explorer_source(explorer_path)
 
             assert "bedmap3: {" in explorer
             assert 'id: "bedmap3"' in explorer
@@ -53,10 +55,10 @@ class TestBedmap3Integration:
 
     def test_bedmap3_enables_requested_overlay_packages(self):
         for explorer_path in EXPLORER_PATHS:
-            explorer = explorer_path.read_text(encoding="utf-8")
+            explorer = explorer_source(explorer_path)
 
             for dataset_key, resolution in (("bedmap3", "10km"), ('"bedmap3-hd"', "4km")):
-                config = explorer.split(f"{dataset_key}: {{", maxsplit=1)[1].split("\n          },", maxsplit=1)[0]
+                config = explorer.split(f"{dataset_key}: {{", maxsplit=1)[1].split("\n      },", maxsplit=1)[0]
                 for capability in ("velocity", "basalFriction", "flowline", "oceanCurrents", "hydrology"):
                     assert f"{capability}: true" in config
                 assert "rise: false" in config
