@@ -19,7 +19,7 @@
     "Any (browser-based)"
   ],
   "runtimePlatform": [
-    "Node.js 20+",
+    "Node.js 22.12+",
     "Python 3.10+"
   ],
   "author": [
@@ -28,11 +28,19 @@
       "@id": "https://orcid.org/0000-0001-9070-6004",
       "givenName": "Yu",
       "familyName": "Wang",
-      "email": "yu.wang0@utas.edu.au",
-      "affiliation": {
-        "@type": "Organization",
-        "name": "Institute for Marine and Antarctic Studies, University of Tasmania"
-      }
+      "email": "wangyu@uchicago.edu",
+      "affiliation": [
+        {
+          "@type": "Organization",
+          "name": "Climate Systems Engineering initiative, University of Chicago",
+          "@id": "https://ror.org/024mw5h28"
+        },
+        {
+          "@type": "Organization",
+          "name": "Institute for Marine and Antarctic Studies, University of Tasmania",
+          "@id": "https://ror.org/01nfmeh72"
+        }
+      ]
     }
   ],
   "keywords": [

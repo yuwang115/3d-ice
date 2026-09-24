@@ -5,7 +5,7 @@ description = "Interactive 3D Cryosphere Explorer for Antarctica and Greenland"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [
-    { name = "Yu Wang", email = "yu.wang0@utas.edu.au" },
+    { name = "Yu Wang", email = "wangyu@uchicago.edu" },
 ]
 dependencies = [
     "h5py>=3.10",

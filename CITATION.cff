@@ -5,8 +5,8 @@ type: software
 authors:
   - given-names: Yu
     family-names: Wang
-    email: yu.wang0@utas.edu.au
-    affiliation: "Institute for Marine and Antarctic Studies, University of Tasmania"
+    email: wangyu@uchicago.edu
+    affiliation: "Climate Systems Engineering initiative, University of Chicago; Institute for Marine and Antarctic Studies, University of Tasmania"
     orcid: "https://orcid.org/0000-0001-9070-6004"
 repository-code: "https://github.com/yuwang115/3d-ice"
 url: "https://3d-ice.com/"
