@@ -13,6 +13,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.explorer_sources import explorer_source
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 EXPLORERS = (
     REPO_ROOT / "static" / "tools" / "3D-interactive-cryosphere-explorer.html",
@@ -67,7 +69,7 @@ class _IdCollector(HTMLParser):
 
 @pytest.fixture(scope="module", params=EXPLORERS, ids=lambda path: path.parent.parent.name)
 def explorer(request) -> str:
-    return request.param.read_text(encoding="utf-8")
+    return explorer_source(request.param)
 
 
 @pytest.fixture(scope="module", params=EXPLORERS, ids=lambda path: path.parent.parent.name)
@@ -84,11 +86,11 @@ def test_solver_modules_and_worker_exist() -> None:
 
 
 def test_solver_logic_lives_outside_the_explorer_html() -> None:
-    """The JOSS audit asks for testable domain logic in modules, not the HTML entry point."""
+    """The JOSS audit asks for testable domain logic in modules, not the page or its runtime."""
     solver = (REPO_ROOT / "static" / "tools" / "js" / "gia-rebound.js").read_text(encoding="utf-8")
     assert "export function solveIsostaticRebound" in solver
     for explorer_path in EXPLORERS:
-        html = explorer_path.read_text(encoding="utf-8")
+        html = explorer_source(explorer_path)
         # The HTML may orchestrate the solver but must not reimplement it.
         assert "solveIsostaticRebound" in html
         assert "D del^4" not in html

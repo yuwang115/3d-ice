@@ -57,7 +57,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--input",
         required=True,
-        help="Path to taub_med.nc",
+        help="Path to the ensemble-median file (ens_med.nc in AISEFI or GrISEFI).",
     )
     parser.add_argument(
         "--region",

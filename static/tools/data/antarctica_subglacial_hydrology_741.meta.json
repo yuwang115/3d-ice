@@ -36,6 +36,9 @@
       "byte_offset": 0,
       "byte_length": 5557778,
       "unit": "Pa",
+      "scale": 1000,
+      "offset": 0,
+      "fill_value": -32768,
       "stats_pa": {
         "min": 45.99897766113281,
         "max": 17424298,

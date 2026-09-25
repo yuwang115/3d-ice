@@ -291,6 +291,11 @@ def update_hydrology_metadata(meta: dict[str, Any], arrays: dict[str, np.ndarray
         "channel_segment_count_unique": int(discharge.size),
     }
     fields = {field["name"]: field for field in meta["fields"]}
+    # Legacy packages carry this only in product-specific quantization keys; the field-level
+    # copy is what the browser's generic int16 decoder reads.
+    fields["effective_pressure"]["scale"] = scale
+    fields["effective_pressure"]["offset"] = offset
+    fields["effective_pressure"]["fill_value"] = fill
     fields["effective_pressure"]["stats_pa"] = {
         "min": float(np.min(values)),
         "max": float(np.max(values)),

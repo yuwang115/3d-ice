@@ -350,6 +350,9 @@ def prepare_target(
                 "byte_offset": 0,
                 "byte_length": ep_bytes,
                 "unit": "Pa",
+                "scale": effective_pressure_scale,
+                "offset": 0.0,
+                "fill_value": FILL_INT16,
                 "stats_pa": {
                     "min": ep_min,
                     "max": ep_max,
