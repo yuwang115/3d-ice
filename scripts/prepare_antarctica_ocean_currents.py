@@ -2435,7 +2435,7 @@ def main() -> None:
         "title": source_title,
         "product_version": "WAOM2",
         "source_file": input_path.name,
-        "source_reference": "https://gmd.copernicus.org/articles/15/723/2022/",
+        "source_reference": "https://gmd.copernicus.org/articles/15/617/2022/",
         "source_time_utc": source_time_iso,
         "source_time_label": source_time_label,
         "projection": "EPSG:3031",

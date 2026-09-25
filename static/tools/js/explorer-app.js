@@ -156,7 +156,7 @@ const REGIONS = {
       },
       basalFriction: {
         text: "Jager et al. (2026) Insights from an ensemble inverse method to quantify basal friction uncertainties for ice-sheet models - Part 2: Antarctic ice sheet.",
-        url: "https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031",
+        url: "https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1",
       },
       rise: {
         text: "Galton-Fenzi et al. (2025) Multi-model estimate of Antarctic ice-shelf basal melting and ocean drivers, V1",
@@ -304,7 +304,7 @@ const REGIONS = {
       },
       basalFriction: {
         text: "Jager et al. (2026) Insights from an ensemble inverse method to quantify basal friction uncertainties for ice-sheet models - Part 1: Greenland ice sheet",
-        url: "https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248",
+        url: "https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1",
       },
       oceanCurrents: {
         text: "Copernicus Marine Arctic Ocean Physics Analysis and Forecast (monthly mean ocean velocity, temperature, and salinity)",
