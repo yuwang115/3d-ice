@@ -42,18 +42,16 @@ floating-point statistics, which depend on the NumPy version.
 | `antarctic_ice_velocity_phase_v01_480`, `_741` | MEaSUREs phase-based Antarctic ice velocity v1 | [NSIDC-0754 v1](https://nsidc.org/data/NSIDC-0754/versions/1) (NASA Earthdata login) | `python scripts/prepare_antarctica_velocity.py --input <file>` (writes both resolutions) |
 | `antarctica_subglacial_hydrology_480`, `_741` | GlaDS Antarctic subglacial hydrology, `Antarctica_SubglacialHydrology.nc` | [Zenodo 12738170](https://zenodo.org/records/12738170) (public) | `python scripts/prepare_subglacial_hydrology.py --input Antarctica_SubglacialHydrology.nc` (writes both resolutions) |
 | `rise_antarctica_480`, `_741` | RISE multi-model mean, `RISE_MultiModelMean_Antarctica_v01.nc` | [Australian Antarctic Data Centre](https://data.aad.gov.au/metadata/RISE) (CC BY 4.0) | `python scripts/prepare_rise_antarctica.py --input RISE_MultiModelMean_Antarctica_v01.nc` (writes both resolutions) |
-| `antarctica_basal_friction_*`, `greenland_basal_friction_*` | Ensemble basal-friction inversions, `taub_med.nc` | Jager et al. (2026) | `python scripts/prepare_basal_friction.py --input taub_med.nc --region antarctica` (or `--region greenland`) |
-| `antarctica_ocean_currents_waom2_yr5_annual_*` | WAOM2 year-5 annual mean, `ocean_avg_yr5_annual.nc` | WAOM2 ([Richter et al., 2022](https://gmd.copernicus.org/articles/15/723/2022/); [Dias et al., 2023](https://doi.org/10.3389/fmars.2023.1027704)) | `python scripts/prepare_antarctica_ocean_currents.py --input ocean_avg_yr5_annual.nc --streamline-class <class>` with the settings in the package's `sampling` block, then the combine step above |
+| `antarctica_basal_friction_*`, `greenland_basal_friction_*` | Ensemble-median basal shear stress (variable `taub`), `ens_med.nc` | [AISEFI](https://doi.org/10.5281/zenodo.18508904) (Antarctica) and [GrISEFI](https://doi.org/10.5281/zenodo.18508850) (Greenland) on Zenodo (CC BY 4.0), described in Jager et al. (2026) | `python scripts/prepare_basal_friction.py --input ens_med.nc --region antarctica`, or `--region greenland` with the Greenland file |
+| `antarctica_ocean_currents_waom2_yr5_annual_*` | WAOM2 year-5 annual mean, `ocean_avg_yr5_annual.nc` | Output of the WAOM2 simulations of [Dias et al. (2023)](https://doi.org/10.3389/fmars.2023.1027704), whose data availability statement says the authors will provide the data without undue reservation; model described by [Richter et al. (2022)](https://gmd.copernicus.org/articles/15/617/2022/) | `python scripts/prepare_antarctica_ocean_currents.py --input ocean_avg_yr5_annual.nc --streamline-class <class>` with the settings in the package's `sampling` block, then the combine step above |
 | `greenland_ocean_currents_cmems_202508` | Copernicus Marine Arctic Ocean physics, dataset `cmems_mod_arc_phy_anfc_6km_detided_P1M-m` | [Copernicus Marine](https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description) (free registration) | `python scripts/prepare_greenland_ocean_currents.py --input <file>` with the settings in the package's `sampling` block |
 | `greenland_basins_ps_v1_4_2.json` | Greenland drainage basins, `Greenland_Basins_PS_v1.4.2.shp` | See the package's `source_shapefile` | `python scripts/prepare_greenland_basins.py --input Greenland_Basins_PS_v1.4.2.shp` |
 | `*_research_stations.json`, `*_geographic_names.json` | COMNAP facilities list, INTERACT stations, SCAR Composite Gazetteer, Natural Earth, Greenland Place Names Register | Online catalogues listed in each file's `sources` | `python scripts/prepare_polar_features.py --as-of <date>` (network access) |
 
 Notes:
 
-- The Antarctic velocity packages were built from a derived file,
-  `antarctic_ice_vel_phase_map_v01_ErrorDel_inpaint_extend_slim_PIGmodified.nc`, rather than
-  the NSIDC-0754 v1 distribution file; the package metadata names it and records its last
-  modification in a `remark`.
+- The basal-friction packages record their input as `taub_med.nc`, a local copy of the
+  dataset's `ens_med.nc`.
 - The ocean-current scripts integrate streamlines from random seeds. The seed, seeding
   strategy and every other setting are recorded in the package's `sampling` block, which is
   what a rebuild must pass to reproduce a package.
