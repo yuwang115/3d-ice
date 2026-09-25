@@ -41,6 +41,19 @@
           "@id": "https://ror.org/01nfmeh72"
         }
       ]
+    },
+    {
+      "@type": "Person",
+      "@id": "https://orcid.org/0000-0002-5556-4490",
+      "givenName": "Yucheng",
+      "familyName": "Lin",
+      "affiliation": [
+        {
+          "@type": "Organization",
+          "name": "School of Energy and Environment, City University of Hong Kong",
+          "@id": "https://ror.org/03q8dnn23"
+        }
+      ]
     }
   ],
   "keywords": [

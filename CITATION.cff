@@ -8,6 +8,10 @@ authors:
     email: wangyu@uchicago.edu
     affiliation: "Climate Systems Engineering initiative, University of Chicago; Institute for Marine and Antarctic Studies, University of Tasmania"
     orcid: "https://orcid.org/0000-0001-9070-6004"
+  - given-names: Yucheng
+    family-names: Lin
+    affiliation: "School of Energy and Environment, City University of Hong Kong"
+    orcid: "https://orcid.org/0000-0002-5556-4490"
 repository-code: "https://github.com/yuwang115/3d-ice"
 url: "https://3d-ice.com/"
 license: MIT

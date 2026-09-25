@@ -347,7 +347,7 @@ software release. The repository also includes a machine-readable
 
 ```bibtex
 @misc{wang2026_3dice,
-  author  = {Wang, Yu},
+  author  = {Wang, Yu and Lin, Yucheng},
   title   = {{3D ICE}: An Interactive Browser-Based Cryosphere Explorer for Antarctica and Greenland},
   year    = {2026},
   version = {0.2.0},
