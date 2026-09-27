@@ -4,7 +4,7 @@ All notable changes to 3D ICE are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
-## [0.2.0] — Unreleased
+## [0.2.0] — 2026-09-27
 
 ### Added
 
@@ -22,11 +22,13 @@ All notable changes to 3D ICE are recorded here. The format follows
 - `static/tools/js/data-contract.js`, the package decoder shared by the explorer page, the
   geometry worker and the tests, and a contract test that decodes every committed package
   and checks it against the statistics recorded when it was prepared.
-- Documentation of the architecture, the data contract and two worked examples in `docs/`,
-  and the runnable example `examples/isostatic-rebound.mjs`.
+- Documentation of the architecture, the data contract, the data pipeline (with a source
+  for every upstream input) and two worked examples in `docs/`, and the runnable example
+  `examples/isostatic-rebound.mjs`.
 - A test that regenerates the six Bedmap3 overlay packages from the committed inputs and
   requires the payloads to match the committed ones byte for byte.
-- JOSS paper draft, `CITATION.cff`, `codemeta.json`, contribution guide and code of conduct.
+- JOSS paper draft by Yu Wang and Yucheng Lin, with matching `CITATION.cff` and
+  `codemeta.json`, a contribution guide and a code of conduct.
 - Landing-page light/dark toggle, latest-updates section and 404 page.
 
 ### Changed
@@ -50,6 +52,8 @@ All notable changes to 3D ICE are recorded here. The format follows
 - The geometry worker's decoder could not read multi-byte fields stored at unaligned
   offsets; it now uses the page's decoder, which can.
 - The browser test suite deadlocked once the static server's log filled an undrained pipe.
+- Broken source links: the WAOM v1.0 paper in the ocean-current package metadata, and the
+  two basal-friction preprints in the explorer, the landing pages and the README.
 
 ## [0.1.2] — 2026-03-21
 
@@ -76,7 +80,7 @@ hydrology, WAOM2 and Copernicus ocean streamlines, RISE ice-shelf basal melt and
 driving, and drainage-basin boundaries, together with the preparation scripts and the
 compatibility-bundle release workflow.
 
-[0.2.0]: https://github.com/yuwang115/3d-ice/compare/v0.1.2...HEAD
+[0.2.0]: https://github.com/yuwang115/3d-ice/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/yuwang115/3d-ice/releases/tag/v0.1.2
 [0.1.1]: https://github.com/yuwang115/3d-ice/releases/tag/v0.1.1
 [0.1.0]: https://github.com/yuwang115/3d-ice/releases/tag/v0.1.0
