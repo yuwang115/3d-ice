@@ -27,8 +27,8 @@ Thank you for your interest in contributing to 3D ICE! This document provides gu
 
 **Prerequisites:**
 
-- Node.js 20+
-- Python 3.10+ (for data preparation scripts)
+- Python 3.10+ (data-preparation scripts and Python tests)
+- Node.js 22.12+ (JavaScript tests; CI uses Node 24)
 - A WebGL-capable browser
 
 **Running locally:**
@@ -37,20 +37,23 @@ Thank you for your interest in contributing to 3D ICE! This document provides gu
 # Serve the static site
 python3 -m http.server 4173 --directory static
 
-# Run data preparation (requires source NetCDF/HDF5 or GeoTIFF files)
-python -m pip install -e .
-python scripts/prepare_bedmachine_antarctica.py
+# Create the Python environment used by the scripts and tests
+python3 -m venv .venv && source .venv/bin/activate
+python -m pip install -e ".[dev]"
 ```
+
+Rebuilding a data package needs its source product; see
+[docs/data-pipeline.md](docs/data-pipeline.md) for where to obtain each one and the exact
+command.
 
 **Running tests:**
 
 ```bash
 # Python tests
-python -m pip install -e ".[dev]"
 python -m pytest tests/ --ignore=tests/e2e -v
 
-# JavaScript unit tests
-npm run test:polar-features
+# JavaScript unit, data-contract and example tests
+npm run test:js
 
 # Bundle smoke test
 npm run bundle:compat && npm run smoke:compat
@@ -63,9 +66,25 @@ python -m pytest tests/e2e/ -v
 
 ### Code Style
 
-- JavaScript: ES modules, no external build dependencies for the runtime.
+- JavaScript: ES modules served as static files, with no build step and no npm runtime
+  dependencies.
+- Logic with no DOM or scene dependency belongs in its own module under `static/tools/js/`
+  with a `node:test` suite; `static/tools/js/explorer-app.js` is the orchestration layer that
+  both locale pages share.
+- User-visible strings go in `static/js/3d-ice-locale.js` in both locales; the locale test
+  fails if a key the runtime uses is missing from either.
+- New data packages follow [docs/data-contract.md](docs/data-contract.md); the contract test
+  checks every package in `static/tools/data/` automatically.
 - Python: Follow PEP 8. Include docstrings for functions that process scientific data.
-- Keep the runtime HTML self-contained for easy deployment.
+
+## Support and Governance
+
+3D ICE is maintained by Yu Wang, who reviews issues and pull requests and decides what is
+merged and released. Questions, bug reports and feature requests go through
+[GitHub Issues](https://github.com/yuwang115/3d-ice/issues); support is provided on a
+best-effort basis without a guaranteed response time. Releases are tagged on GitHub and
+summarised in [CHANGELOG.md](CHANGELOG.md). A new data layer needs a source product whose
+licence allows derived packages to be redistributed.
 
 ## Code of Conduct
 
@@ -73,4 +92,4 @@ This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.
 
 ## Questions?
 
-Open an issue or email [yu.wang0@utas.edu.au](mailto:yu.wang0@utas.edu.au).
+Open an issue or email [wangyu@uchicago.edu](mailto:wangyu@uchicago.edu).

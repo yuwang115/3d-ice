@@ -24,7 +24,7 @@ from prepare_antarctica_ocean_currents import (
     read_masked_array,
 )
 
-DEFAULT_INPUT = "/Users/eddie/Documents/Antarctica_dataset/ocean_avg_yr5_annual.nc"
+DEFAULT_INPUT = "ocean_avg_yr5_annual.nc"
 DEFAULT_BED_META = "static/tools/data/bedmachine_antarctica_v4_741.meta.json"
 DEFAULT_BED_BIN = "static/tools/data/bedmachine_antarctica_v4_741.bin"
 DEFAULT_OUTPUT_FULL = "output/figures/antarctica_depth_averaged_ocean_speed.png"

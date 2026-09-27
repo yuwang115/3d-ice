@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.explorer_sources import explorer_source
+
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT_DIR / "static" / "tools" / "data"
@@ -38,7 +40,7 @@ QRF_PACKAGES = {
 class TestQrfGreenlandIntegration:
     def test_explorers_register_qrf_greenland_modes(self):
         for explorer_path in EXPLORER_PATHS:
-            explorer = explorer_path.read_text(encoding="utf-8")
+            explorer = explorer_source(explorer_path)
 
             assert "qrf: {" in explorer
             assert 'id: "qrf"' in explorer

@@ -5,6 +5,8 @@ from __future__ import annotations
 from html.parser import HTMLParser
 from pathlib import Path
 
+from tests.explorer_sources import explorer_source
+
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPLORERS = (
@@ -63,14 +65,14 @@ class _IdStructureParser(HTMLParser):
 
 def test_both_locales_wire_search_and_independent_feature_layers() -> None:
     for explorer in EXPLORERS:
-        html = explorer.read_text(encoding="utf-8")
+        html = explorer_source(explorer)
         for control_id in ("polarSearchInput", "showResearchStations", "showGeographicNames", "polarSearchResults"):
             assert f'id="{control_id}"' in html
         assert "js/polar-features.js" in html
 
 
 def test_runtime_references_all_four_catalogues() -> None:
-    runtime = (ROOT / "static/tools/3D-interactive-cryosphere-explorer.html").read_text(encoding="utf-8")
+    runtime = explorer_source(EXPLORERS[0])
     for filename in (
         "antarctica_research_stations.json",
         "greenland_research_stations.json",
@@ -84,7 +86,7 @@ def test_runtime_references_all_four_catalogues() -> None:
 
 def test_both_locales_wire_refined_basins_into_search_without_replacing_the_boundary_layer() -> None:
     for explorer in EXPLORERS:
-        html = explorer.read_text(encoding="utf-8")
+        html = explorer_source(explorer)
         for runtime_hook in (
             "activateRefinedBasinFeature",
             "ensureRefinedBasinsLoaded",

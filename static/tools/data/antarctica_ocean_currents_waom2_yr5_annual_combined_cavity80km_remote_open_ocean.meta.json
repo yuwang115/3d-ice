@@ -2,7 +2,7 @@
   "title": "Whole Antarctic and Ocean Application, 2 km resolution",
   "product_version": "WAOM2",
   "source_file": "merged:ocean_avg_yr5_annual.nc,ocean_avg_yr5_annual.nc",
-  "source_reference": "https://gmd.copernicus.org/articles/15/723/2022/",
+  "source_reference": "https://gmd.copernicus.org/articles/15/617/2022/",
   "source_time_utc": "2011-07-04T15:00:00Z",
   "source_time_label": "Year 5 annual mean",
   "projection": "EPSG:3031",

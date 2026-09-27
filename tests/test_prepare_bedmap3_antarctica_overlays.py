@@ -4,9 +4,27 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
+import shutil
 
 import numpy as np
 import pytest
+
+
+def _assert_same_metadata(actual, expected, path="meta"):
+    """Equal structure and values; floats may differ only by summation-order rounding."""
+    if isinstance(expected, float) or isinstance(actual, float):
+        assert math.isclose(actual, expected, rel_tol=1e-12, abs_tol=1e-12), f"{path}: {actual} != {expected}"
+    elif isinstance(expected, dict):
+        assert isinstance(actual, dict) and list(actual) == list(expected), f"{path}: keys differ"
+        for key in expected:
+            _assert_same_metadata(actual[key], expected[key], f"{path}.{key}")
+    elif isinstance(expected, list):
+        assert isinstance(actual, list) and len(actual) == len(expected), f"{path}: lengths differ"
+        for index, (item, reference) in enumerate(zip(actual, expected)):
+            _assert_same_metadata(item, reference, f"{path}[{index}]")
+    else:
+        assert actual == expected, f"{path}: {actual!r} != {expected!r}"
 
 
 @pytest.mark.unit
@@ -151,6 +169,38 @@ class TestPrepareBedmap3AntarcticaOverlays:
         )
         assert hydrology_out["coverage"]["channel_segment_count_unique"] == 1
         np.testing.assert_array_equal(hydrology_fields["channel_discharge"], [5.0])
+        # The browser's generic int16 decoder reads quantization from the field itself.
+        pressure = next(field for field in hydrology_out["fields"] if field["name"] == "effective_pressure")
+        assert (pressure["scale"], pressure["offset"], pressure["fill_value"]) == (1000.0, 0.0, fill)
+
+    @pytest.mark.integration
+    def test_committed_bedmap3_overlays_regenerate_from_the_repository(self, tmp_path, data_dir):
+        """Every committed Bedmap3 overlay package is reproducible from the repository alone.
+
+        Payloads must match byte for byte. Metadata must match exactly too, except that NumPy
+        versions sum in different orders, which can move the last digits of a recorded mean.
+        """
+        layers = ("velocity", "basal_friction", "subglacial_hydrology")
+        sources = ("antarctic_ice_velocity_phase_v01", "antarctica_basal_friction", "antarctica_subglacial_hydrology")
+        outputs = []
+        for target in self.module.TARGETS:
+            shutil.copy(data_dir / f"{target.terrain_basename}.meta.json", tmp_path)
+            for source in sources:
+                for extension in (".meta.json", ".bin"):
+                    shutil.copy(data_dir / f"{source}_{target.source_suffix}{extension}", tmp_path)
+            self.module.prepare_target(tmp_path, target)
+            outputs += [f"bedmap3_antarctica_{layer}_{target.suffix}{ext}" for layer in layers for ext in (".meta.json", ".bin")]
+
+        assert len(outputs) == 12
+        for name in outputs:
+            if name.endswith(".bin"):
+                assert (tmp_path / name).read_bytes() == (data_dir / name).read_bytes(), f"{name} differs"
+            else:
+                _assert_same_metadata(
+                    json.loads((tmp_path / name).read_text(encoding="utf-8")),
+                    json.loads((data_dir / name).read_text(encoding="utf-8")),
+                    name,
+                )
 
     def test_main_prepares_every_configured_target(self, tmp_path, monkeypatch):
         target = self.module.Target("fixture", "terrain", "fixture", "source")

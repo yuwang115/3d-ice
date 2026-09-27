@@ -1,4 +1,4 @@
-"use strict";
+import { parseField } from "./js/data-contract.js";
 
 const FLOWLINE_SURFACE_OFFSET_M = 18;
 const VELOCITY_VISUALIZATION_MAX = 3000;
@@ -179,39 +179,6 @@ function postProgress(id, enabled, progress, stageKey, stage) {
     stageKey: stageKey || "",
     stage: stage || "",
   });
-}
-
-function parseField(meta, arrayBuffer, name) {
-  const field = meta.fields.find((item) => item.name === name);
-  if (!field) {
-    throw new Error(`Missing field: ${name}`);
-  }
-
-  if (field.dtype === "int16") {
-    return new Int16Array(arrayBuffer, field.byte_offset, field.byte_length / 2);
-  }
-  if (field.dtype === "uint8") {
-    return new Uint8Array(arrayBuffer, field.byte_offset, field.byte_length);
-  }
-  if (field.dtype === "uint16") {
-    return new Uint16Array(arrayBuffer, field.byte_offset, field.byte_length / 2);
-  }
-  if (field.dtype === "int32") {
-    return new Int32Array(arrayBuffer, field.byte_offset, field.byte_length / 4);
-  }
-  if (field.dtype === "float32") {
-    if (field.byte_offset % 4 === 0) {
-      return new Float32Array(arrayBuffer, field.byte_offset, field.byte_length / 4);
-    }
-    const count = field.byte_length / 4;
-    const view = new DataView(arrayBuffer, field.byte_offset, field.byte_length);
-    const out = new Float32Array(count);
-    for (let i = 0; i < count; i += 1) {
-      out[i] = view.getFloat32(i * 4, true);
-    }
-    return out;
-  }
-  throw new Error(`Unsupported dtype for ${name}: ${field.dtype}`);
 }
 
 function getOceanCurrentSeedBucketKeys(oceanMeta) {

@@ -23,6 +23,8 @@ const EXPLORERS = [
   resolve(repoRoot, "static/tools/3D-interactive-cryosphere-explorer.html"),
   resolve(repoRoot, "static/zh/tools/3D-interactive-cryosphere-explorer.html"),
 ];
+// Both pages load this one runtime module, which is where nearly every t() call lives.
+const EXPLORER_RUNTIME = resolve(repoRoot, "static/tools/js/explorer-app.js");
 const WORKERS = [
   resolve(repoRoot, "static/tools/antarctica-geometry-worker.js"),
   resolve(repoRoot, "static/tools/gia-rebound-worker.js"),
@@ -75,7 +77,7 @@ function collectWorkerStageKeys(paths) {
 
 test("every localisation key used at runtime resolves in both locales", () => {
   const api = loadLocaleApi();
-  const keys = [...collectRuntimeKeys(EXPLORERS), ...collectWorkerStageKeys(WORKERS)].sort();
+  const keys = [...collectRuntimeKeys([...EXPLORERS, EXPLORER_RUNTIME]), ...collectWorkerStageKeys(WORKERS)].sort();
   assert.ok(keys.length > 100, `expected to find many keys, found ${keys.length}`);
 
   const missing = [];

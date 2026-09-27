@@ -1,7 +1,7 @@
 /**
  * Module worker for the isostatic-rebound layer.
  *
- * Kept separate from antarctica-geometry-worker.js (a classic worker) so the solver can
+ * Kept separate from antarctica-geometry-worker.js so the solver can
  * be a plain ES module that is also unit-testable under node:test. The message contract
  * mirrors the geometry worker: {id, task, payload} in, {id, kind: "progress"|"result"} out.
  */
