@@ -173,9 +173,9 @@ using the explorer to visualise ocean circulation that is difficult to interpret
 in standard two-dimensional plots, in coverage of the project by the Australian
 Antarctic Program Partnership and independent geospatial media [@aapp2026;
 @spatialsource2026]. Y. Lin is scheduled to demonstrate it to the public at
-InnoCarnival 2026 (Hong Kong Science Park, October–November 2026). Between 15 April and
-[END DATE] 2026 the public site recorded [N] active users in [M] countries and
-regions[, TEACHING-USE EVIDENCE].
+InnoCarnival 2026 (Hong Kong Science Park, October–November 2026). Between its launch on
+22 March and 27 September 2026, the public site recorded 578 active users and
+about 1,200 page views.
 
 The public application and versioned compatibility bundle [@wang2026software]
 integrate representative products for bed geometry [@morlighem2020;
