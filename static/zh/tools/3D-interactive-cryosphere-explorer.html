@@ -268,23 +268,10 @@
         <label class="toggle"><input id="showIceBottom" type="checkbox" checked /> 显示冰底界面</label>
         <label class="toggle"><input id="showVelocity" type="checkbox" /> 显示冰表流速</label>
         <label class="toggle"><input id="showFlowline" type="checkbox" /> 显示冰流线</label>
-        <label class="toggle"><input id="animateFlow" type="checkbox" checked /> 显示冰流与海流流光</label>
         <div id="flowlineProfileCardMount" class="flowline-inline-card-slot" hidden></div>
         <label class="toggle"><input id="showBasalFriction" type="checkbox" /> 显示基底摩擦</label>
         <label class="toggle"><input id="showEffectivePressure" type="checkbox" /> 显示有效压力</label>
         <label class="toggle"><input id="showSubglacialChannels" type="checkbox" /> 显示冰下通道</label>
-        <div class="toggle-divider" aria-hidden="true"></div>
-        <label class="toggle"><input id="showOceanCurrents" type="checkbox" /> 显示海洋流线</label>
-        <div id="oceanCurrentLayerControls" class="toggle-group toggle-group--grid" hidden>
-          <label class="toggle toggle--sub"><input id="showOceanLayerSurface" type="checkbox" /> 表层</label>
-          <label class="toggle toggle--sub"><input id="showOceanLayerUpper" type="checkbox" /> 上层</label>
-          <label class="toggle toggle--sub"><input id="showOceanLayerMid" type="checkbox" /> 中层</label>
-          <label class="toggle toggle--sub"><input id="showOceanLayerLower" type="checkbox" /> 下层</label>
-        </div>
-        <label id="showBasalMeltRow" class="toggle"><input id="showBasalMelt" type="checkbox" /> 显示冰架底部融化率</label>
-        <label id="showThermalDrivingRow" class="toggle"><input id="showThermalDriving" type="checkbox" /> 显示冰架底部热驱动</label>
-        <label class="toggle"><input id="showSea" type="checkbox" /> 显示海平面 (0 m)</label>
-        <div class="toggle-divider" aria-hidden="true"></div>
         <label class="toggle"><input id="showIsostaticRebound" type="checkbox" /> 显示无冰状态下的地壳回弹</label>
         <div id="isostaticReboundControls" class="toggle-group" hidden>
           <div class="control">
@@ -308,6 +295,19 @@
           </div>
           <label class="toggle toggle--sub"><input id="highlightEmergentLand" type="checkbox" checked /> 高亮新出露陆地</label>
         </div>
+        <div class="toggle-divider" aria-hidden="true"></div>
+        <label class="toggle"><input id="showOceanCurrents" type="checkbox" /> 显示海洋流线</label>
+        <div id="oceanCurrentLayerControls" class="toggle-group toggle-group--grid" hidden>
+          <label class="toggle toggle--sub"><input id="showOceanLayerSurface" type="checkbox" /> 表层</label>
+          <label class="toggle toggle--sub"><input id="showOceanLayerUpper" type="checkbox" /> 上层</label>
+          <label class="toggle toggle--sub"><input id="showOceanLayerMid" type="checkbox" /> 中层</label>
+          <label class="toggle toggle--sub"><input id="showOceanLayerLower" type="checkbox" /> 下层</label>
+        </div>
+        <label id="showBasalMeltRow" class="toggle"><input id="showBasalMelt" type="checkbox" /> 显示冰架底部融化率</label>
+        <label id="showThermalDrivingRow" class="toggle"><input id="showThermalDriving" type="checkbox" /> 显示冰架底部热驱动</label>
+        <label class="toggle"><input id="showSea" type="checkbox" /> 显示海平面 (0 m)</label>
+        <div class="toggle-divider" aria-hidden="true"></div>
+        <label class="toggle"><input id="animateFlow" type="checkbox" checked /> 显示冰流与海流流光</label>
         <label class="toggle"><input id="wireframe" type="checkbox" /> 线框模式</label>
         <button id="resetView" type="button">视角重置</button>
         <button id="fullscreenToggle" type="button">进入全屏</button>

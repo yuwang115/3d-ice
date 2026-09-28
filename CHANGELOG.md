@@ -32,6 +32,11 @@ All notable changes to 3D ICE are recorded here. The format follows
   applies to them only. The worked example's headline figure is now 2.94 million km² of
   newly emergent Antarctic bed (relative to the ice-free sea surface) instead of the
   3.19 million km² ELRA gives at today's datum.
+- The ice and ocean flow animation is quieter: particles are about half the size, sparser,
+  tinted by the line colour rather than near-white, and travel roughly half as fast; the
+  pulse along each line is dimmer.
+- Sidebar order: "Show ice-free isostatic rebound" now sits directly below "Show subglacial
+  channels", and "Animate ice & ocean flow" moves down beside "Wireframe mode".
 
 ### Fixed
 

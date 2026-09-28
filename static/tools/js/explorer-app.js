@@ -2096,16 +2096,19 @@ const FLOWLINE_MAX_STEPS = 180;
 const FLOWLINE_STEP_CELLS = 0.6;
 const FLOWLINE_REVERSE_DIRECTION_DOT = -0.12;
 const FLOW_LIGHT_PATTERN_SCALE = 0.16;
-const FLOW_LIGHT_ICE_RATE = 1.25;
-const FLOW_LIGHT_OCEAN_RATE = 0.85;
+const FLOW_LIGHT_ICE_RATE = 0.6;
+const FLOW_LIGHT_OCEAN_RATE = 0.42;
 const FLOW_LIGHT_STATIC_OPACITY = 0.9;
-const FLOW_LIGHT_ICE_ACTIVE_BASE_OPACITY = 0.24;
-const FLOW_LIGHT_OCEAN_ACTIVE_BASE_OPACITY = 0.18;
-const FLOW_LIGHT_PULSE_OPACITY = 0.76;
-const FLOW_LIGHT_ICE_PARTICLE_SAMPLE_STRIDE = 4;
-const FLOW_LIGHT_OCEAN_PARTICLE_SAMPLE_STRIDE = 12;
-const FLOW_LIGHT_ICE_PARTICLE_SIZE = 7;
-const FLOW_LIGHT_OCEAN_PARTICLE_SIZE = 5;
+const FLOW_LIGHT_ICE_ACTIVE_BASE_OPACITY = 0.3;
+const FLOW_LIGHT_OCEAN_ACTIVE_BASE_OPACITY = 0.22;
+const FLOW_LIGHT_PULSE_OPACITY = 0.5;
+const FLOW_LIGHT_PULSE_WHITE_MIX = 0.55;
+const FLOW_LIGHT_ICE_PARTICLE_SAMPLE_STRIDE = 6;
+const FLOW_LIGHT_OCEAN_PARTICLE_SAMPLE_STRIDE = 16;
+const FLOW_LIGHT_ICE_PARTICLE_SIZE = 3.5;
+const FLOW_LIGHT_OCEAN_PARTICLE_SIZE = 3;
+const FLOW_LIGHT_PARTICLE_OPACITY = 0.7;
+const FLOW_LIGHT_PARTICLE_WHITE_MIX = 0.7;
 const flowLightUniforms = {
   time: { value: 0 },
   enabled: { value: 1 },
@@ -3951,6 +3954,7 @@ function createFlowLightMaterial({ staticOpacity, activeBaseOpacity, pulseOpacit
       uStaticOpacity: { value: staticOpacity },
       uActiveBaseOpacity: { value: activeBaseOpacity },
       uPulseOpacity: { value: pulseOpacity },
+      uPulseWhiteMix: { value: FLOW_LIGHT_PULSE_WHITE_MIX },
       uPatternScale: { value: FLOW_LIGHT_PATTERN_SCALE },
       uFlowRate: { value: flowRate },
     },
@@ -3990,6 +3994,7 @@ function createFlowLightMaterial({ staticOpacity, activeBaseOpacity, pulseOpacit
       uniform float uStaticOpacity;
       uniform float uActiveBaseOpacity;
       uniform float uPulseOpacity;
+      uniform float uPulseWhiteMix;
       uniform float uPatternScale;
       uniform float uFlowRate;
 
@@ -4007,7 +4012,7 @@ function createFlowLightMaterial({ staticOpacity, activeBaseOpacity, pulseOpacit
         float leading = smoothstep(0.03, 0.09, phase);
         float trailing = 1.0 - smoothstep(0.20, 0.34, phase);
         float pulse = leading * trailing;
-        vec3 color = mix(vColor, vec3(1.0), pulse * 0.9);
+        vec3 color = mix(vColor, vec3(1.0), pulse * uPulseWhiteMix);
         gl_FragColor = vec4(color, uActiveBaseOpacity + pulse * uPulseOpacity);
       }
     `,
@@ -4037,6 +4042,8 @@ function createFlowLightParticleMaterial({ flowRate, pointSize, useSegmentRates 
       uPatternScale: { value: FLOW_LIGHT_PATTERN_SCALE },
       uFlowRate: { value: flowRate },
       uPointSize: { value: pointSize },
+      uParticleOpacity: { value: FLOW_LIGHT_PARTICLE_OPACITY },
+      uParticleWhiteMix: { value: FLOW_LIGHT_PARTICLE_WHITE_MIX },
     },
     vertexShader: `
       precision highp float;
@@ -4063,7 +4070,7 @@ function createFlowLightParticleMaterial({ flowRate, pointSize, useSegmentRates 
           vFlowRate = 1.0;
         #endif
         vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
-        gl_PointSize = uPointSize * clamp(90.0 / max(1.0, -viewPosition.z), 0.55, 1.65);
+        gl_PointSize = uPointSize * clamp(90.0 / max(1.0, -viewPosition.z), 0.6, 1.25);
         gl_Position = projectionMatrix * viewPosition;
       }
     `,
@@ -4074,6 +4081,8 @@ function createFlowLightParticleMaterial({ flowRate, pointSize, useSegmentRates 
       uniform float uFlowEnabled;
       uniform float uPatternScale;
       uniform float uFlowRate;
+      uniform float uParticleOpacity;
+      uniform float uParticleWhiteMix;
 
       varying vec3 vColor;
       varying float vFlowDistance;
@@ -4087,10 +4096,10 @@ function createFlowLightParticleMaterial({ flowRate, pointSize, useSegmentRates 
         float pulse = leading * trailing;
         if (pulse < 0.02) discard;
         float radius = length(gl_PointCoord - vec2(0.5));
-        float disc = 1.0 - smoothstep(0.16, 0.5, radius);
+        float disc = 1.0 - smoothstep(0.12, 0.5, radius);
         if (disc < 0.02) discard;
-        vec3 color = mix(vColor, vec3(1.0), 0.95);
-        gl_FragColor = vec4(color, pulse * disc);
+        vec3 color = mix(vColor, vec3(1.0), uParticleWhiteMix);
+        gl_FragColor = vec4(color, pulse * disc * uParticleOpacity);
       }
     `,
     transparent: true,
