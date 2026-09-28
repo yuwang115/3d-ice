@@ -20,6 +20,11 @@ All notable changes to 3D ICE are recorded here. The format follows
   BedMachine v6 response and says so.
 - `summarisePublishedResponse` in `static/tools/js/gia-rebound.js`, and a `--model
   paxman2022` default in `examples/isostatic-rebound.mjs`.
+- `tests/js/gia-point-load.test.mjs`, which checks the flexural solver against the analytic
+  point-load Kelvin-function solution (Brotchie & Silvester 1969): within 10⁻⁴ of the peak
+  beyond half a flexural length, and within the grid's Nyquist truncation bound under the
+  load. The 0.2.0 notes, the README and the paper cited this validation, but the test suite
+  did not contain it.
 
 ### Changed
 

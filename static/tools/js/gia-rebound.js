@@ -53,9 +53,11 @@
  * --------
  * The flexural solve runs in the spectral domain, u(k) = R(k) / (rho_m g + D |k|^4),
  * which is the exact equilibrium of the plate equation including the peripheral
- * forebulge. Verified against the analytic point-load Kelvin-function solution
- * w(r) = V L_r^2 / (2 pi D) kei(r / L_r) to four significant figures, and against the
- * closed-form Airy limit exactly.
+ * forebulge. tests/js/gia-point-load.test.mjs checks it against the analytic point-load
+ * Kelvin-function solution u(r) = -V L_r^2 / (2 pi D) kei(r / L_r): within 1e-4 of the
+ * peak beyond half a flexural length, and under the load itself within the fraction
+ * 2 / (pi (k_N L_r)^2) of the peak (~0.15 % at 20 km) that the grid's Nyquist
+ * wavenumber k_N cuts off. Local isostasy reproduces the closed-form Airy uplift exactly.
  *
  * Because the deflection is band-limited near the flexural length scale
  * L_r = (D / (rho_m g))^(1/4) ~ 133 km, the transform is taken on a ~16-28 km grid and

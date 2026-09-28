@@ -133,6 +133,7 @@ identical regardless.
 - `tests/test_prepare_bedmap3_antarctica_overlays.py` repeats example 2. It requires every
   regenerated payload to match the committed one byte for byte, and every metadata file to
   match it exactly apart from floating-point rounding.
-- `tests/js/gia-rebound.test.mjs` validates the solver itself against the analytic
-  point-load solution for a thin elastic plate (Kelvin functions) and the closed-form Airy
-  limit, and `tests/e2e/test_isostatic_rebound.py` checks the layer in a real browser.
+- `tests/js/gia-point-load.test.mjs` validates the solver itself against the analytic
+  point-load solution for a thin elastic plate (Kelvin functions),
+  `tests/js/gia-rebound.test.mjs` against the closed-form Airy limit, and
+  `tests/e2e/test_isostatic_rebound.py` checks the layer in a real browser.

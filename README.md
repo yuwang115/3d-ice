@@ -230,9 +230,11 @@ registration; against a native-resolution solve this moves the peak uplift by un
 The water load is evaluated against each coarse cell's sub-cell bathymetry rather than its
 mean bed, which removes a Jensen bias worth roughly 3 m RMS of uplift and half a percent
 of the emergent-area figure. Areas are integrated with the polar-stereographic point scale
-factor, which varies true cell area by about −3 % to +8 % across Antarctica. The solver is
-validated against the analytic point-load Kelvin-function solution to four significant
-figures and against the closed-form Airy limit exactly.
+factor, which varies true cell area by about −3 % to +8 % across Antarctica. The test suite
+checks the solver against the analytic point-load Kelvin-function solution: it agrees to
+within 10⁻⁴ of the peak beyond half a flexural length, and to about 0.1 % under the load
+itself, where the solve grid's Nyquist limit cuts off the kernel. Local isostasy reproduces
+the closed-form Airy uplift exactly.
 
 **What the idealised responses are not.** They are steady states, so they say where the bed
 ends up and not how it gets there: neither is a transient GIA simulation nor a sea-level
