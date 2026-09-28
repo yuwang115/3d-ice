@@ -1,7 +1,7 @@
 # Data contract
 
-Everything the browser draws, apart from the computed isostatic-rebound layer, comes from a
-**data package**: a pair of files in `static/tools/data/` with the same base name.
+Everything the browser draws, apart from the idealised isostatic-rebound solves, comes from
+a **data package**: a pair of files in `static/tools/data/` with the same base name.
 
 | File | Content |
 | --- | --- |
@@ -15,8 +15,9 @@ script produced a package: the metadata is the whole interface.
 
 ## Package families
 
-- **Gridded packages** (terrain, ice velocity, basal friction, subglacial hydrology, RISE)
-  carry a `grid` block, and their gridded fields hold one value per grid cell.
+- **Gridded packages** (terrain, ice velocity, basal friction, subglacial hydrology, RISE,
+  isostatic response) carry a `grid` block, and their gridded fields hold one value per
+  grid cell.
 - **Streamline packages** (ocean currents) set `"geometry_type": "streamlines_3d"` and have
   no grid; their fields hold one value per streamline segment.
 
@@ -84,6 +85,7 @@ what the codes can represent, so no package clips.
 | Ice velocity | `vx`, `vy` | 1 m/yr |
 | Subglacial hydrology | `effective_pressure` | 1000 Pa |
 | RISE | `zice`; `ismr`; `tstar_zice` | 1 m; 0.001 m/yr; 0.0001 °C |
+| Isostatic response | `topography_change`, `solid_surface_change`, `standard_deviation` | 0.1 m |
 
 `float32` fields are stored unquantized and mark missing values with `NaN`. Categorical
 `uint8` fields carry their class codes in `flags`, which are authoritative for each
@@ -101,6 +103,23 @@ geometry worker currently reads. `channel_col1`, `channel_row1`, `channel_col2` 
 `channel_row2` (`uint16`) are the grid indices of each channel segment's two ends, and
 `channel_discharge` (`float32`, m³/s) is its discharge after the filter recorded in
 `channel_filter`.
+
+**Isostatic response.** One package per terrain package, on exactly its grid, holding point
+samples of the published grids of Paxman, Austermann & Hollyday (2022, grid files v3) at
+the same source nodes the terrain was sampled from; `resampling.max_node_offset_m` records
+how far they sit from a published node (0 m for Antarctica). `topography_change` (`T`) is the
+published total isostatic response, the change in bed elevation relative to the sea
+surface, so present bed + `T` is the fully rebounded bed above the ice-free sea surface;
+`solid_surface_change` (`R`) is the solid-surface displacement, and the two differ by the
+sea-surface change `G = R − T`; `standard_deviation` is the spread across the published
+Earth-model suite. The three published components (ice unloading, post-LGM disequilibrium,
+water loading), which sum to `T`, and `G` are not stored; `grounded_ice_summary_m` records
+their statistics over the terrain's grounded-ice nodes. `earth_model` records the densities,
+the elastic-thickness model and the 65.3 m eustatic term, `validation` the residuals of
+`T = R − G` and of the component sum, and `source_dataset` the DOI, the object URL and the
+MD5 the download was checked against. `source_package` names the terrain package whose grid
+it shares; the QRF Greenland terrain has no package of its own and the explorer pairs it
+with the BedMachine Greenland v6 one.
 
 **Streamlines.** Each segment stores its end points as `x0_ps_m`, `y0_ps_m`, `depth0_m`
 and `x1_ps_m`, `y1_ps_m`, `depth1_m` (projected metres and depth in metres), the potential

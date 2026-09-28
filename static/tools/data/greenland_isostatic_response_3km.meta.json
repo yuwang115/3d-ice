@@ -1,0 +1,164 @@
+{
+  "title": "Total isostatic response to complete deglaciation on the BedMachine Greenland v6 - Balanced (3 km) grid",
+  "product": "Total isostatic response to the complete unloading of the Greenland and Antarctic Ice Sheets",
+  "product_version": "Grid files version 3 (NSF Arctic Data Center, published 2026-01-27)",
+  "source_grid_version": "23-Jan-2026",
+  "source_file": "Total_Isostatic_Adjustment_Greenland_BedMachinev6.nc",
+  "source_dataset": {
+    "doi": "10.18739/A22Z12R8C",
+    "url": "https://doi.org/10.18739/A22Z12R8C",
+    "citation": "Paxman, G., Austermann, J. & Hollyday, A. (2026). Grid files of the total isostatic response to the complete unloading of the Greenland and Antarctic Ice Sheets (version 3). NSF Arctic Data Center. https://doi.org/10.18739/A22Z12R8C",
+    "object_url": "https://arcticdata.io/metacat/d1/mn/v2/object/urn:uuid:0a3c7dfe-c39f-4376-a636-7dc57b49bc70",
+    "md5": "79b45bd9ca7a65758cb392d69c0d5d96",
+    "md5_verified": true
+  },
+  "reference": "Paxman, G. J. G., Austermann, J. & Hollyday, A. (2022). Total isostatic response to the complete unloading of the Greenland and Antarctic Ice Sheets. Scientific Reports 12, 11399. https://doi.org/10.1038/s41598-022-15440-y",
+  "source_url": "https://doi.org/10.18739/A22Z12R8C",
+  "license": "CC-BY-4.0",
+  "license_note": "The Arctic Data Center record licenses the dataset under CC BY 4.0; the NetCDF global attribute reads 'No restrictions on access or use'. Changes made here: point samples of the published grids at the terrain-package nodes, quantized to 0.1 m.",
+  "projection": "EPSG:3413",
+  "grid": {
+    "nx": 511,
+    "ny": 918,
+    "x0_m": -652925,
+    "y0_m": -632675,
+    "dx_m": 3000,
+    "dy_m": -3000
+  },
+  "earth_model": {
+    "method": "Fully re-equilibrated response to removing both ice sheets: flexure of an elastic plate over an inviscid mantle with laterally variable effective elastic thickness, plus the post-LGM disequilibrium still to come and the water-loading feedback.",
+    "terrain_product": "BedMachine Greenland v6",
+    "effective_elastic_thickness": "Steffen, R., Audet, P. & Lund, B. (2018). Weakened lithosphere beneath Greenland inferred from effective elastic thickness: a hot spot effect? Geophysical Research Letters 45, 4733-4742. https://doi.org/10.1029/2017GL076885",
+    "young_modulus_pa": 100000000000.0,
+    "poisson_ratio": 0.25,
+    "ice_density_kg_m3": 917,
+    "seawater_density_kg_m3": 1028,
+    "mantle_density_kg_m3": 3330,
+    "post_lgm_disequilibrium": "Mean of 24 self-gravitating viscoelastic Earth models (lower-mantle viscosity 0.3-3e22 Pa s, upper-mantle viscosity 3-5e20 Pa s, elastic lithosphere 71 or 96 km) driven by ICE-6G_C deglaciation after a eustatic build-up from 122 ka.",
+    "eustatic_sea_level_rise_m": 65.3,
+    "eustatic_note": "57.9 m from Antarctica plus 7.42 m from Greenland: both ice sheets are removed.",
+    "sea_surface": "ssh_change G is the eustatic rise plus the residual post-LGM geoid change; topography_change T = R - G, so present bed + T is elevation above the ice-free sea surface and present bed + R is elevation above present-day sea level.",
+    "water_loading": "Seawater loads every node whose rebounded bed lies below the ice-free sea surface; the paper describes no ocean-connectivity test."
+  },
+  "source_package": {
+    "metadata": "bedmachine_greenland_v6_3km.meta.json",
+    "binary": "bedmachine_greenland_v6_3km.bin",
+    "grid": {
+      "nx": 511,
+      "ny": 918,
+      "x0_m": -652925,
+      "y0_m": -632675,
+      "dx_m": 3000,
+      "dy_m": -3000
+    }
+  },
+  "resampling": {
+    "method": "nearest published node (point sample) at every terrain-package node",
+    "max_node_offset_m": 0.0,
+    "reason": "The published grids share the terrain products' native grids, and the terrain packages are point samples of those grids, so the response is sampled at the same nodes rather than averaged."
+  },
+  "validation": {
+    "topography_minus_solid_plus_ssh_m": 6.103515625e-05,
+    "topography_minus_components_m": 6.0945749282836914e-05,
+    "eustatic_estimate_m": 65.3
+  },
+  "coverage": {
+    "cell_count": 469098,
+    "valid_count": 469098
+  },
+  "grounded_ice_summary_m": {
+    "note": "Statistics over the terrain package's grounded-ice nodes (mask 2 or 4). The three components are topography-type terms that sum to topography_change, as in Table 1 of Paxman et al. (2022).",
+    "cell_count": 204459,
+    "topography_change": {
+      "min": -111.48468780517578,
+      "max": 784.3728637695312,
+      "mean": 355.8369913814814
+    },
+    "solid_surface_change": {
+      "min": -67.41280364990234,
+      "max": 828.9833984375,
+      "mean": 401.4595922918686
+    },
+    "standard_deviation": {
+      "min": 6.306492805480957,
+      "max": 91.72282409667969,
+      "mean": 29.52923012091832
+    },
+    "ice_unloading": {
+      "min": -90.9130630493164,
+      "max": 807.15478515625,
+      "mean": 367.2694738618111
+    },
+    "post_lgm_disequilibrium": {
+      "min": -25.21585464477539,
+      "max": 25.142337799072266,
+      "mean": -9.822784869685242
+    },
+    "water_loading": {
+      "min": -20.782686233520508,
+      "max": 1.0434824228286743,
+      "mean": -1.6096976292288045
+    },
+    "ssh_change": {
+      "min": 42.969295501708984,
+      "max": 50.592227935791016,
+      "mean": 45.622600922431936
+    }
+  },
+  "quantization": {
+    "unit": "m",
+    "scale": 0.1,
+    "offset": 0.0,
+    "int16_fill_value": -32768
+  },
+  "fields": [
+    {
+      "name": "topography_change",
+      "dtype": "int16",
+      "unit": "m",
+      "scale": 0.1,
+      "offset": 0.0,
+      "fill_value": -32768,
+      "description": "Total isostatic response T = R - G: change in bed elevation relative to the sea surface. Present bed + T is the fully rebounded bed above the ice-free sea surface.",
+      "stats_m": {
+        "min": -132.5863037109375,
+        "max": 784.3728637695312,
+        "mean": 107.93268751624723
+      },
+      "byte_offset": 0,
+      "byte_length": 938196
+    },
+    {
+      "name": "solid_surface_change",
+      "dtype": "int16",
+      "unit": "m",
+      "scale": 0.1,
+      "offset": 0.0,
+      "fill_value": -32768,
+      "description": "Vertical displacement R of the solid Earth surface. Present bed + R is the rebounded bed above present-day sea level.",
+      "stats_m": {
+        "min": -82.64347076416016,
+        "max": 828.9833984375,
+        "mean": 153.76977616245742
+      },
+      "byte_offset": 938196,
+      "byte_length": 938196
+    },
+    {
+      "name": "standard_deviation",
+      "dtype": "int16",
+      "unit": "m",
+      "scale": 0.1,
+      "offset": 0.0,
+      "fill_value": -32768,
+      "description": "Standard deviation of the total isostatic response across the published Earth-model suite (four elastic-thickness models and 24 viscoelastic models).",
+      "stats_m": {
+        "min": 2.869260787963867,
+        "max": 91.72282409667969,
+        "mean": 26.34756924759687
+      },
+      "byte_offset": 1876392,
+      "byte_length": 938196
+    }
+  ]
+}

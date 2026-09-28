@@ -39,7 +39,7 @@ of the Antarctic and Greenland ice sheets in a web browser
 ice-shelf basal melting, basal friction, subglacial hydrology, and drainage
 basins in layered three-dimensional scenes. Users can rotate and zoom each ice
 sheet, switch datasets and quality levels, search polar places and geographic
-features, compute the ice-free bed after isostatic rebound, and follow links to
+features, show the ice-free bed after isostatic rebound, and follow links to
 the original data products.
 
 An offline Python pipeline converts heterogeneous
@@ -50,7 +50,7 @@ them without plugins or server-side computation. This separation keeps the
 scientific transformations reproducible and the public interface simple to
 deploy, share, and use on desktop and mobile devices.
 
-![The 3D ICE explorer. (a) The interface, with Antarctic ice-surface speed [@mouginot2019] and surface-layer WAOM2 ocean streamlines [@richter2022] over BedMachine Antarctica v4 [@morlighem2020]. (b) Greenland ice-surface speed from ITS_LIVE [@gardner2024] over BedMachine Greenland v6 [@morlighem2017]. (c) The ice-free Antarctic bed that the explorer computes after complete isostatic rebound under regional flexure. Vertical scales are exaggerated.\label{fig:overview}](docs/images/explorer-overview.jpg)
+![The 3D ICE explorer. (a) The interface, with Antarctic ice-surface speed [@mouginot2019] and surface-layer WAOM2 ocean streamlines [@richter2022] over BedMachine Antarctica v4 [@morlighem2020]. (b) Greenland ice-surface speed from ITS_LIVE [@gardner2024] over BedMachine Greenland v6 [@morlighem2017]. (c) The ice-free Antarctic bed after complete isostatic rebound under the idealised regional-flexure response. Vertical scales are exaggerated.\label{fig:overview}](docs/images/explorer-overview.jpg)
 
 # Statement of need
 
@@ -133,21 +133,21 @@ label styling, and refined-basin validation, lives in separate modules that run
 unchanged under Node's test runner. URL parameters select the region, terrain
 dataset, and display mode, and every data layer links to its source product.
 
-One layer is computed rather than loaded. The isostatic-rebound layer solves for
-the equilibrium deflection of the solid Earth after the present ice load is
-removed, showing which parts of today's sub-sea-level bed would emerge once
-glacial isostatic adjustment is complete. It
-offers an elastic-lithosphere, relaxed-asthenosphere steady state
-[@lemeur1996; @lingle1985] solved spectrally [@bueler2007] and, as an upper
-bound on peak uplift, local Airy isostasy [@turcotte2002]; the spectral solver is
-verified against the analytic point-load solution in Kelvin functions
-[@brotchie1969]. Sea-level-equivalent figures follow the terminology and ocean
-area of @gregory2019. Computed in the browser from the loaded terrain, the layer
-adds no data dependency. The interface
-reports its assumptions alongside its numbers, including that the present bed is
-not in balance with the present load [@whitehouse2019] and that low mantle
-viscosity beneath parts of West Antarctica shortens the response time by orders
-of magnitude [@barletta2018].
+The isostatic-rebound layer shows which parts of today's sub-sea-level bed would
+emerge once glacial isostatic adjustment is complete. By default it displays the
+published response of @paxman2022 [@paxman2026data], sampled at the terrain
+nodes: elastic-plate flexure with laterally variable elastic thickness
+[@swain2021; @steffen2018], remaining post-LGM disequilibrium, and water
+loading under a sea surface raised by both ice sheets' meltwater. For comparison
+it also solves an elastic-lithosphere, relaxed-asthenosphere steady state
+[@lemeur1996; @lingle1985] spectrally [@bueler2007] and, as an upper bound on
+peak uplift, local Airy isostasy [@turcotte2002], with an adjustable datum; the
+solver is verified against the analytic point-load solution in Kelvin functions
+[@brotchie1969]. Sea-level-equivalent figures follow @gregory2019. The interface
+states each response's assumptions, including that the present bed is not in
+balance with the present load [@whitehouse2019] and that low mantle viscosity
+beneath parts of West Antarctica shortens the response time by orders of
+magnitude [@barletta2018].
 
 The domain contract is checked at several levels: unit tests cover
 quantization, coordinate sampling, metadata statistics, search, the rebound
@@ -192,9 +192,9 @@ integrate representative products for bed geometry [@morlighem2020;
 The repository supplies a specified data contract, a documented preparation
 pipeline, tagged releases with a changelog, contribution and support pathways,
 and worked examples that run from a clean clone. One reproduces the rebound figures the
-explorer reports for Antarctica, including 3.19 million km² of today's
-sub-sea-level bed emerging after complete rebound; another regenerates six
-derived data packages whose payloads match the committed files byte for byte.
+explorer reports for Antarctica, including 2.94 million km² of today's
+sub-sea-level bed emerging above the ice-free sea surface; another regenerates
+six derived data packages whose payloads match the committed files byte for byte.
 
 # AI usage disclosure
 
@@ -205,8 +205,9 @@ from Y. Wang's natural-language specifications, data, and review, as the
 project's public coverage describes [@aapp2026]. Anthropic's Claude Code
 (Claude Opus 4.6 in March and April 2026; Claude Opus 5 and Claude Opus 5.5 in
 September 2026) was used for later work: parts of the interface, test
-infrastructure, the refactoring that moved the runtime into shared and tested
-modules, the repository documentation, reference checking, and the drafting and
+infrastructure, the isostatic-rebound layer and its data pipeline, the
+refactoring that moved the runtime into shared and tested modules, the
+repository documentation, reference checking, and the drafting and
 copy-editing of this paper. Y. Wang selected the datasets and scientific
 methods and set the architecture. Every AI-generated step was checked by hand
 before it was kept: Y. Wang read each change, ran the explorer to confirm its

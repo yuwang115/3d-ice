@@ -157,8 +157,8 @@ legacy `/tools/...` URLs unchanged.
 
 | Region | Layers in the experience | Representative source products |
 | --- | --- | --- |
-| Antarctica | Bed topography, surface elevation, thickness, mask, refined basins, velocity, basal friction, subglacial hydrology, ocean streamlines, basal melt, thermal driving, isostatic rebound | [BedMachine Antarctica v4](https://nsidc.org/data/NSIDC-0756/versions/4), [Bedmap3 v1.0](https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2) (CC BY 4.0), [MEaSUREs Antarctic Boundaries v2](https://nsidc.org/data/NSIDC-0709/versions/2), [MEaSUREs Phase-Based Antarctica Velocity v1](https://nsidc.org/data/NSIDC-0754/versions/1), [Antarctic basal friction inversions](https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1), [GlaDS Antarctic subglacial hydrology](https://zenodo.org/records/12738170), [WAOM2](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full), [RISE](https://data.aad.gov.au/metadata/RISE) |
-| Greenland | Bed topography, surface elevation, thickness, mask, basin boundaries, velocity, basal friction, ocean streamlines, isostatic rebound | [BedMachine Greenland v6](https://nsidc.org/data/idbmg4/versions/6), [QRF Greenland subglacial topography (2025)](https://doi.org/10.1017/jog.2025.10071), [MEaSUREs ITS_LIVE v2](https://nsidc.org/data/NSIDC-0776/versions/2), [Greenland basal friction ensemble inversion reference](https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1), [Copernicus Marine Arctic Ocean Physics](https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description) |
+| Antarctica | Bed topography, surface elevation, thickness, mask, refined basins, velocity, basal friction, subglacial hydrology, ocean streamlines, basal melt, thermal driving, isostatic rebound | [BedMachine Antarctica v4](https://nsidc.org/data/NSIDC-0756/versions/4), [Bedmap3 v1.0](https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2) (CC BY 4.0), [MEaSUREs Antarctic Boundaries v2](https://nsidc.org/data/NSIDC-0709/versions/2), [MEaSUREs Phase-Based Antarctica Velocity v1](https://nsidc.org/data/NSIDC-0754/versions/1), [Antarctic basal friction inversions](https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1), [GlaDS Antarctic subglacial hydrology](https://zenodo.org/records/12738170), [WAOM2](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full), [RISE](https://data.aad.gov.au/metadata/RISE), [Paxman et al. (2022) isostatic response, grids v3](https://doi.org/10.18739/A22Z12R8C) (CC BY 4.0) |
+| Greenland | Bed topography, surface elevation, thickness, mask, basin boundaries, velocity, basal friction, ocean streamlines, isostatic rebound | [BedMachine Greenland v6](https://nsidc.org/data/idbmg4/versions/6), [QRF Greenland subglacial topography (2025)](https://doi.org/10.1017/jog.2025.10071), [MEaSUREs ITS_LIVE v2](https://nsidc.org/data/NSIDC-0776/versions/2), [Greenland basal friction ensemble inversion reference](https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1), [Copernicus Marine Arctic Ocean Physics](https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description), [Paxman et al. (2022) isostatic response, grids v3](https://doi.org/10.18739/A22Z12R8C) (CC BY 4.0) |
 
 Bedmap3 is available as a 10 km Balanced or 4 km HD Antarctica terrain alternative. Both modes support velocity, flowlines, basal friction, effective pressure, subglacial channels, refined basins, and WAOM2 ocean streamlines. The gridded velocity, basal-friction, and hydrology layers are regenerated on Bedmap3's native grid; the projected WAOM2 streamlines are clipped against the active terrain at runtime. RISE basal melt and thermal-driving fields remain exclusive to BedMachine v4.
 
@@ -167,13 +167,42 @@ Greenland QRF subglacial topography (2025) is available as 3 km Balanced and 1 k
 ### Isostatic rebound (ice-free equilibrium)
 
 The isostatic-rebound layer answers "what would the bed look like with the ice gone and
-rebound complete?" It is the only scientific layer that ships no data of its own: it is
-solved in the browser from the bed, surface, thickness and mask fields of whichever
-terrain package is loaded, so it is available for every region and resolution and can be
-reproduced from a clean clone with no upstream download.
+rebound complete?" By default it shows the **published** total isostatic response of
+Paxman, Austermann & Hollyday (2022), loaded from packages sampled at each terrain grid's
+nodes. Two **idealised** responses, solved in the browser from the loaded terrain, stay
+available as what-ifs.
 
-**What it computes.** The equilibrium vertical displacement of the solid Earth after the
-present ice load is removed, from the thin-plate flexure equation
+**Published response (default).** Paxman et al. compute the fully re-equilibrated response
+to removing both ice sheets: flexure of an elastic plate whose effective elastic thickness
+varies laterally (Swain & Kirby 2021 for Antarctica, Steffen et al. 2018 for Greenland),
+plus the post-LGM disequilibrium still to come (the mean of 24 self-gravitating
+viscoelastic Earth models driven by ICE-6G_C) and the load of the seawater that floods the
+rebounded bed. The sea surface rises by the 65.3 m eustatic contribution of both ice sheets
+plus the residual post-LGM geoid change, 73–91 m in all above the grounded Antarctic ice and
+43–51 m above Greenland's. Version 3 of their grid files ([doi:10.18739/A22Z12R8C](https://doi.org/10.18739/A22Z12R8C),
+CC BY 4.0) is computed on the same BedMachine Antarctica v4, Bedmap3 and BedMachine
+Greenland v6 grids the terrain packages are point-sampled from, so
+`scripts/prepare_isostatic_response.py` samples it at exactly the terrain nodes, with no
+interpolation, and writes one `*_isostatic_response_*` package per terrain package. Each
+stores three fields at 0.1 m: the topography change `T = R − G` (the published total
+response), the solid-surface displacement `R` and the Earth-model spread `σ`. The script
+checks each download against the repository's MD5 and checks that the fields satisfy the
+published identities `T = R − G` and `T = ice unloading + post-LGM + water loading`
+(residuals below 1e-4 m).
+
+The explorer draws the bed at `bed + T`, so heights and emergence read directly against the
+ice-free sea surface however much that surface varies, and it reports uplift as `R`, as the
+solver does. The sea-level datum slider is disabled in this mode because the model fixes its
+own sea surface. On the 10 km BedMachine Antarctica v4 grid the peak solid-surface uplift is
+1028.6 m, the peak rise above the ice-free sea surface 940.6 m, and 2.94 million km² of
+today's sub-sea-level bed emerges; on the 3 km BedMachine Greenland v6 grid the figures are
+829.0 m, 784.4 m and 0.394 million km². The QRF Greenland terrain has no published grid of
+its own and borrows the BedMachine v6 response on the same grid; computing the flexure for
+the QRF ice load instead changes it by about 10 m RMS, well inside the model spread.
+
+**Idealised responses (what-ifs).** The solver below computes the equilibrium vertical
+displacement of the solid Earth after the present ice load is removed, from the thin-plate
+flexure equation
 
 ```
 D grad^4 u + rho_m g u = sigma_now - sigma_after
@@ -201,38 +230,54 @@ registration; against a native-resolution solve this moves the peak uplift by un
 The water load is evaluated against each coarse cell's sub-cell bathymetry rather than its
 mean bed, which removes a Jensen bias worth roughly 3 m RMS of uplift and half a percent
 of the emergent-area figure. Areas are integrated with the polar-stereographic point scale
-factor, which varies true cell area by about −3 % to +8 % across Antarctica. The solver is
-validated against the analytic point-load Kelvin-function solution to four significant
-figures and against the closed-form Airy limit exactly.
+factor, which varies true cell area by about −3 % to +8 % across Antarctica. The test suite
+checks the solver against the analytic point-load Kelvin-function solution: it agrees to
+within 10⁻⁴ of the peak beyond half a flexural length, and to about 0.1 % under the load
+itself, where the solve grid's Nyquist limit cuts off the kernel. Local isostasy reproduces
+the closed-form Airy uplift exactly.
 
-**What it is not.** It is a steady state, so it says where the bed ends up and not how it
-gets there: it is neither a transient GIA simulation nor a sea-level projection. It assumes
-the present bed is in balance with the present load, which it is not — Antarctica is still
-responding to the Last Glacial Maximum at up to ~40 mm/yr. It omits the sea-level equation,
-geoid change and rotational feedback, and replaces real lateral Earth structure with a
-single rigidity and mantle density. The UI states these assumptions alongside the figures.
+**What the idealised responses are not.** They are steady states, so they say where the bed
+ends up and not how it gets there: neither is a transient GIA simulation nor a sea-level
+projection. They assume the present bed is in balance with the present load, which it is
+not: part of the post-LGM rebound is still to come (Paxman et al. put it at up to +68 m of
+bed elevation under the Ross and Weddell embayments, while the collapsing Laurentide
+forebulge lowers Greenland by up to 25 m), and the Amundsen Sea Embayment is rising at up to
+41 mm/yr in response to recent ice loss over a low-viscosity mantle (Barletta et al. 2018).
+They omit the sea-level equation, geoid change and rotational feedback, and replace real
+lateral Earth structure with a single rigidity and mantle density. Against the published
+response, regional flexure differs by 68 m RMS over grounded Antarctic ice and 69 m over
+Greenland, mostly because of its uniform rigidity (`D = 1e25 N m` is an elastic thickness of
+about 104 km, stiffer than any of Paxman et al.'s cases) and the missing post-LGM term. The
+UI states these assumptions alongside the figures.
 
 The scenario slider advances ice thinning and bed relaxation together, which is an
-illustrative coupling rather than a simulated deglaciation path. Because every other
+illustrative coupling rather than a simulated deglaciation path; for the published response
+it has no time axis, since that response has no single relaxation time. Because every other
 overlay is baked onto the present-day bed or ice surface, enabling this layer clears them.
 
-**Cost.** The solve runs once per (region, dataset, Earth response, sea-level datum) in a
+**Cost.** The published response is one fetch per terrain package (2.7 MB on the Balanced
+grids, 17–25 MB on the HD grids), decoded and summarised once and then cached. The
+idealised solve runs once per (region, dataset, Earth response, sea-level datum) in a
 dedicated module worker, and takes 0.2–0.9 s across the shipped packages; there is a
 main-thread fallback for browsers without module workers. Moving the scenario slider
 afterwards only rewrites vertex heights and colours from the cached uplift field, holding
 ~13 ms frames on the 10 km Antarctic grid.
 
-**Where the code lives.** `static/tools/js/gia-rebound.js` (physics),
+**Where the code lives.** `scripts/prepare_isostatic_response.py` (published packages),
+`static/tools/js/gia-rebound.js` (`summarisePublishedResponse` and the idealised physics),
 `static/tools/js/gia-grid.js` (coarsening, upsampling, connectivity, area weighting),
 `static/tools/js/fft2d.js` (transform) and `static/tools/gia-rebound-worker.js` (module
-worker). Unit tests: `tests/js/gia-rebound.test.mjs` (`npm run test:gia-rebound`).
-Browser tests: `tests/e2e/test_isostatic_rebound.py`.
+worker). Unit tests: `tests/test_prepare_isostatic_response.py` and
+`tests/js/gia-rebound.test.mjs` (`npm run test:gia-rebound`). Browser tests:
+`tests/e2e/test_isostatic_rebound.py`.
 
-Key references: Turcotte & Schubert (2002) for plate flexure; Le Meur & Huybrechts (1996)
-for the ELRA formulation and parameter defaults; Lingle & Clark (1985) and Bueler et al.
-(2007) for the deformable-Earth response and its spectral solution; Brotchie & Silvester
-(1969) for the Kelvin-function validation case; Whitehouse et al. (2019) for present-day
-Antarctic uplift rates and lateral viscosity structure.
+Key references: Paxman, Austermann & Hollyday (2022) for the published response, with
+Swain & Kirby (2021) and Steffen et al. (2018) for the elastic-thickness models it uses;
+Turcotte & Schubert (2002) for plate flexure; Le Meur & Huybrechts (1996) for the ELRA
+formulation and parameter defaults; Lingle & Clark (1985) and Bueler et al. (2007) for the
+deformable-Earth response and its spectral solution; Brotchie & Silvester (1969) for the
+Kelvin-function validation case; Whitehouse et al. (2019) and Barletta et al. (2018) for
+present-day Antarctic uplift and lateral viscosity structure.
 
 ## Standalone GitHub Pages Site
 
@@ -320,7 +365,8 @@ python -m pytest tests/e2e/
 ### Worked examples
 
 `node examples/isostatic-rebound.mjs` reproduces the isostatic-rebound figures the explorer shows
-for Antarctica, with the explorer's own decoder and solver. [docs/example.md](docs/example.md)
+for Antarctica, with the explorer's own decoder and rebound module: the published response by
+default, or an idealised solve with `--model flexural|local`. [docs/example.md](docs/example.md)
 walks through it and through a rebuild of part of the data pipeline from the repository alone.
 
 ## JOSS Paper Draft

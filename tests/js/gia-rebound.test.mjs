@@ -38,9 +38,12 @@ import {
   reboundElapsedYears,
   REBOUND_MODEL_FLEXURAL,
   REBOUND_MODEL_LOCAL,
+  REBOUND_MODEL_PUBLISHED,
+  REBOUND_MODELS,
   REBOUND_RELAXATION_TIME_YEARS,
   SEAWATER_DENSITY_KG_M3,
   solveIsostaticRebound,
+  summarisePublishedResponse,
 } from "../../static/tools/js/gia-rebound.js";
 
 // ---------------------------------------------------------------- fft2d
@@ -684,6 +687,143 @@ test("statistics account for emergence, ice volume and sea-level equivalent", ()
   // The rebounded bed is everywhere above the datum, so the deepest ice-covered point is
   // too. This statistic is scoped to the present ice footprint, not the whole domain.
   assert.ok(stats.deepestGroundedBedAfterMeters > 0);
+});
+
+// ---------------------------------------------------------------- published response
+
+const PUBLISHED_RESPONSE_METADATA = {
+  earth_model: { eustatic_sea_level_rise_m: 65.3 },
+  source_dataset: { doi: "10.18739/A22Z12R8C" },
+  grounded_ice_summary_m: {
+    ice_unloading: { min: -89, max: 938.8, mean: 513.7 },
+    post_lgm_disequilibrium: { min: -3.8, max: 68.3, mean: 14.4 },
+    water_loading: { min: -418.6, max: 7.9, mean: -28.8 },
+    ssh_change: { min: 72.8, max: 90.6, mean: 88 },
+  },
+};
+
+function publishedSlab({ bed, topography, solid, sigma = 20, mask = MASK_GROUNDED_ICE, nx = 8, ny = 8 }) {
+  const field = uniformSlab({ nx, ny, thickness: 1500, bed, mask });
+  const { surfaceHeights, ...rest } = field;
+  return {
+    ...rest,
+    topographyChange: new Float32Array(field.cellCount).fill(topography),
+    solidSurfaceChange: new Float32Array(field.cellCount).fill(solid),
+    standardDeviation: new Float32Array(field.cellCount).fill(sigma),
+    response: PUBLISHED_RESPONSE_METADATA,
+  };
+}
+
+test("the published model is listed first among the Earth responses", () => {
+  assert.equal(REBOUND_MODEL_PUBLISHED, "paxman2022");
+  assert.deepEqual(REBOUND_MODELS, [REBOUND_MODEL_PUBLISHED, REBOUND_MODEL_FLEXURAL, REBOUND_MODEL_LOCAL]);
+});
+
+test("a published response draws the bed at bed + T and reads uplift from R", () => {
+  // Bed 100 m below sea level rises 200 m relative to the ice-free sea surface, which
+  // itself sits 90 m above today's: the solid surface moves 290 m.
+  const { uplift, emergent, stats } = summarisePublishedResponse(
+    publishedSlab({ bed: -100, topography: 200, solid: 290 })
+  );
+
+  assert.ok(uplift instanceof Float32Array);
+  for (const value of uplift) assert.equal(value, 200);
+  assert.ok(emergent.every((flag) => flag === 1), "every cell crosses the ice-free sea surface");
+  assert.equal(stats.model, REBOUND_MODEL_PUBLISHED);
+  assert.equal(stats.seaLevelMeters, 0);
+  assert.ok(Math.abs(stats.maxUpliftMeters - 290) < 1e-4, "uplift statistics are solid-surface ones");
+  assert.ok(Math.abs(stats.meanGroundedUpliftMeters - 290) < 1e-4);
+  assert.ok(Math.abs(stats.maxTopographyChangeMeters - 200) < 1e-4);
+  assert.ok(Math.abs(stats.meanGroundedTopographyChangeMeters - 200) < 1e-4);
+  assert.ok(Math.abs(stats.landAreaAfterKm2 - stats.validBedAreaKm2) < 1e-6);
+  assert.ok(Math.abs(stats.emergentAreaKm2 - stats.validBedAreaKm2) < 1e-6);
+  assert.ok(Math.abs(stats.deepestGroundedBedAfterMeters - 100) < 1e-4);
+  assert.equal(stats.flexuralRigidityNm, 0);
+  assert.equal(stats.iterations, 0);
+});
+
+test("published emergence is judged against the ice-free sea surface, not present sea level", () => {
+  // bed + R = +40 m is above today's sea level, but bed + T = -50 m is below the ice-free
+  // sea surface: the cell stays marine, which is the point of reporting T.
+  const { emergent, stats } = summarisePublishedResponse(
+    publishedSlab({ bed: -150, topography: 100, solid: 190 })
+  );
+
+  assert.ok(emergent.every((flag) => flag === 0));
+  assert.equal(stats.emergentAreaKm2, 0);
+  assert.ok(Math.abs(stats.marineUnderIceAfterAreaKm2 - stats.iceFootprintAreaKm2) < 1e-6);
+});
+
+test("published statistics summarise the model spread and carry the published components", () => {
+  const field = publishedSlab({ bed: 500, topography: 300, solid: 390, sigma: 20 });
+  field.standardDeviation[3] = 80;
+  const { stats } = summarisePublishedResponse(field);
+
+  assert.ok(Math.abs(stats.maxGroundedSigmaMeters - 80) < 1e-4);
+  const expectedMean = (20 * (field.cellCount - 1) + 80) / field.cellCount;
+  assert.ok(Math.abs(stats.meanGroundedSigmaMeters - expectedMean) < 1e-4);
+  assert.equal(stats.eustaticSeaLevelRiseMeters, 65.3);
+  assert.equal(stats.responseDoi, "10.18739/A22Z12R8C");
+  assert.deepEqual(stats.components.postLgm, { min: -3.8, max: 68.3, mean: 14.4 });
+  assert.deepEqual(stats.components.waterLoading, { min: -418.6, max: 7.9, mean: -28.8 });
+  assert.deepEqual(stats.components.iceUnloading, { min: -89, max: 938.8, mean: 513.7 });
+  assert.deepEqual(stats.seaSurfaceChange, { min: 72.8, max: 90.6, mean: 88 });
+});
+
+test("published statistics are scoped to grounded ice for the T and spread summaries", () => {
+  const field = publishedSlab({ bed: 500, topography: 300, solid: 390, sigma: 20 });
+  // An open-ocean cell with a larger T and spread must not leak into the grounded figures.
+  field.mask[0] = MASK_OCEAN;
+  field.bedHeights[0] = -3000;
+  field.topographyChange[0] = 900;
+  field.standardDeviation[0] = 200;
+  const { stats } = summarisePublishedResponse(field);
+
+  assert.ok(Math.abs(stats.maxTopographyChangeMeters - 300) < 1e-4);
+  assert.ok(Math.abs(stats.maxGroundedSigmaMeters - 20) < 1e-4);
+});
+
+test("non-finite published values leave the bed where it is", () => {
+  const field = publishedSlab({ bed: 200, topography: 300, solid: 390 });
+  field.topographyChange[5] = Number.NaN;
+  field.solidSurfaceChange[5] = Number.NaN;
+  const { uplift } = summarisePublishedResponse(field);
+
+  assert.equal(uplift[5], 0);
+  assert.equal(uplift[4], 300);
+});
+
+test("missing published samples are left out of the statistics, not counted as zero", () => {
+  const field = publishedSlab({ bed: 200, topography: 300, solid: 390 });
+  field.topographyChange[5] = Number.NaN;
+  field.solidSurfaceChange[5] = Number.NaN;
+  const { stats } = summarisePublishedResponse(field);
+
+  assert.ok(Math.abs(stats.meanGroundedTopographyChangeMeters - 300) < 1e-4, `${stats.meanGroundedTopographyChangeMeters}`);
+  assert.ok(Math.abs(stats.maxTopographyChangeMeters - 300) < 1e-4);
+  assert.ok(Math.abs(stats.meanGroundedUpliftMeters - 390) < 1e-4, `${stats.meanGroundedUpliftMeters}`);
+  assert.ok(Math.abs(stats.maxUpliftMeters - 390) < 1e-4);
+});
+
+test("the solver refuses the published model rather than solving ELRA under its label", () => {
+  const field = uniformSlab({ nx: 8, ny: 8, thickness: 1000, bed: 200, mask: MASK_GROUNDED_ICE });
+  assert.throws(
+    () => solveIsostaticRebound({ ...field, model: REBOUND_MODEL_PUBLISHED }),
+    /loaded as data, not solved/
+  );
+});
+
+test("the published summary validates its inputs", () => {
+  const field = publishedSlab({ bed: 200, topography: 300, solid: 390 });
+  assert.throws(
+    () => summarisePublishedResponse({ ...field, topographyChange: new Float32Array(3) }),
+    /mismatched topography-change field/
+  );
+  assert.throws(
+    () => summarisePublishedResponse({ ...field, solidSurfaceChange: null }),
+    /mismatched solid-surface-change field/
+  );
+  assert.throws(() => summarisePublishedResponse({ ...field, cellCount: 5 }), /inconsistent cell count/);
 });
 
 // ---------------------------------------------------------------- scenario geometry
