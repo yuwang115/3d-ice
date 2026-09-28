@@ -17,7 +17,7 @@ flowchart LR
     dc --> app["js/explorer-app.js<br/>orchestration and UI"]
     dc --> gw["antarctica-geometry-worker.js<br/>overlay geometry"]
     app --> gw
-    app --> rw["gia-rebound-worker.js<br/>isostatic rebound"]
+    app --> rw["gia-rebound-worker.js<br/>idealised isostatic rebound"]
     app --> three["Three.js r161 (vendored)<br/>WebGL scene"]
   end
 ```
@@ -71,8 +71,8 @@ file, product version and reference it was built from.
 | `static/tools/js/explorer-app.js` | Runtime shared by both pages: dataset registry, loading, scene graph, UI wiring, legends, metadata panel |
 | `static/tools/js/data-contract.js` | Package decoder (the browser half of the data contract) |
 | `static/tools/antarctica-geometry-worker.js` | Module worker that builds velocity, basal-friction, hydrology and ocean-current geometry off the main thread |
-| `static/tools/gia-rebound-worker.js` | Module worker for the isostatic-rebound solve |
-| `static/tools/js/gia-rebound.js`, `gia-grid.js`, `fft2d.js` | Flexural and Airy isostasy solver, grid utilities and 2-D FFT |
+| `static/tools/gia-rebound-worker.js` | Module worker for the idealised isostatic-rebound solve |
+| `static/tools/js/gia-rebound.js`, `gia-grid.js`, `fft2d.js` | Published-response summary, flexural and Airy isostasy solver, grid utilities and 2-D FFT |
 | `static/tools/js/polar-feature-search.js`, `polar-feature-label-style.js`, `polar-refined-basins.js`, `polar-features.js` | Place and feature search, label styling, refined-basin validation, and the controller that binds them to the scene |
 | `static/js/3d-ice-locale.js` | English and Chinese strings, published as `window.__3dIceLocale` |
 | `static/tools/vendor/three/` | Three.js r161 and `OrbitControls`, vendored so the runtime has no install step |
@@ -93,18 +93,24 @@ buffers; the worker
 posts progress and returns typed arrays that become `BufferGeometry` attributes. Balanced
 packages keep mobile memory use low; HD packages target desktop displays.
 
-**Isostatic rebound** is the one layer computed rather than loaded. The rebound worker
-solves the equilibrium flexure of an elastic plate over a fluid mantle (or local Airy
-isostasy) from the loaded terrain package's bed, surface, thickness and mask, so it needs
-no extra data. Browsers without module workers fall back to a main-thread solve.
+**Isostatic rebound** has two routes. Its default, the published response of Paxman et
+al. (2022), is an overlay package like any other: fetched when the layer is enabled,
+checked against the terrain grid, decoded with `data-contract.js` and summarised on the
+main thread by `summarisePublishedResponse`, a single pass over the grid. The idealised
+responses are computed rather than loaded: the rebound worker solves the equilibrium
+flexure of an elastic plate over a fluid mantle (or local Airy isostasy) from the loaded
+terrain package's bed, surface, thickness and mask, so they need no extra data. Browsers
+without module workers fall back to a main-thread solve.
 
 **Asset base.** Asset URLs resolve against a base taken, in order, from the `assetBase`
 query parameter, `window.__ICE_ASSET_BASE__`, a `<meta name="3d-ice-asset-base">` tag,
 or the `/tools/` segment of the page's own path. This is what lets the same files serve
 from a site root, a GitHub Pages project path, or a downstream site.
 
-**URL parameters.** `region` (`antarctica` or `greenland`) and `preset` (a dataset key,
-for example `bedmap3` or `qrf-hd`) choose the initial view; `mode=showcase` and
+**URL parameters.** `region` (`antarctica` or `greenland`) and `preset` (a named view,
+for example `antarctica-velocity-flowlines` or `greenland-ocean-circulations`, which fixes
+the dataset and the layers shown) choose the initial view; the terrain dataset itself is
+chosen in the panel. `mode=showcase` and
 `mode=preview` are embedding modes; `recording=1` enables the camera-path recording panel.
 Layer toggles and camera pose are not written back to the URL; the recording panel copies
 the current camera pose as text instead.
@@ -131,6 +137,7 @@ current Chrome, Edge, Firefox and Safari (Chrome and Edge 89+, Firefox 114+, Saf
 | Quantization, statistics, coordinate sampling, attribute decoding, preparation scripts | pytest | `tests/test_*.py` | Python unit tests |
 | Every committed package decodes in the browser to the statistics Python recorded | node:test | `tests/js/data-contract.test.mjs` | JavaScript unit tests |
 | Rebound solver against the analytic point-load (Kelvin function) solution and the Airy limit | node:test | `tests/js/gia-rebound.test.mjs` | JavaScript unit tests |
+| Published-response packages: node alignment, the published identities, quantization, provenance | pytest, node:test | `tests/test_prepare_isostatic_response.py`, `tests/js/examples.test.mjs` | Python and JavaScript unit tests |
 | Place search, label styling, refined-basin validation | node:test | `tests/js/polar-features.test.mjs` | JavaScript unit tests |
 | Every localisation key used at runtime resolves in both locales | node:test | `tests/js/locale-coverage.test.mjs` | JavaScript unit tests |
 | Metadata schema of every package; `CITATION.cff` and `codemeta.json` | pytest, cffconvert | `tests/test_metadata_schema.py` | Validate .meta.json files |
