@@ -6,6 +6,14 @@
  * after the present ice load is removed. This is a steady-state (relaxed) calculation,
  * not a transient GIA simulation: it says where the bed ends up, not how it gets there.
  *
+ * The explorer's default answer is not solved here at all: it is the published response
+ * of Paxman, Austermann & Hollyday (2022, Sci. Rep. 12, 11399), loaded from packages
+ * sampled at the terrain nodes (scripts/prepare_isostatic_response.py) and summarised by
+ * summarisePublishedResponse. That response adds what a browser solve cannot: laterally
+ * variable elastic thickness, the post-LGM disequilibrium still to come, and a sea surface
+ * raised by both ice sheets' meltwater plus the residual geoid change. The solver below
+ * remains for idealised what-ifs with a uniform rigidity and an adjustable datum.
+ *
  * Physics
  * -------
  * Vertical displacement u (positive up) of a thin elastic plate over an inviscid
@@ -72,6 +80,8 @@
  * Whitehouse, P. L., Gomez, N., King, M. A. & Wiens, D. A. (2019) Nat. Commun. 10, 503
  *   - present-day Antarctic uplift rates and lateral viscosity structure; the reason
  *   the present bed cannot be assumed fully relaxed (see the UI caveat text).
+ * Paxman, G. J. G., Austermann, J. & Hollyday, A. (2022) Sci. Rep. 12, 11399 - the
+ *   published total isostatic response (grids v3, doi:10.18739/A22Z12R8C) shown by default.
  */
 
 import { angularWavenumbers, createFft2dPlan, transformFft2dInPlace } from "./fft2d.js";
@@ -101,9 +111,11 @@ export const REBOUND_RELAXATION_TIME_YEARS = 3000;
 /** Present global ocean area used for sea-level-equivalent conversion (Gregory et al. 2019). */
 export const GLOBAL_OCEAN_AREA_M2 = 3.625e14;
 
+/** Paxman, Austermann & Hollyday (2022): a published response, loaded rather than solved. */
+export const REBOUND_MODEL_PUBLISHED = "paxman2022";
 export const REBOUND_MODEL_FLEXURAL = "flexural";
 export const REBOUND_MODEL_LOCAL = "local";
-export const REBOUND_MODELS = [REBOUND_MODEL_FLEXURAL, REBOUND_MODEL_LOCAL];
+export const REBOUND_MODELS = [REBOUND_MODEL_PUBLISHED, REBOUND_MODEL_FLEXURAL, REBOUND_MODEL_LOCAL];
 
 /** EPSG:3031 standard parallel (Antarctic Polar Stereographic). */
 export const ANTARCTIC_STANDARD_PARALLEL_DEGREES = -71;
@@ -408,7 +420,13 @@ function solveFlexuralRebound({
   };
 }
 
-/** One area-weighted pass over the grid, accumulating every reported quantity. */
+/**
+ * One area-weighted pass over the grid, accumulating every reported quantity.
+ *
+ * `uplift` moves the bed, so it decides emergence; `displacement` is what the uplift
+ * statistics report. For the solver they are the same field. A published response draws
+ * the bed with its topography change T but reports the solid-surface displacement R.
+ */
 function accumulateReboundTotals({
   nx,
   ny,
@@ -419,6 +437,7 @@ function accumulateReboundTotals({
   thickness,
   mask,
   uplift,
+  displacement = uplift,
   emergent,
   seaLevelMeters,
 }) {
@@ -489,12 +508,15 @@ function accumulateReboundTotals({
       const grounded = isGroundedIceMask(maskValue);
       const underIce = grounded || isFloatingIceMask(maskValue);
       const cellUplift = uplift[index];
-      if (cellUplift > maxUplift) {
-        maxUplift = cellUplift;
+      // The solver's field is always finite; a published one can have gaps, which the
+      // statistics skip rather than count as zero displacement.
+      const cellDisplacement = displacement[index];
+      if (cellDisplacement > maxUplift) {
+        maxUplift = cellDisplacement;
         maxUpliftIndex = index;
       }
-      if (grounded) {
-        groundedUpliftSum += cellUplift;
+      if (grounded && Number.isFinite(cellDisplacement)) {
+        groundedUpliftSum += cellDisplacement;
         groundedCells += 1;
       }
 
@@ -558,7 +580,7 @@ function accumulateReboundTotals({
 }
 
 /** Assemble the metadata-panel statistics from one accumulation pass plus solver metadata. */
-function summarise({ nx, ny, cellCount, grid, standardParallelDegrees, bedHeights, thickness, mask, uplift, emergent, seaLevelMeters, model, flexuralRigidityNm, solved }) {
+function summarise({ nx, ny, cellCount, grid, standardParallelDegrees, bedHeights, thickness, mask, uplift, displacement = uplift, emergent, seaLevelMeters, model, flexuralRigidityNm, solved }) {
   const totals = accumulateReboundTotals({
     nx,
     ny,
@@ -569,6 +591,7 @@ function summarise({ nx, ny, cellCount, grid, standardParallelDegrees, bedHeight
     thickness,
     mask,
     uplift,
+    displacement,
     emergent,
     seaLevelMeters,
   });
@@ -583,7 +606,9 @@ function summarise({ nx, ny, cellCount, grid, standardParallelDegrees, bedHeight
     flexuralRigidityNm: model === REBOUND_MODEL_FLEXURAL ? flexuralRigidityNm : 0,
     flexuralLengthScaleKm:
       model === REBOUND_MODEL_FLEXURAL ? flexuralLengthScaleMeters(flexuralRigidityNm) / 1000 : 0,
-    relaxationTimeYears: REBOUND_RELAXATION_TIME_YEARS,
+    // The single relaxation time belongs to the idealised ELRA/Airy responses; the
+    // published response has no one timescale.
+    relaxationTimeYears: model === REBOUND_MODEL_PUBLISHED ? null : REBOUND_RELAXATION_TIME_YEARS,
     maxUpliftXMeters:
       totals.maxUpliftColumn >= 0 ? grid.x0_m + totals.maxUpliftColumn * grid.dx_m : Number.NaN,
     maxUpliftYMeters:
@@ -598,6 +623,166 @@ function summarise({ nx, ny, cellCount, grid, standardParallelDegrees, bedHeight
     fftSizeX: solved.fftSizeX,
     fftSizeY: solved.fftSizeY,
   };
+}
+
+function assertReboundGrid(nx, ny, cellCount) {
+  if (!Number.isInteger(nx) || !Number.isInteger(ny) || nx < 2 || ny < 2) {
+    throw new Error("Isostatic-rebound solver needs a grid of at least 2x2 cells.");
+  }
+  if (cellCount !== nx * ny) {
+    throw new Error("Isostatic-rebound solver received an inconsistent cell count.");
+  }
+}
+
+function assertReboundFields(cellCount, fields) {
+  for (const [name, field] of fields) {
+    if (!field || field.length !== cellCount) {
+      throw new Error(`Isostatic-rebound solver received a mismatched ${name} field.`);
+    }
+  }
+}
+
+/** A Float32Array copy with non-finite values replaced by zero, so the bed stays put there. */
+function finiteOrZero(values) {
+  const out = new Float32Array(values.length);
+  for (let index = 0; index < values.length; index += 1) {
+    const value = values[index];
+    out[index] = Number.isFinite(value) ? value : 0;
+  }
+  return out;
+}
+
+/** Grounded-ice summaries of the published topography change and model spread. */
+function summariseGroundedResponse({ nx, cellCount, grid, bedHeights, mask, topographyChange, standardDeviation }) {
+  let maxChange = Number.NEGATIVE_INFINITY;
+  let maxChangeIndex = -1;
+  let changeSum = 0;
+  let cells = 0;
+  let sigmaSum = 0;
+  let sigmaCells = 0;
+  let sigmaMax = Number.NEGATIVE_INFINITY;
+
+  for (let index = 0; index < cellCount; index += 1) {
+    if (!isGroundedIceMask(mask[index]) || !Number.isFinite(bedHeights[index])) continue;
+    // A missing sample is left out rather than counted as zero change.
+    const change = topographyChange[index];
+    if (Number.isFinite(change)) {
+      if (change > maxChange) {
+        maxChange = change;
+        maxChangeIndex = index;
+      }
+      changeSum += change;
+      cells += 1;
+    }
+    const sigma = standardDeviation ? standardDeviation[index] : Number.NaN;
+    if (Number.isFinite(sigma)) {
+      sigmaSum += sigma;
+      sigmaCells += 1;
+      if (sigma > sigmaMax) sigmaMax = sigma;
+    }
+  }
+
+  return {
+    maxTopographyChangeMeters: cells > 0 ? maxChange : 0,
+    maxTopographyChangeXMeters:
+      maxChangeIndex >= 0 ? grid.x0_m + (maxChangeIndex % nx) * grid.dx_m : Number.NaN,
+    maxTopographyChangeYMeters:
+      maxChangeIndex >= 0 ? grid.y0_m + Math.floor(maxChangeIndex / nx) * grid.dy_m : Number.NaN,
+    meanGroundedTopographyChangeMeters: cells > 0 ? changeSum / cells : 0,
+    meanGroundedSigmaMeters: sigmaCells > 0 ? sigmaSum / sigmaCells : null,
+    maxGroundedSigmaMeters: sigmaCells > 0 ? sigmaMax : null,
+  };
+}
+
+function publishedComponent(summary, key) {
+  const entry = summary?.[key];
+  return entry && Number.isFinite(entry.min) && Number.isFinite(entry.max) && Number.isFinite(entry.mean)
+    ? { min: entry.min, max: entry.max, mean: entry.mean }
+    : null;
+}
+
+/**
+ * Statistics and display field for a published equilibrium response (Paxman, Austermann &
+ * Hollyday 2022), which is loaded as data rather than solved.
+ *
+ * `topographyChange` T = R - G is the change in bed elevation relative to the sea surface
+ * and `solidSurfaceChange` R the solid-surface displacement. The bed is drawn at bed + T
+ * with the waterline at zero, which places it exactly relative to the ice-free sea surface
+ * however much the published sea-surface change G varies across the grid. Uplift figures
+ * report R, as the solver's do; emergence is judged on bed + T > 0, the paper's own
+ * definition of ice-free land.
+ */
+export function summarisePublishedResponse(payload) {
+  const {
+    nx,
+    ny,
+    cellCount,
+    grid,
+    bedHeights,
+    thickness,
+    mask,
+    topographyChange,
+    solidSurfaceChange,
+    standardDeviation = null,
+    standardParallelDegrees = ANTARCTIC_STANDARD_PARALLEL_DEGREES,
+    response = {},
+  } = payload;
+
+  assertReboundGrid(nx, ny, cellCount);
+  assertReboundFields(cellCount, [
+    ["bed", bedHeights],
+    ["thickness", thickness],
+    ["mask", mask],
+    ["topography-change", topographyChange],
+    ["solid-surface-change", solidSurfaceChange],
+  ]);
+  if (standardDeviation) assertReboundFields(cellCount, [["standard-deviation", standardDeviation]]);
+
+  // Missing samples keep the bed where it is for drawing and emergence, but the raw
+  // fields go to the statistics so the gaps are skipped rather than averaged in as zero.
+  const uplift = finiteOrZero(topographyChange);
+  const emergent = new Uint8Array(cellCount);
+  const solved = { iterations: 0, residual: 0, solveCellMeters: 0, fftSizeX: 0, fftSizeY: 0 };
+  const base = summarise({
+    nx,
+    ny,
+    cellCount,
+    grid,
+    standardParallelDegrees,
+    bedHeights,
+    thickness,
+    mask,
+    uplift,
+    displacement: solidSurfaceChange,
+    emergent,
+    seaLevelMeters: 0,
+    model: REBOUND_MODEL_PUBLISHED,
+    flexuralRigidityNm: 0,
+    solved,
+  });
+  const summary = response.grounded_ice_summary_m;
+
+  const stats = {
+    ...base,
+    ...summariseGroundedResponse({
+      nx,
+      cellCount,
+      grid,
+      bedHeights,
+      mask,
+      topographyChange,
+      standardDeviation,
+    }),
+    eustaticSeaLevelRiseMeters: response.earth_model?.eustatic_sea_level_rise_m ?? null,
+    responseDoi: response.source_dataset?.doi ?? null,
+    components: {
+      iceUnloading: publishedComponent(summary, "ice_unloading"),
+      postLgm: publishedComponent(summary, "post_lgm_disequilibrium"),
+      waterLoading: publishedComponent(summary, "water_loading"),
+    },
+    seaSurfaceChange: publishedComponent(summary, "ssh_change"),
+  };
+  return { uplift, emergent, stats };
 }
 
 /**
@@ -622,21 +807,16 @@ export function solveIsostaticRebound(payload) {
     onProgress = null,
   } = payload;
 
-  if (!Number.isInteger(nx) || !Number.isInteger(ny) || nx < 2 || ny < 2) {
-    throw new Error("Isostatic-rebound solver needs a grid of at least 2x2 cells.");
-  }
-  if (cellCount !== nx * ny) {
-    throw new Error("Isostatic-rebound solver received an inconsistent cell count.");
-  }
-  for (const [name, field] of [
+  assertReboundGrid(nx, ny, cellCount);
+  assertReboundFields(cellCount, [
     ["bed", bedHeights],
     ["surface", surfaceHeights],
     ["thickness", thickness],
     ["mask", mask],
-  ]) {
-    if (!field || field.length !== cellCount) {
-      throw new Error(`Isostatic-rebound solver received a mismatched ${name} field.`);
-    }
+  ]);
+  if (model === REBOUND_MODEL_PUBLISHED) {
+    // Silently solving ELRA instead would put an idealised answer under a published label.
+    throw new Error("The published isostatic response is loaded as data, not solved.");
   }
 
   const resolvedModel = model === REBOUND_MODEL_LOCAL || flexuralRigidityNm <= 0

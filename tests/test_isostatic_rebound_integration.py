@@ -8,6 +8,8 @@ layer cannot drift out of the view-controls section in one locale only.
 
 from __future__ import annotations
 
+import json
+import re
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -16,6 +18,7 @@ import pytest
 from tests.explorer_sources import explorer_source
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = REPO_ROOT / "static" / "tools" / "data"
 EXPLORERS = (
     REPO_ROOT / "static" / "tools" / "3D-interactive-cryosphere-explorer.html",
     REPO_ROOT / "static" / "zh" / "tools" / "3D-interactive-cryosphere-explorer.html",
@@ -133,7 +136,58 @@ def test_rebound_controls_start_in_the_headline_scenario(explorer: str) -> None:
     assert 'id="reboundProgress" type="range" min="0" max="100" step="1" value="100"' in explorer
     assert 'id="reboundSeaLevel" type="range" min="0" max="70" step="1" value="0"' in explorer
     assert 'id="highlightEmergentLand" type="checkbox" checked />' in explorer
-    assert 'value="flexural" selected' in explorer
+    # The published response of Paxman et al. (2022) is the default; the idealised
+    # responses stay selectable for what-ifs.
+    assert 'value="paxman2022" selected' in explorer
+    assert '<option value="flexural">' in explorer
+    assert '<option value="local">' in explorer
+    assert 'reboundModel.value = REBOUND_MODEL_KEYS.published' in explorer
+
+
+def _registered_rebound_packages(explorer: str) -> list[tuple[str, str]]:
+    metas = re.findall(r'reboundMetaUrl: assetUrl\("data/([a-z0-9_]+)\.meta\.json"\)', explorer)
+    bins = re.findall(r'reboundBinUrl: assetUrl\("data/([a-z0-9_]+)\.bin"\)', explorer)
+    return list(zip(metas, bins, strict=True))
+
+
+def test_every_terrain_dataset_registers_a_committed_response_package(explorer: str) -> None:
+    datasets = re.findall(r'^\s+metaUrl: assetUrl\("data/([a-z0-9_]+)\.meta\.json"\)', explorer, flags=re.M)
+    packages = _registered_rebound_packages(explorer)
+    assert len(datasets) == 8
+    assert len(packages) == len(datasets), "every terrain dataset needs a published response"
+    for meta_name, bin_name in packages:
+        assert meta_name == bin_name
+        assert (DATA_DIR / f"{meta_name}.meta.json").is_file(), meta_name
+        assert (DATA_DIR / f"{bin_name}.bin").is_file(), bin_name
+
+
+def test_each_response_package_matches_its_terrain_grid(explorer: str) -> None:
+    datasets = re.findall(r'^\s+metaUrl: assetUrl\("data/([a-z0-9_]+)\.meta\.json"\)', explorer, flags=re.M)
+    for terrain, (response, _) in zip(datasets, _registered_rebound_packages(explorer), strict=True):
+        terrain_grid = json.loads((DATA_DIR / f"{terrain}.meta.json").read_text(encoding="utf-8"))["grid"]
+        response_meta = json.loads((DATA_DIR / f"{response}.meta.json").read_text(encoding="utf-8"))
+        assert response_meta["grid"] == terrain_grid, f"{response} is not on the {terrain} grid"
+        # Only QRF borrows another product's response; everything else samples its own.
+        if terrain.startswith("greenland_qrf"):
+            assert response_meta["source_package"]["metadata"].startswith("bedmachine_greenland_v6")
+        else:
+            assert response_meta["source_package"]["metadata"] == f"{terrain}.meta.json"
+
+
+def test_qrf_datasets_flag_the_borrowed_bedmachine_load(explorer: str) -> None:
+    assert explorer.count("reboundBorrowsBedMachineLoad: true") == 2
+    assert "explorer.meta.reboundQrfLoadNote" in explorer
+    assert "explorer.rebound.modelNotePublishedQrf" in explorer
+
+
+def test_published_mode_is_wired_through_the_rebound_module(explorer: str) -> None:
+    assert "summarisePublishedResponse" in explorer
+    assert "explorer.meta.reboundMethodTextPublished" in explorer
+    assert "explorer.meta.reboundAssumptionsTextPublished" in explorer
+    assert "explorer.meta.sourceIsostaticResponse" in explorer
+    assert "https://doi.org/10.18739/A22Z12R8C" in explorer
+    # The datum slider is disabled while the published response fixes the sea surface.
+    assert "controlsUI.reboundSeaLevel.disabled = published" in explorer
 
 
 def test_rebound_capability_is_declared_for_both_regions(explorer: str) -> None:
@@ -155,7 +209,7 @@ def test_rebound_state_is_observable_for_e2e(explorer: str) -> None:
 def test_solver_cites_its_sources(explorer: str) -> None:
     """Every scientific layer carries its provenance into the runtime (paper.md:133)."""
     solver = (REPO_ROOT / "static" / "tools" / "js" / "gia-rebound.js").read_text(encoding="utf-8")
-    for citation in ("Le Meur", "Lingle", "Brotchie", "Bueler", "Whitehouse"):
+    for citation in ("Le Meur", "Lingle", "Brotchie", "Bueler", "Whitehouse", "Paxman"):
         assert citation in solver, f"{citation} is not cited in the solver"
     assert "explorer.meta.reboundMethod" in explorer
     assert "explorer.meta.reboundAssumptions" in explorer

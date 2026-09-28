@@ -125,6 +125,13 @@ if (shouldUseMobileDrawer()) {
   document.body.classList.add("mobile-drawer");
 }
 
+/** Values of the Earth-response select; `published` loads Paxman et al. (2022) as data. */
+const REBOUND_MODEL_KEYS = Object.freeze({
+  published: "paxman2022",
+  flexural: "flexural",
+  local: "local",
+});
+
 const REGIONS = {
   antarctica: {
     key: "antarctica",
@@ -174,7 +181,13 @@ const REGIONS = {
         text: "Ehrenfeucht et al. (2025) Antarctic Wide Subglacial Hydrology Modeling",
         url: "https://zenodo.org/records/12738170",
       },
+      isostaticResponse: {
+        text: "Paxman, Austermann & Hollyday (2022) Total isostatic response to the complete unloading of the Greenland and Antarctic Ice Sheets; grid files v3 (2026), CC BY 4.0",
+        url: "https://doi.org/10.18739/A22Z12R8C",
+      },
     },
+    // Short label for the effective-elastic-thickness model behind the published response.
+    reboundTeModelLabel: "Swain & Kirby 2021",
     datasets: {
       balanced: {
         id: "balanced",
@@ -182,6 +195,8 @@ const REGIONS = {
         summary: "10 km grid; ~3.0 MB",
         metaUrl: assetUrl("data/bedmachine_antarctica_v4_480.meta.json"),
         binUrl: assetUrl("data/bedmachine_antarctica_v4_480.bin"),
+        reboundMetaUrl: assetUrl("data/antarctica_isostatic_response_480.meta.json"),
+        reboundBinUrl: assetUrl("data/antarctica_isostatic_response_480.bin"),
         velocityMetaUrl: assetUrl("data/antarctic_ice_velocity_phase_v01_480.meta.json"),
         velocityBinUrl: assetUrl("data/antarctic_ice_velocity_phase_v01_480.bin"),
         basalFrictionMetaUrl: assetUrl("data/antarctica_basal_friction_480.meta.json?v=20260314-taub-v1"),
@@ -199,6 +214,8 @@ const REGIONS = {
         summary: "4 km grid; ~18.6 MB",
         metaUrl: assetUrl("data/bedmachine_antarctica_v4_741.meta.json"),
         binUrl: assetUrl("data/bedmachine_antarctica_v4_741.bin"),
+        reboundMetaUrl: assetUrl("data/antarctica_isostatic_response_741.meta.json"),
+        reboundBinUrl: assetUrl("data/antarctica_isostatic_response_741.bin"),
         velocityMetaUrl: assetUrl("data/antarctic_ice_velocity_phase_v01_741.meta.json"),
         velocityBinUrl: assetUrl("data/antarctic_ice_velocity_phase_v01_741.bin"),
         basalFrictionMetaUrl: assetUrl("data/antarctica_basal_friction_741.meta.json?v=20260314-taub-v1"),
@@ -216,6 +233,8 @@ const REGIONS = {
         summary: "10 km grid; ~3.0 MB",
         metaUrl: assetUrl("data/bedmap3_antarctica_10km.meta.json"),
         binUrl: assetUrl("data/bedmap3_antarctica_10km.bin"),
+        reboundMetaUrl: assetUrl("data/bedmap3_antarctica_isostatic_response_10km.meta.json"),
+        reboundBinUrl: assetUrl("data/bedmap3_antarctica_isostatic_response_10km.bin"),
         velocityMetaUrl: assetUrl("data/bedmap3_antarctica_velocity_10km.meta.json"),
         velocityBinUrl: assetUrl("data/bedmap3_antarctica_velocity_10km.bin"),
         basalFrictionMetaUrl: assetUrl("data/bedmap3_antarctica_basal_friction_10km.meta.json"),
@@ -247,6 +266,8 @@ const REGIONS = {
         summary: "4 km grid; ~18.6 MB, desktop recommended",
         metaUrl: assetUrl("data/bedmap3_antarctica_4km.meta.json"),
         binUrl: assetUrl("data/bedmap3_antarctica_4km.bin"),
+        reboundMetaUrl: assetUrl("data/bedmap3_antarctica_isostatic_response_4km.meta.json"),
+        reboundBinUrl: assetUrl("data/bedmap3_antarctica_isostatic_response_4km.bin"),
         velocityMetaUrl: assetUrl("data/bedmap3_antarctica_velocity_4km.meta.json"),
         velocityBinUrl: assetUrl("data/bedmap3_antarctica_velocity_4km.bin"),
         basalFrictionMetaUrl: assetUrl("data/bedmap3_antarctica_basal_friction_4km.meta.json"),
@@ -311,7 +332,12 @@ const REGIONS = {
         url: "https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description",
       },
       basins: "Greenland Basins PS v1.4.2 catchment boundaries",
+      isostaticResponse: {
+        text: "Paxman, Austermann & Hollyday (2022) Total isostatic response to the complete unloading of the Greenland and Antarctic Ice Sheets; grid files v3 (2026), CC BY 4.0",
+        url: "https://doi.org/10.18739/A22Z12R8C",
+      },
     },
+    reboundTeModelLabel: "Steffen et al. 2018",
     datasets: {
       "3km": {
         id: "3km",
@@ -319,6 +345,8 @@ const REGIONS = {
         summary: "3 km grid; ~3.1 MB",
         metaUrl: assetUrl("data/bedmachine_greenland_v6_3km.meta.json"),
         binUrl: assetUrl("data/bedmachine_greenland_v6_3km.bin"),
+        reboundMetaUrl: assetUrl("data/greenland_isostatic_response_3km.meta.json"),
+        reboundBinUrl: assetUrl("data/greenland_isostatic_response_3km.bin"),
         velocityMetaUrl: assetUrl("data/greenland_ice_velocity_3km.meta.json"),
         velocityBinUrl: assetUrl("data/greenland_ice_velocity_3km.bin"),
         basalFrictionMetaUrl: assetUrl("data/greenland_basal_friction_3km.meta.json?v=20260314-taub-v1"),
@@ -332,6 +360,8 @@ const REGIONS = {
         summary: "1 km grid; ~28.2 MB",
         metaUrl: assetUrl("data/bedmachine_greenland_v6_1km.meta.json"),
         binUrl: assetUrl("data/bedmachine_greenland_v6_1km.bin"),
+        reboundMetaUrl: assetUrl("data/greenland_isostatic_response_1km.meta.json"),
+        reboundBinUrl: assetUrl("data/greenland_isostatic_response_1km.bin"),
         velocityMetaUrl: assetUrl("data/greenland_ice_velocity_1km.meta.json"),
         velocityBinUrl: assetUrl("data/greenland_ice_velocity_1km.bin"),
         basalFrictionMetaUrl: assetUrl("data/greenland_basal_friction_1km.meta.json?v=20260314-taub-v1"),
@@ -347,6 +377,11 @@ const REGIONS = {
         summary: "3 km grid; ~3.1 MB",
         metaUrl: assetUrl("data/greenland_qrf_2025_3km.meta.json"),
         binUrl: assetUrl("data/greenland_qrf_2025_3km.bin"),
+        // QRF shares BedMachine v6's grid; the published response was computed for the
+        // BedMachine ice load, which changes the flexure here by ~10 m RMS.
+        reboundMetaUrl: assetUrl("data/greenland_isostatic_response_3km.meta.json"),
+        reboundBinUrl: assetUrl("data/greenland_isostatic_response_3km.bin"),
+        reboundBorrowsBedMachineLoad: true,
         velocityMetaUrl: assetUrl("data/greenland_ice_velocity_3km.meta.json"),
         velocityBinUrl: assetUrl("data/greenland_ice_velocity_3km.bin"),
         basalFrictionMetaUrl: assetUrl("data/greenland_basal_friction_3km.meta.json?v=20260314-taub-v1"),
@@ -367,6 +402,9 @@ const REGIONS = {
         summary: "1 km grid; ~28.2 MB, desktop recommended",
         metaUrl: assetUrl("data/greenland_qrf_2025_1km.meta.json"),
         binUrl: assetUrl("data/greenland_qrf_2025_1km.bin"),
+        reboundMetaUrl: assetUrl("data/greenland_isostatic_response_1km.meta.json"),
+        reboundBinUrl: assetUrl("data/greenland_isostatic_response_1km.bin"),
+        reboundBorrowsBedMachineLoad: true,
         velocityMetaUrl: assetUrl("data/greenland_ice_velocity_1km.meta.json"),
         velocityBinUrl: assetUrl("data/greenland_ice_velocity_1km.bin"),
         basalFrictionMetaUrl: assetUrl("data/greenland_basal_friction_1km.meta.json?v=20260314-taub-v1"),
@@ -1346,7 +1384,7 @@ function applyExplorerPresetControls(preset) {
 
   if (controlsUI.reboundProgress) controlsUI.reboundProgress.value = "100";
   if (controlsUI.reboundSeaLevel) controlsUI.reboundSeaLevel.value = "0";
-  if (controlsUI.reboundModel) controlsUI.reboundModel.value = "flexural";
+  if (controlsUI.reboundModel) controlsUI.reboundModel.value = REBOUND_MODEL_KEYS.published;
   if (controlsUI.highlightEmergentLand) controlsUI.highlightEmergentLand.checked = true;
 
   const oceanLayers = preset.oceanLayers;
@@ -4973,6 +5011,13 @@ function collectExplorerState() {
       seaLevelEquivalentMeters: Number.isFinite(currentCoreContext?.reboundStats?.sleMeters)
         ? Number(currentCoreContext.reboundStats.sleMeters.toFixed(2))
         : null,
+      // Published-response state: the datum control is disabled because the model fixes
+      // its own sea surface, and the DOI identifies the grid files the field came from.
+      seaLevelControlDisabled: Boolean(controlsUI.reboundSeaLevel?.disabled),
+      responseDoi: currentCoreContext?.reboundStats?.responseDoi || null,
+      maxTopographyChangeMeters: Number.isFinite(currentCoreContext?.reboundStats?.maxTopographyChangeMeters)
+        ? Number(currentCoreContext.reboundStats.maxTopographyChangeMeters.toFixed(1))
+        : null,
     },
     featureLayers: polarFeatureState.featureLayers,
     search: polarFeatureState.search,
@@ -7603,6 +7648,9 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   if (capabilities.rise && dataset.sources.rise) {
     sourceLines.push(renderSourceLine(t("explorer.meta.sourceMeltDrivers"), dataset.sources.rise, " (15,269 ice-shelf cells)"));
   }
+  if (capabilities.isostaticRebound && dataset.sources.isostaticResponse) {
+    sourceLines.push(renderSourceLine(t("explorer.meta.sourceIsostaticResponse"), dataset.sources.isostaticResponse));
+  }
   if (!capabilities.velocity && !capabilities.basalFriction && !capabilities.hydrology && !capabilities.refinedBasins) {
     sourceLines.push(
       `<li class="meta-compact"><strong>${t("explorer.meta.currentScope", {
@@ -7623,9 +7671,15 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
     Number.isFinite(value)
       ? t("explorer.meta.reboundMillionKm2", { value: fmtMillions(value / 1e6) })
       : notApplicableText;
-  const reboundItems =
-    reboundActive && reboundStats
-      ? [
+  const reboundFormat = { fmtInt, fmtShort, fmtArea, fmtMillions };
+  const reboundItems = !(reboundActive && reboundStats)
+    ? []
+    : reboundStats.model === REBOUND_MODEL_KEYS.published
+    ? [
+        ...publishedReboundModelItems(reboundStats, dataset, reboundFormat),
+        ...publishedReboundFigureItems(reboundStats, dataset, reboundFormat),
+      ]
+    : [
           `<li><strong>${t("explorer.meta.reboundModelLabel")}:</strong> ${
             reboundStats.model === "local"
               ? t("explorer.meta.reboundModelLocal")
@@ -7717,8 +7771,7 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
           `<li><strong>${t("explorer.meta.reboundAssumptions")}:</strong> ${t(
             "explorer.meta.reboundAssumptionsText"
           )}</li>`,
-        ]
-      : [];
+        ];
 
   const selectedFlowlineCard =
     capabilities.velocity && capabilities.flowline && controlsUI.showFlowline.checked
@@ -7911,18 +7964,30 @@ function getReboundFraction() {
   return Number.isFinite(value) ? clamp01(value / 100) : 1;
 }
 
+function getReboundModelKey() {
+  const value = controlsUI.reboundModel?.value;
+  return Object.values(REBOUND_MODEL_KEYS).includes(value) ? value : REBOUND_MODEL_KEYS.published;
+}
+
+function isPublishedReboundModel(modelKey = getReboundModelKey()) {
+  return modelKey === REBOUND_MODEL_KEYS.published;
+}
+
+/**
+ * The datum the display and statistics use. The published response carries its own
+ * ice-free sea surface, and its bed is drawn relative to it, so the waterline sits at zero
+ * whatever the (disabled) slider says.
+ */
 function getReboundSeaLevelMeters() {
+  if (isPublishedReboundModel()) return 0;
   const value = Number(controlsUI.reboundSeaLevel?.value);
   return Number.isFinite(value) ? Math.max(0, value) : 0;
 }
 
-function getReboundModelKey() {
-  return controlsUI.reboundModel?.value === "local" ? "local" : "flexural";
-}
-
-/** Identifies a cached solve; the uplift field depends on the model and the datum. */
+/** Identifies a cached field: the solver's depends on the model and the datum; a published one on neither. */
 function getReboundSolveKey() {
-  return `${getReboundModelKey()}|${getReboundSeaLevelMeters()}`;
+  const model = getReboundModelKey();
+  return isPublishedReboundModel(model) ? model : `${model}|${getReboundSeaLevelMeters()}`;
 }
 
 function blendEmergentHighlight(rgb, blend) {
@@ -8123,52 +8188,277 @@ function formatReboundYears(years) {
   return t("explorer.rebound.years", { value: Math.round(years / 10) * 10 });
 }
 
+function formatReboundMeters(value, digits = 1) {
+  return Number(value).toLocaleString(numberLocale, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+}
+
+function reboundProgressNoteText(percent, published) {
+  if (published) {
+    return percent >= 100
+      ? t("explorer.rebound.progressNotePublishedComplete")
+      : t("explorer.rebound.progressNotePublished", { percent });
+  }
+  const relaxation = reboundModule?.REBOUND_RELAXATION_TIME_YEARS || 3000;
+  const years = reboundModule ? reboundModule.reboundElapsedYears(getReboundFraction()) : Number.NaN;
+  return percent >= 100
+    ? t("explorer.rebound.progressNoteComplete", { tau: relaxation })
+    : t("explorer.rebound.progressNote", { percent, elapsed: formatReboundYears(years), tau: relaxation });
+}
+
+function reboundModelNoteText(model, stats) {
+  if (model === REBOUND_MODEL_KEYS.local) return t("explorer.rebound.modelNoteLocal");
+  if (model === REBOUND_MODEL_KEYS.flexural) {
+    return t("explorer.rebound.modelNoteFlexural", {
+      lengthScale: Math.round(stats?.flexuralLengthScaleKm || 133),
+    });
+  }
+  const dataset = currentCoreContext?.dataset;
+  const note = t("explorer.rebound.modelNotePublished", {
+    teModel: getRegionConfig(dataset?.regionKey || currentRegionKey).reboundTeModelLabel || "",
+  });
+  return dataset?.reboundBorrowsBedMachineLoad ? `${note} ${t("explorer.rebound.modelNotePublishedQrf")}` : note;
+}
+
+function reboundSeaLevelNoteText(seaLevelMeters, published, stats) {
+  if (published) {
+    const surface = stats?.model === REBOUND_MODEL_KEYS.published ? stats.seaSurfaceChange : null;
+    return surface && Number.isFinite(stats.eustaticSeaLevelRiseMeters)
+      ? t("explorer.rebound.seaLevelNotePublished", {
+          eustatic: formatReboundMeters(stats.eustaticSeaLevelRiseMeters),
+          gmin: formatReboundMeters(surface.min, 0),
+          gmax: formatReboundMeters(surface.max, 0),
+        })
+      : t("explorer.rebound.seaLevelNotePublishedGeneric");
+  }
+  return seaLevelMeters > 0
+    ? t("explorer.rebound.seaLevelNoteRaised", { datum: seaLevelMeters })
+    : t("explorer.rebound.seaLevelNoteZero", { sle: formatReboundMeters(stats?.sleMeters || 0) });
+}
+
 function updateReboundControlsUi() {
   const enabled = Boolean(controlsUI.showIsostaticRebound?.checked);
   if (controlsUI.isostaticReboundControls) controlsUI.isostaticReboundControls.hidden = !enabled;
 
+  const model = getReboundModelKey();
+  const published = isPublishedReboundModel(model);
+  const stats = currentCoreContext?.reboundStats;
   const percent = Math.round(getReboundFraction() * 100);
   if (controlsUI.reboundProgressValue) controlsUI.reboundProgressValue.textContent = `${percent}%`;
   const seaLevelMeters = getReboundSeaLevelMeters();
+  // The published response fixes its own sea surface, so the datum only drives the
+  // idealised responses.
+  if (controlsUI.reboundSeaLevel) controlsUI.reboundSeaLevel.disabled = published;
   if (controlsUI.reboundSeaLevelValue) {
-    controlsUI.reboundSeaLevelValue.textContent = `+${seaLevelMeters} m`;
+    controlsUI.reboundSeaLevelValue.textContent = published
+      ? t("explorer.rebound.seaLevelValuePublished")
+      : `+${seaLevelMeters} m`;
   }
 
   if (controlsUI.reboundProgressNote) {
-    const relaxation = reboundModule?.REBOUND_RELAXATION_TIME_YEARS || 3000;
-    const years = reboundModule ? reboundModule.reboundElapsedYears(getReboundFraction()) : Number.NaN;
-    controlsUI.reboundProgressNote.textContent =
-      percent >= 100
-        ? t("explorer.rebound.progressNoteComplete", { tau: relaxation })
-        : t("explorer.rebound.progressNote", {
-            percent,
-            elapsed: formatReboundYears(years),
-            tau: relaxation,
-          });
+    controlsUI.reboundProgressNote.textContent = reboundProgressNoteText(percent, published);
   }
-
   if (controlsUI.reboundModelNote) {
-    const stats = currentCoreContext?.reboundStats;
-    controlsUI.reboundModelNote.textContent =
-      getReboundModelKey() === "local"
-        ? t("explorer.rebound.modelNoteLocal")
-        : t("explorer.rebound.modelNoteFlexural", {
-            lengthScale: Math.round(stats?.flexuralLengthScaleKm || 133),
-          });
+    controlsUI.reboundModelNote.textContent = reboundModelNoteText(model, stats);
   }
-
   if (controlsUI.reboundSeaLevelNote) {
-    const stats = currentCoreContext?.reboundStats;
-    controlsUI.reboundSeaLevelNote.textContent =
-      seaLevelMeters > 0
-        ? t("explorer.rebound.seaLevelNoteRaised", { datum: seaLevelMeters })
-        : t("explorer.rebound.seaLevelNoteZero", {
-            sle: (stats?.sleMeters || 0).toLocaleString(numberLocale, {
-              minimumFractionDigits: 1,
-              maximumFractionDigits: 1,
-            }),
-          });
+    controlsUI.reboundSeaLevelNote.textContent = reboundSeaLevelNoteText(seaLevelMeters, published, stats);
   }
+}
+
+function isCurrentReboundContext(context) {
+  return context === currentCoreContext && context.generation === loadGeneration;
+}
+
+function reboundCoordinates(xMeters, yMeters) {
+  return `${formatCoord(xMeters / 1000, 0)}, ${formatCoord(yMeters / 1000, 0)} km`;
+}
+
+/** Metadata-panel entries naming the published Earth model and its sea surface. */
+function publishedReboundModelItems(stats, dataset, { fmtInt, fmtShort }) {
+  const region = getRegionConfig(dataset.regionKey);
+  const surface = stats.seaSurfaceChange;
+  return [
+    `<li><strong>${t("explorer.meta.reboundModelLabel")}:</strong> ${t("explorer.meta.reboundModelPublished")}</li>`,
+    `<li class="meta-compact"><strong>${t("explorer.meta.reboundElasticThickness")}:</strong> ${t(
+      "explorer.meta.reboundPublishedEarthModelValue",
+      { teModel: region.reboundTeModelLabel || "" }
+    )}</li>`,
+    ...(dataset.reboundBorrowsBedMachineLoad
+      ? [
+          `<li class="meta-compact"><strong>${t("explorer.meta.reboundQrfLoadNote")}:</strong> ${t(
+            "explorer.meta.reboundQrfLoadNoteValue"
+          )}</li>`,
+        ]
+      : []),
+    ...(surface && Number.isFinite(stats.eustaticSeaLevelRiseMeters)
+      ? [
+          `<li class="meta-compact"><strong>${t("explorer.meta.reboundSeaSurface")}:</strong> ${t(
+            "explorer.meta.reboundSeaSurfaceValue",
+            {
+              eustatic: fmtShort(stats.eustaticSeaLevelRiseMeters, 1),
+              gmin: fmtInt(surface.min),
+              gmax: fmtInt(surface.max),
+            }
+          )}</li>`,
+        ]
+      : []),
+    `<li class="meta-compact"><strong>${t("explorer.meta.reboundProgressLabel")}:</strong> ${Math.round(
+      getReboundFraction() * 100
+    )}%</li>`,
+  ];
+}
+
+/** Metadata-panel entries for the published response's figures, components and spread. */
+function publishedReboundFigureItems(stats, dataset, { fmtInt, fmtShort, fmtArea, fmtMillions }) {
+  const { iceUnloading, postLgm, waterLoading } = stats.components || {};
+  return [
+    `<li><strong>${t("explorer.meta.reboundMaxUplift")}:</strong> ${fmtInt(stats.maxUpliftMeters)} m at ${reboundCoordinates(
+      stats.maxUpliftXMeters,
+      stats.maxUpliftYMeters
+    )}</li>`,
+    `<li><strong>${t("explorer.meta.reboundMaxTopographyChange")}:</strong> ${fmtInt(
+      stats.maxTopographyChangeMeters
+    )} m at ${reboundCoordinates(stats.maxTopographyChangeXMeters, stats.maxTopographyChangeYMeters)}</li>`,
+    `<li><strong>${t("explorer.meta.reboundMeanGroundedUplift")}:</strong> ${fmtInt(stats.meanGroundedUpliftMeters)} m</li>`,
+    `<li><strong>${t("explorer.meta.reboundMeanTopographyChange")}:</strong> ${fmtInt(
+      stats.meanGroundedTopographyChangeMeters
+    )} m</li>`,
+    ...(iceUnloading && postLgm && waterLoading
+      ? [
+          `<li class="meta-compact"><strong>${t("explorer.meta.reboundComponents")}:</strong> ${t(
+            "explorer.meta.reboundComponentsValue",
+            {
+              iu: fmtInt(iceUnloading.mean),
+              iuMax: fmtInt(iceUnloading.max),
+              lgm: fmtInt(postLgm.mean),
+              lgmMax: fmtInt(postLgm.max),
+              wl: fmtInt(waterLoading.mean),
+              wlMin: fmtInt(waterLoading.min),
+            }
+          )}</li>`,
+        ]
+      : []),
+    ...(Number.isFinite(stats.meanGroundedSigmaMeters)
+      ? [
+          `<li class="meta-compact"><strong>${t("explorer.meta.reboundSigma")}:</strong> ${t(
+            "explorer.meta.reboundSigmaValue",
+            { mean: fmtInt(stats.meanGroundedSigmaMeters), max: fmtInt(stats.maxGroundedSigmaMeters) }
+          )}</li>`,
+        ]
+      : []),
+    `<li><strong>${t("explorer.meta.reboundEmergent")}:</strong> ${fmtArea(stats.emergentAreaKm2)}</li>`,
+    `<li class="meta-compact"><strong>${t("explorer.meta.reboundLandBefore")}:</strong> ${fmtArea(
+      stats.landAreaNowKm2
+    )}; <strong>${t("explorer.meta.reboundLandAfterPublished")}:</strong> ${fmtArea(stats.landAreaAfterKm2)}</li>`,
+    `<li><strong>${t("explorer.meta.reboundMarineUnderIcePublished")}:</strong> ${fmtArea(
+      stats.marineUnderIceAfterAreaKm2
+    )}</li>`,
+    `<li><strong>${t("explorer.meta.reboundDeepest")}:</strong> ${fmtInt(stats.deepestGroundedBedAfterMeters)} m</li>`,
+    `<li class="meta-compact"><strong>${t("explorer.meta.reboundVolumeAboveFlotation")}:</strong> ${t(
+      "explorer.meta.reboundVolumeOf",
+      { above: fmtMillions(stats.volumeAboveFlotationKm3 / 1e6, 2), total: fmtMillions(stats.iceVolumeKm3 / 1e6, 2) }
+    )}</li>`,
+    `<li><strong>${t("explorer.meta.reboundSle")}:</strong> ${fmtShort(stats.sleMeters, 1)} m (${
+      dataset.regionKey === "greenland"
+        ? t("explorer.meta.reboundSlePublishedGreenland")
+        : t("explorer.meta.reboundSlePublishedAntarctica")
+    })</li>`,
+    `<li><strong>${t("explorer.meta.reboundMethod")}:</strong> ${t("explorer.meta.reboundMethodTextPublished")}</li>`,
+    `<li><strong>${t("explorer.meta.reboundAssumptions")}:</strong> ${t("explorer.meta.reboundAssumptionsTextPublished")}</li>`,
+  ];
+}
+
+/**
+ * Fetch and decode the published response for the active terrain (once per terrain), then
+ * summarise it. Returns null when the terrain changed underneath the request.
+ */
+async function loadPublishedRebound(context, module, showOverlay) {
+  const { dataset } = context;
+  if (!dataset.reboundMetaUrl || !dataset.reboundBinUrl) {
+    throw new Error("No published isostatic response is packaged for this terrain.");
+  }
+  if (!context.reboundPublished) {
+    const meta = await fetchJsonStrict(dataset.reboundMetaUrl, errorLabel("explorer.errors.failedToLoadReboundMetadata"));
+    if (!isCurrentReboundContext(context)) return null;
+    const buffer = showOverlay
+      ? await fetchArrayBufferWithProgress(
+          dataset.reboundBinUrl,
+          0.15,
+          0.9,
+          t("explorer.loading.downloadingIsostaticResponse"),
+          errorLabel("explorer.errors.failedToLoadReboundField")
+        )
+      : await fetchArrayBufferStrict(dataset.reboundBinUrl, errorLabel("explorer.errors.failedToLoadReboundField"));
+    if (!isCurrentReboundContext(context)) return null;
+    if (!gridsMatch(meta.grid, context.meta.grid)) {
+      throw new Error("Isostatic-response grid is not aligned to the active terrain grid.");
+    }
+    context.reboundPublished = {
+      meta,
+      topographyChange: decodeFieldToFloat32(meta, buffer, "topography_change"),
+      solidSurfaceChange: decodeFieldToFloat32(meta, buffer, "solid_surface_change"),
+      standardDeviation: decodeFieldToFloat32(meta, buffer, "standard_deviation"),
+    };
+  }
+  const published = context.reboundPublished;
+  return module.summarisePublishedResponse({
+    nx: context.nx,
+    ny: context.ny,
+    cellCount: context.cellCount,
+    grid: context.meta.grid,
+    bedHeights: context.bedHeights,
+    thickness: context.thickness,
+    mask: context.mask,
+    topographyChange: published.topographyChange,
+    solidSurfaceChange: published.solidSurfaceChange,
+    standardDeviation: published.standardDeviation,
+    standardParallelDegrees: getReboundStandardParallel(dataset.regionKey),
+    response: published.meta,
+  });
+}
+
+/**
+ * Solve an idealised (ELRA or Airy) response in the worker, or on the main thread. The
+ * model and datum are the ones the request was keyed on, not whatever the controls say by
+ * the time the module has loaded; a stale result is re-requested by the caller.
+ */
+async function solveIdealisedRebound(context, module, showOverlay, { model, seaLevelMeters }) {
+  const payload = {
+    nx: context.nx,
+    ny: context.ny,
+    cellCount: context.cellCount,
+    grid: context.meta.grid,
+    bedHeights: context.bedHeights,
+    surfaceHeights: context.surfaceHeights,
+    thickness: context.thickness,
+    mask: context.mask,
+    model,
+    seaLevelMeters,
+    standardParallelDegrees: getReboundStandardParallel(context.dataset.regionKey),
+    reportProgress: showOverlay,
+  };
+  const onProgress = showOverlay
+    ? (progress, stage) => {
+        updateLoadingProgress(0.12 + clamp01(progress) * 0.82, stage || t("explorer.loading.solvingIsostaticRebound"));
+      }
+    : null;
+
+  const workerTask = runReboundWorkerTask(payload, onProgress);
+  if (workerTask) {
+    try {
+      return await workerTask;
+    } catch (workerError) {
+      console.warn("Isostatic-rebound worker failed, retrying on the main thread.", workerError);
+      reboundWorkerUnavailable = true;
+    }
+  }
+  // Main-thread fallback: a sub-second blocking solve behind the loading overlay
+  // is preferable to losing the layer on browsers without module workers.
+  await nextAnimationFrame();
+  return module.solveIsostaticRebound({ ...payload, onProgress: null });
 }
 
 async function ensureIsostaticReboundLoaded({ trigger = "toggle" } = {}) {
@@ -8199,56 +8489,31 @@ async function ensureIsostaticReboundLoaded({ trigger = "toggle" } = {}) {
   }
 
   const showOverlay = trigger === "toggle" || trigger === "resolve";
+  const requestedModel = getReboundModelKey();
+  const requestedSeaLevelMeters = getReboundSeaLevelMeters();
+  const published = isPublishedReboundModel(requestedModel);
   reboundLoadPromise = (async () => {
     if (showOverlay) {
       setLoadingOverlayVisible(true);
-      updateLoadingProgress(0.1, t("explorer.loading.solvingIsostaticRebound"));
-      statusEl.textContent = t("explorer.status.loadingIsostaticRebound");
+      updateLoadingProgress(
+        0.1,
+        t(published ? "explorer.loading.loadingIsostaticResponse" : "explorer.loading.solvingIsostaticRebound")
+      );
+      statusEl.textContent = t(
+        published ? "explorer.status.loadingIsostaticResponse" : "explorer.status.loadingIsostaticRebound"
+      );
     }
 
     const module = await loadReboundModule();
-    if (context !== currentCoreContext || context.generation !== loadGeneration) return false;
+    if (!isCurrentReboundContext(context)) return false;
 
-    const payload = {
-      nx: context.nx,
-      ny: context.ny,
-      cellCount: context.cellCount,
-      grid: context.meta.grid,
-      bedHeights: context.bedHeights,
-      surfaceHeights: context.surfaceHeights,
-      thickness: context.thickness,
-      mask: context.mask,
-      model: getReboundModelKey(),
-      seaLevelMeters: getReboundSeaLevelMeters(),
-      standardParallelDegrees: getReboundStandardParallel(context.dataset.regionKey),
-      reportProgress: showOverlay,
-    };
-    const onProgress = showOverlay
-      ? (progress, stage) => {
-          updateLoadingProgress(
-            0.12 + clamp01(progress) * 0.82,
-            stage || t("explorer.loading.solvingIsostaticRebound")
-          );
-        }
-      : null;
-
-    let result = null;
-    const workerTask = runReboundWorkerTask(payload, onProgress);
-    if (workerTask) {
-      try {
-        result = await workerTask;
-      } catch (workerError) {
-        console.warn("Isostatic-rebound worker failed, retrying on the main thread.", workerError);
-        reboundWorkerUnavailable = true;
-      }
-    }
-    if (!result) {
-      // Main-thread fallback: a sub-second blocking solve behind the loading overlay
-      // is preferable to losing the layer on browsers without module workers.
-      await nextAnimationFrame();
-      result = module.solveIsostaticRebound({ ...payload, onProgress: null });
-    }
-    if (context !== currentCoreContext || context.generation !== loadGeneration) return false;
+    const result = published
+      ? await loadPublishedRebound(context, module, showOverlay)
+      : await solveIdealisedRebound(context, module, showOverlay, {
+          model: requestedModel,
+          seaLevelMeters: requestedSeaLevelMeters,
+        });
+    if (!result || !isCurrentReboundContext(context)) return false;
 
     context.reboundUplift = result.uplift;
     context.reboundEmergent = result.emergent;
