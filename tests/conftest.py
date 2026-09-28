@@ -67,5 +67,11 @@ def velocity_module():
 
 
 @pytest.fixture(scope="session")
+def isostatic_response_module():
+    pytest.importorskip("netCDF4", reason="netCDF4 not installed")
+    return _load_script_module("prepare_isostatic_response.py")
+
+
+@pytest.fixture(scope="session")
 def data_dir() -> Path:
     return DATA_DIR
