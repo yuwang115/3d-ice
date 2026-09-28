@@ -205,8 +205,9 @@ from Y. Wang's natural-language specifications, data, and review, as the
 project's public coverage describes [@aapp2026]. Anthropic's Claude Code
 (Claude Opus 4.6 in March and April 2026; Claude Opus 5 and Claude Opus 5.5 in
 September 2026) was used for later work: parts of the interface, test
-infrastructure, the refactoring that moved the runtime into shared and tested
-modules, the repository documentation, reference checking, and the drafting and
+infrastructure, the isostatic-rebound layer and its data pipeline, the
+refactoring that moved the runtime into shared and tested modules, the
+repository documentation, reference checking, and the drafting and
 copy-editing of this paper. Y. Wang selected the datasets and scientific
 methods and set the architecture. Every AI-generated step was checked by hand
 before it was kept: Y. Wang read each change, ran the explorer to confirm its
