@@ -42,13 +42,13 @@ sheet, switch datasets and quality levels, search polar places and geographic
 features, compute the ice-free bed after isostatic rebound, and follow links to
 the original data products.
 
-The software has two stages. An offline Python pipeline converts heterogeneous
+An offline Python pipeline converts heterogeneous
 NetCDF, HDF5, GeoTIFF, and vector products into compact binary arrays paired
 with machine-readable provenance metadata. A static JavaScript application,
 built with Three.js [@threejs] and WebGL, decodes these packages and renders
-them without plugins or server-side computation. This separation makes the
-scientific transformations reproducible while keeping the public interface
-simple to deploy, share, and use on desktop and mobile devices.
+them without plugins or server-side computation. This separation keeps the
+scientific transformations reproducible and the public interface simple to
+deploy, share, and use on desktop and mobile devices.
 
 ![The 3D ICE explorer. (a) The interface, with Antarctic ice-surface speed [@mouginot2019] and surface-layer WAOM2 ocean streamlines [@richter2022] over BedMachine Antarctica v4 [@morlighem2020]. (b) Greenland ice-surface speed from ITS_LIVE [@gardner2024] over BedMachine Greenland v6 [@morlighem2017]. (c) The ice-free Antarctic bed that the explorer computes after complete isostatic rebound under regional flexure. Vertical scales are exaggerated.\label{fig:overview}](docs/images/explorer-overview.jpg)
 
@@ -57,9 +57,9 @@ simple to deploy, share, and use on desktop and mobile devices.
 Modern cryosphere science generates large, gridded datasets in specialized
 formats and polar stereographic coordinate systems. Inspecting several products
 together commonly requires a desktop GIS, a numerical computing environment,
-or purpose-built scripts. These workflows are appropriate for quantitative
-analysis but impose installation, data-transfer, projection, and preprocessing
-requirements before a user can obtain a contextual view of an ice sheet.
+or purpose-built scripts. These workflows suit quantitative
+analysis but require installation, data transfer, reprojection, and
+preprocessing before a user can see an ice sheet in context.
 
 That barrier particularly affects researchers in adjacent disciplines,
 educators who want to use real polar data in teaching, and scientists preparing
@@ -88,8 +88,8 @@ subsurface and model-derived fields such as basal friction, hydrology, basal
 melt, and depth-dependent ocean circulation.
 
 General 3D geospatial libraries such as CesiumJS [@cesiumjs] provide a
-high-precision WGS84 globe, scalable data formats, and rendering primitives from
-which developers can build web applications. Three.js provides the lower-level
+high-precision WGS84 globe, scalable data formats, and rendering primitives for
+building web applications. Three.js provides the lower-level
 graphics foundation used by 3D ICE [@threejs]. Neither library supplies a
 cryosphere data model, polar-grid conversion, provenance records, layer
 semantics, or data curation. Contributing these product-specific transformations
@@ -152,7 +152,7 @@ of magnitude [@barletta2018].
 The domain contract is checked at several levels: unit tests cover
 quantization, coordinate sampling, metadata statistics, search, the rebound
 solver, and bounded geometry; the contract test covers every committed package;
-integration tests regenerate derived packages from committed inputs and compare
+integration tests regenerate derived packages and compare
 them with the committed files; compatibility tests build a distributable static
 bundle; and Playwright tests load the explorer and exercise browser
 interactions. These checks run in continuous integration and locally, without
@@ -162,20 +162,21 @@ the production website.
 
 Y. Wang uses 3D ICE to compare candidate bed, velocity, and basal-friction
 products before configuring ice-flow and subglacial-hydrology simulations, and
-has used views generated with it in a research funding proposal. It has been
+has used its views in a research funding proposal. It has been
 demonstrated in talks at the Antarctic Research Centre, Victoria University of
 Wellington (February 2026), the ISMIP7 Workshop in Copenhagen (March 2026,
 presented by C. Zhao), the Asia Early Career Polar Forum in Zhuhai (June 2026),
 and the School of Oceanography, Shanghai Jiao Tong University (July 2026).
 
-F. Boeira Dias, who provided the WAOM2 output that 3D ICE renders, has described
-using the explorer to visualise ocean circulation that is difficult to interpret
-in standard two-dimensional plots, in coverage of the project by the Australian
-Antarctic Program Partnership and independent geospatial media [@aapp2026;
-@spatialsource2026]. Y. Lin is scheduled to demonstrate it to the public at
-InnoCarnival 2026 (Hong Kong Science Park, October–November 2026). Between its launch on
-22 March and 27 September 2026, the public site recorded 578 active users and
-about 1,200 page views.
+Y. Lin has used 3D ICE in teaching GE1301 Climate Change and Extreme Weather at
+the City University of Hong Kong, to show students the geography, ice flow, and
+surrounding ocean of Antarctica and Greenland, and is scheduled to demonstrate it
+to the public at InnoCarnival 2026 (Hong Kong Science Park, October–November
+2026). F. Boeira Dias, who provided the WAOM2 output that 3D ICE renders, has
+described using the explorer to visualise ocean circulation that is difficult to
+interpret in standard two-dimensional plots [@aapp2026;
+@spatialsource2026]. From its launch on 22 March to 27 September 2026, the public
+site recorded 578 active users and about 1,200 page views.
 
 The public application and versioned compatibility bundle [@wang2026software]
 integrate representative products for bed geometry [@morlighem2020;
@@ -200,17 +201,20 @@ derived data packages whose payloads match the committed files byte for byte.
 Generative AI was used extensively in developing 3D ICE. The first prototype of
 the explorer, and much of its subsequent application code, was generated with
 the OpenAI Codex coding agent (GPT-5-family models, February to August 2026)
-from Y. Wang's natural-language specifications, data, and review, as
-described in the project's public coverage [@aapp2026]. Anthropic's Claude Code
+from Y. Wang's natural-language specifications, data, and review, as the
+project's public coverage describes [@aapp2026]. Anthropic's Claude Code
 (Claude Opus 4.6 in March and April 2026; Claude Opus 5 and Claude Opus 5.5 in
 September 2026) was used for later work: parts of the interface, test
 infrastructure, the refactoring that moved the runtime into shared and tested
 modules, the repository documentation, reference checking, and the drafting and
 copy-editing of this paper. Y. Wang selected the datasets and scientific
-methods, set the architecture, specified and reviewed every change, validated
-the scientific layers against their source products and the rebound solver
-against analytic solutions, ran the test suites and the JOSS build, and checked
-every reference against its source. The authors accept responsibility for the
+methods and set the architecture. Every AI-generated step was checked by hand
+before it was kept: Y. Wang read each change, ran the explorer to confirm its
+behaviour, validated each scientific layer against its source product, and
+checked every reference against its source. Automated benchmarks back this
+review: every decoded package is compared with the statistics recorded before
+quantization, and the rebound solver with the analytic point-load solution. The
+authors accept responsibility for the
 accuracy, originality, licensing, and integrity of the submitted work.
 
 # Author contributions
@@ -223,16 +227,13 @@ joined discussions of its development.
 # Acknowledgements
 
 3D ICE has received no dedicated funding. It was begun at the Institute for
-Marine and Antarctic Studies (IMAS), University of Tasmania, while Y. Wang
-held an Australian Antarctic Program Partnership (AAPP) top-up scholarship and a
+Marine and Antarctic Studies, University of Tasmania, while Y. Wang
+held an Australian Antarctic Program Partnership top-up scholarship and a
 Tasmanian Graduate Research Scholarship, and continued at the Climate Systems
 Engineering initiative, University of Chicago. The authors gratefully acknowledge
 the providers of the data that make 3D ICE possible: the National Snow and Ice
-Data Center (NSIDC) for BedMachine and MEaSUREs datasets, the UK Polar Data
-Centre for Bedmap3, the ITS_LIVE project for ice velocity mosaics, the
-Copernicus Marine Service for Arctic ocean analysis products, the Australian
-Antarctic Division for the RISE basal melt compilation, the authors of the QRF
-Greenland topography and of the WAOM2, GlaDS, and basal-friction model outputs,
-and SCAR and COMNAP for the place-name and station catalogues.
+Data Center, the UK Polar Data Centre, ITS_LIVE, the Copernicus Marine Service,
+the Australian Antarctic Division, SCAR, COMNAP, and the authors of the QRF,
+WAOM2, GlaDS, and basal-friction products.
 
 # References
