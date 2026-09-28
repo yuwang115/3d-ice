@@ -120,11 +120,14 @@ def test_rebound_controls_sit_inside_the_view_controls_section(explorer_ids: _Id
 
 
 def test_rebound_toggle_follows_the_existing_layer_toggles(explorer_ids: _IdCollector) -> None:
-    """Placed after showBed and showSea so the polar-feature ordering contract holds."""
+    """Sits after showBed (the polar-feature ordering contract), directly below the subglacial
+    channels, and ahead of the ocean layers and the animation/wireframe display toggles."""
     order = explorer_ids.order
-    assert order.index("showBed") < order.index("showSea") < order.index("showIsostaticRebound")
+    assert order.index("showBed") < order.index("showSubglacialChannels")
+    assert order.index("showIsostaticRebound") == order.index("showSubglacialChannels") + 1
     assert order.index("showIsostaticRebound") < order.index("isostaticReboundControls")
-    assert order.index("isostaticReboundControls") < order.index("wireframe")
+    assert order.index("isostaticReboundControls") < order.index("showOceanCurrents")
+    assert order.index("showSea") < order.index("animateFlow") < order.index("wireframe")
 
 
 def test_rebound_controls_start_in_the_headline_scenario(explorer: str) -> None:

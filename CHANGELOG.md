@@ -4,6 +4,16 @@ All notable changes to 3D ICE are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- The ice and ocean flow animation is quieter: particles are about half the size, sparser,
+  tinted by the line colour rather than near-white, and travel roughly half as fast; the
+  pulse along each line is dimmer.
+- Sidebar order: "Show ice-free isostatic rebound" now sits directly below "Show subglacial
+  channels", and "Animate ice & ocean flow" moves down beside "Wireframe mode".
+
 ## [0.2.0] — 2026-09-27
 
 ### Added
