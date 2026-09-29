@@ -26,7 +26,9 @@
 <p align="center">
   <a href="https://3d-ice.com/">Website</a>
   ·
-  <a href="https://3d-ice.com/tools/3D-interactive-cryosphere-explorer.html">Launch Explorer</a>
+  <a href="https://3d-ice.com/explore/">Explore with the guided tour</a>
+  ·
+  <a href="https://3d-ice.com/tools/3D-interactive-cryosphere-explorer.html">Research edition</a>
   ·
   <a href="https://github.com/yuwang115/3d-ice/releases">Releases</a>
 </p>
@@ -68,6 +70,22 @@ from the visualization to the underlying source products.
     <strong>Click to watch</strong> the full 3D ICE demo on YouTube.
   </sub>
 </p>
+
+## Two Editions
+
+3D ICE comes in two editions that share one runtime:
+
+| Edition | Pages | For | What it offers |
+| --- | --- | --- | --- |
+| Public | [`/explore/`](https://3d-ice.com/explore/), [`/zh/explore/`](https://3d-ice.com/zh/explore/) | Everyone: visitors, classrooms, outreach stands | Each region's default terrain, animated ice flowlines coloured by speed, ocean currents, sea level and the ice-free rebound (the ice melts away over three seconds the first time it is switched on), with an eight-stop guided tour and a plain-language explainer, with sources, for every layer. |
+| Research | [`/tools/3D-interactive-cryosphere-explorer.html`](https://3d-ice.com/tools/3D-interactive-cryosphere-explorer.html), `/zh/tools/…` | Researchers | Every dataset, resolution and layer, the data-snapshot panel, flowline profiles, the idealised rebound models and the recording mode. |
+
+A page names its edition with `<html data-edition>`, and `static/tools/js/editions.js` turns
+that into the datasets, layers and behaviours on offer. Restricting a layer also drops the
+URLs of its packages, so the public pages never fetch a research-only package. The tour's
+stops and all the public edition's words, in English and Chinese, are in
+`static/tools/js/explore-content.js`. `?tour=1` opens the tour when the page loads, and
+`?tour=<stop id>` opens it at that stop.
 
 ## Why This Repo Exists
 
@@ -112,7 +130,8 @@ python3 -m http.server 4173
 Then open:
 
 - `http://127.0.0.1:4173/`
-- `http://127.0.0.1:4173/tools/3D-interactive-cryosphere-explorer.html`
+- `http://127.0.0.1:4173/explore/` (public edition)
+- `http://127.0.0.1:4173/tools/3D-interactive-cryosphere-explorer.html` (research edition)
 
 ### Build the compatibility bundle
 
@@ -139,9 +158,12 @@ legacy `/tools/...` URLs unchanged.
 | --- | --- |
 | `static/index.html`, `static/zh/index.html` | Landing pages (English and Chinese). |
 | `static/css/` | Landing-page styles. |
-| `static/tools/3D-interactive-cryosphere-explorer.html`, `static/zh/tools/…` | Explorer pages (English and Chinese); both load the shared runtime. |
-| `static/tools/js/explorer-app.js`, `static/tools/css/explorer.css` | The shared explorer runtime and its styles. |
-| `static/tools/js/` (other modules) | Data-package decoder, isostatic-rebound solver, and place and feature search. |
+| `static/tools/3D-interactive-cryosphere-explorer.html`, `static/zh/tools/…` | Research-edition explorer pages (English and Chinese). |
+| `static/explore/index.html`, `static/zh/explore/index.html` | Public-edition explorer pages (English and Chinese). |
+| `static/tools/js/explorer-app.js`, `static/tools/css/explorer.css` | The explorer runtime and styles that every explorer page loads. |
+| `static/tools/js/editions.js` | What each edition offers: datasets, layers and runtime behaviours. |
+| `static/tools/js/explore-guide.js`, `explore-content.js`, `explore-tour.js`, `static/tools/css/explore.css` | The public edition's guided tour and layer explainers: interface, copy, camera and tour logic, and styles. |
+| `static/tools/js/` (other modules) | Data-package decoder, polar projections, isostatic-rebound solver, and place and feature search. |
 | `static/tools/*-worker.js` | Web Workers for overlay geometry and the rebound solve. |
 | `static/js/3d-ice-locale.js` | English and Chinese interface strings. |
 | `static/tools/data/` | Prepared data packages (`.bin` + `.meta.json`) and feature catalogues. |
@@ -285,7 +307,8 @@ This repository publishes `static/` directly to GitHub Pages. That serves:
 
 - `/` as the standalone landing page
 - `/css/3d-ice-home.css` as the vendored landing-page stylesheet
-- `/tools/3D-interactive-cryosphere-explorer.html` as the main runtime
+- `/explore/` as the public edition, with the guided tour
+- `/tools/3D-interactive-cryosphere-explorer.html` as the research edition
 - `/tools/data/*`, `/tools/media/3d-ice/*`, `/tools/vendor/*`, and `/tools/3d-antarctica/` as supporting assets
 
 The Pages workflow writes `static/.nojekyll` before deployment so the project-path asset layout is
@@ -307,12 +330,13 @@ The release workflow uploads and optionally publishes:
 
 ### Browser runtime (no install needed)
 
-Visit the [live explorer](https://3d-ice.com/tools/3D-interactive-cryosphere-explorer.html) in a
+Visit the [public edition](https://3d-ice.com/explore/) or the
+[research edition](https://3d-ice.com/tools/3D-interactive-cryosphere-explorer.html) in a
 WebGL-capable browser (Chrome or Edge 89+, Firefox 114+, Safari 15+), or serve `static/` locally:
 
 ```bash
 python3 -m http.server 4173 --directory static
-# open http://127.0.0.1:4173/tools/3D-interactive-cryosphere-explorer.html
+# open http://127.0.0.1:4173/explore/ or http://127.0.0.1:4173/tools/3D-interactive-cryosphere-explorer.html
 ```
 
 ### Development environment
@@ -356,7 +380,7 @@ python -m pytest tests/ --ignore=tests/e2e     # Python unit and integration tes
 npm run test:js                                 # JavaScript unit, data-contract and example tests
 npm run bundle:compat && npm run smoke:compat   # build and check the distributable bundle
 
-# Browser end-to-end tests (Playwright; about 10 to 15 minutes)
+# Browser end-to-end tests (Playwright; about 25 minutes on a laptop)
 python -m pip install -e ".[e2e]"
 python -m playwright install chromium           # on Linux, add --with-deps as CI does
 python -m pytest tests/e2e/
