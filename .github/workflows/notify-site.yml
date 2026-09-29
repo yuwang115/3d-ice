@@ -1,0 +1,39 @@
+name: notify-site
+
+# yuwang.blog builds its copy of the explorer from this repository's main
+# branch, but only when its own deploy workflow runs. This asks that workflow
+# (yuwang115/yuwang115.github.io, publish.yaml) to redeploy whenever the files
+# that end up on the site change.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "static/**"
+      - "scripts/build_compat_bundle.mjs"
+      - ".github/workflows/notify-site.yml"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger the yuwang.blog deploy
+        env:
+          # Fine-grained PAT scoped to yuwang115/yuwang115.github.io only,
+          # with Contents: read and write. GITHUB_TOKEN cannot trigger
+          # workflows in another repository.
+          GH_TOKEN: ${{ secrets.SITE_DISPATCH_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::SITE_DISPATCH_TOKEN is not set; yuwang.blog was not redeployed."
+            exit 1
+          fi
+          gh api repos/yuwang115/yuwang115.github.io/dispatches \
+            --method POST \
+            -f event_type=3d-ice-updated \
+            -f "client_payload[sha]=${GITHUB_SHA}"
+          echo "Requested a yuwang.blog deploy of 3d-ice ${GITHUB_SHA}."
