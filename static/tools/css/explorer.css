@@ -421,6 +421,19 @@ body {
   line-height: 1.45;
 }
 
+/* The research pages' pointer to the public edition, which has the guided tour. */
+.edition-switch {
+  margin: -10px 0 16px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.edition-switch a {
+  color: var(--meta-link);
+  font-weight: 600;
+}
+
 .section {
   padding-top: 12px;
   margin-top: 12px;
