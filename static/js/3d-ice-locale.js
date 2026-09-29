@@ -17,6 +17,10 @@
       "en-US": "/tools/3D-interactive-cryosphere-explorer.html",
       "zh-CN": "/zh/tools/3D-interactive-cryosphere-explorer.html",
     },
+    explore: {
+      "en-US": "/explore/",
+      "zh-CN": "/zh/explore/",
+    },
     legacyRedirect: {
       "en-US": "/tools/3d-antarctica/",
       "zh-CN": "/zh/tools/3d-antarctica/",
@@ -124,6 +128,7 @@
           previewReady: "Preview ready",
           loadingPreview: "Loading {region} preview...",
           loadingCoreTerrain: "Loading {region} {dataset} core terrain...",
+          loadingRegion: "Loading {region}...",
           loadingBasin: "Loading {label}...",
           loadingBasalFriction: "Loading basal friction...",
           loadingVelocityLayer: "Loading velocity layer...",
@@ -369,6 +374,7 @@
           fullscreenUnavailable: "Fullscreen API unavailable.",
           regionSwitchUnavailable: "Region switching is unavailable in this explorer mode.",
           regionLoadTimedOut: "Timed out loading {region}.",
+          layersLoadTimedOut: "Timed out waiting for the layers to load.",
           failedToLoadMetadata: "Failed to load metadata ({status})",
           failedToLoadTerrainPackage: "Failed to load terrain package ({status})",
           failedToLoadVelocityMetadata: "Failed to load velocity metadata ({status})",
@@ -524,6 +530,7 @@
           previewReady: "预览已就绪",
           loadingPreview: "正在加载 {region} 预览...",
           loadingCoreTerrain: "正在加载 {region} {dataset} 核心地形...",
+          loadingRegion: "正在加载 {region}...",
           loadingBasin: "正在加载 {label}...",
           loadingBasalFriction: "正在加载基底摩擦...",
           loadingVelocityLayer: "正在加载流速图层...",
@@ -766,6 +773,7 @@
           fullscreenUnavailable: "当前浏览器不支持全屏 API。",
           regionSwitchUnavailable: "当前探索模式不支持切换区域。",
           regionLoadTimedOut: "加载 {region} 超时。",
+          layersLoadTimedOut: "等待图层加载超时。",
           failedToLoadMetadata: "加载元数据失败（{status}）",
           failedToLoadTerrainPackage: "加载地形数据包失败（{status}）",
           failedToLoadVelocityMetadata: "加载流速元数据失败（{status}）",
@@ -925,6 +933,14 @@
       normalized === "/zh/tools/3D-interactive-cryosphere-explorer.html"
     ) {
       return "explorer";
+    }
+    if (
+      normalized === "/explore" ||
+      normalized === "/explore/index.html" ||
+      normalized === "/zh/explore" ||
+      normalized === "/zh/explore/index.html"
+    ) {
+      return "explore";
     }
     if (
       normalized === "/tools/3d-antarctica" ||

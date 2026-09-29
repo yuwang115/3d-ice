@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-locale="zh-CN" data-edition="public">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Google tag (gtag.js), top-level only, as on the research edition. -->
+  <script>
+    (function () {
+      if (window.top !== window.self) return;
+      var s = document.createElement("script");
+      s.async = true;
+      s.src = "https://www.googletagmanager.com/gtag/js?id=G-YGK0V9S67F";
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { window.dataLayer.push(arguments); };
+      window.gtag("js", new Date());
+      window.gtag("config", "G-YGK0V9S67F", {});
+      window.gtag("set", {cookie_flags: "SameSite=None;Secure"});
+    })();
+  </script>
+  <title>3D ICE：在 3D 中探索南极与格陵兰</title>
+  <meta
+    name="description"
+    content="以交互式 3D 飞越南极与格陵兰冰盖。跟随导览，看看冰下隐藏的大地、冰的河流、环绕的海洋，以及冰消失后的世界。"
+  />
+  <link rel="canonical" href="https://3d-ice.com/zh/explore/" />
+  <link rel="alternate" hreflang="en-US" href="https://3d-ice.com/explore/" />
+  <link rel="alternate" hreflang="zh-CN" href="https://3d-ice.com/zh/explore/" />
+  <link rel="alternate" hreflang="x-default" href="https://3d-ice.com/explore/" />
+  <meta property="og:site_name" content="3D ICE" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://3d-ice.com/zh/explore/" />
+  <meta property="og:title" content="3D ICE：在 3D 中探索南极与格陵兰" />
+  <meta
+    property="og:description"
+    content="Fly over the ice sheets of Antarctica and Greenland in interactive 3D, with a guided tour of the land beneath the ice, the flowing ice, the ocean and a world without ice."
+  />
+  <meta property="og:locale" content="zh_CN" />
+  <meta property="og:locale:alternate" content="en_US" />
+  <meta property="og:image" content="https://3d-ice.com/tools/3d-ice-logo.jpg" />
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:title" content="3D ICE：在 3D 中探索南极与格陵兰" />
+  <meta
+    property="twitter:description"
+    content="Fly over the ice sheets of Antarctica and Greenland in interactive 3D, with a guided tour of the land beneath the ice, the flowing ice, the ocean and a world without ice."
+  />
+  <meta property="twitter:image" content="https://3d-ice.com/tools/3d-ice-logo.jpg" />
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "3D ICE：在 3D 中探索南极与格陵兰",
+      "description": "面向所有人的南极与格陵兰冰盖交互式 3D 探索工具，配有导览和通俗易懂的图层说明。",
+      "inLanguage": "zh-CN",
+      "url": "https://3d-ice.com/zh/explore/"
+    }
+  </script>
+  <link rel="shortcut icon" href="../../favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="../../favicon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../../apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <!-- This page lives outside /tools/, so it names the runtime's asset base itself. The
+       bootstrap below reads this tag, so the tag must come first. -->
+  <meta name="3d-ice-asset-base" content="../../tools/" />
+  <script src="../../js/3d-ice-locale.js"></script>
+  <script>
+    (() => {
+      const DEFAULT_ASSET_BASE = "/tools/";
+      const STORAGE_KEY = "wc-color-theme";
+
+      function normalizeAssetBase(value) {
+        if (!value) return DEFAULT_ASSET_BASE;
+        const trimmed = String(value).trim();
+        if (!trimmed) return DEFAULT_ASSET_BASE;
+        return trimmed.endsWith("/") ? trimmed : `${trimmed}/`;
+      }
+
+      // Anyone can put a query parameter in a link, and the runtime imports its modules
+      // from the asset base, so a base from the URL is honoured only on this origin.
+      function sameOriginBase(value) {
+        if (!value) return null;
+        try {
+          return new URL(value, window.location.href).origin === window.location.origin ? value : null;
+        } catch (_error) {
+          return null;
+        }
+      }
+
+      function resolveAssetBase() {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const queryBase = sameOriginBase(params.get("assetBase"));
+          const metaBase = document.querySelector('meta[name="3d-ice-asset-base"]')?.content;
+          return normalizeAssetBase(queryBase || window.__ICE_ASSET_BASE__ || metaBase);
+        } catch (_error) {
+          return DEFAULT_ASSET_BASE;
+        }
+      }
+
+      const assetBase = resolveAssetBase();
+
+      function assetUrl(relativePath) {
+        const cleanRelativePath = String(relativePath || "").replace(/^\/+/, "");
+        return new URL(cleanRelativePath, new URL(assetBase, window.location.href)).toString();
+      }
+
+      function getTopThemeClass() {
+        try {
+          if (window.top && window.top !== window) {
+            const topRoot = window.top.document?.documentElement;
+            if (topRoot) {
+              return topRoot.classList.contains("dark") ? "dark" : "light";
+            }
+          }
+        } catch (_error) {
+          // Cross-origin access is ignored; storage and system theme become the fallback.
+        }
+        return null;
+      }
+
+      function getStoredTheme() {
+        try {
+          const stored = window.localStorage.getItem(STORAGE_KEY);
+          return stored === "dark" || stored === "light" ? stored : null;
+        } catch (_error) {
+          return null;
+        }
+      }
+
+      function resolveTheme() {
+        return getTopThemeClass() || getStoredTheme() || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      }
+
+      function applyTheme(theme) {
+        const nextTheme = theme === "dark" ? "dark" : "light";
+        document.documentElement.dataset.theme = nextTheme;
+        document.documentElement.style.colorScheme = nextTheme;
+        runtimeTheme.currentTheme = nextTheme;
+        return nextTheme;
+      }
+
+      const runtimeTheme = {
+        assetBase,
+        assetUrl,
+        storageKey: STORAGE_KEY,
+        lightLogoSrc: assetUrl("3d-ice-logo-light.jpg"),
+        darkLogoSrc: assetUrl("3d-ice-logo.jpg"),
+        currentTheme: null,
+        getTopThemeClass,
+        getStoredTheme,
+        resolveTheme,
+        applyTheme,
+      };
+
+      window.__iceAssetBase = {
+        assetBase,
+        assetUrl,
+        defaultAssetBase: assetBase,
+        siteDefaultAssetBase: DEFAULT_ASSET_BASE,
+      };
+      window.__iceRuntimeTheme = runtimeTheme;
+      applyTheme(resolveTheme());
+    })();
+  </script>
+  <link rel="stylesheet" href="../../tools/css/explorer.css" />
+  <link rel="stylesheet" href="../../tools/css/explore.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="panel">
+      <div class="panel-header">
+        <div class="panel-grab" aria-hidden="true"></div>
+        <button id="panelCloseButton" class="panel-close-btn" type="button">完成</button>
+      </div>
+      <h1 class="visually-hidden">3D ICE：在 3D 中探索南极与格陵兰</h1>
+      <div class="panel-brand">
+        <img
+          class="panel-brand-logo"
+          data-src="3d-ice-logo-light.jpg"
+          alt="3D ICE 冰冻圈交互探索平台"
+          width="2631"
+          height="1166"
+          decoding="async"
+        />
+        <script>
+          (() => {
+            const logoEl = document.currentScript.previousElementSibling;
+            const runtimeTheme = window.__iceRuntimeTheme;
+            if (!logoEl || !runtimeTheme) return;
+            logoEl.src = document.documentElement.dataset.theme === "dark" ? runtimeTheme.darkLogoSrc : runtimeTheme.lightLogoSrc;
+          })();
+        </script>
+      </div>
+      <p id="panelSubtitle" class="subtitle">
+        全方位，探秘南极。旋转、缩放、穿透重重冰盖，在 3D 交互中，唤醒沉睡的冰下世界。
+      </p>
+      <div id="panelLocaleSwitcher" class="panel-locale-switcher"></div>
+
+      <section id="tourLauncher" class="tour-launcher" aria-labelledby="tourLauncherTitle">
+        <h2 id="tourLauncherTitle" class="tour-launcher__title">第一次来？跟着导览看看</h2>
+        <p class="tour-launcher__body">
+          八个简短的站点，从冰下隐藏的大地，一直看到冰消失后的世界。大约需要五分钟。
+        </p>
+        <button id="tourStartButton" class="tour-launcher__button" type="button" aria-expanded="false" disabled>开始导览</button>
+      </section>
+      <section id="tourCard" class="tour-card" hidden></section>
+
+      <section id="viewControlsSection" class="section" aria-labelledby="whereHeading">
+        <h2 id="whereHeading" class="section-title">去哪里看</h2>
+        <div class="control">
+          <label for="regionPreset">区域</label>
+          <select id="regionPreset">
+            <option value="antarctica" selected>南极洲</option>
+            <option value="greenland">格陵兰</option>
+          </select>
+        </div>
+        <section id="polarFeatureSection" class="view-control-subsection" aria-labelledby="polarFeatureHeading">
+          <div class="control-heading">
+            <h3 id="polarFeatureHeading" class="section-title">地点</h3>
+            <button class="info-toggle" type="button" data-info="places">i</button>
+          </div>
+          <div class="info-card" data-info-card="places" hidden></div>
+          <div class="control">
+            <label for="polarSearchInput">搜索地点</label>
+            <div class="polar-search-combobox">
+              <input
+                id="polarSearchInput"
+                class="polar-search-input"
+                type="search"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-controls="polarSearchResults"
+                aria-label="搜索地点"
+                autocomplete="off"
+                placeholder="南极点、科考站、冰川…"
+              />
+              <ul id="polarSearchResults" class="polar-search-results" role="listbox" hidden></ul>
+            </div>
+            <div id="polarSearchStatus" class="polar-search-status" role="status" aria-live="polite"></div>
+          </div>
+          <label class="toggle"><input id="showResearchStations" type="checkbox" /> 科考站</label>
+          <label class="toggle"><input id="showGeographicNames" type="checkbox" /> 地名</label>
+          <div id="polarFeatureDetails" class="polar-feature-details" aria-label="地点详情" hidden></div>
+        </section>
+      </section>
+
+      <section class="section" aria-labelledby="iceHeading">
+        <h2 id="iceHeading" class="section-title">冰层与冰下的大地</h2>
+        <div class="control">
+          <div class="control-heading">
+            <label for="iceOpacity">透视冰层</label>
+            <button class="info-toggle" type="button" data-info="seeThrough">i</button>
+          </div>
+          <input id="iceOpacity" type="range" min="0" max="1" step="0.01" value="1" />
+          <div class="range-ends" aria-hidden="true"><span>透明</span><span>不透明</span></div>
+        </div>
+        <div class="info-card" data-info-card="seeThrough" hidden></div>
+        <div class="control">
+          <div class="control-heading">
+            <label for="exaggeration">拉伸高度 <span id="exaggerationValue" class="mono">4.8x</span></label>
+            <button class="info-toggle" type="button" data-info="exaggeration">i</button>
+          </div>
+          <input id="exaggeration" type="range" min="0.5" max="8" step="0.1" value="4.8" />
+        </div>
+        <div class="info-card" data-info-card="exaggeration" hidden></div>
+        <div class="toggle-row">
+          <label class="toggle"><input id="showIce" type="checkbox" checked /> 冰盖</label>
+          <button class="info-toggle" type="button" data-info="iceSheet">i</button>
+        </div>
+        <div class="info-card" data-info-card="iceSheet" hidden></div>
+        <div class="toggle-row">
+          <label class="toggle"><input id="showBed" type="checkbox" checked /> 基岩</label>
+          <button class="info-toggle" type="button" data-info="bedrock">i</button>
+        </div>
+        <div class="info-card" data-info-card="bedrock" hidden></div>
+      </section>
+
+      <section class="section" aria-labelledby="motionHeading">
+        <h2 id="motionHeading" class="section-title">流动的冰与海洋</h2>
+        <div class="toggle-row">
+          <label class="toggle"><input id="showFlowline" type="checkbox" /> 冰流</label>
+          <button class="info-toggle" type="button" data-info="iceFlow">i</button>
+        </div>
+        <div class="info-card" data-info-card="iceFlow" hidden></div>
+        <div class="toggle-row">
+          <label class="toggle"><input id="showOceanCurrents" type="checkbox" /> 洋流</label>
+          <button class="info-toggle" type="button" data-info="oceanCurrents">i</button>
+        </div>
+        <div class="info-card" data-info-card="oceanCurrents" hidden></div>
+        <div class="toggle-row">
+          <label class="toggle"><input id="showSea" type="checkbox" /> 海平面</label>
+          <button class="info-toggle" type="button" data-info="seaLevel">i</button>
+        </div>
+        <div class="info-card" data-info-card="seaLevel" hidden></div>
+      </section>
+
+      <section class="section" aria-labelledby="meltHeading">
+        <h2 id="meltHeading" class="section-title">没有冰的世界</h2>
+        <div class="toggle-row">
+          <label class="toggle"><input id="showIsostaticRebound" type="checkbox" /> 移除冰层</label>
+          <button class="info-toggle" type="button" data-info="rebound">i</button>
+        </div>
+        <div class="info-card" data-info-card="rebound" hidden></div>
+        <div id="isostaticReboundControls" class="toggle-group" hidden>
+          <div class="control">
+            <label for="reboundProgress">冰融化程度 <span id="reboundProgressValue" class="mono">100%</span></label>
+            <input id="reboundProgress" type="range" min="0" max="100" step="0.5" value="100" />
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--actions">
+        <button id="resetView" type="button">视角重置</button>
+        <button id="fullscreenToggle" type="button">进入全屏</button>
+      </section>
+
+      <section id="bedLegendSection" class="section legend-section">
+        <h2 class="section-title">基岩高度</h2>
+        <div id="legendBar" class="legend" aria-hidden="true"></div>
+        <div class="legend-labels">
+          <span>-7000 m</span>
+          <span>0</span>
+          <span>+3500 m</span>
+        </div>
+        <div class="legend-note" data-rebound-legend hidden></div>
+      </section>
+
+      <section id="velocityLegendSection" class="section legend-section">
+        <h2 class="section-title">冰流速度</h2>
+        <div id="velocityLegendBar" class="legend" aria-hidden="true"></div>
+        <div id="velocityLegendLabels" class="legend-labels">
+          <span>0 m/yr</span>
+          <span>50</span>
+          <span>200</span>
+          <span>500</span>
+          <span>1000</span>
+          <span>3000</span>
+        </div>
+      </section>
+
+      <section id="oceanLegendSection" class="section legend-section" hidden>
+        <h2 class="section-title">海水温度与咸度</h2>
+        <div class="ocean-legend-wrap">
+          <div class="ocean-legend-y-axis">
+            <span id="oceanLegendWarmLabel"><strong>暖</strong>8.0 °C</span>
+            <span id="oceanLegendColdLabel"><strong>冷</strong>-2.0 °C</span>
+          </div>
+          <canvas id="oceanLegendCanvas" class="ocean-legend-canvas" width="184" height="126" aria-hidden="true"></canvas>
+        </div>
+        <div class="ocean-legend-x-axis">
+          <span id="oceanLegendFreshLabel"><strong>淡</strong>30.0 PSU</span>
+          <span id="oceanLegendSaltyLabel"><strong>咸</strong>35.0 PSU</span>
+        </div>
+      </section>
+
+      <section class="section about-edition" aria-labelledby="aboutHeading">
+        <h2 id="aboutHeading" class="section-title">关于 3D ICE</h2>
+        <p>
+          你看到的一切都来自已发表的观测和模式：冰层及其下方基岩的地图、卫星测得的冰流速度、海洋模式，以及已发表的陆地回弹计算。点击图层旁的 i 可查看资料来源。
+        </p>
+        <p>
+          <a class="about-edition__link" href="../tools/3D-interactive-cryosphere-explorer.html">打开专业版</a>，查看 3D ICE 的全部数据集、分辨率和图层。
+        </p>
+      </section>
+    </aside>
+
+    <section id="viewerShell" class="viewer-shell">
+      <div id="viewer"></div>
+      <div id="loadingOverlay" class="loading-overlay" aria-live="polite" aria-busy="true">
+        <div class="loading-card">
+          <div id="loadingStage" class="loading-stage">正在初始化 3D 运行时...</div>
+          <div class="loading-track" aria-hidden="true">
+            <div id="loadingFill" class="loading-fill"></div>
+          </div>
+          <div class="loading-meta">
+            <span id="loadingPercent">0%</span>
+            <span id="loadingHint">已启用渐进式加载</span>
+          </div>
+          <div class="loading-skeleton" aria-hidden="true">
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line"></div>
+          </div>
+        </div>
+      </div>
+      <div id="status" class="status">正在加载数据...</div>
+      <div class="viewer-toolbar">
+        <button id="viewerTourButton" class="viewer-tool-btn viewer-tool-btn--tour" type="button" aria-expanded="false" disabled>导览</button>
+        <button id="interactionToggle" class="viewer-tool-btn is-hidden" type="button">启用 3D</button>
+        <button id="viewerFullscreenToggle" class="viewer-tool-btn" type="button">进入全屏</button>
+      </div>
+      <div class="hud">
+        <div id="interactionHint" class="chip">
+          <strong>鼠标：</strong>拖拽旋转，滚轮缩放，右键拖拽平移。
+          <br />
+          <strong>触屏：</strong>单指旋转，双指缩放。
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="../../tools/js/explorer-app.js"></script>
+</body>
+</html>

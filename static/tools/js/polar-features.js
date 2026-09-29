@@ -292,8 +292,10 @@ export function createPolarFeaturesController(options) {
 
   async function loadAllFeatures() {
     const catalogues = await loadSearchCatalogues();
+    // A page that offers no basin layer passes no basin catalogue, and searches without it.
+    const basinRegions = SEARCH_REGIONS.filter((region) => dataUrls?.[region]?.refined_basins);
     const refinedResults = await Promise.allSettled(
-      SEARCH_REGIONS.map((region) => loadCatalogue(region, "refined_basins")),
+      basinRegions.map((region) => loadCatalogue(region, "refined_basins")),
     );
     const refinedCatalogues = refinedResults.flatMap((result) => {
       if (result.status === "fulfilled") return [result.value];
