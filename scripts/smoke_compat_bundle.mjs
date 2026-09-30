@@ -77,7 +77,23 @@ const requiredEntries = [
   "tools/data/greenland_ocean_currents_cmems_202508.meta.json",
   "tools/media/3d-ice/antarctica-velocity-preview.mp4",
   "tools/vendor/three/three.module.min.js",
+  // The public edition and the Chinese research page, served at their 3d-ice.com paths.
+  "explore/index.html",
+  "zh/explore/index.html",
+  "zh/tools/3D-interactive-cryosphere-explorer.html",
+  // What the home page loads, and the home pages themselves for hosts that build a copy.
+  "js/3d-ice-locale.js",
+  "js/3d-ice-home.js",
+  "css/3d-ice-home.css",
+  "css/3d-ice-type.css",
+  "fonts/playfair-display-latin.woff2",
+  "fonts/space-grotesk-latin.woff2",
+  "home/en-US.html",
+  "home/zh-CN.html",
 ];
+
+// The bundle is mounted at a site root, so it must never carry a root home page.
+const forbiddenEntries = ["index.html", "zh/index.html", "./index.html", "./zh/index.html"];
 
 async function ensureFile(filePath) {
   await access(filePath);
@@ -118,6 +134,12 @@ async function main() {
   for (const requiredEntry of requiredEntries) {
     if (!entries.has(requiredEntry)) {
       throw new Error(`Bundle is missing required entry: ${requiredEntry}`);
+    }
+  }
+
+  for (const forbiddenEntry of forbiddenEntries) {
+    if (entries.has(forbiddenEntry)) {
+      throw new Error(`Bundle must not contain ${forbiddenEntry}: it would replace the host's home page`);
     }
   }
 
