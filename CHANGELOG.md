@@ -30,6 +30,12 @@ All notable changes to 3D ICE are recorded here. The format follows
   every stored position in the place catalogues.
 - Unit tests for the profiles, the projections, the tour logic and the copy, and browser
   tests for the public edition.
+- The compatibility bundle carries the public edition and the Chinese research page, the home
+  page's stylesheets, script and typefaces, and the two home pages under `home/`, so a host
+  that mounts it at its site root serves both editions at 3d-ice.com's paths. yuwang.blog now
+  builds its 3D ICE page from the bundled home pages instead of keeping a hand-made copy. The
+  language switcher knows that copy's addresses (`/tools/3d-ice/`, `/zh/tools/3d-ice/`), and
+  `tests/test_site_embed.py` pins what the copy relies on.
 - The published total isostatic response of Paxman, Austermann & Hollyday (2022), grids v3
   (NSF Arctic Data Center, doi:10.18739/A22Z12R8C, CC BY 4.0), as the isostatic-rebound
   layer's default Earth response: laterally variable elastic thickness, the post-LGM
@@ -50,6 +56,8 @@ All notable changes to 3D ICE are recorded here. The format follows
 
 ### Changed
 
+- The research pages' link to the guided tour is relative, so it opens the tour on whichever
+  site serves the page; it used to send yuwang.blog's visitors to 3d-ice.com.
 - The home pages are rebuilt around the two editions. The hero leads with the guided tour
   and a way into the research edition, both in the first screen of a laptop, and a new "Two
   ways to explore" section introduces each edition, with a folded comparison table. Every

@@ -149,8 +149,19 @@ This produces:
 - `dist/3d-ice-compat.tar.gz.sha256`
 - `dist/3d-ice-compat-manifest.json`
 
-The tarball always expands to a top-level `tools/` directory so the main site can continue serving
-legacy `/tools/...` URLs unchanged.
+The tarball holds the files a host serves at the same paths as 3d-ice.com, so it can be
+mounted at a site root:
+
+- `tools/`: the research edition, the runtime, data, media and vendored libraries, so legacy
+  `/tools/...` URLs keep working;
+- `explore/`, `zh/explore/` and `zh/tools/3D-interactive-cryosphere-explorer.html`: the
+  public edition and the Chinese research page;
+- `css/`, `js/` and `fonts/`: what the home page loads.
+
+It also holds the two home pages as `home/en-US.html` and `home/zh-CN.html`, for a host that
+builds its own copy of the home page. They sit under `home/` so that mounting the bundle cannot
+replace the host's own home page. yuwang.blog builds its `/tools/3d-ice/` page this way, and
+`tests/test_site_embed.py` pins what it relies on.
 
 ## Repository Layout
 

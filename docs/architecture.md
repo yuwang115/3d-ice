@@ -146,9 +146,12 @@ current Chrome, Edge, Firefox and Safari (Chrome and Edge 89+, Firefox 114+, Saf
 
 - **GitHub Pages.** `.github/workflows/deploy-pages.yml` publishes `static/` on every push
   to `main`.
-- **Compatibility bundle.** `scripts/build_compat_bundle.mjs` packs `static/tools/` into
-  `dist/3d-ice-compat.tar.gz` with a SHA-256 checksum and a file manifest, and
-  `scripts/smoke_compat_bundle.mjs` checks that every file the runtime needs is present.
+- **Compatibility bundle.** `scripts/build_compat_bundle.mjs` packs both editions in both
+  locales, the home page's stylesheets, script and typefaces, and the two home pages (under
+  `home/`) into `dist/3d-ice-compat.tar.gz` with a SHA-256 checksum and a file manifest.
+  `scripts/smoke_compat_bundle.mjs` checks that every file the runtime needs is present and
+  that no root home page is. yuwang.blog mounts the bundle at its site root and builds its
+  `/tools/3d-ice/` page from the bundled home pages.
   `.github/workflows/release-compat-bundle.yml` attaches the bundle to the GitHub release
   of every `v*` tag.
 - **Anywhere else.** Any static file server rooted at `static/` works, for example
@@ -167,6 +170,7 @@ current Chrome, Edge, Firefox and Safari (Chrome and Edge 89+, Firefox 114+, Saf
 | Every localisation key used at runtime resolves in both locales | node:test | `tests/js/locale-coverage.test.mjs` | JavaScript unit tests |
 | Metadata schema of every package; `CITATION.cff` and `codemeta.json` | pytest, cffconvert | `tests/test_metadata_schema.py` | Validate .meta.json files |
 | The distributable bundle contains every runtime file | Node | `scripts/smoke_compat_bundle.mjs` | Compatibility bundle smoke test |
+| Every page a host builds from the bundle links only to files the bundle carries, and the home pages keep the structure yuwang.blog's copy is built from | pytest | `tests/test_site_embed.py` | Python unit tests |
 | Both home pages link each edition, list every source the runtime cites and share one structure across locales | pytest | `tests/test_home_page.py`, `tests/test_home_latest_updates.py` | Python unit tests |
 | The explorer loads, renders and responds in a real browser; the public edition requests no research-only package and plays its tour in both locales; the home pages reach both editions from the first screen | Playwright | `tests/e2e/` | Browser E2E tests |
 
