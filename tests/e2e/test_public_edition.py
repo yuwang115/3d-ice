@@ -305,26 +305,39 @@ class TestGuidedTour:
 
 SOLVE_TIMEOUT_MS = 90_000
 
-# Polls the rebound slider every frame until it reaches 100 %; reports whether the melt
-# started from 0 % and how long it took from its first visible step to the end.
-MEASURE_MELT = """async () => {
-    const rebound = () => JSON.parse(window.render_game_to_text()).isostaticRebound;
-    const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
-    const deadline = performance.now() + 90000;
-    let sawToday = false;
-    let started = null;
-    while (performance.now() < deadline) {
-        const state = rebound();
-        if (state.solved && state.progressPercent === 0) sawToday = true;
-        if (started === null && state.solved && state.progressPercent > 0 && state.progressPercent < 100) {
-            started = performance.now();
+# Times the melt by the rebound slider's own events, from its last reading at 0 % before it
+# rose to the change that commits 100 %, on the frame clock the animation itself runs on.
+# Sampling frames instead misses up to a frame at each end, and the software renderer on a
+# CI runner can take a second over one, so the probe also reports the longest frame it saw.
+# Each frame it notes whether the runtime showed today's ice (0 %) before the melt and
+# part-melted ice on the way.
+INSTALL_MELT_PROBE = """() => {
+    const slider = document.getElementById("reboundProgress");
+    const frameTime = () => document.timeline.currentTime;
+    const probe = {
+        sawToday: false, sawPartMelted: false, rose: false,
+        lastZero: null, seconds: null, lastFrame: null, longestFrameMs: 0,
+    };
+    slider.addEventListener("input", () => {
+        if (probe.rose) return;
+        if (Number(slider.value) === 0) probe.lastZero = frameTime();
+        else probe.rose = true;
+    });
+    slider.addEventListener("change", () => {
+        if (probe.rose && probe.lastZero !== null && probe.seconds === null && Number(slider.value) === 100) {
+            probe.seconds = (frameTime() - probe.lastZero) / 1000;
         }
-        if (started !== null && state.progressPercent === 100) {
-            return { sawToday, seconds: (performance.now() - started) / 1000 };
-        }
-        await frame();
-    }
-    return null;
+    });
+    const sample = (now) => {
+        if (probe.lastFrame !== null) probe.longestFrameMs = Math.max(probe.longestFrameMs, now - probe.lastFrame);
+        probe.lastFrame = now;
+        const state = JSON.parse(window.render_game_to_text()).isostaticRebound;
+        if (state.solved && state.progressPercent === 0 && !probe.rose) probe.sawToday = true;
+        if (state.solved && state.progressPercent > 0 && state.progressPercent < 100) probe.sawPartMelted = true;
+        if (probe.seconds === null) requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+    window.__meltProbe = probe;
 }"""
 
 # The lowest rebound progress seen over the next `ms` milliseconds.
@@ -351,13 +364,15 @@ class TestReboundDemonstration:
     def test_the_first_switch_on_melts_the_ice_away_over_three_seconds(self, playwright_browser, explore_url):
         context, page, errors = _open(playwright_browser, explore_url, reduced_motion="no-preference")
         try:
+            page.evaluate(INSTALL_MELT_PROBE)
             page.locator("#showIsostaticRebound").check()
-            melt = page.evaluate(MEASURE_MELT)
+            page.wait_for_function("() => window.__meltProbe.seconds !== null", timeout=SOLVE_TIMEOUT_MS)
+            melt = page.evaluate("() => window.__meltProbe")
             assert errors == []
-            assert melt is not None, "the ice never melted from 0 % to 100 %"
             assert melt["sawToday"], "the demonstration starts from today's ice"
-            # The eased 3 s run shows 1-99 % for about 2.4 s of it.
-            assert 1.5 <= melt["seconds"] <= 4.0, melt
+            assert melt["sawPartMelted"], "the view passes through part-melted ice"
+            # The run lasts 3 s by the frame clock and ends on the first frame after that.
+            assert 2.95 <= melt["seconds"] <= 3.05 + melt["longestFrameMs"] / 1000, melt
         finally:
             context.close()
 
