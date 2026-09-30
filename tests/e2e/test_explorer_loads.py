@@ -21,22 +21,6 @@ def page(playwright_browser, explorer_url):
         context.close()
 
 
-@pytest.fixture
-def playwright_browser(request):
-    """Launch a headless Chromium browser."""
-    from playwright.sync_api import sync_playwright
-
-    pw = sync_playwright().start()
-    try:
-        browser = pw.chromium.launch(headless=True)
-        try:
-            yield browser
-        finally:
-            browser.close()
-    finally:
-        pw.stop()
-
-
 class TestExplorerLoads:
     def test_page_loads_without_errors(self, playwright_browser, explorer_url):
         context = playwright_browser.new_context(viewport={"width": 1280, "height": 800})
