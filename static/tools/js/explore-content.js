@@ -30,6 +30,11 @@ const SOURCES = Object.freeze({
   massBalance: "https://doi.org/10.5194/essd-15-1597-2023",
   comnap: "https://www.comnap.aq/antarctic-facilities-information",
   scarGazetteer: "https://data.aad.gov.au/aadc/gaz/scar/",
+  interact: "https://www.interact-gis.org/",
+  greenlandPlaceNames:
+    "https://kort.nunagis.gl/refserver/rest/services/PlacenamesRegister/PlacenamesRegisterSearch/MapServer/1",
+  gebcoGazetteer: "https://www.gebco.net/data-products/undersea-feature-names",
+  naturalEarth: "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-physical-labels/",
 });
 
 export const TOUR_CHAPTERS = deepFreeze([
@@ -313,6 +318,10 @@ const EN = {
       sources: [
         { text: "Antarctic stations: COMNAP Antarctic Facilities List", url: SOURCES.comnap },
         { text: "Antarctic names: SCAR Composite Gazetteer of Antarctica", url: SOURCES.scarGazetteer },
+        { text: "Greenland stations: INTERACT research-station directory", url: SOURCES.interact },
+        { text: "Greenland names: Greenland Place Names Register, via NunaGIS", url: SOURCES.greenlandPlaceNames },
+        { text: "Undersea feature names: IHO-IOC GEBCO Gazetteer", url: SOURCES.gebcoGazetteer },
+        { text: "Ocean and sea labels: Natural Earth", url: SOURCES.naturalEarth },
       ],
     },
   },
@@ -515,6 +524,10 @@ const ZH = {
       sources: [
         { text: "南极科考站：COMNAP 南极设施名录", url: SOURCES.comnap },
         { text: "南极地名：SCAR 南极综合地名录", url: SOURCES.scarGazetteer },
+        { text: "格陵兰科考站：INTERACT 科考站名录", url: SOURCES.interact },
+        { text: "格陵兰地名：格陵兰地名登记册（NunaGIS）", url: SOURCES.greenlandPlaceNames },
+        { text: "海底地形名称：IHO-IOC GEBCO 海底地名录", url: SOURCES.gebcoGazetteer },
+        { text: "海洋与海域标注：Natural Earth", url: SOURCES.naturalEarth },
       ],
     },
   },
