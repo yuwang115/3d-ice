@@ -152,3 +152,22 @@ test("interpolated rebound strings substitute every placeholder", () => {
     }
   }
 });
+
+test("the language switcher maps every page to its counterpart, both ways", () => {
+  const api = loadLocaleApi();
+  const pairs = [
+    ["/", "/zh/"],
+    // yuwang.blog's copy of the home page, built from this repository.
+    ["/tools/3d-ice/", "/zh/tools/3d-ice/"],
+    ["/explore/", "/zh/explore/"],
+    ["/tools/3D-interactive-cryosphere-explorer.html", "/zh/tools/3D-interactive-cryosphere-explorer.html"],
+  ];
+  for (const origin of ["https://3d-ice.com", "https://yuwang.blog"]) {
+    for (const [english, chinese] of pairs) {
+      const query = "?region=greenland#source-data";
+      assert.equal(api.buildLocaleUrl("zh-CN", `${origin}${english}${query}`), `${origin}${chinese}${query}`);
+      assert.equal(api.buildLocaleUrl("en-US", `${origin}${chinese}${query}`), `${origin}${english}${query}`);
+    }
+  }
+  assert.equal(api.buildLocaleUrl("zh-CN", "https://yuwang.blog/tools/"), "https://yuwang.blog/tools/");
+});

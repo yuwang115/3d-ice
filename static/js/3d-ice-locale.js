@@ -13,6 +13,11 @@
       "en-US": "/",
       "zh-CN": "/zh/",
     },
+    // yuwang.blog builds its copy of the home page from this repository and serves it here.
+    landing: {
+      "en-US": "/tools/3d-ice/",
+      "zh-CN": "/zh/tools/3d-ice/",
+    },
     explorer: {
       "en-US": "/tools/3D-interactive-cryosphere-explorer.html",
       "zh-CN": "/zh/tools/3D-interactive-cryosphere-explorer.html",
@@ -929,6 +934,14 @@
       return "home";
     }
     if (
+      normalized === "/tools/3d-ice" ||
+      normalized === "/tools/3d-ice/index.html" ||
+      normalized === "/zh/tools/3d-ice" ||
+      normalized === "/zh/tools/3d-ice/index.html"
+    ) {
+      return "landing";
+    }
+    if (
       normalized === "/tools/3D-interactive-cryosphere-explorer.html" ||
       normalized === "/zh/tools/3D-interactive-cryosphere-explorer.html"
     ) {
@@ -1014,8 +1027,9 @@
 
   function relaxChineseHomeTitleWidth(locale) {
     if (normalizeLocale(locale) !== "zh-CN") return;
-    const pathname = window.location.pathname || "/";
-    if (pathname !== "/zh/" && pathname !== "/zh/index.html") return;
+    // The home page, here or in yuwang.blog's copy at /zh/tools/3d-ice/.
+    const route = resolveRouteKey(window.location.pathname || "/");
+    if (route !== "home" && route !== "landing") return;
     const title = document.querySelector(".explorer-page-shell--ice .explorer-page-title");
     if (!title) return;
     title.style.maxWidth = "none";
