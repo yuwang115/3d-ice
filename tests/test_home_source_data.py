@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -22,6 +23,6 @@ class TestHomeSourceData:
         for page_path in HOME_PAGES:
             page = page_path.read_text(encoding="utf-8")
 
-            assert 'id=source-data' in page
+            assert re.search(r'id="?source-data"?[\s>]', page)
             assert BEDMAP3_URL in page
             assert QRF_URL in page

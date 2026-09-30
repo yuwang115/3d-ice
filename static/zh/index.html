@@ -1,24 +1,734 @@
-<!doctype html><html lang=zh-CN dir=ltr data-locale=zh-CN data-wc-theme-default=system><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=generator content="Hugo Blox Builder 0.4.2"><meta name=author content="Yu (Eddie) Wang"><meta name=description content="3D ICE 是一款冰冻圈交互探索平台(Interactive Cryosphere Explorer)。它致力于将前沿的南极与格陵兰数据集，转化为直观、流畅的网页端体验，全面赋能极地冰川研究、教育教学与大众科普。"><link rel=alternate hreflang=en-US href=https://3d-ice.com/><link rel=alternate hreflang=zh-CN href=https://3d-ice.com/zh/><link rel=alternate hreflang=x-default href=https://3d-ice.com/><link rel=stylesheet href=/css/sky.min.css><link href=/css/wc.min.css rel=stylesheet><link href=/css/3d-ice-home.css rel=stylesheet><link href=/css/3d-ice-updates.css rel=stylesheet><script src=/js/3d-ice-locale.js></script><script>window.hbb={defaultTheme:document.documentElement.dataset.wcThemeDefault,setDarkTheme:()=>{document.documentElement.classList.add("dark"),document.documentElement.style.colorScheme="dark"},setLightTheme:()=>{document.documentElement.classList.remove("dark"),document.documentElement.style.colorScheme="light"}},console.debug(`Default Hugo Blox Builder theme is ${window.hbb.defaultTheme}`),"wc-color-theme"in localStorage?localStorage.getItem("wc-color-theme")==="dark"?window.hbb.setDarkTheme():window.hbb.setLightTheme():(window.hbb.defaultTheme==="dark"?window.hbb.setDarkTheme():window.hbb.setLightTheme(),window.hbb.defaultTheme==="system"&&(window.matchMedia("(prefers-color-scheme: dark)").matches?window.hbb.setDarkTheme():window.hbb.setLightTheme()))</script><script>document.addEventListener("DOMContentLoaded",function(){var t=document.getElementById("themeToggle");t&&t.addEventListener("click",function(){var d=document.documentElement.classList.contains("dark");d?(window.hbb.setLightTheme(),localStorage.setItem("wc-color-theme","light")):(window.hbb.setDarkTheme(),localStorage.setItem("wc-color-theme","dark"))})})</script><script>document.addEventListener("DOMContentLoaded",function(){let e=document.querySelectorAll("li input[type='checkbox'][disabled]");e.forEach(e=>{e.parentElement.parentElement.classList.add("task-list")});const t=document.querySelectorAll(".task-list li");t.forEach(e=>{let t=Array.from(e.childNodes).filter(e=>e.nodeType===3&&e.textContent.trim().length>1);if(t.length>0){const n=document.createElement("label");t[0].after(n),n.appendChild(e.querySelector("input[type='checkbox']")),n.appendChild(t[0])}})})</script><script async src="https://www.googletagmanager.com/gtag/js?id=G-YGK0V9S67F"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}function trackOutboundLink(e,t){gtag("event","click",{event_category:"outbound",event_label:e,transport_type:"beacon",event_callback:function(){t!=="_blank"&&(document.location=e)}}),console.debug("Outbound link clicked: "+e)}function onClickCallback(e){if(e.target.tagName!=="A"||e.target.host===window.location.host)return;trackOutboundLink(e.target,e.target.getAttribute("target"))}gtag("js",new Date),gtag("config","G-YGK0V9S67F",{}),gtag("set",{cookie_flags:"SameSite=None;Secure"}),document.addEventListener("click",onClickCallback,!1)</script><link rel="shortcut icon" href="/favicon.ico"><link rel=icon type=image/png sizes=32x32 href=/favicon-32.png><link rel=icon type=image/png sizes=192x192 href=/favicon.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=canonical href=https://3d-ice.com/zh/><meta property="twitter:card" content="summary_large_image"><meta property="og:site_name" content="3D ICE"><meta property="og:url" content="https://3d-ice.com/zh/"><meta property="og:title" content="3D ICE：冰冻圈交互探索平台"><meta property="og:description" content="3D ICE 是为南极洲与格陵兰所打造的交互式探索平台，旨在把错综复杂的前沿冰冻圈数据转化为直观的 3D 沉浸体验，让严谨的冰川科研，真正走进大众视野。"><meta property="og:image" content="https://3d-ice.com/tools/featured.png"><meta property="twitter:image" content="https://3d-ice.com/tools/featured.png"><meta property="og:locale" content="zh_CN"><meta property="og:locale:alternate" content="en_US"><meta property="article:published_time" content="2026-03-09T00:00:00+00:00"><meta property="article:modified_time" content="2026-03-26T00:00:00+00:00"><title>3D ICE：冰冻圈交互探索平台</title><style>@font-face{font-family:inter var;font-style:normal;font-weight:100 900;font-display:swap;src:url(/css/font/Inter.var.woff2)format(woff2)}</style><script type=application/ld+json>{"@context":"https://schema.org","@type":"WebApplication","applicationCategory":"EducationalApplication","author":{"@type":"Person","name":"Yu Wang","url":"https://yuwang.blog/"},"browserRequirements":"需要支持 WebGL 的现代浏览器。","description":"3D ICE 是为南极洲与格陵兰所打造的交互式探索平台，旨在把错综复杂的前沿冰冻圈数据转化为直观的 3D 沉浸体验，让严谨的冰川科研，真正走进大众视野。","featureList":["完整可交互的 3D 体验","覆盖南极与格陵兰且可自定义组合的数据","直达源数据的数据入口","适配多设备的标准与高清冰冻圈预设"],"image":"https://3d-ice.com/tools/featured.png","inLanguage":"zh-CN","name":"3D ICE：冰冻圈交互探索平台","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"operatingSystem":"Any","publisher":{"@type":"Organization","name":"Yu Wang","url":"https://3d-ice.com/"},"thumbnailUrl":"https://3d-ice.com/tools/featured.png","url":"https://3d-ice.com/zh/"}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"WebSite","name":"3D ICE","alternateName":["Interactive Cryosphere Explorer"],"url":"https://3d-ice.com/zh/"}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","acceptedAnswer":{"@type":"Answer","text":"3D ICE 是一个交互式冰冻圈平台，通过可探索的南极与格陵兰 3D 视图，让专业冰冻圈数据更直观、更生动，也更易获取。"},"name":"什么是 3D ICE？"},{"@type":"Question","acceptedAnswer":{"@type":"Answer","text":"3D ICE 面向研究传播、课堂教学，以及围绕变化中的地球开展更广泛的公众参与。"},"name":"3D ICE 面向哪些人？"},{"@type":"Question","acceptedAnswer":{"@type":"Answer","text":"3D ICE 同时支持南极洲与格陵兰，结合大陆尺度陆地数据与模拟海洋环流，并根据设备提供标准与高清浏览选项。"},"name":"我可以在 3D ICE 中探索哪些数据？"},{"@type":"Question","acceptedAnswer":{"@type":"Answer","text":"可以。3D ICE 仍在持续演进，欢迎反馈，也欢迎推荐希望整合的南极或格陵兰数据集。"},"name":"我可以贡献数据或反馈吗？"}]}</script><script async defer src=https://buttons.github.io/buttons.js></script></head><body class="dark:bg-hb-dark dark:text-white page-wrapper" id=top><div id=page-bg></div><div class="page-header sticky top-0 z-30"></div><div class="page-body my-10"><div class="explorer-page-shell explorer-page-shell--ice"><article><div class=explorer-page-topbar><nav class=explorer-page-breadcrumb aria-label="面包屑导航"><a href=https://yuwang.blog/tools/ rel=nofollow>工具</a>
-<span>/</span>
-<span>3D ICE</span></nav><div class=explorer-topbar-actions><div id=homeLocaleSwitcher class=explorer-home-locale-switcher></div><button class=explorer-theme-toggle id=themeToggle type=button aria-label="切换深色模式"><svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg><svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div><header><p class=explorer-page-kicker>冰冻圈交互探索平台</p><h1 class=explorer-page-title>3D ICE：极地，触手可及</h1></header><div class=explorer-page-content><div class="explorer-landing explorer-landing--ice"><section class="explorer-ice-hero explorer-ice-hero--split"><div class=explorer-hero-copy><div class=explorer-ice-brand><img class=explorer-ice-logo src=/tools/3d-ice-logo-light.jpg alt="3D ICE 标志" loading=eager></div><p class=explorer-ice-lead>以前所未有的方式，探索南极洲与格陵兰。</p><p class=explorer-summary>3D ICE 是一款冰冻圈交互探索平台。它致力于将前沿的南极与格陵兰数据集，转化为直观、流畅的网页端体验，全面赋能极地冰川研究、教育教学与大众科普。</p><div class="explorer-actions explorer-actions--hero-grid"><a class="explorer-button explorer-button--primary explorer-button--hero-launch" href=/zh/explore/>开始探索</a>
-<a class="explorer-button explorer-button--ghost explorer-button--hero-antarctica" href=#antarctica-features>关于南极洲</a>
-<a class="explorer-button explorer-button--ghost explorer-button--hero-source" href=#source-data>源数据</a>
-<a class="explorer-button explorer-button--ghost explorer-button--hero-greenland" href=#greenland-features>关于格陵兰</a></div><p class="explorer-showcase-note explorer-edition-note">初次了解冰盖？探索页面提供一段简短的导览。如需全部数据集、分辨率和图层，请打开<a href=/zh/tools/3D-interactive-cryosphere-explorer.html>专业版</a>。</p></div><div class="explorer-showcase-breakout explorer-showcase-breakout--hero"><div class="explorer-showcase-frame explorer-showcase-frame--mobile-linkout"><iframe title="3D ICE 南极交互展示" src="/zh/tools/3D-interactive-cryosphere-explorer.html?mode=showcase&preset=tools-hero&mobileLinkout=1&desktopInteractive=1&recording=1&recordingSpeed=0.60&recordingZoomAmount=10" loading=eager fetchpriority=high referrerpolicy=no-referrer></iframe>
-<a class=explorer-showcase-mobile-link href=/zh/explore/ aria-label="打开完整的 3D ICE 界面"><span class=explorer-showcase-mobile-link-badge>轻触进入完整 3D ICE 界面</span></a></div></div></section><section id=antarctica-features class="explorer-section explorer-region"><div class=explorer-region-intro><p class=explorer-region-label>南极洲</p><h2>探索南极冰盖的核心特征</h2><p>作为地球最南端的广袤冰冻荒漠，南极洲蕴藏着全球 90% 的冰，并在其表面之下隐藏着一个由冰下湖泊和河流组成的动态世界，塑造着我们未来的海岸线。</p></div><div class="explorer-video-grid explorer-video-grid--antarctica"><article class=explorer-video-card data-demo-slot=antarctica-velocity-flowlines><div class=explorer-video-copy><h3>南极冰速与冰流线</h3><p>直观展现快速移动的冰流与汇流网络，揭示南极大陆腹地与边缘溢出冰川及巨型冰架之间的动态联系。</p></div><div class="explorer-video-media explorer-video-media--interactive explorer-video-media--video-preview"><a class="explorer-preview-link explorer-preview-link--video" href="/zh/tools/3D-interactive-cryosphere-explorer.html?region=antarctica&preset=antarctica-velocity-flowlines" data-video-preview><video class=explorer-feature-video poster=/tools/media/3d-ice/antarctica-velocity-preview.jpg preload=metadata muted autoplay loop playsinline webkit-playsinline aria-hidden=true>
-<source src=/tools/media/3d-ice/antarctica-velocity-preview.mp4 type=video/mp4></video><div class=explorer-video-overlay><span class=explorer-video-badge>循环预览 - <span class=explorer-video-badge-click>点击&nbsp;</span><span class=explorer-video-badge-tap>轻触&nbsp;</span>开始</span></div></a></div></article><article class=explorer-video-card data-demo-slot=antarctica-basin-boundary><div class=explorer-video-copy><h3>冰盆边界</h3><p>全景呈现清晰的冰盖区划与流域轮廓，深刻揭示为何评估区域性冰体流失时，必须依托其特定的冰盆背景。</p></div><div class="explorer-video-media explorer-video-media--interactive explorer-video-media--video-preview"><a class="explorer-preview-link explorer-preview-link--video" href="/zh/tools/3D-interactive-cryosphere-explorer.html?region=antarctica&preset=antarctica-basin-boundary" data-video-preview><video class=explorer-feature-video poster=/tools/media/3d-ice/antarctica-basin-boundary-preview.jpg preload=metadata muted autoplay loop playsinline webkit-playsinline aria-hidden=true>
-<source src=/tools/media/3d-ice/antarctica-basin-boundary-preview.mp4 type=video/mp4></video><div class=explorer-video-overlay><span class=explorer-video-badge>循环预览 - <span class=explorer-video-badge-click>点击&nbsp;</span><span class=explorer-video-badge-tap>轻触&nbsp;</span>开始</span></div></a></div></article><article class=explorer-video-card data-demo-slot=antarctica-subglacial-features><div class=explorer-video-copy><h3>冰下特征</h3><p>探秘冰盖之下的隐秘世界。精准映射巨厚冰层深处的有效压力分布与冰下水文通道。</p></div><div class="explorer-video-media explorer-video-media--interactive explorer-video-media--video-preview"><a class="explorer-preview-link explorer-preview-link--video" href="/zh/tools/3D-interactive-cryosphere-explorer.html?region=antarctica&preset=antarctica-subglacial-features" data-video-preview><video class=explorer-feature-video poster=/tools/media/3d-ice/antarctica-subglacial-preview.jpg preload=metadata muted autoplay loop playsinline webkit-playsinline aria-hidden=true>
-<source src=/tools/media/3d-ice/antarctica-subglacial-preview.mp4 type=video/mp4></video><div class=explorer-video-overlay><span class=explorer-video-badge>循环预览 - <span class=explorer-video-badge-click>点击&nbsp;</span><span class=explorer-video-badge-tap>轻触&nbsp;</span>开始</span></div></a></div></article><article class=explorer-video-card data-demo-slot=antarctica-ocean-circulations><div class=explorer-video-copy><h3>海洋环流</h3><p>沉浸式探索变幻莫测的南大洋环流，揭示其与南极冰架之间至关重要的动态交互。</p></div><div class="explorer-video-media explorer-video-media--interactive explorer-video-media--video-preview"><a class="explorer-preview-link explorer-preview-link--video" href="/zh/tools/3D-interactive-cryosphere-explorer.html?region=antarctica&preset=antarctica-ocean-circulations" data-video-preview><video class=explorer-feature-video poster=/tools/media/3d-ice/antarctica-ocean-streamlines-preview.jpg preload=metadata muted autoplay loop playsinline webkit-playsinline aria-hidden=true>
-<source src=/tools/media/3d-ice/antarctica-ocean-streamlines-preview.mp4 type=video/mp4></video><div class=explorer-video-overlay><span class=explorer-video-badge>循环预览 - <span class=explorer-video-badge-click>点击&nbsp;</span><span class=explorer-video-badge-tap>轻触&nbsp;</span>开始</span></div></a></div></article></div></section><section id=greenland-features class="explorer-section explorer-region"><div class=explorer-region-intro><p class=explorer-region-label>格陵兰</p><h2>在同一 3D 视界中，漫游格陵兰冰原</h2><p>作为北极的“气候前哨”，格陵兰冰盖是一个正在快速演变的巨兽，其加速融化正直接推动全球海平面上升并影响着海洋环流。</p></div><div class="explorer-video-grid explorer-video-grid--greenland"><article class=explorer-video-card data-demo-slot=greenland-velocity-flowlines><div class=explorer-video-copy><h3>格陵兰冰速与冰流线</h3><p>聚焦由溢出冰川与快速冰流带交织而成的复杂网络，生动展现冰体从高海拔内陆流域向海岸线快速输送的壮观过程。</p></div><div class="explorer-video-media explorer-video-media--interactive explorer-video-media--video-preview"><a class="explorer-preview-link explorer-preview-link--video" href="/zh/tools/3D-interactive-cryosphere-explorer.html?region=greenland&preset=greenland-velocity-flowlines" data-video-preview><video class=explorer-feature-video poster=/tools/media/3d-ice/greenland-velocity-preview.jpg preload=metadata muted autoplay loop playsinline webkit-playsinline aria-hidden=true>
-<source src=/tools/media/3d-ice/greenland-velocity-preview.mp4 type=video/mp4></video><div class=explorer-video-overlay><span class=explorer-video-badge>循环预览 - <span class=explorer-video-badge-click>点击&nbsp;</span><span class=explorer-video-badge-tap>轻触&nbsp;</span>开始</span></div></a></div></article><article class=explorer-video-card data-demo-slot=greenland-ocean-circulations><div class=explorer-video-copy><h3>海洋环流</h3><p>深入探究周边洋流与格陵兰深邃峡湾的交汇互动，为解析入海冰川的动态演变与退缩机制提供关键的科学背景。</p></div><div class="explorer-video-media explorer-video-media--interactive explorer-video-media--video-preview"><a class="explorer-preview-link explorer-preview-link--video" href="/zh/tools/3D-interactive-cryosphere-explorer.html?region=greenland&preset=greenland-ocean-circulations" data-video-preview><video class=explorer-feature-video poster=/tools/media/3d-ice/greenland-ocean-circulations-preview.jpg preload=metadata muted autoplay loop playsinline webkit-playsinline aria-hidden=true>
-<source src=/tools/media/3d-ice/greenland-ocean-circulations-preview.mp4 type=video/mp4></video><div class=explorer-video-overlay><span class=explorer-video-badge>循环预览 - <span class=explorer-video-badge-click>点击&nbsp;</span><span class=explorer-video-badge-tap>轻触&nbsp;</span>开始</span></div></a></div></article></div></section><section id=latest-updates class="explorer-section explorer-update-section" aria-labelledby=latest-updates-title><div class=explorer-region-intro><p class=explorer-region-label>最新更新</p><h2 id=latest-updates-title>3D ICE 最近更新</h2><p>在这里了解极地数据探索功能的最新改进，并通过发布日期快速掌握每次更新。</p></div><ol class=explorer-update-list><li><article class=explorer-update-card aria-labelledby=isostatic-rebound-update-title><div class=explorer-update-meta><time class=explorer-update-date datetime=2026-09-22>2026年9月22日</time><span class=explorer-update-badge>交互式探索器</span></div><div class=explorer-update-body><h3 id=isostatic-rebound-update-title>看基岩在冰消失后回弹</h3><p>新的地壳均衡回弹图层会求解移除现有冰载荷后固体地球回弹的幅度，让你看到哪些今天位于海平面以下的基岩会升出水面。该图层直接由已加载的地形数据在浏览器中计算，南极洲与格陵兰均可使用。</p><ul class=explorer-update-highlights><li><strong>情景：</strong>拖动<strong>冰消与回弹进度</strong>，从现今一直推进到完全平衡态。</li><li><strong>地球响应：</strong>对比区域挠曲与局地 Airy 地壳平衡，并可调整海平面基准。</li><li><strong>出露：</strong>高亮新出露的陆地，并查看抬升量、面积、等效海平面等数值及模型假设。</li></ul><div class=explorer-actions><a class="explorer-button explorer-button--primary" href=./tools/3D-interactive-cryosphere-explorer.html>体验最新功能</a></div></div></article></li><li><article class=explorer-update-card aria-labelledby=polar-place-search-update-title><div class=explorer-update-meta><time class=explorer-update-date datetime=2026-08-13>2026年8月13日</time><span class=explorer-update-badge>交互式探索器</span></div><div class=explorer-update-body><h3 id=polar-place-search-update-title>搜索极地地点与地理特征</h3><p>南极洲与格陵兰探索器现已将科考站、精选地理名称和细化流域整合到同一套可搜索体验中。</p><ul class=explorer-update-highlights><li><strong>图层：</strong>按需选择<strong>地点与地理特征</strong>中的图层。</li><li><strong>搜索：</strong>按名称查找地点和地理特征，包括细化流域。</li><li><strong>定位：</strong>在南极洲与格陵兰之间切换，并直接移动到搜索结果。</li></ul><div class=explorer-actions><a class="explorer-button explorer-button--primary" href=./tools/3D-interactive-cryosphere-explorer.html>体验最新功能</a></div></div></article></li></ol></section><section id=key-features class="explorer-section explorer-feature-section"><div class=explorer-region-intro><p class=explorer-region-label>核心特性</p><h2>四大核心特性，成就 3D ICE 交互体验。</h2></div><div class=explorer-feature-grid><article class=explorer-feature-card><h3>沉浸式 3D 交互体验</h3><p>自由旋转、缩放并切换视角。宛如将真实的冰盖模型托于掌心，全方位探索极地风貌。</p></article><article class=explorer-feature-card><h3>全方位、高自由度数据组合</h3><p>全面覆盖南极与格陵兰冰原。将洲际尺度的陆地数据与模拟海洋环流无缝交织，自由叠加、随心组合任意图层，助您发掘全新的科研洞见。</p></article><article class=explorer-feature-card><h3>源数据直达通道</h3><p>专为专业科研人员打造的系统化数据平台。先以 3D 视角直观洞察前沿数据，再一键直达您所需的原始数据源。</p></article><article class=explorer-feature-card><h3>卓越的跨平台性能</h3><p>默认均衡分辨率预设，确保移动端触屏流畅漫游。如需极致视觉体验，可随时切换至令人震撼的 HD 高清模式（南极 4km / 格陵兰 1km 分辨率），在桌面大屏上尽享极地细节。</p></article></div></section><section id=source-data class="explorer-section explorer-source-section"><div class=explorer-region-intro><p class=explorer-region-label>源数据</p><h2>直达 3D ICE 背后的数据源</h2><p>专为科研工作者打造的系统化数据平台。先以三维视角直观洞察最新前沿数据，再一键直达您所需的底层源数据。</p></div><div class=explorer-source-columns><article class=explorer-source-column><h3>南极洲</h3><ul class=explorer-source-list><li><a href=https://nsidc.org/data/NSIDC-0756/versions/4 target=_blank rel=noopener>MEaSUREs BedMachine Antarctica, Version 4</a></li><li><a href=https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2 target=_blank rel=noopener>Bedmap3 南极洲，版本 1.0</a></li><li><a href=https://nsidc.org/data/NSIDC-0709/versions/2 target=_blank rel=noopener>MEaSUREs Antarctic Boundaries for IPY 2007-2009 from Satellite Radar, Version 2</a></li><li><a href=https://nsidc.org/data/NSIDC-0754/versions/1 target=_blank rel=noopener>MEaSUREs Phase-Based Antarctica Ice Velocity Map, Version 1</a></li><li><a href=https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1 target=_blank rel=noopener>Antarctic Ice-Sheet Basal Friction from Elmer/Ice Inversions</a></li><li><a href=https://zenodo.org/records/12738170 target=_blank rel=noopener>GlaDS Simulated Antarctic Wide Subglacial Hydrology</a></li><li><a href=https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full target=_blank rel=noopener>WAOM2 Annual-Mean Antarctic Ocean Circulation Fields</a></li><li><a href=https://data.aad.gov.au/metadata/RISE target=_blank rel=noopener>Multi-Model Estimate of Antarctic Ice-Shelf Basal Melting and Ocean Drivers</a></li><li><a href=https://doi.org/10.3189/S0260305500013586 target=_blank rel=noopener>冰川地壳均衡调整：弹性岩石圈／松弛软流圈模型（Le Meur &amp; Huybrechts, 1996）</a></li></ul></article><article class=explorer-source-column><h3>格陵兰</h3><ul class=explorer-source-list><li><a href=https://nsidc.org/data/idbmg4/versions/6 target=_blank rel=noopener>IceBridge BedMachine Greenland, Version 6</a></li><li><a href=https://doi.org/10.1017/jog.2025.10071 target=_blank rel=noopener>格陵兰 QRF 冰下地形（2025）</a></li><li><a href=https://nsidc.org/data/NSIDC-0776/versions/2 target=_blank rel=noopener>MEaSUREs ITS_LIVE Regional Glacier and Ice Sheet Surface Velocities, Version 2</a></li><li><a href=https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1 target=_blank rel=noopener>Greenland Basal Friction Ensemble Inversion Reference</a></li><li><a href=https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description target=_blank rel=noopener>Copernicus Marine Arctic Ocean Physics Analysis and Forecast</a></li><li><a href=https://doi.org/10.3189/S0260305500013586 target=_blank rel=noopener>冰川地壳均衡调整：弹性岩石圈／松弛软流圈模型（Le Meur &amp; Huybrechts, 1996）</a></li></ul></article></div></section><section class="explorer-section explorer-feedback-only explorer-community-section"><div class=explorer-community-grid><div class=explorer-community-copy><p class=explorer-region-label>社区</p><h2>一起打造终极冰冻圈平台</h2><p>3D ICE 仍在持续演进，我非常期待来自冰川学社区的反馈，以帮助我继续完善它。</p><ul class=explorer-community-list><li><strong>有数据想分享？</strong> 如果你希望我把其他数据集整合进 3D ICE，欢迎联系我。</li><li><strong>欢迎传播分享：</strong> 如果 3D ICE 能为你的研究、教学或科普工作带来便利，请不要吝啬，将它分享给身边需要的人。。</li></ul></div><div class="explorer-feedback-panel explorer-feedback-panel--faq-style"><div class="mx-auto flex w-full flex-col gap-6 px-6 tool-feedback-root--inline tool-feedback-root--untitled"><style>.tool-feedback-secondary,.tool-feedback-reset,.tool-feedback-submit{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:.78rem 1.2rem;font-size:.98rem;font-weight:600;line-height:1;text-decoration:none;transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease,color .18s ease}.tool-feedback-submit{border:1px solid transparent;background:#0f5b78;box-shadow:0 12px 24px rgba(15,91,120,.16);color:#fff}.tool-feedback-submit:hover{transform:translateY(-1px);background:#0b4860;color:#fff}.tool-feedback-secondary,.tool-feedback-reset{border:1px solid #c4d9e4;background:#fff;color:#18445a}.tool-feedback-secondary:hover,.tool-feedback-reset:hover{transform:translateY(-1px);background:#f6fbfe;color:#12384a}.tool-feedback-card{border-radius:1.5rem;border:1px solid #dbe7ee;background:radial-gradient(circle at top right,rgba(20,100,130,8%),transparent 28%),linear-gradient(180deg,rgba(248,252,255,.98) 0%,rgba(239,246,251,.98) 100%);box-shadow:0 22px 55px rgba(15,23,42,9%);overflow:hidden}.tool-feedback-card-inner{display:grid;gap:1.5rem;padding:1.5rem}.tool-feedback-heading{display:flex;flex-direction:column;gap:.8rem}.tool-feedback-title{margin:0;color:#0f172a;font-size:clamp(2rem,4vw,3rem);line-height:1.08;font-weight:700;letter-spacing:-.03em}.tool-feedback-body{width:100%;color:#385569;font-size:1.02rem;line-height:1.7}.tool-feedback-body :first-child{margin-top:0}.tool-feedback-body :last-child{margin-bottom:0}.tool-feedback-note,.tool-feedback-alert,.tool-feedback-success{border-radius:1rem;padding:1rem 1.1rem;font-size:.96rem;line-height:1.6}.tool-feedback-note{border:1px solid #ecd7a3;background:#fff8e4;color:#744e00}.tool-feedback-alert{display:none;border:1px solid #efc0c0;background:#fff3f3;color:#8d1d1d}.tool-feedback-success{display:none;border:1px solid #b9decb;background:#f2fcf5;color:#165534}.tool-feedback-success h3,.tool-feedback-alert h3{margin:0 0 .35rem;font-size:1.08rem;font-weight:700}.tool-feedback-form{display:grid;gap:1rem}.tool-feedback-grid{display:grid;gap:1rem;grid-template-columns:repeat(2,minmax(0,1fr))}.tool-feedback-field{display:flex;flex-direction:column;gap:.5rem}.tool-feedback-field--full{grid-column:1/-1}.tool-feedback-label{color:#0f172a;font-size:.94rem;font-weight:600;line-height:1.4}.tool-feedback-hint{color:#4f6b7e;font-weight:400}.tool-feedback-input,.tool-feedback-select,.tool-feedback-textarea{width:100%;border:1px solid #cad9e3;border-radius:.95rem;background:rgba(255,255,255,.96);color:#0f172a;font:inherit;padding:.9rem .95rem;box-shadow:inset 0 1px rgba(255,255,255,.7)}.tool-feedback-input:focus,.tool-feedback-select:focus,.tool-feedback-textarea:focus{outline:none;border-color:#0f5b78;box-shadow:0 0 0 4px rgba(15,91,120,.12)}.tool-feedback-textarea{min-height:11rem;resize:vertical}.tool-feedback-honeypot{position:absolute;left:-10000px;opacity:0;pointer-events:none}.tool-feedback-actions{display:flex;flex-wrap:wrap;align-items:center;gap:.85rem;justify-content:space-between}.tool-feedback-actions-left{display:flex;flex-wrap:wrap;align-items:center;gap:.85rem}.tool-feedback-status{color:#567181;font-size:.92rem;line-height:1.5}.tool-feedback-status:empty{display:none}.tool-feedback-submit[disabled]{cursor:not-allowed;opacity:.55;transform:none;box-shadow:none}.dark .tool-feedback-status,.dark .tool-feedback-hint,.dark .tool-feedback-body{color:#b8d0dd}.dark .tool-feedback-card{border-color:#264658;background:radial-gradient(circle at top right,rgba(71,163,196,.11),transparent 30%),linear-gradient(180deg,rgba(10,23,31,.97) 0%,rgba(15,33,44,.98) 100%);box-shadow:0 22px 55px rgba(2,8,23,.28)}.dark .tool-feedback-title,.dark .tool-feedback-label{color:#eff6fb}.dark .tool-feedback-input,.dark .tool-feedback-select,.dark .tool-feedback-textarea{border-color:#315264;background:rgba(11,24,32,.95);color:#eff6fb;box-shadow:none}.dark .tool-feedback-input::placeholder,.dark .tool-feedback-textarea::placeholder{color:#86a4b4}.dark .tool-feedback-secondary,.dark .tool-feedback-reset{border-color:#406074;background:rgba(11,24,32,.82);color:#d8ebf4}.dark .tool-feedback-secondary:hover,.dark .tool-feedback-reset:hover{background:rgba(15,34,46,.98);color:#fff}.dark .tool-feedback-note{border-color:#6a5a24;background:rgba(90,71,18,.18);color:#f2dc97}.dark .tool-feedback-alert{border-color:#744040;background:rgba(74,24,24,.3);color:#f3c2c2}.dark .tool-feedback-success{border-color:#29553a;background:rgba(15,63,35,.28);color:#bcf0cf}@media(max-width:768px){.tool-feedback-card-inner{padding:1.15rem}.tool-feedback-grid{grid-template-columns:1fr}.tool-feedback-actions{align-items:stretch}.tool-feedback-actions-left,.tool-feedback-secondary,.tool-feedback-reset,.tool-feedback-submit{width:100%}}</style><div class=tool-feedback-card><div class=tool-feedback-card-inner><div class="tool-feedback-heading tool-feedback-heading--untitled"><div class=tool-feedback-body>如果你对 3D ICE 有想法、数据集建议、Bug 报告或可用性反馈，可以在这里快速留言。欢迎使用中文或英文。</div></div><div id=faq-feedback-3d-ice-success class=tool-feedback-success aria-live=polite><h3>感谢反馈。</h3><p>你的反馈已发送。我会阅读这些消息，用来改进工具并修复问题。</p><button type=button class=tool-feedback-reset data-feedback-reset=faq-feedback-3d-ice-form>再发一条</button></div><div id=faq-feedback-3d-ice-error class=tool-feedback-alert aria-live=polite><h3>提交失败。</h3><p>刚才未能成功发送你的消息。请稍后重试；如果问题持续存在，也可以直接发邮件给我。</p></div><form id=faq-feedback-3d-ice-form class=tool-feedback-form action=https://usebasin.com/f/53e802e0991e method=POST accept-charset=UTF-8 data-basin-form data-basin-success-action=render data-basin-success-id=faq-feedback-3d-ice-success data-basin-error-id=faq-feedback-3d-ice-error><input type=hidden name=source_page value=/zh/>
-<input type=hidden name=source_section value=tools-feedback data-feedback-source-section>
-<input type=hidden name=page_url data-feedback-page-url>
-<input type=hidden name=page_title value="3D ICE:冰冻圈交互探索平台">
-<input type=hidden name=site_lang value=zh><div class=tool-feedback-honeypot aria-hidden=true><label for=faq-feedback-3d-ice-website>请留空此字段</label>
-<input id=faq-feedback-3d-ice-website type=text name=website tabindex=-1 autocomplete=off></div><div class=tool-feedback-grid><div class=tool-feedback-field><label class=tool-feedback-label for=faq-feedback-3d-ice-tool>工具</label>
-<select id=faq-feedback-3d-ice-tool class=tool-feedback-select name=tool required data-feedback-tool-select><option value selected disabled>选择工具</option><option value="3D ICE：冰冻圈交互探索平台" selected>3D ICE：冰冻圈交互探索平台</option><option value="Regularised Coulomb Sliding Law demo">Regularised Coulomb Sliding Law demo</option><option value="Marine Ice Sheet Flowline Lab">Marine Ice Sheet Flowline Lab</option><option value="通用工具/站点反馈">通用工具/站点反馈</option></select></div><div class=tool-feedback-field><label class=tool-feedback-label for=faq-feedback-3d-ice-email>邮箱
-<span class=tool-feedback-hint>可选，如希望收到回复</span>
-</label><input id=faq-feedback-3d-ice-email class=tool-feedback-input type=email name=email inputmode=email autocomplete=email placeholder=you@example.com></div><div class="tool-feedback-field tool-feedback-field--full"><label class=tool-feedback-label for=faq-feedback-3d-ice-message>留言</label>
-<textarea id=faq-feedback-3d-ice-message class=tool-feedback-textarea name=message required placeholder="告诉我哪些内容有效，哪些地方令人困惑，哪里出了问题，或者你希望我新增什么功能。" data-feedback-message></textarea></div></div><div class=tool-feedback-actions><div class=tool-feedback-actions-left><button type=submit class=tool-feedback-submit>发送反馈</button>
-<a class=tool-feedback-secondary href=mailto:wangyu@uchicago.edu>改发邮件</a></div><div id=faq-feedback-3d-ice-status class=tool-feedback-status></div></div></form></div></div><script src=https://js.usebasin.com/v2.10.1.min.js defer></script><script>(()=>{const e=document.getElementById("faq-feedback-3d-ice-form");if(!e)return;const r="3D ICE：冰冻圈交互探索平台",l="tools-feedback",n=e.querySelector("[data-feedback-tool-select]"),d=e.querySelector("[data-feedback-source-section]"),u=e.querySelector("[data-feedback-page-url]"),t=e.querySelector(".tool-feedback-submit"),s=document.getElementById("faq-feedback-3d-ice-status"),h=document.getElementById("faq-feedback-3d-ice-success"),i=document.getElementById("faq-feedback-3d-ice-error"),c=document.querySelector(`[data-feedback-reset="faq-feedback-3d-ice-form"]`),a=t=>t.detail&&t.detail.form===e,o=()=>{u.value=window.location.href,d.value=l,n&&r&&!n.value&&(n.value=r)},m=()=>{e.style.display="",h.style.display="none",i.style.display="none",t.disabled=!1,t.textContent="发送反馈",s.textContent="",e.reset(),o()};o(),n.addEventListener("change",o),c&&c.addEventListener("click",m),document.addEventListener("basinjsFormSubmitted",e=>{if(!a(e))return;i.style.display="none",t.disabled=!0,t.textContent="发送中...",s.textContent="正在提交反馈..."}),document.addEventListener("basinjsFormSuccess",n=>{if(!a(n))return;e.reset(),o(),t.disabled=!1,t.textContent="发送反馈",s.textContent="感谢反馈，消息已发送。"}),document.addEventListener("basinjsFormError",e=>{if(!a(e))return;i.style.display="block",t.disabled=!1,t.textContent="发送反馈",s.textContent="提交失败，请重试或直接邮件联系我。"})})()</script></div></div></div></section><div class=explorer-community-cta-standalone><div class=explorer-community-cta-row><a class="explorer-button explorer-button--community-utility" href=/zh/explore/>开始探索</a>
-<a class="explorer-button explorer-button--browse-spotlight" href=https://yuwang.blog/tools/#tools-demo rel=nofollow>浏览其他研究工具</a></div></div></div></div><script>(()=>{const i=document.querySelector(".explorer-ice-logo"),u="/tools/3d-ice-logo-light.jpg",d="/tools/3d-ice-logo.jpg",o=()=>{if(!i)return;const e=document.documentElement.classList.contains("dark")?d:u;i.getAttribute("src")!==e&&i.setAttribute("src",e)};let g=null;const v=()=>{if(!g)g=document.querySelectorAll("img[data-light-src][data-dark-src]");const e=document.documentElement.classList.contains("dark");g.forEach(t=>{const s=e?t.dataset.darkSrc:t.dataset.lightSrc;t.getAttribute("src")!==s&&t.setAttribute("src",s)})};o();if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",v,{once:!0})}else{v()}document.addEventListener("hbThemeChange",()=>{o();v()});const r=new MutationObserver(()=>{o();v()});r.observe(document.documentElement,{attributes:!0,attributeFilter:["class"]});const c=window.matchMedia("(hover: hover) and (pointer: fine)").matches,a=Array.from(document.querySelectorAll(".explorer-preview-link[data-preview-src]")),s=Array.from(document.querySelectorAll(".explorer-preview-link--video[data-video-preview]"));let e=null;const n=e=>{if(!e)return;e._previewEnterTimer&&(window.clearTimeout(e._previewEnterTimer),e._previewEnterTimer=null),e._previewLeaveTimer&&(window.clearTimeout(e._previewLeaveTimer),e._previewLeaveTimer=null)},t=t=>{if(!t)return;n(t);const s=t.querySelector("iframe");s&&s.remove(),t.classList.remove("is-preview-active","is-preview-loading"),e===t&&(e=null)},l=s=>{if(!c||!s)return;if(n(s),e&&e!==s&&t(e),s.querySelector("iframe")){s.classList.add("is-preview-active"),e=s;return}const o=document.createElement("iframe");o.src=s.dataset.previewSrc||"",o.title=s.dataset.previewTitle||"3D ICE 功能预览",o.loading="eager",o.referrerPolicy="no-referrer",o.tabIndex=-1,o.setAttribute("aria-hidden","true"),o.addEventListener("load",()=>{s.classList.remove("is-preview-loading")},{once:!0}),s.insertBefore(o,s.firstChild),s.classList.add("is-preview-active","is-preview-loading"),e=s},h=e=>{if(!e)return;try{e.currentTime=0}catch{}},m=(e,{reset:t=!0}={})=>{if(!e)return;const n=e.querySelector("video");if(!n)return;e.classList.remove("is-video-active","is-video-playing"),n.pause(),t&&h(n)},f=e=>{if(!e)return;const n=e.querySelector("video");if(!n)return;e.classList.add("is-video-active");const t=n.play();if(t&&typeof t.then=="function"){t.then(()=>{e.classList.add("is-video-playing")}).catch(()=>{});return}e.classList.add("is-video-playing")},p=e=>{if(!e)return;e.defaultMuted=!0,e.muted=!0,e.playsInline=!0,e.autoplay=!0,e.setAttribute("muted",""),e.setAttribute("playsinline",""),e.setAttribute("webkit-playsinline",""),e.setAttribute("autoplay","")};if(a.length)for(const e of a)e.addEventListener("mouseenter",()=>{n(e),e._previewEnterTimer=window.setTimeout(()=>l(e),160)}),e.addEventListener("mouseleave",()=>{n(e),e._previewLeaveTimer=window.setTimeout(()=>t(e),140)}),e.addEventListener("focusin",()=>{l(e)}),e.addEventListener("focusout",n=>{if(e.contains(n.relatedTarget))return;t(e)});if(s.length)for(const n of s){const e=n.querySelector("video");if(!e)continue;p(e);const t=()=>{f(n)};e.networkState===HTMLMediaElement.NETWORK_EMPTY&&e.load(),e.readyState>=1?t():(e.addEventListener("loadedmetadata",t,{once:!0}),e.addEventListener("canplay",t,{once:!0}))}window.addEventListener("pagehide",()=>{a.forEach(e=>t(e)),s.forEach(e=>m(e,{reset:!1})),r.disconnect()},{once:!0}),c||document.documentElement.classList.add("explorer-preview-static")})()</script></article></div></div><div class=page-footer><footer class="container mx-auto flex flex-col justify-items-center text-sm leading-6 mt-24 mb-4 text-slate-700 dark:text-slate-200"><div class=explorer-footer-logos role=group aria-label="IMAS 与 AAPP 标识"><div class="explorer-footer-logo explorer-footer-logo--imas"><img src=/logos/imas-utas.png data-light-src=/logos/imas-utas.png data-dark-src=/logos/imas-utas-dark.png alt="Institute for Marine and Antarctic Studies, University of Tasmania" width=494 height=230 loading=lazy decoding=async></div><div class="explorer-footer-logo explorer-footer-logo--aapp"><img src=/logos/aapp.png data-light-src=/logos/aapp.png data-dark-src=/logos/aapp-dark.png alt="Australian Antarctic Program Partnership" width=922 height=418 loading=lazy decoding=async></div></div><p class="powered-by text-center">© 2026 Yu Wang。本作品采用 <a href=https://opensource.org/licenses/MIT rel="noopener noreferrer" target=_blank>MIT 许可证</a></p><p class="powered-by text-center">采用 <a href="https://hugoblox.com/?utm_campaign=poweredby" target=_blank rel=noopener>Hugo Blox Builder</a> 发布，这是一个免费、<a href=https://github.com/HugoBlox/hugo-blox-builder target=_blank rel=noopener>开源</a>的网站构建器。</p></footer></div><script>(()=>{const e="3d-ice:showcase-scroll";function t(e){if(!e)return!1;const t=Array.from(document.querySelectorAll('iframe[src*="3D-interactive-cryosphere-explorer.html"]'));return t.some(t=>t.contentWindow===e)}window.addEventListener("message",n=>{const s=n.data||{};if(s.type!==e)return;if(!t(n.source))return;const o=Number(s.deltaX)||0,i=Number(s.deltaY)||0;window.scrollBy({left:o,top:i,behavior:"auto"})})})()</script><script>(()=>{const e=()=>{const l=window.__3dIceLocale;if(!l)return;l.initPage({locale:"zh-CN",switchers:["#homeLocaleSwitcher"]})};document.readyState==="loading"?document.addEventListener("DOMContentLoaded",e,{once:!0}):e()})()</script></body></html>
+<!doctype html>
+<html lang="zh-CN" data-locale="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>3D ICE：冰冻圈交互探索平台</title>
+    <meta name="description" content="以 3D 方式探索南极洲与格陵兰。在科普版中跟随导览，或打开专业版，查看全部数据集、分辨率与图层。" />
+    <meta name="author" content="Yu (Eddie) Wang" />
+    <link rel="canonical" href="https://3d-ice.com/zh/" />
+    <link rel="alternate" hreflang="en-US" href="https://3d-ice.com/" />
+    <link rel="alternate" hreflang="zh-CN" href="https://3d-ice.com/zh/" />
+    <link rel="alternate" hreflang="x-default" href="https://3d-ice.com/" />
+    <meta property="og:site_name" content="3D ICE" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://3d-ice.com/zh/" />
+    <meta property="og:title" content="3D ICE：冰冻圈交互探索平台" />
+    <meta property="og:description" content="以 3D 方式探索南极洲与格陵兰。在科普版中跟随导览，或打开专业版，查看全部数据集、分辨率与图层。" />
+    <meta property="og:image" content="https://3d-ice.com/tools/featured.png" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://3d-ice.com/tools/featured.png" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <script>
+      // Apply the saved or system colour theme before the first paint. The explorer pages
+      // read the same key and the same class, so the choice carries over between them.
+      (() => {
+        let saved = null;
+        try {
+          saved = localStorage.getItem("wc-color-theme");
+        } catch (error) {
+          saved = null;
+        }
+        const dark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", dark);
+        document.documentElement.style.colorScheme = dark ? "dark" : "light";
+      })();
+    </script>
+    <link rel="preload" href="/fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/css/3d-ice-type.css" />
+    <link rel="stylesheet" href="/css/3d-ice-home.css" />
+    <script src="/js/3d-ice-locale.js" defer></script>
+    <script src="/js/3d-ice-home.js" defer></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-YGK0V9S67F"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        window.dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-YGK0V9S67F", {});
+      gtag("set", { cookie_flags: "SameSite=None;Secure" });
+      // Outbound clicks, reported as they were before the rebuild.
+      document.addEventListener("click", (event) => {
+        const link = event.target.closest && event.target.closest("a[href]");
+        if (!link || link.host === window.location.host) return;
+        gtag("event", "click", { event_category: "outbound", event_label: link.href, transport_type: "beacon" });
+      });
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "3D ICE：冰冻圈交互探索平台",
+        "alternateName": "Interactive Cryosphere Explorer",
+        "url": "https://3d-ice.com/zh/",
+        "description": "3D ICE 将前沿的南极与格陵兰数据集转化为可交互的 3D 探索器，提供带导览的科普版，以及包含全部数据集与图层的专业版。",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "需要支持 WebGL 的现代浏览器。",
+        "inLanguage": "zh-CN",
+        "image": "https://3d-ice.com/tools/featured.png",
+        "thumbnailUrl": "https://3d-ice.com/tools/featured.png",
+        "featureList": [
+          "科普版：八站导览与通俗易懂的图层说明",
+          "专业版：全部数据集、分辨率与图层",
+          "在同一个交互式 3D 环境中探索南极洲与格陵兰",
+          "直达每个源数据集的链接"
+        ],
+        "author": { "@type": "Person", "name": "Yu Wang", "url": "https://yuwang.blog/" },
+        "publisher": { "@type": "Organization", "name": "Yu Wang", "url": "https://3d-ice.com/" },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "3D ICE",
+        "alternateName": ["Interactive Cryosphere Explorer"],
+        "url": "https://3d-ice.com/zh/"
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "什么是 3D ICE？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "3D ICE 是一个交互式冰冻圈探索平台，把专业的南极与格陵兰数据转化为任何人都能在浏览器中探索的 3D 视图。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "3D ICE 面向哪些人？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "面向所有人。科普版带有导览和通俗易懂的图层说明，适合访客、课堂和科普活动；专业版为科研人员提供全部数据集、分辨率与图层。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "我可以在 3D ICE 中探索哪些数据？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "南极洲与格陵兰的基岩地形、冰厚与冰流、海洋环流、海平面以及无冰状态下的地壳均衡回弹；专业版还提供基底摩擦，以及南极的冰下水文和冰架底部融化。每个图层都来自已发表的数据集、模型或预印本。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "我可以贡献数据或反馈吗？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "可以。3D ICE 仍在持续演进，欢迎反馈，也欢迎推荐希望整合的南极或格陵兰数据集。"
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body class="page-wrapper" id="top">
+    <a class="explorer-skip-link" href="#main">跳到正文</a>
+    <div class="page-body">
+      <div class="explorer-page-shell explorer-page-shell--ice">
+
+        <header class="explorer-page-header">
+          <div class="explorer-page-topbar">
+            <nav class="explorer-page-breadcrumb" aria-label="面包屑导航">
+              <a href="https://yuwang.blog/tools/" rel="nofollow">工具</a>
+              <span aria-hidden="true">/</span>
+              <span aria-current="page">3D ICE</span>
+            </nav>
+            <nav class="explorer-page-nav" aria-label="本页导航">
+              <a href="#editions">版本</a>
+              <a href="#antarctica-features">南极洲</a>
+              <a href="#greenland-features">格陵兰</a>
+              <a href="#latest-updates">最新更新</a>
+              <a href="#source-data">源数据</a>
+              <a href="#feedback">反馈</a>
+            </nav>
+            <div class="explorer-topbar-actions">
+              <div id="homeLocaleSwitcher" class="explorer-home-locale-switcher"></div>
+              <button class="explorer-theme-toggle" id="themeToggle" type="button" aria-label="深色模式" aria-pressed="false">
+                <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p class="explorer-page-kicker">冰冻圈交互探索平台</p>
+          <h1 class="explorer-page-title">3D ICE：极地，触手可及</h1>
+        </header>
+
+        <main id="main" class="explorer-page-content explorer-landing explorer-landing--ice">
+          <div class="explorer-ice-hero explorer-ice-hero--split">
+            <div class="explorer-hero-copy">
+              <div class="explorer-ice-brand">
+                <img class="explorer-ice-logo" src="/tools/3d-ice-logo-light.jpg" data-light-src="/tools/3d-ice-logo-light.jpg" data-dark-src="/tools/3d-ice-logo.jpg" alt="3D ICE：冰冻圈交互探索平台" width="2631" height="1166" fetchpriority="high" />
+              </div>
+              <p class="explorer-ice-lead">以前所未有的方式，探索南极洲与格陵兰。</p>
+              <div class="explorer-actions explorer-actions--hero">
+                <a class="explorer-button explorer-button--primary" href="./explore/?tour=1">开始导览</a>
+                <a class="explorer-button explorer-button--ghost" href="./tools/3D-interactive-cryosphere-explorer.html">打开专业版</a>
+              </div>
+              <p class="explorer-showcase-note">
+                导览约需五分钟，手机和电脑均可。不确定选哪个？<a href="#editions">比较两个版本</a>。
+              </p>
+              <p class="explorer-summary">
+                3D ICE 将前沿的南极与格陵兰数据集，转化为可在浏览器中自由探索的 3D 世界：从深埋在数千米冰层之下的基岩，到环绕冰盖的洋流。它提供两个版本：带有导览的科普版，以及包含全部数据集与图层的专业版。
+              </p>
+            </div>
+            <div class="explorer-showcase-breakout explorer-showcase-breakout--hero">
+              <div class="explorer-showcase-frame explorer-showcase-frame--mobile-linkout">
+                <iframe title="3D ICE 南极交互展示" src="./tools/3D-interactive-cryosphere-explorer.html?mode=showcase&amp;preset=tools-hero&amp;mobileLinkout=1&amp;desktopInteractive=1&amp;recording=1&amp;recordingSpeed=0.60&amp;recordingZoomAmount=10" loading="eager" referrerpolicy="no-referrer"></iframe>
+                <a class="explorer-showcase-mobile-link" href="./explore/">
+                  <span class="explorer-showcase-mobile-link-badge">轻触进入 3D 探索<span class="visually-hidden">（科普版）</span></span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <section id="editions" class="explorer-section explorer-edition-section" aria-labelledby="editions-title">
+            <div class="explorer-region-intro">
+              <p class="explorer-region-label">版本</p>
+              <h2 id="editions-title">两种探索方式</h2>
+              <p>
+                两个版本运行同一个探索器，使用同样的数据。初次了解冰盖，建议从科普版开始；需要全部数据集和图层时，请打开专业版。
+              </p>
+            </div>
+            <div class="explorer-edition-grid">
+              <article class="explorer-edition-card explorer-edition-card--public" data-edition="public" aria-labelledby="public-edition-title">
+                <p class="explorer-edition-audience">面向大众</p>
+                <h3 id="public-edition-title">科普版</h3>
+                <p class="explorer-edition-lead">带你初识冰盖，边看边讲解背后的科学。</p>
+                <ul class="explorer-edition-points" role="list">
+                  <li>八站导览：从冰雪大陆出发，探访冰层下隐藏的陆地、南大洋，再到格陵兰</li>
+                  <li>每个图层旁都有通俗易懂的说明，并注明所用数据的来源</li>
+                  <li>冰流、洋流、海平面，以及冰盖消失后抬升的陆地</li>
+                  <li>适合手机、平板、课堂教学和科普展台</li>
+                </ul>
+                <p class="explorer-edition-meta">约五分钟 · 中文与 <span lang="en">English</span></p>
+                <div class="explorer-actions">
+                  <a class="explorer-button explorer-button--primary" href="./explore/?tour=1">开始导览</a>
+                  <a class="explorer-button explorer-button--ghost" href="./explore/">自由探索</a>
+                </div>
+              </article>
+              <article class="explorer-edition-card explorer-edition-card--research" data-edition="research" aria-labelledby="research-edition-title">
+                <p class="explorer-edition-audience">面向科研人员</p>
+                <h3 id="research-edition-title">专业版</h3>
+                <p class="explorer-edition-lead">全部数据集、分辨率与图层，并附数据来源。</p>
+                <ul class="explorer-edition-points" role="list">
+                  <li>南极的 BedMachine 与 Bedmap3、格陵兰的 BedMachine 与 QRF 基岩地形，各有两种分辨率</li>
+                  <li>两大冰盖的冰流速度、基底摩擦，以及分四个深度层的洋流</li>
+                  <li>南极另有冰下有效压力与水文通道，以及基于 BedMachine 地形的冰架底部融化与热驱动</li>
+                  <li>基于已发表的 Paxman 等（2022）响应的无冰回弹，并提供理想化的 ELRA 与 Airy 模型作对比</li>
+                  <li>数据快照为当前显示的数据集链接来源；点击任意冰流线，即可查看冰面、冰底与基岩的沿流剖面</li>
+                </ul>
+                <p class="explorer-edition-meta">建议在电脑上使用 · 中文与 <span lang="en">English</span></p>
+                <div class="explorer-actions">
+                  <a class="explorer-button explorer-button--primary" href="./tools/3D-interactive-cryosphere-explorer.html">打开专业版</a>
+                  <a class="explorer-button explorer-button--ghost" href="#source-data">查看源数据</a>
+                </div>
+              </article>
+            </div>
+            <details class="explorer-edition-compare">
+              <summary>比较两个版本</summary>
+              <div class="explorer-edition-table-wrap" role="region" tabindex="0" aria-labelledby="edition-compare-caption">
+                <table>
+                  <caption id="edition-compare-caption">各版本提供的内容</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">功能</th>
+                      <th scope="col">科普版</th>
+                      <th scope="col">专业版</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th scope="row">导览与图层说明</th>
+                      <td>有</td>
+                      <td>无</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">基岩地形</th>
+                      <td>BedMachine，每个区域一种分辨率</td>
+                      <td>BedMachine、Bedmap3（南极）与 QRF（格陵兰），各两种分辨率</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">冰流</th>
+                      <td>按流速着色的动态冰流线</td>
+                      <td>冰流线、表面流速场与冰流线剖面</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">洋流</th>
+                      <td>一个图层，合并所有深度</td>
+                      <td>四个深度层，可分别查看</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">基底摩擦、冰下水文与冰架融化</th>
+                      <td>无</td>
+                      <td>有；冰下水文与冰架融化仅限南极</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">无冰回弹</th>
+                      <td>已发表的 Paxman 等（2022）响应</td>
+                      <td>已发表的响应，另有可调海平面基准的理想化 ELRA 与 Airy 模型</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">地点搜索、地名与科考站</th>
+                      <td>有</td>
+                      <td>有，另含冰盖流域</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">数据来源</th>
+                      <td>在图层说明中注明</td>
+                      <td>数据快照为当前显示的数据集链接来源</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">适合设备</th>
+                      <td>手机、平板和电脑</td>
+                      <td>屏幕较大的电脑</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          </section>
+
+          <section id="antarctica-features" class="explorer-section explorer-region" aria-labelledby="antarctica-features-title">
+            <div class="explorer-region-intro">
+              <p class="explorer-region-label">南极洲</p>
+              <h2 id="antarctica-features-title">探索南极冰盖的核心特征</h2>
+              <p>
+                作为地球最南端的广袤冰冻荒漠，南极洲蕴藏着全球 90% 的冰，并在其表面之下隐藏着一个由冰下湖泊和河流组成的动态世界，塑造着我们未来的海岸线。
+              </p>
+            </div>
+            <div class="explorer-video-grid explorer-video-grid--antarctica">
+              <article class="explorer-video-card" data-demo-slot="antarctica-velocity-flowlines" data-editions="public research">
+                <div class="explorer-video-copy">
+                  <h3>南极冰速与冰流线</h3>
+                  <p>直观展现快速移动的冰流与汇流网络，揭示南极大陆腹地与边缘溢出冰川及巨型冰架之间的动态联系。</p>
+                  <ul class="explorer-edition-tags" role="list" aria-label="所属版本">
+                    <li><span class="explorer-edition-tag explorer-edition-tag--public">科普版</span></li>
+                    <li><span class="explorer-edition-tag explorer-edition-tag--research">专业版</span></li>
+                  </ul>
+                </div>
+                <div class="explorer-video-media explorer-video-media--video-preview">
+                  <a class="explorer-preview-link explorer-preview-link--video" href="./explore/?region=antarctica&amp;preset=antarctica-velocity-flowlines" data-video-preview>
+                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/antarctica-velocity-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
+                      <source src="/tools/media/3d-ice/antarctica-velocity-preview.mp4" type="video/mp4" />
+                    </video>
+                    <span class="explorer-video-overlay">
+                      <span class="explorer-video-badge"><span>循环预览 · <span class="explorer-video-badge-click">点击</span><span class="explorer-video-badge-tap">轻触</span>打开</span></span>
+                    </span>
+                    <span class="visually-hidden">：南极冰流（科普版）</span>
+                  </a>
+                </div>
+                <p class="explorer-video-alt">也可在<a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-velocity-flowlines">专业版</a>中打开，并显示流速场。</p>
+              </article>
+              <article class="explorer-video-card" data-demo-slot="antarctica-basin-boundary" data-editions="research">
+                <div class="explorer-video-copy">
+                  <h3>流域边界</h3>
+                  <p>全景呈现清晰的冰盖区划与流域轮廓，深刻揭示为何评估区域性冰体流失时，必须依托其特定的流域背景。</p>
+                  <ul class="explorer-edition-tags" role="list" aria-label="所属版本">
+                    <li><span class="explorer-edition-tag explorer-edition-tag--research">专业版</span></li>
+                  </ul>
+                </div>
+                <div class="explorer-video-media explorer-video-media--video-preview">
+                  <a class="explorer-preview-link explorer-preview-link--video" href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-basin-boundary" data-video-preview>
+                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/antarctica-basin-boundary-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
+                      <source src="/tools/media/3d-ice/antarctica-basin-boundary-preview.mp4" type="video/mp4" />
+                    </video>
+                    <span class="explorer-video-overlay">
+                      <span class="explorer-video-badge"><span>循环预览 · <span class="explorer-video-badge-click">点击</span><span class="explorer-video-badge-tap">轻触</span>打开</span></span>
+                    </span>
+                    <span class="visually-hidden">：流域边界（专业版）</span>
+                  </a>
+                </div>
+              </article>
+              <article class="explorer-video-card" data-demo-slot="antarctica-subglacial-features" data-editions="research">
+                <div class="explorer-video-copy">
+                  <h3>冰下特征</h3>
+                  <p>探秘冰盖之下的隐秘世界。精准映射巨厚冰层深处的有效压力分布与冰下水文通道。</p>
+                  <ul class="explorer-edition-tags" role="list" aria-label="所属版本">
+                    <li><span class="explorer-edition-tag explorer-edition-tag--research">专业版</span></li>
+                  </ul>
+                </div>
+                <div class="explorer-video-media explorer-video-media--video-preview">
+                  <a class="explorer-preview-link explorer-preview-link--video" href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-subglacial-features" data-video-preview>
+                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/antarctica-subglacial-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
+                      <source src="/tools/media/3d-ice/antarctica-subglacial-preview.mp4" type="video/mp4" />
+                    </video>
+                    <span class="explorer-video-overlay">
+                      <span class="explorer-video-badge"><span>循环预览 · <span class="explorer-video-badge-click">点击</span><span class="explorer-video-badge-tap">轻触</span>打开</span></span>
+                    </span>
+                    <span class="visually-hidden">：冰下特征（专业版）</span>
+                  </a>
+                </div>
+              </article>
+              <article class="explorer-video-card" data-demo-slot="antarctica-ocean-circulations" data-editions="public research">
+                <div class="explorer-video-copy">
+                  <h3>海洋环流</h3>
+                  <p>沉浸式探索变幻莫测的南大洋环流，揭示其与南极冰架之间至关重要的动态交互。</p>
+                  <ul class="explorer-edition-tags" role="list" aria-label="所属版本">
+                    <li><span class="explorer-edition-tag explorer-edition-tag--public">科普版</span></li>
+                    <li><span class="explorer-edition-tag explorer-edition-tag--research">专业版</span></li>
+                  </ul>
+                </div>
+                <div class="explorer-video-media explorer-video-media--video-preview">
+                  <a class="explorer-preview-link explorer-preview-link--video" href="./explore/?region=antarctica&amp;preset=antarctica-ocean-circulations" data-video-preview>
+                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/antarctica-ocean-streamlines-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
+                      <source src="/tools/media/3d-ice/antarctica-ocean-streamlines-preview.mp4" type="video/mp4" />
+                    </video>
+                    <span class="explorer-video-overlay">
+                      <span class="explorer-video-badge"><span>循环预览 · <span class="explorer-video-badge-click">点击</span><span class="explorer-video-badge-tap">轻触</span>打开</span></span>
+                    </span>
+                    <span class="visually-hidden">：南大洋环流（科普版）</span>
+                  </a>
+                </div>
+                <p class="explorer-video-alt">也可在<a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-ocean-circulations">专业版</a>中打开，可分别开关各深度层。</p>
+              </article>
+            </div>
+          </section>
+
+          <section id="greenland-features" class="explorer-section explorer-region" aria-labelledby="greenland-features-title">
+            <div class="explorer-region-intro">
+              <p class="explorer-region-label">格陵兰</p>
+              <h2 id="greenland-features-title">在同一 3D 视界中，漫游格陵兰冰原</h2>
+              <p>
+                作为北极的“气候前哨”，格陵兰冰盖是一个正在快速演变的巨兽，其加速融化正直接推动全球海平面上升并影响着海洋环流。
+              </p>
+            </div>
+            <div class="explorer-video-grid explorer-video-grid--greenland">
+              <article class="explorer-video-card" data-demo-slot="greenland-velocity-flowlines" data-editions="public research">
+                <div class="explorer-video-copy">
+                  <h3>格陵兰冰速与冰流线</h3>
+                  <p>聚焦由溢出冰川与快速冰流带交织而成的复杂网络，生动展现冰体从高海拔内陆流域向海岸线快速输送的壮观过程。</p>
+                  <ul class="explorer-edition-tags" role="list" aria-label="所属版本">
+                    <li><span class="explorer-edition-tag explorer-edition-tag--public">科普版</span></li>
+                    <li><span class="explorer-edition-tag explorer-edition-tag--research">专业版</span></li>
+                  </ul>
+                </div>
+                <div class="explorer-video-media explorer-video-media--video-preview">
+                  <a class="explorer-preview-link explorer-preview-link--video" href="./explore/?region=greenland&amp;preset=greenland-velocity-flowlines" data-video-preview>
+                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/greenland-velocity-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
+                      <source src="/tools/media/3d-ice/greenland-velocity-preview.mp4" type="video/mp4" />
+                    </video>
+                    <span class="explorer-video-overlay">
+                      <span class="explorer-video-badge"><span>循环预览 · <span class="explorer-video-badge-click">点击</span><span class="explorer-video-badge-tap">轻触</span>打开</span></span>
+                    </span>
+                    <span class="visually-hidden">：格陵兰冰流（科普版）</span>
+                  </a>
+                </div>
+                <p class="explorer-video-alt">也可在<a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-velocity-flowlines">专业版</a>中打开，并显示流速场。</p>
+              </article>
+              <article class="explorer-video-card" data-demo-slot="greenland-ocean-circulations" data-editions="public research">
+                <div class="explorer-video-copy">
+                  <h3>海洋环流</h3>
+                  <p>深入探究周边洋流与格陵兰深邃峡湾的交汇互动，为解析入海冰川的动态演变与退缩机制提供关键的科学背景。</p>
+                  <ul class="explorer-edition-tags" role="list" aria-label="所属版本">
+                    <li><span class="explorer-edition-tag explorer-edition-tag--public">科普版</span></li>
+                    <li><span class="explorer-edition-tag explorer-edition-tag--research">专业版</span></li>
+                  </ul>
+                </div>
+                <div class="explorer-video-media explorer-video-media--video-preview">
+                  <a class="explorer-preview-link explorer-preview-link--video" href="./explore/?region=greenland&amp;preset=greenland-ocean-circulations" data-video-preview>
+                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/greenland-ocean-circulations-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
+                      <source src="/tools/media/3d-ice/greenland-ocean-circulations-preview.mp4" type="video/mp4" />
+                    </video>
+                    <span class="explorer-video-overlay">
+                      <span class="explorer-video-badge"><span>循环预览 · <span class="explorer-video-badge-click">点击</span><span class="explorer-video-badge-tap">轻触</span>打开</span></span>
+                    </span>
+                    <span class="visually-hidden">：格陵兰周边海洋（科普版）</span>
+                  </a>
+                </div>
+                <p class="explorer-video-alt">也可在<a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-ocean-circulations">专业版</a>中打开，可分别开关各深度层。</p>
+              </article>
+            </div>
+          </section>
+
+          <section id="latest-updates" class="explorer-section explorer-update-section" aria-labelledby="latest-updates-title">
+            <div class="explorer-region-intro">
+              <p class="explorer-region-label">最新更新</p>
+              <h2 id="latest-updates-title">3D ICE 最近更新</h2>
+              <p>在这里了解极地数据探索功能的最新改进，并通过发布日期快速掌握每次更新。</p>
+            </div>
+            <ol class="explorer-update-list">
+              <li>
+                <article class="explorer-update-card" aria-labelledby="public-edition-update-title">
+                  <div class="explorer-update-meta">
+                    <time class="explorer-update-date" datetime="2026-09-30">2026年9月30日</time>
+                    <span class="explorer-update-badge">科普版</span>
+                  </div>
+                  <div class="explorer-update-body">
+                    <h3 id="public-edition-update-title">科普版上线：跟随导览认识冰盖</h3>
+                    <p>
+                      3D ICE 现在提供两个版本。全新的科普版保留探索器的核心功能，面向访客、课堂和科普展台，边看边讲解背后的科学，支持中文与英文。专业版保留全部数据集与图层，网址不变。
+                    </p>
+                    <ul class="explorer-update-highlights">
+                      <li><strong>导览：</strong>八站导览，从冰雪大陆一路探访冰层下的基岩、南大洋和格陵兰。</li>
+                      <li><strong>图层说明：</strong>点击任一图层旁的 (i)，用通俗的语言了解它展示了什么、依据哪些数据。</li>
+                      <li><strong>移除冰盖：</strong>三秒内看冰盖消融、下方的陆地缓缓抬升。</li>
+                    </ul>
+                    <div class="explorer-actions">
+                      <a class="explorer-button explorer-button--primary" href="./explore/?tour=1">开始导览</a>
+                    </div>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="explorer-update-card" aria-labelledby="isostatic-rebound-update-title">
+                  <div class="explorer-update-meta">
+                    <time class="explorer-update-date" datetime="2026-09-22">2026年9月22日</time>
+                    <span class="explorer-update-badge">交互式探索器</span>
+                  </div>
+                  <div class="explorer-update-body">
+                    <h3 id="isostatic-rebound-update-title">看基岩在冰消失后回弹</h3>
+                    <p>
+                      新的地壳均衡回弹图层展示移除现有冰载荷后固体地球回弹的幅度，让你看到哪些今天位于海平面以下的基岩会升出水面，南极洲与格陵兰均可查看。
+                    </p>
+                    <ul class="explorer-update-highlights">
+                      <li><strong>情景：</strong>拖动<strong>冰消与回弹进度</strong>，从现今一直推进到完全平衡态。</li>
+                      <li><strong>地球响应：</strong>默认采用 Paxman 等（2022）已发表的响应，区域挠曲与局地 Airy 地壳平衡作为理想化的假设情景。</li>
+                      <li><strong>出露：</strong>高亮新出露的陆地，并查看抬升量、面积、等效海平面等数值及模型假设。</li>
+                    </ul>
+                    <div class="explorer-actions">
+                      <a class="explorer-button explorer-button--primary" href="./tools/3D-interactive-cryosphere-explorer.html">打开专业版</a>
+                    </div>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="explorer-update-card" aria-labelledby="polar-place-search-update-title">
+                  <div class="explorer-update-meta">
+                    <time class="explorer-update-date" datetime="2026-08-13">2026年8月13日</time>
+                    <span class="explorer-update-badge">交互式探索器</span>
+                  </div>
+                  <div class="explorer-update-body">
+                    <h3 id="polar-place-search-update-title">搜索极地地点与地理特征</h3>
+                    <p>南极洲与格陵兰探索器现已将科考站、精选地理名称和细化流域整合到同一套可搜索体验中。</p>
+                    <ul class="explorer-update-highlights">
+                      <li><strong>图层：</strong>按需选择<strong>地点与地理特征</strong>中的图层。</li>
+                      <li><strong>搜索：</strong>按名称查找地点和地理特征，包括细化流域。</li>
+                      <li><strong>定位：</strong>在南极洲与格陵兰之间切换，并直接移动到搜索结果。</li>
+                    </ul>
+                    <div class="explorer-actions">
+                      <a class="explorer-button explorer-button--primary" href="./tools/3D-interactive-cryosphere-explorer.html">打开专业版</a>
+                    </div>
+                  </div>
+                </article>
+              </li>
+            </ol>
+          </section>
+
+          <section id="key-features" class="explorer-section explorer-feature-section" aria-labelledby="key-features-title">
+            <div class="explorer-region-intro">
+              <p class="explorer-region-label">核心特性</p>
+              <h2 id="key-features-title">3D ICE 的独特之处</h2>
+            </div>
+            <div class="explorer-feature-grid">
+              <article class="explorer-feature-card">
+                <h3>浏览器里的真 3D</h3>
+                <p>自由旋转、缩放和倾斜冰盖，让冰层变得透明，还能夸大地形起伏，宛如将真实的冰盖模型托于掌心。无需安装任何软件，支持 WebGL 的浏览器即可使用。</p>
+              </article>
+              <article class="explorer-feature-card">
+                <h3>每一层都可溯源</h3>
+                <p>每个图层都来自已发表的数据集、模型或预印本，并注明出处，你看到的一切都能追溯到原始数据产品。</p>
+              </article>
+              <article class="explorer-feature-card">
+                <h3>两大冰盖，一处尽览</h3>
+                <p>在同一环境中切换南极洲与格陵兰，两者使用相同的控件和相同的核心图层：陆地、冰盖、海洋，以及冰盖消失后的回弹。冰下水文与冰架融化仅限南极。</p>
+              </article>
+              <article class="explorer-feature-card">
+                <h3>手机流畅，大屏清晰</h3>
+                <p>标准地形让手机和平板运行流畅；在桌面大屏上，专业版的高清地形（南极 4 km，格陵兰 1 km）可呈现更精细的细节。</p>
+              </article>
+            </div>
+          </section>
+
+          <section id="source-data" class="explorer-section explorer-source-section" aria-labelledby="source-data-title">
+            <div class="explorer-region-intro">
+              <p class="explorer-region-label">源数据</p>
+              <h2 id="source-data-title">3D ICE 背后的数据集</h2>
+              <p>
+                每个图层都来自已发表的数据集、模型或预印本。专业版的数据快照为当前显示的数据集链接来源，科普版的图层说明也注明了所用数据。3D ICE 本身以 MIT 许可证开源：代码以及生成数据包的脚本都在 <a href="https://github.com/yuwang115/3d-ice" target="_blank" rel="noopener">GitHub</a> 上。
+              </p>
+            </div>
+            <div class="explorer-source-columns">
+              <article class="explorer-source-column">
+                <h3>南极洲</h3>
+                <ul class="explorer-source-list">
+                  <li><a href="https://nsidc.org/data/NSIDC-0756/versions/4" target="_blank" rel="noopener" lang="en">MEaSUREs BedMachine Antarctica, Version 4</a></li>
+                  <li><a href="https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2" target="_blank" rel="noopener">Bedmap3 南极洲，版本 1.0</a></li>
+                  <li><a href="https://nsidc.org/data/NSIDC-0709/versions/2" target="_blank" rel="noopener" lang="en">MEaSUREs Antarctic Boundaries for IPY 2007-2009 from Satellite Radar, Version 2</a></li>
+                  <li><a href="https://nsidc.org/data/NSIDC-0754/versions/1" target="_blank" rel="noopener" lang="en">MEaSUREs Phase-Based Antarctica Ice Velocity Map, Version 1</a></li>
+                  <li><a href="https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1" target="_blank" rel="noopener" lang="en">Antarctic Ice-Sheet Basal Friction from Elmer/Ice Inversions</a></li>
+                  <li><a href="https://zenodo.org/records/12738170" target="_blank" rel="noopener" lang="en">GlaDS Simulated Antarctic Wide Subglacial Hydrology</a></li>
+                  <li><a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full" target="_blank" rel="noopener" lang="en">WAOM2 Annual-Mean Antarctic Ocean Circulation Fields</a></li>
+                  <li><a href="https://data.aad.gov.au/metadata/RISE" target="_blank" rel="noopener" lang="en">Multi-Model Estimate of Antarctic Ice-Shelf Basal Melting and Ocean Drivers</a></li>
+                  <li><a href="https://doi.org/10.18739/A22Z12R8C" target="_blank" rel="noopener">格陵兰与南极冰盖完全卸载后的总均衡响应（Paxman、Austermann 与 Hollyday，2022）</a></li>
+                  <li><a href="https://doi.org/10.3189/S0260305500013586" target="_blank" rel="noopener">不同地壳均衡处理方法的比较：以末次冰期旋回南极冰盖模拟为例（Le Meur &amp; Huybrechts, 1996）</a></li>
+                  <li><a href="https://www.comnap.aq/antarctic-facilities-information" target="_blank" rel="noopener">COMNAP 南极设施名录</a></li>
+                  <li><a href="https://placenames.aq/information" target="_blank" rel="noopener">SCAR 南极综合地名录</a></li>
+                  <li><a href="https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-physical-labels/" target="_blank" rel="noopener">Natural Earth 自然地理标注</a></li>
+                </ul>
+              </article>
+              <article class="explorer-source-column">
+                <h3>格陵兰</h3>
+                <ul class="explorer-source-list">
+                  <li><a href="https://nsidc.org/data/idbmg4/versions/6" target="_blank" rel="noopener" lang="en">IceBridge BedMachine Greenland, Version 6</a></li>
+                  <li><a href="https://doi.org/10.1017/jog.2025.10071" target="_blank" rel="noopener">格陵兰 QRF 冰下地形（2025）</a></li>
+                  <li><a href="https://doi.org/10.7280/D1WT11" target="_blank" rel="noopener">格陵兰冰盖冰川汇水流域（Mouginot &amp; Rignot, 2019）</a></li>
+                  <li><a href="https://nsidc.org/data/NSIDC-0776/versions/2" target="_blank" rel="noopener" lang="en">MEaSUREs ITS_LIVE Regional Glacier and Ice Sheet Surface Velocities, Version 2</a></li>
+                  <li><a href="https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1" target="_blank" rel="noopener" lang="en">Greenland Basal Friction Ensemble Inversion Reference</a></li>
+                  <li><a href="https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description" target="_blank" rel="noopener" lang="en">Copernicus Marine Arctic Ocean Physics Analysis and Forecast</a></li>
+                  <li><a href="https://doi.org/10.18739/A22Z12R8C" target="_blank" rel="noopener">格陵兰与南极冰盖完全卸载后的总均衡响应（Paxman、Austermann 与 Hollyday，2022）</a></li>
+                  <li><a href="https://doi.org/10.3189/S0260305500013586" target="_blank" rel="noopener">不同地壳均衡处理方法的比较：以末次冰期旋回南极冰盖模拟为例（Le Meur &amp; Huybrechts, 1996）</a></li>
+                  <li><a href="https://www.interact-gis.org/" target="_blank" rel="noopener">INTERACT 科考站名录</a></li>
+                  <li><a href="https://kort.nunagis.gl/refserver/rest/services/PlacenamesRegister/PlacenamesRegisterSearch/MapServer/1" target="_blank" rel="noopener">格陵兰地名登记册（NunaGIS）</a></li>
+                  <li><a href="https://www.gebco.net/data-products/undersea-feature-names" target="_blank" rel="noopener">IHO-IOC GEBCO 海底地名录</a></li>
+                  <li><a href="https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-physical-labels/" target="_blank" rel="noopener">Natural Earth 自然地理标注</a></li>
+                </ul>
+              </article>
+            </div>
+          </section>
+
+          <section id="feedback" class="explorer-section explorer-feedback-only explorer-community-section" aria-labelledby="feedback-title">
+            <div class="explorer-community-grid">
+              <div class="explorer-community-copy">
+                <p class="explorer-region-label">社区</p>
+                <h2 id="feedback-title">一起打造终极冰冻圈平台</h2>
+                <p>3D ICE 仍在持续演进，我非常期待来自冰川学社区的反馈，以帮助我继续完善它。</p>
+                <ul class="explorer-community-list">
+                  <li><strong>有数据想分享？</strong>如果你希望我把其他数据集整合进 3D ICE，欢迎联系我。</li>
+                  <li><strong>欢迎传播分享：</strong>如果 3D ICE 能为你的研究、教学或科普工作带来便利，请不要吝啬，将它分享给身边需要的人。</li>
+                </ul>
+              </div>
+              <div class="explorer-feedback-panel explorer-feedback-panel--faq-style">
+                <div class="tool-feedback-root">
+                  <div class="tool-feedback-card">
+                    <div class="tool-feedback-card-inner">
+                      <div class="tool-feedback-heading">
+                        <div class="tool-feedback-body">
+                          如果你对 3D ICE 有想法、数据集建议、Bug 报告或可用性反馈，可以在这里快速留言。欢迎使用中文或英文。
+                        </div>
+                      </div>
+                      <div id="faq-feedback-3d-ice-success" class="tool-feedback-success" aria-live="polite" tabindex="-1">
+                        <h3>感谢反馈。</h3>
+                        <p>你的反馈已发送。我会阅读这些消息，用来改进工具并修复问题。</p>
+                        <button type="button" class="tool-feedback-reset" data-feedback-reset="faq-feedback-3d-ice-form">再发一条</button>
+                      </div>
+                      <div id="faq-feedback-3d-ice-error" class="tool-feedback-alert" aria-live="polite">
+                        <h3>提交失败。</h3>
+                        <p>刚才未能成功发送你的消息。请稍后重试；如果问题持续存在，也可以直接发邮件给我。</p>
+                      </div>
+                      <form
+                        id="faq-feedback-3d-ice-form"
+                        class="tool-feedback-form"
+                        action="https://usebasin.com/f/53e802e0991e"
+                        method="POST"
+                        accept-charset="UTF-8"
+                        data-basin-form
+                        data-basin-success-action="render"
+                        data-basin-success-id="faq-feedback-3d-ice-success"
+                        data-basin-error-id="faq-feedback-3d-ice-error"
+                        data-default-tool="3D ICE：冰冻圈交互探索平台"
+                        data-label-submit="发送反馈"
+                        data-label-sending="发送中..."
+                        data-status-sending="正在提交反馈..."
+                        data-status-sent="感谢反馈，消息已发送。"
+                        data-status-failed="提交失败，请重试或直接邮件联系我。"
+                      >
+                        <input type="hidden" name="source_page" value="/zh/" />
+                        <input type="hidden" name="source_section" value="tools-feedback" data-feedback-source-section />
+                        <input type="hidden" name="page_url" data-feedback-page-url />
+                        <input type="hidden" name="page_title" value="3D ICE:冰冻圈交互探索平台" />
+                        <input type="hidden" name="site_lang" value="zh" />
+                        <div class="tool-feedback-honeypot" aria-hidden="true">
+                          <label for="faq-feedback-3d-ice-website">请留空此字段</label>
+                          <input id="faq-feedback-3d-ice-website" type="text" name="website" tabindex="-1" autocomplete="off" />
+                        </div>
+                        <div class="tool-feedback-grid">
+                          <div class="tool-feedback-field">
+                            <label class="tool-feedback-label" for="faq-feedback-3d-ice-tool">工具</label>
+                            <select id="faq-feedback-3d-ice-tool" class="tool-feedback-select" name="tool" required data-feedback-tool-select>
+                              <option value="" disabled>选择工具</option>
+                              <option value="3D ICE：冰冻圈交互探索平台" selected>3D ICE：冰冻圈交互探索平台</option>
+                              <option value="Regularised Coulomb Sliding Law demo">Regularised Coulomb Sliding Law demo</option>
+                              <option value="Marine Ice Sheet Flowline Lab">Marine Ice Sheet Flowline Lab</option>
+                              <option value="通用工具/站点反馈">通用工具/站点反馈</option>
+                            </select>
+                          </div>
+                          <div class="tool-feedback-field">
+                            <label class="tool-feedback-label" for="faq-feedback-3d-ice-email">
+                              邮箱 <span class="tool-feedback-hint">可选，如希望收到回复</span>
+                            </label>
+                            <input id="faq-feedback-3d-ice-email" class="tool-feedback-input" type="email" name="email" inputmode="email" autocomplete="email" placeholder="you@example.com" />
+                          </div>
+                          <div class="tool-feedback-field tool-feedback-field--full">
+                            <label class="tool-feedback-label" for="faq-feedback-3d-ice-message">留言</label>
+                            <textarea id="faq-feedback-3d-ice-message" class="tool-feedback-textarea" name="message" required placeholder="告诉我哪些内容有效，哪些地方令人困惑，哪里出了问题，或者你希望我新增什么功能。" data-feedback-message></textarea>
+                          </div>
+                        </div>
+                        <div class="tool-feedback-actions">
+                          <div class="tool-feedback-actions-left">
+                            <button type="submit" class="tool-feedback-submit">发送反馈</button>
+                            <a class="tool-feedback-secondary" href="mailto:wangyu@uchicago.edu">改发邮件</a>
+                          </div>
+                          <div id="faq-feedback-3d-ice-status" class="tool-feedback-status" role="status"></div>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="explorer-community-cta-standalone">
+            <div class="explorer-community-cta-row">
+              <a class="explorer-button explorer-button--community-utility" href="./explore/?tour=1">开始导览</a>
+              <a class="explorer-button explorer-button--browse-spotlight" href="https://yuwang.blog/tools/#tools-demo" rel="nofollow">浏览其他研究工具</a>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <div class="explorer-footer-logos" role="group" aria-label="IMAS 与 AAPP 标志">
+        <div class="explorer-footer-logo explorer-footer-logo--imas">
+          <img src="/logos/imas-utas.png" data-light-src="/logos/imas-utas.png" data-dark-src="/logos/imas-utas-dark.png" alt="塔斯马尼亚大学海洋与南极研究所" width="494" height="230" loading="lazy" decoding="async" />
+        </div>
+        <div class="explorer-footer-logo explorer-footer-logo--aapp">
+          <img src="/logos/aapp.png" data-light-src="/logos/aapp.png" data-dark-src="/logos/aapp-dark.png" alt="澳大利亚南极计划伙伴关系" width="922" height="418" loading="lazy" decoding="async" />
+        </div>
+      </div>
+      <p class="explorer-footer-note">
+        © 2026 Yu Wang。本作品采用
+        <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer">MIT 许可证</a>
+        授权。<a href="https://github.com/yuwang115/3d-ice" target="_blank" rel="noopener">在 GitHub 查看源代码</a>。
+      </p>
+    </footer>
+    <script src="https://js.usebasin.com/v2.10.1.min.js" defer></script>
+  </body>
+</html>

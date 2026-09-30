@@ -1,24 +1,788 @@
-<!doctype html><html lang=en-us dir=ltr data-wc-theme-default=system><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=generator content="Hugo Blox Builder 0.4.2"><meta name=author content="Yu (Eddie) Wang"><meta name=description content="3D ICE is an Interactive Cryosphere Explorer for Antarctica and Greenland, designed to transform complex, state-of-the-art cryosphere datasets into an intuitive 3D experience, seamlessly bridging the gap between rigorous glaciological research and public curiosity."><link rel=alternate hreflang=en-US href=https://3d-ice.com/><link rel=alternate hreflang=zh-CN href=https://3d-ice.com/zh/><link rel=alternate hreflang=x-default href=https://3d-ice.com/><link rel=stylesheet href=/css/sky.min.css><link href=/css/wc.min.css rel=stylesheet><link href=/css/3d-ice-home.css rel=stylesheet><link href=/css/3d-ice-updates.css rel=stylesheet><script src=/js/3d-ice-locale.js></script><script>window.hbb={defaultTheme:document.documentElement.dataset.wcThemeDefault,setDarkTheme:()=>{document.documentElement.classList.add("dark"),document.documentElement.style.colorScheme="dark"},setLightTheme:()=>{document.documentElement.classList.remove("dark"),document.documentElement.style.colorScheme="light"}},console.debug(`Default Hugo Blox Builder theme is ${window.hbb.defaultTheme}`),"wc-color-theme"in localStorage?localStorage.getItem("wc-color-theme")==="dark"?window.hbb.setDarkTheme():window.hbb.setLightTheme():(window.hbb.defaultTheme==="dark"?window.hbb.setDarkTheme():window.hbb.setLightTheme(),window.hbb.defaultTheme==="system"&&(window.matchMedia("(prefers-color-scheme: dark)").matches?window.hbb.setDarkTheme():window.hbb.setLightTheme()))</script><script>document.addEventListener("DOMContentLoaded",function(){var t=document.getElementById("themeToggle");t&&t.addEventListener("click",function(){var d=document.documentElement.classList.contains("dark");d?(window.hbb.setLightTheme(),localStorage.setItem("wc-color-theme","light")):(window.hbb.setDarkTheme(),localStorage.setItem("wc-color-theme","dark"))})})</script><script>document.addEventListener("DOMContentLoaded",function(){let e=document.querySelectorAll("li input[type='checkbox'][disabled]");e.forEach(e=>{e.parentElement.parentElement.classList.add("task-list")});const t=document.querySelectorAll(".task-list li");t.forEach(e=>{let t=Array.from(e.childNodes).filter(e=>e.nodeType===3&&e.textContent.trim().length>1);if(t.length>0){const n=document.createElement("label");t[0].after(n),n.appendChild(e.querySelector("input[type='checkbox']")),n.appendChild(t[0])}})})</script><script async src="https://www.googletagmanager.com/gtag/js?id=G-YGK0V9S67F"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}function trackOutboundLink(e,t){gtag("event","click",{event_category:"outbound",event_label:e,transport_type:"beacon",event_callback:function(){t!=="_blank"&&(document.location=e)}}),console.debug("Outbound link clicked: "+e)}function onClickCallback(e){if(e.target.tagName!=="A"||e.target.host===window.location.host)return;trackOutboundLink(e.target,e.target.getAttribute("target"))}gtag("js",new Date),gtag("config","G-YGK0V9S67F",{}),gtag("set",{cookie_flags:"SameSite=None;Secure"}),document.addEventListener("click",onClickCallback,!1)</script><link rel="shortcut icon" href="/favicon.ico"><link rel=icon type=image/png sizes=32x32 href=/favicon-32.png><link rel=icon type=image/png sizes=192x192 href=/favicon.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=canonical href=https://3d-ice.com/><meta property="twitter:card" content="summary_large_image"><meta property="og:site_name" content="3D ICE"><meta property="og:url" content="https://3d-ice.com/"><meta property="og:title" content="3D ICE: Interactive Cryosphere Explorer"><meta property="og:description" content="3D ICE is an Interactive Cryosphere Explorer for Antarctica and Greenland, designed to transform complex, state-of-the-art cryosphere datasets into an intuitive 3D experience, seamlessly bridging the gap between rigorous glaciological research and public curiosity."><meta property="og:image" content="https://3d-ice.com/tools/featured.png"><meta property="twitter:image" content="https://3d-ice.com/tools/featured.png"><meta property="og:locale" content="en-us"><meta property="article:published_time" content="2026-03-09T00:00:00+00:00"><meta property="article:modified_time" content="2026-03-26T00:00:00+00:00"><title>3D ICE: Interactive Cryosphere Explorer</title><style>@font-face{font-family:inter var;font-style:normal;font-weight:100 900;font-display:swap;src:url(/css/font/Inter.var.woff2)format(woff2)}</style><script type=application/ld+json>{"@context":"https://schema.org","@type":"WebApplication","applicationCategory":"EducationalApplication","author":{"@type":"Person","name":"Yu Wang","url":"https://yuwang.blog/"},"browserRequirements":"Requires a modern WebGL-enabled browser.","description":"3D ICE is an Interactive Cryosphere Explorer for Antarctica and Greenland, designed to transform complex, state-of-the-art cryosphere datasets into an intuitive 3D experience, seamlessly bridging the gap between rigorous glaciological research and public curiosity.","featureList":["Fully interactive 3D experience","Comprehensive and customisable Antarctica and Greenland data","Direct gateway to source datasets","Balanced and HD cryosphere presets across devices"],"image":"https://3d-ice.com/tools/featured.png","inLanguage":"en-us","name":"3D ICE","alternateName":"Interactive Cryosphere Explorer","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"operatingSystem":"Any","publisher":{"@type":"Organization","name":"Yu Wang","url":"https://3d-ice.com/"},"thumbnailUrl":"https://3d-ice.com/tools/featured.png","url":"https://3d-ice.com/"}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"WebSite","name":"3D ICE","alternateName":["Interactive Cryosphere Explorer"],"url":"https://3d-ice.com/"}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","acceptedAnswer":{"@type":"Answer","text":"3D ICE is an interactive cryosphere platform that makes specialised cryosphere data more vivid, intuitive, and accessible through explorable 3D views of Antarctica and Greenland."},"name":"What is 3D ICE?"},{"@type":"Question","acceptedAnswer":{"@type":"Answer","text":"3D ICE is designed for research communication, classroom teaching, and wider public engagement around a changing planet."},"name":"Who is 3D ICE for?"},{"@type":"Question","acceptedAnswer":{"@type":"Answer","text":"3D ICE supports both Antarctica and Greenland, combining continental-scale land data with simulated ocean circulations and offering balanced and HD viewing options depending on the device."},"name":"What data can I explore in 3D ICE?"},{"@type":"Question","acceptedAnswer":{"@type":"Answer","text":"Yes. 3D ICE is continually evolving and welcomes feedback, as well as suggestions for Antarctic or Greenland datasets to integrate."},"name":"Can I contribute data or feedback?"}]}</script><script async defer src=https://buttons.github.io/buttons.js></script></head><body class="dark:bg-hb-dark dark:text-white page-wrapper" id=top><div id=page-bg></div><div class="page-header sticky top-0 z-30"></div><div class="page-body my-10"><div class="explorer-page-shell explorer-page-shell--ice"><article><div class=explorer-page-topbar><nav class=explorer-page-breadcrumb aria-label=Breadcrumb><a href=https://yuwang.blog/tools/ rel=nofollow>Tools</a>
-<span>/</span>
-<span>3D ICE</span></nav><div class=explorer-topbar-actions><div id=homeLocaleSwitcher class=explorer-home-locale-switcher></div><button class=explorer-theme-toggle id=themeToggle type=button aria-label="Toggle dark mode"><svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg><svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div><header><p class=explorer-page-kicker>Interactive Cryosphere Explorer</p><h1 class=explorer-page-title>3D ICE: The Polar World at Your Fingertips</h1></header><div class=explorer-page-content><div class="explorer-landing explorer-landing--ice"><section class="explorer-ice-hero explorer-ice-hero--split"><div class=explorer-hero-copy><div class=explorer-ice-brand><img class=explorer-ice-logo src=./tools/3d-ice-logo-light.jpg alt="3D ICE logo" loading=eager></div><p class=explorer-ice-lead>Explore Antarctica and Greenland like never before.</p><p class=explorer-summary>3D ICE is an Interactive Cryosphere Explorer designed to turn state-of-the-art Antarctica and Greenland datasets into an intuitive browser-based experience for glaciology research, teaching, and public engagement.</p><div class="explorer-actions explorer-actions--hero-grid"><a class="explorer-button explorer-button--primary explorer-button--hero-launch" href=./explore/>Launch Explorer</a>
-<a class="explorer-button explorer-button--ghost explorer-button--hero-antarctica" href=#antarctica-features>Antarctica Features</a>
-<a class="explorer-button explorer-button--ghost explorer-button--hero-source" href=#source-data>Source Data</a>
-<a class="explorer-button explorer-button--ghost explorer-button--hero-greenland" href=#greenland-features>Greenland Features</a></div><p class="explorer-showcase-note explorer-edition-note">New to the ice sheets? The explorer offers a short guided tour. For every dataset, resolution and layer, open the <a href=./tools/3D-interactive-cryosphere-explorer.html>research edition</a>.</p></div><div class="explorer-showcase-breakout explorer-showcase-breakout--hero"><div class="explorer-showcase-frame explorer-showcase-frame--mobile-linkout"><iframe title="3D ICE interactive Antarctica showcase" src="./tools/3D-interactive-cryosphere-explorer.html?mode=showcase&preset=tools-hero&mobileLinkout=1&desktopInteractive=1&recording=1&recordingSpeed=0.60&recordingZoomAmount=10" loading=eager fetchpriority=high referrerpolicy=no-referrer></iframe>
-<a class=explorer-showcase-mobile-link href=./explore/ aria-label="Open the full 3D ICE interface"><span class=explorer-showcase-mobile-link-badge>Tap for full 3D ICE interface</span></a></div></div></section><section id=antarctica-features class="explorer-section explorer-region"><div class=explorer-region-intro><p class=explorer-region-label>Antarctica</p><h2>Discover Key Features of the Antarctic Ice Sheet</h2><p>A vast, frozen desert at the bottom of the Earth, Antarctica holds 90% of the world's ice and hides a dynamic, hidden landscape of subglacial lakes and rivers that shape our future coastlines.</p></div><div class="explorer-video-grid explorer-video-grid--antarctica"><article class=explorer-video-card data-demo-slot=antarctica-velocity-flowlines><div class=explorer-video-copy><h3>Antarctic ice velocity and flowlines</h3><p>Watch how fast-flowing ice streams and drainage patterns connect the deep continental interior to outlet glaciers and massive ice shelves across Antarctica.</p></div><div class="explorer-video-media explorer-video-media--interactive explorer-video-media--video-preview"><a class="explorer-preview-link explorer-preview-link--video" href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&preset=antarctica-velocity-flowlines" data-video-preview><video class=explorer-feature-video poster=./tools/media/3d-ice/antarctica-velocity-preview.jpg preload=metadata muted autoplay loop playsinline webkit-playsinline aria-hidden=true>
-<source src=./tools/media/3d-ice/antarctica-velocity-preview.mp4 type=video/mp4></video><div class=explorer-video-overlay><span class=explorer-video-badge>Loop Preview - <span class=explorer-video-badge-click>Click&nbsp;</span><span class=explorer-video-badge-tap>tap&nbsp;</span>to start</span></div></a></div></article><article class=explorer-video-card data-demo-slot=antarctica-basin-boundary><div class=explorer-video-copy><h3>Basin boundaries</h3><p>Visualize distinct catchment outlines to see exactly how the ice sheet is partitioned, highlighting why regional ice loss must be interpreted within its specific basin context.</p></div><div class="explorer-video-media explorer-video-media--interactive explorer-video-media--video-preview"><a class="explorer-preview-link explorer-preview-link--video" href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&preset=antarctica-basin-boundary" data-video-preview><video class=explorer-feature-video poster=./tools/media/3d-ice/antarctica-basin-boundary-preview.jpg preload=metadata muted autoplay loop playsinline webkit-playsinline aria-hidden=true>
-<source src=./tools/media/3d-ice/antarctica-basin-boundary-preview.mp4 type=video/mp4></video><div class=explorer-video-overlay><span class=explorer-video-badge>Loop Preview - <span class=explorer-video-badge-click>Click&nbsp;</span><span class=explorer-video-badge-tap>tap&nbsp;</span>to start</span></div></a></div></article><article class=explorer-video-card data-demo-slot=antarctica-subglacial-features><div class=explorer-video-copy><h3>Subglacial features</h3><p>Reveal the hidden world. Map effective pressure and subglacial channels beneath miles of ice.</p></div><div class="explorer-video-media explorer-video-media--interactive explorer-video-media--video-preview"><a class="explorer-preview-link explorer-preview-link--video" href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&preset=antarctica-subglacial-features" data-video-preview><video class=explorer-feature-video poster=./tools/media/3d-ice/antarctica-subglacial-preview.jpg preload=metadata muted autoplay loop playsinline webkit-playsinline aria-hidden=true>
-<source src=./tools/media/3d-ice/antarctica-subglacial-preview.mp4 type=video/mp4></video><div class=explorer-video-overlay><span class=explorer-video-badge>Loop Preview - <span class=explorer-video-badge-click>Click&nbsp;</span><span class=explorer-video-badge-tap>tap&nbsp;</span>to start</span></div></a></div></article><article class=explorer-video-card data-demo-slot=antarctica-ocean-circulations><div class=explorer-video-copy><h3>Ocean circulations</h3><p>Dive into the ever-changing circulation of the Southern Ocean and reveal its critical interactions with Antarctic ice shelves.</p></div><div class="explorer-video-media explorer-video-media--interactive explorer-video-media--video-preview"><a class="explorer-preview-link explorer-preview-link--video" href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&preset=antarctica-ocean-circulations" data-video-preview><video class=explorer-feature-video poster=./tools/media/3d-ice/antarctica-ocean-streamlines-preview.jpg preload=metadata muted autoplay loop playsinline webkit-playsinline aria-hidden=true>
-<source src=./tools/media/3d-ice/antarctica-ocean-streamlines-preview.mp4 type=video/mp4></video><div class=explorer-video-overlay><span class=explorer-video-badge>Loop Preview - <span class=explorer-video-badge-click>Click&nbsp;</span><span class=explorer-video-badge-tap>tap&nbsp;</span>to start</span></div></a></div></article></div></section><section id=greenland-features class="explorer-section explorer-region"><div class=explorer-region-intro><p class=explorer-region-label>Greenland</p><h2>Seamlessly Transition to Greenland in One Unified 3D Environment</h2><p>Serving as the Arctic's climate sentinel, the Greenland Ice Sheet is a rapidly transforming giant whose accelerating melt directly drives global sea-level rise and influences ocean circulation.</p></div><div class="explorer-video-grid explorer-video-grid--greenland"><article class=explorer-video-card data-demo-slot=greenland-velocity-flowlines><div class=explorer-video-copy><h3>Greenland ice velocity and flowlines</h3><p>Focus on a complex network of outlet glaciers and fast-flow structures, visualizing how ice is swiftly routed from high-altitude interior catchments down to the coast.</p></div><div class="explorer-video-media explorer-video-media--interactive explorer-video-media--video-preview"><a class="explorer-preview-link explorer-preview-link--video" href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&preset=greenland-velocity-flowlines" data-video-preview><video class=explorer-feature-video poster=./tools/media/3d-ice/greenland-velocity-preview.jpg preload=metadata muted autoplay loop playsinline webkit-playsinline aria-hidden=true>
-<source src=./tools/media/3d-ice/greenland-velocity-preview.mp4 type=video/mp4></video><div class=explorer-video-overlay><span class=explorer-video-badge>Loop Preview - <span class=explorer-video-badge-click>Click&nbsp;</span><span class=explorer-video-badge-tap>tap&nbsp;</span>to start</span></div></a></div></article><article class=explorer-video-card data-demo-slot=greenland-ocean-circulations><div class=explorer-video-copy><h3>Ocean circulations</h3><p>Examine how surrounding ocean currents interact with Greenland’s deep fjords, providing crucial context for the behavior and retreat of marine-terminating glaciers.</p></div><div class="explorer-video-media explorer-video-media--interactive explorer-video-media--video-preview"><a class="explorer-preview-link explorer-preview-link--video" href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&preset=greenland-ocean-circulations" data-video-preview><video class=explorer-feature-video poster=./tools/media/3d-ice/greenland-ocean-circulations-preview.jpg preload=metadata muted autoplay loop playsinline webkit-playsinline aria-hidden=true>
-<source src=./tools/media/3d-ice/greenland-ocean-circulations-preview.mp4 type=video/mp4></video><div class=explorer-video-overlay><span class=explorer-video-badge>Loop Preview - <span class=explorer-video-badge-click>Click&nbsp;</span><span class=explorer-video-badge-tap>tap&nbsp;</span>to start</span></div></a></div></article></div></section><section id=latest-updates class="explorer-section explorer-update-section" aria-labelledby=latest-updates-title><div class=explorer-region-intro><p class=explorer-region-label>Latest Updates</p><h2 id=latest-updates-title>What’s new in 3D ICE</h2><p>Follow the newest ways to explore polar data, with each release dated so you can quickly see what changed.</p></div><ol class=explorer-update-list><li><article class=explorer-update-card aria-labelledby=isostatic-rebound-update-title><div class=explorer-update-meta><time class=explorer-update-date datetime=2026-09-22>September 22, 2026</time><span class=explorer-update-badge>Interactive explorer</span></div><div class=explorer-update-body><h3 id=isostatic-rebound-update-title>Watch the bed rebound once the ice is gone</h3><p>A new isostatic-rebound layer solves how far the solid Earth springs back after the present ice load is removed, so you can see which bed that sits below sea level today would rise above it. It is computed in the browser from the terrain package already loaded, for both Antarctica and Greenland.</p><ul class=explorer-update-highlights><li><strong>Scenario:</strong> Scrub <strong>Deglaciation &amp; rebound</strong> from today through to full equilibrium.</li><li><strong>Earth response:</strong> Compare regional flexure with local Airy isostasy, and shift the sea-level datum.</li><li><strong>Emergence:</strong> Highlight newly emergent land and read the uplift, area and sea-level-equivalent figures alongside the model assumptions.</li></ul><div class=explorer-actions><a class="explorer-button explorer-button--primary" href=./tools/3D-interactive-cryosphere-explorer.html>Try the latest update</a></div></div></article></li><li><article class=explorer-update-card aria-labelledby=polar-place-search-update-title><div class=explorer-update-meta><time class=explorer-update-date datetime=2026-08-13>August 13, 2026</time><span class=explorer-update-badge>Interactive explorer</span></div><div class=explorer-update-body><h3 id=polar-place-search-update-title>Find polar places and geographic features</h3><p>The Antarctica and Greenland explorer now brings research stations, curated geographic names, and refined basins into one searchable experience.</p><ul class=explorer-update-highlights><li><strong>Layers:</strong> Choose the <strong>Places &amp; Geographic Features</strong> layers you want to see.</li><li><strong>Search:</strong> Find places and features by name, including refined basins.</li><li><strong>Focus:</strong> Jump between Antarctica and Greenland and move directly to a result.</li></ul><div class=explorer-actions><a class="explorer-button explorer-button--primary" href=./tools/3D-interactive-cryosphere-explorer.html>Try the latest update</a></div></div></article></li></ol></section><section id=key-features class="explorer-section explorer-feature-section"><div class=explorer-region-intro><p class=explorer-region-label>Key Features</p><h2>Four capabilities that define the 3D ICE experience</h2></div><div class=explorer-feature-grid><article class=explorer-feature-card><h3>Fully Interactive 3D Experience</h3><p>Freely rotate, zoom, and change your viewpoint. Explore the ice sheets as if you were examining a physical model right in your hands.</p></article><article class=explorer-feature-card><h3>Comprehensive & Customisable Data</h3><p>Available for both Antarctica and Greenland. Seamlessly visualise continental-scale land data alongside simulated ocean circulations. Layer and combine them in any way you desire to uncover new insights.</p></article><article class=explorer-feature-card><h3>Direct Gateway to Source Data</h3><p>Built as a systematic data platform for professional researchers. First, visualise the latest state-of-the-art datasets in 3D, then simply click to jump directly to the source data you need.</p></article><article class=explorer-feature-card><h3>Optimised Cross-Platform Performance</h3><p>Features a balanced resolution preset for smooth exploration on mobile touchscreens. For the ultimate experience, switch to the stunning HD Option (4km resolution for Antarctica, 1km for Greenland), highly recommended for large desktop screens.</p></article></div></section><section id=source-data class="explorer-section explorer-source-section"><div class=explorer-region-intro><p class=explorer-region-label>Source Data</p><h2>A direct gateway to the datasets behind 3D ICE</h2><p>Built as a systematic data platform for professional researchers. First, visualise the latest state-of-the-art datasets in 3D, then simply click to jump directly to the source data you need.</p></div><div class=explorer-source-columns><article class=explorer-source-column><h3>Antarctica</h3><ul class=explorer-source-list><li><a href=https://nsidc.org/data/NSIDC-0756/versions/4 target=_blank rel=noopener>MEaSUREs BedMachine Antarctica, Version 4</a></li><li><a href=https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2 target=_blank rel=noopener>Bedmap3 Antarctica, Version 1.0</a></li><li><a href=https://nsidc.org/data/NSIDC-0709/versions/2 target=_blank rel=noopener>MEaSUREs Antarctic Boundaries for IPY 2007-2009 from Satellite Radar, Version 2</a></li><li><a href=https://nsidc.org/data/NSIDC-0754/versions/1 target=_blank rel=noopener>MEaSUREs Phase-Based Antarctica Ice Velocity Map, Version 1</a></li><li><a href=https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1 target=_blank rel=noopener>Antarctic Ice-Sheet Basal Friction from Elmer/Ice Inversions</a></li><li><a href=https://zenodo.org/records/12738170 target=_blank rel=noopener>GlaDS Simulated Antarctic Wide Subglacial Hydrology</a></li><li><a href=https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full target=_blank rel=noopener>WAOM2 Annual-Mean Antarctic Ocean Circulation Fields</a></li><li><a href=https://data.aad.gov.au/metadata/RISE target=_blank rel=noopener>Multi-Model Estimate of Antarctic Ice-Shelf Basal Melting and Ocean Drivers</a></li><li><a href=https://doi.org/10.3189/S0260305500013586 target=_blank rel=noopener>Glacial Isostatic Adjustment: Elastic-Lithosphere / Relaxing-Asthenosphere Formulation (Le Meur &amp; Huybrechts, 1996)</a></li></ul></article><article class=explorer-source-column><h3>Greenland</h3><ul class=explorer-source-list><li><a href=https://nsidc.org/data/idbmg4/versions/6 target=_blank rel=noopener>IceBridge BedMachine Greenland, Version 6</a></li><li><a href=https://doi.org/10.1017/jog.2025.10071 target=_blank rel=noopener>QRF Greenland Subglacial Topography (2025)</a></li><li><a href=https://nsidc.org/data/NSIDC-0776/versions/2 target=_blank rel=noopener>MEaSUREs ITS_LIVE Regional Glacier and Ice Sheet Surface Velocities, Version 2</a></li><li><a href=https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1 target=_blank rel=noopener>Greenland Basal Friction Ensemble Inversion Reference</a></li><li><a href=https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description target=_blank rel=noopener>Copernicus Marine Arctic Ocean Physics Analysis and Forecast</a></li><li><a href=https://doi.org/10.3189/S0260305500013586 target=_blank rel=noopener>Glacial Isostatic Adjustment: Elastic-Lithosphere / Relaxing-Asthenosphere Formulation (Le Meur &amp; Huybrechts, 1996)</a></li></ul></article></div></section><section class="explorer-section explorer-feedback-only explorer-community-section"><div class=explorer-community-grid><div class=explorer-community-copy><p class=explorer-region-label>Community</p><h2>Let&rsquo;s Build the Ultimate Cryosphere Hub Together</h2><p>3D ICE is continually evolving, and I&rsquo;d love to hear feedback from the glaciology community to help me improve it further.</p><ul class=explorer-community-list><li><strong>Have data to share?</strong> If you have Antarctic or Greenland datasets you&rsquo;d like me to integrate into 3D ICE, please reach out.</li><li><strong>Spread the word:</strong> If you find this tool useful for your research, teaching, or outreach, please feel free to share it with your network.</li></ul></div><div class="explorer-feedback-panel explorer-feedback-panel--faq-style"><div class="mx-auto flex w-full flex-col gap-6 px-6 tool-feedback-root--inline tool-feedback-root--untitled"><style>.tool-feedback-secondary,.tool-feedback-reset,.tool-feedback-submit{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:.78rem 1.2rem;font-size:.98rem;font-weight:600;line-height:1;text-decoration:none;transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease,color .18s ease}.tool-feedback-submit{border:1px solid transparent;background:#0f5b78;box-shadow:0 12px 24px rgba(15,91,120,.16);color:#fff}.tool-feedback-submit:hover{transform:translateY(-1px);background:#0b4860;color:#fff}.tool-feedback-secondary,.tool-feedback-reset{border:1px solid #c4d9e4;background:#fff;color:#18445a}.tool-feedback-secondary:hover,.tool-feedback-reset:hover{transform:translateY(-1px);background:#f6fbfe;color:#12384a}.tool-feedback-card{border-radius:1.5rem;border:1px solid #dbe7ee;background:radial-gradient(circle at top right,rgba(20,100,130,8%),transparent 28%),linear-gradient(180deg,rgba(248,252,255,.98) 0%,rgba(239,246,251,.98) 100%);box-shadow:0 22px 55px rgba(15,23,42,9%);overflow:hidden}.tool-feedback-card-inner{display:grid;gap:1.5rem;padding:1.5rem}.tool-feedback-heading{display:flex;flex-direction:column;gap:.8rem}.tool-feedback-title{margin:0;color:#0f172a;font-size:clamp(2rem,4vw,3rem);line-height:1.08;font-weight:700;letter-spacing:-.03em}.tool-feedback-body{width:100%;color:#385569;font-size:1.02rem;line-height:1.7}.tool-feedback-body :first-child{margin-top:0}.tool-feedback-body :last-child{margin-bottom:0}.tool-feedback-note,.tool-feedback-alert,.tool-feedback-success{border-radius:1rem;padding:1rem 1.1rem;font-size:.96rem;line-height:1.6}.tool-feedback-note{border:1px solid #ecd7a3;background:#fff8e4;color:#744e00}.tool-feedback-alert{display:none;border:1px solid #efc0c0;background:#fff3f3;color:#8d1d1d}.tool-feedback-success{display:none;border:1px solid #b9decb;background:#f2fcf5;color:#165534}.tool-feedback-success h3,.tool-feedback-alert h3{margin:0 0 .35rem;font-size:1.08rem;font-weight:700}.tool-feedback-form{display:grid;gap:1rem}.tool-feedback-grid{display:grid;gap:1rem;grid-template-columns:repeat(2,minmax(0,1fr))}.tool-feedback-field{display:flex;flex-direction:column;gap:.5rem}.tool-feedback-field--full{grid-column:1/-1}.tool-feedback-label{color:#0f172a;font-size:.94rem;font-weight:600;line-height:1.4}.tool-feedback-hint{color:#4f6b7e;font-weight:400}.tool-feedback-input,.tool-feedback-select,.tool-feedback-textarea{width:100%;border:1px solid #cad9e3;border-radius:.95rem;background:rgba(255,255,255,.96);color:#0f172a;font:inherit;padding:.9rem .95rem;box-shadow:inset 0 1px rgba(255,255,255,.7)}.tool-feedback-input:focus,.tool-feedback-select:focus,.tool-feedback-textarea:focus{outline:none;border-color:#0f5b78;box-shadow:0 0 0 4px rgba(15,91,120,.12)}.tool-feedback-textarea{min-height:11rem;resize:vertical}.tool-feedback-honeypot{position:absolute;left:-10000px;opacity:0;pointer-events:none}.tool-feedback-actions{display:flex;flex-wrap:wrap;align-items:center;gap:.85rem;justify-content:space-between}.tool-feedback-actions-left{display:flex;flex-wrap:wrap;align-items:center;gap:.85rem}.tool-feedback-status{color:#567181;font-size:.92rem;line-height:1.5}.tool-feedback-status:empty{display:none}.tool-feedback-submit[disabled]{cursor:not-allowed;opacity:.55;transform:none;box-shadow:none}.dark .tool-feedback-status,.dark .tool-feedback-hint,.dark .tool-feedback-body{color:#b8d0dd}.dark .tool-feedback-card{border-color:#264658;background:radial-gradient(circle at top right,rgba(71,163,196,.11),transparent 30%),linear-gradient(180deg,rgba(10,23,31,.97) 0%,rgba(15,33,44,.98) 100%);box-shadow:0 22px 55px rgba(2,8,23,.28)}.dark .tool-feedback-title,.dark .tool-feedback-label{color:#eff6fb}.dark .tool-feedback-input,.dark .tool-feedback-select,.dark .tool-feedback-textarea{border-color:#315264;background:rgba(11,24,32,.95);color:#eff6fb;box-shadow:none}.dark .tool-feedback-input::placeholder,.dark .tool-feedback-textarea::placeholder{color:#86a4b4}.dark .tool-feedback-secondary,.dark .tool-feedback-reset{border-color:#406074;background:rgba(11,24,32,.82);color:#d8ebf4}.dark .tool-feedback-secondary:hover,.dark .tool-feedback-reset:hover{background:rgba(15,34,46,.98);color:#fff}.dark .tool-feedback-note{border-color:#6a5a24;background:rgba(90,71,18,.18);color:#f2dc97}.dark .tool-feedback-alert{border-color:#744040;background:rgba(74,24,24,.3);color:#f3c2c2}.dark .tool-feedback-success{border-color:#29553a;background:rgba(15,63,35,.28);color:#bcf0cf}@media(max-width:768px){.tool-feedback-card-inner{padding:1.15rem}.tool-feedback-grid{grid-template-columns:1fr}.tool-feedback-actions{align-items:stretch}.tool-feedback-actions-left,.tool-feedback-secondary,.tool-feedback-reset,.tool-feedback-submit{width:100%}}</style><div class=tool-feedback-card><div class=tool-feedback-card-inner><div class="tool-feedback-heading tool-feedback-heading--untitled"><div class=tool-feedback-body>If you have ideas, datasets, bug reports, or usability feedback for 3D ICE, send a quick note here. English or Chinese is welcome.</div></div><div id=faq-feedback-3d-ice-success class=tool-feedback-success aria-live=polite><h3>Thanks for the note.</h3><p>Your feedback has been sent. I read these messages to improve the tools and fix rough edges.</p><button type=button class=tool-feedback-reset data-feedback-reset=faq-feedback-3d-ice-form>Send another message</button></div><div id=faq-feedback-3d-ice-error class=tool-feedback-alert aria-live=polite><h3>Submission failed.</h3><p>I could not send your message just now. Please try again, or email me directly if the issue persists.</p></div><form id=faq-feedback-3d-ice-form class=tool-feedback-form action=https://usebasin.com/f/53e802e0991e method=POST accept-charset=UTF-8 data-basin-form data-basin-success-action=render data-basin-success-id=faq-feedback-3d-ice-success data-basin-error-id=faq-feedback-3d-ice-error><input type=hidden name=source_page value=./tools/3d-ice/>
-<input type=hidden name=source_section value=tools-feedback data-feedback-source-section>
-<input type=hidden name=page_url data-feedback-page-url>
-<input type=hidden name=page_title value="3D ICE: The Polar World at Your Fingertips">
-<input type=hidden name=site_lang value=en><div class=tool-feedback-honeypot aria-hidden=true><label for=faq-feedback-3d-ice-website>Leave this field empty</label>
-<input id=faq-feedback-3d-ice-website type=text name=website tabindex=-1 autocomplete=off></div><div class=tool-feedback-grid><div class=tool-feedback-field><label class=tool-feedback-label for=faq-feedback-3d-ice-tool>Tool</label>
-<select id=faq-feedback-3d-ice-tool class=tool-feedback-select name=tool required data-feedback-tool-select><option value selected disabled>Select a tool</option><option value="3D ICE: The Polar World at Your Fingertips" selected>3D ICE: The Polar World at Your Fingertips</option><option value="Regularised Coulomb Sliding Law demo">Regularised Coulomb Sliding Law demo</option><option value="Marine Ice Sheet Flowline Lab">Marine Ice Sheet Flowline Lab</option><option value="General tools/site feedback">General tools/site feedback</option></select></div><div class=tool-feedback-field><label class=tool-feedback-label for=faq-feedback-3d-ice-email>Email
-<span class=tool-feedback-hint>Optional, if you'd like a reply</span>
-</label><input id=faq-feedback-3d-ice-email class=tool-feedback-input type=email name=email inputmode=email autocomplete=email placeholder=you@example.com></div><div class="tool-feedback-field tool-feedback-field--full"><label class=tool-feedback-label for=faq-feedback-3d-ice-message>Message</label>
-<textarea id=faq-feedback-3d-ice-message class=tool-feedback-textarea name=message required placeholder="Tell me what worked, what felt confusing, what broke, or what you'd like me to add." data-feedback-message></textarea></div></div><div class=tool-feedback-actions><div class=tool-feedback-actions-left><button type=submit class=tool-feedback-submit>Send feedback</button>
-<a class=tool-feedback-secondary href=mailto:wangyu@uchicago.edu>Email instead</a></div><div id=faq-feedback-3d-ice-status class=tool-feedback-status></div></div></form></div></div><script src=https://js.usebasin.com/v2.10.1.min.js defer></script><script>(()=>{const e=document.getElementById("faq-feedback-3d-ice-form");if(!e)return;const r="3D ICE: The Polar World at Your Fingertips",l="tools-feedback",n=e.querySelector("[data-feedback-tool-select]"),d=e.querySelector("[data-feedback-source-section]"),u=e.querySelector("[data-feedback-page-url]"),t=e.querySelector(".tool-feedback-submit"),s=document.getElementById("faq-feedback-3d-ice-status"),h=document.getElementById("faq-feedback-3d-ice-success"),i=document.getElementById("faq-feedback-3d-ice-error"),c=document.querySelector(`[data-feedback-reset="faq-feedback-3d-ice-form"]`),a=t=>t.detail&&t.detail.form===e,o=()=>{u.value=window.location.href,d.value=l,n&&r&&!n.value&&(n.value=r)},m=()=>{e.style.display="",h.style.display="none",i.style.display="none",t.disabled=!1,t.textContent="Send feedback",s.textContent="",e.reset(),o()};o(),n.addEventListener("change",o),c&&c.addEventListener("click",m),document.addEventListener("basinjsFormSubmitted",e=>{if(!a(e))return;i.style.display="none",t.disabled=!0,t.textContent="Sending...",s.textContent="Submitting your feedback..."}),document.addEventListener("basinjsFormSuccess",n=>{if(!a(n))return;e.reset(),o(),t.disabled=!1,t.textContent="Send feedback",s.textContent="Thanks. Your message has been sent."}),document.addEventListener("basinjsFormError",e=>{if(!a(e))return;i.style.display="block",t.disabled=!1,t.textContent="Send feedback",s.textContent="Submission failed. Please try again or email me directly."})})()</script></div></div></div></section><div class=explorer-community-cta-standalone><div class=explorer-community-cta-row><a class="explorer-button explorer-button--community-utility" href=./explore/>Launch Explorer</a>
-<a class="explorer-button explorer-button--browse-spotlight" href=https://yuwang.blog/tools/#tools-demo rel=nofollow>Browse other research tools</a></div></div></div></div><script src=/js/3d-ice-locale.js></script><script>(()=>{const e=()=>{const e=window.__3dIceLocale;if(!e)return;e.initPage({locale:"en-US",switchers:["#homeLocaleSwitcher"]})};if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",e,{once:!0});return}e()})()</script><script>(()=>{const i=document.querySelector(".explorer-ice-logo"),u="./tools/3d-ice-logo-light.jpg",d="./tools/3d-ice-logo.jpg",o=()=>{if(!i)return;const e=document.documentElement.classList.contains("dark")?d:u;i.getAttribute("src")!==e&&i.setAttribute("src",e)};let g=null;const v=()=>{if(!g)g=document.querySelectorAll("img[data-light-src][data-dark-src]");const e=document.documentElement.classList.contains("dark");g.forEach(t=>{const s=e?t.dataset.darkSrc:t.dataset.lightSrc;t.getAttribute("src")!==s&&t.setAttribute("src",s)})};o();if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",v,{once:!0})}else{v()}document.addEventListener("hbThemeChange",()=>{o();v()});const r=new MutationObserver(()=>{o();v()});r.observe(document.documentElement,{attributes:!0,attributeFilter:["class"]});const c=window.matchMedia("(hover: hover) and (pointer: fine)").matches,a=Array.from(document.querySelectorAll(".explorer-preview-link[data-preview-src]")),s=Array.from(document.querySelectorAll(".explorer-preview-link--video[data-video-preview]"));let e=null;const n=e=>{if(!e)return;e._previewEnterTimer&&(window.clearTimeout(e._previewEnterTimer),e._previewEnterTimer=null),e._previewLeaveTimer&&(window.clearTimeout(e._previewLeaveTimer),e._previewLeaveTimer=null)},t=t=>{if(!t)return;n(t);const s=t.querySelector("iframe");s&&s.remove(),t.classList.remove("is-preview-active","is-preview-loading"),e===t&&(e=null)},l=s=>{if(!c||!s)return;if(n(s),e&&e!==s&&t(e),s.querySelector("iframe")){s.classList.add("is-preview-active"),e=s;return}const o=document.createElement("iframe");o.src=s.dataset.previewSrc||"",o.title=s.dataset.previewTitle||"3D ICE feature preview",o.loading="eager",o.referrerPolicy="no-referrer",o.tabIndex=-1,o.setAttribute("aria-hidden","true"),o.addEventListener("load",()=>{s.classList.remove("is-preview-loading")},{once:!0}),s.insertBefore(o,s.firstChild),s.classList.add("is-preview-active","is-preview-loading"),e=s},h=e=>{if(!e)return;try{e.currentTime=0}catch{}},m=(e,{reset:t=!0}={})=>{if(!e)return;const n=e.querySelector("video");if(!n)return;e.classList.remove("is-video-active","is-video-playing"),n.pause(),t&&h(n)},f=e=>{if(!e)return;const n=e.querySelector("video");if(!n)return;e.classList.add("is-video-active");const t=n.play();if(t&&typeof t.then=="function"){t.then(()=>{e.classList.add("is-video-playing")}).catch(()=>{});return}e.classList.add("is-video-playing")},p=e=>{if(!e)return;e.defaultMuted=!0,e.muted=!0,e.playsInline=!0,e.autoplay=!0,e.setAttribute("muted",""),e.setAttribute("playsinline",""),e.setAttribute("webkit-playsinline",""),e.setAttribute("autoplay","")};if(a.length)for(const e of a)e.addEventListener("mouseenter",()=>{n(e),e._previewEnterTimer=window.setTimeout(()=>l(e),160)}),e.addEventListener("mouseleave",()=>{n(e),e._previewLeaveTimer=window.setTimeout(()=>t(e),140)}),e.addEventListener("focusin",()=>{l(e)}),e.addEventListener("focusout",n=>{if(e.contains(n.relatedTarget))return;t(e)});if(s.length)for(const n of s){const e=n.querySelector("video");if(!e)continue;p(e);const t=()=>{f(n)};e.networkState===HTMLMediaElement.NETWORK_EMPTY&&e.load(),e.readyState>=1?t():(e.addEventListener("loadedmetadata",t,{once:!0}),e.addEventListener("canplay",t,{once:!0}))}window.addEventListener("pagehide",()=>{a.forEach(e=>t(e)),s.forEach(e=>m(e,{reset:!1})),r.disconnect()},{once:!0}),c||document.documentElement.classList.add("explorer-preview-static")})()</script></article></div></div><div class=page-footer><footer class="container mx-auto flex flex-col justify-items-center text-sm leading-6 mt-24 mb-4 text-slate-700 dark:text-slate-200"><div class=explorer-footer-logos role=group aria-label="IMAS and AAPP logos"><div class="explorer-footer-logo explorer-footer-logo--imas"><img src=/logos/imas-utas.png data-light-src=/logos/imas-utas.png data-dark-src=/logos/imas-utas-dark.png alt="Institute for Marine and Antarctic Studies, University of Tasmania" width=494 height=230 loading=lazy decoding=async></div><div class="explorer-footer-logo explorer-footer-logo--aapp"><img src=/logos/aapp.png data-light-src=/logos/aapp.png data-dark-src=/logos/aapp-dark.png alt="Australian Antarctic Program Partnership" width=922 height=418 loading=lazy decoding=async></div></div><p class="powered-by text-center">© 2026 Yu Wang. Licensed under the <a href=https://opensource.org/licenses/MIT rel="noopener noreferrer" target=_blank>MIT License</a></p><p class="powered-by text-center">Published with <a href="https://hugoblox.com/?utm_campaign=poweredby" target=_blank rel=noopener>Hugo Blox Builder</a> — the free, <a href=https://github.com/HugoBlox/hugo-blox-builder target=_blank rel=noopener>open source</a> website builder that empowers creators.</p></footer></div><script>(()=>{const e="3d-ice:showcase-scroll";function t(e){if(!e)return!1;const t=Array.from(document.querySelectorAll('iframe[src*="3D-interactive-cryosphere-explorer.html"]'));return t.some(t=>t.contentWindow===e)}window.addEventListener("message",n=>{const s=n.data||{};if(s.type!==e)return;if(!t(n.source))return;const o=Number(s.deltaX)||0,i=Number(s.deltaY)||0;window.scrollBy({left:o,top:i,behavior:"auto"})})})()</script></body></html>
+<!doctype html>
+<html lang="en" data-locale="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>3D ICE: Interactive Cryosphere Explorer</title>
+    <meta name="description" content="Explore Antarctica and Greenland in 3D. Take the guided tour in the public edition, or open the research edition for every dataset, resolution and layer." />
+    <meta name="author" content="Yu (Eddie) Wang" />
+    <link rel="canonical" href="https://3d-ice.com/" />
+    <link rel="alternate" hreflang="en-US" href="https://3d-ice.com/" />
+    <link rel="alternate" hreflang="zh-CN" href="https://3d-ice.com/zh/" />
+    <link rel="alternate" hreflang="x-default" href="https://3d-ice.com/" />
+    <meta property="og:site_name" content="3D ICE" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://3d-ice.com/" />
+    <meta property="og:title" content="3D ICE: Interactive Cryosphere Explorer" />
+    <meta property="og:description" content="Explore Antarctica and Greenland in 3D. Take the guided tour in the public edition, or open the research edition for every dataset, resolution and layer." />
+    <meta property="og:image" content="https://3d-ice.com/tools/featured.png" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="zh_CN" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://3d-ice.com/tools/featured.png" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <script>
+      // Apply the saved or system colour theme before the first paint. The explorer pages
+      // read the same key and the same class, so the choice carries over between them.
+      (() => {
+        let saved = null;
+        try {
+          saved = localStorage.getItem("wc-color-theme");
+        } catch (error) {
+          saved = null;
+        }
+        const dark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", dark);
+        document.documentElement.style.colorScheme = dark ? "dark" : "light";
+      })();
+    </script>
+    <link rel="preload" href="/fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/css/3d-ice-type.css" />
+    <link rel="stylesheet" href="/css/3d-ice-home.css" />
+    <script src="/js/3d-ice-locale.js" defer></script>
+    <script src="/js/3d-ice-home.js" defer></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-YGK0V9S67F"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        window.dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-YGK0V9S67F", {});
+      gtag("set", { cookie_flags: "SameSite=None;Secure" });
+      // Outbound clicks, reported as they were before the rebuild.
+      document.addEventListener("click", (event) => {
+        const link = event.target.closest && event.target.closest("a[href]");
+        if (!link || link.host === window.location.host) return;
+        gtag("event", "click", { event_category: "outbound", event_label: link.href, transport_type: "beacon" });
+      });
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "3D ICE",
+        "alternateName": "Interactive Cryosphere Explorer",
+        "url": "https://3d-ice.com/",
+        "description": "3D ICE turns state-of-the-art Antarctic and Greenland datasets into an interactive 3D explorer, in a public edition with a guided tour and a research edition with every dataset and layer.",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires a modern WebGL-enabled browser.",
+        "inLanguage": "en-US",
+        "image": "https://3d-ice.com/tools/featured.png",
+        "thumbnailUrl": "https://3d-ice.com/tools/featured.png",
+        "featureList": [
+          "Public edition with an eight-stop guided tour and plain-language layer explainers",
+          "Research edition with every dataset, resolution and layer",
+          "Antarctica and Greenland in one interactive 3D environment",
+          "Direct links to every source dataset"
+        ],
+        "author": { "@type": "Person", "name": "Yu Wang", "url": "https://yuwang.blog/" },
+        "publisher": { "@type": "Organization", "name": "Yu Wang", "url": "https://3d-ice.com/" },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "3D ICE",
+        "alternateName": ["Interactive Cryosphere Explorer"],
+        "url": "https://3d-ice.com/"
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is 3D ICE?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "3D ICE is an interactive cryosphere explorer that turns specialised Antarctic and Greenland data into 3D views anyone can explore in a web browser."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Who is 3D ICE for?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Everyone. The public edition, with a guided tour and plain-language layer explainers, is made for visitors, classrooms and outreach. The research edition offers every dataset, resolution and layer for researchers."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What data can I explore in 3D ICE?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Bed topography, ice thickness and flow, ocean circulation, sea level and the ice-free isostatic rebound for Antarctica and Greenland, and in the research edition also basal friction and, for Antarctica, subglacial hydrology and ice-shelf basal melt. Every layer comes from a published dataset, model or preprint."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I contribute data or feedback?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. 3D ICE is continually evolving and welcomes feedback, as well as suggestions for Antarctic or Greenland datasets to integrate."
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body class="page-wrapper" id="top">
+    <a class="explorer-skip-link" href="#main">Skip to content</a>
+    <div class="page-body">
+      <div class="explorer-page-shell explorer-page-shell--ice">
+
+        <header class="explorer-page-header">
+          <div class="explorer-page-topbar">
+            <nav class="explorer-page-breadcrumb" aria-label="Breadcrumb">
+              <a href="https://yuwang.blog/tools/" rel="nofollow">Tools</a>
+              <span aria-hidden="true">/</span>
+              <span aria-current="page">3D ICE</span>
+            </nav>
+            <nav class="explorer-page-nav" aria-label="On this page">
+              <a href="#editions">Editions</a>
+              <a href="#antarctica-features">Antarctica</a>
+              <a href="#greenland-features">Greenland</a>
+              <a href="#latest-updates">What’s new</a>
+              <a href="#source-data">Source data</a>
+              <a href="#feedback">Feedback</a>
+            </nav>
+            <div class="explorer-topbar-actions">
+              <div id="homeLocaleSwitcher" class="explorer-home-locale-switcher"></div>
+              <button class="explorer-theme-toggle" id="themeToggle" type="button" aria-label="Dark mode" aria-pressed="false">
+                <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p class="explorer-page-kicker">Interactive Cryosphere Explorer</p>
+          <h1 class="explorer-page-title">3D ICE: The Polar World at Your Fingertips</h1>
+        </header>
+
+        <main id="main" class="explorer-page-content explorer-landing explorer-landing--ice">
+          <div class="explorer-ice-hero explorer-ice-hero--split">
+            <div class="explorer-hero-copy">
+              <div class="explorer-ice-brand">
+                <img class="explorer-ice-logo" src="/tools/3d-ice-logo-light.jpg" data-light-src="/tools/3d-ice-logo-light.jpg" data-dark-src="/tools/3d-ice-logo.jpg" alt="3D ICE, Interactive Cryosphere Explorer" width="2631" height="1166" fetchpriority="high" />
+              </div>
+              <p class="explorer-ice-lead">Explore Antarctica and Greenland like never before.</p>
+              <div class="explorer-actions explorer-actions--hero">
+                <a class="explorer-button explorer-button--primary" href="./explore/?tour=1">Start the guided tour</a>
+                <a class="explorer-button explorer-button--ghost" href="./tools/3D-interactive-cryosphere-explorer.html">Open the research edition</a>
+              </div>
+              <p class="explorer-showcase-note">
+                The tour takes about five minutes, on a phone or a computer. Not sure which to choose?
+                <a href="#editions">Compare the two editions</a>.
+              </p>
+              <p class="explorer-summary">
+                3D ICE turns state-of-the-art Antarctic and Greenland datasets into a 3D world you can
+                explore in your browser, from the bedrock hidden under kilometres of ice to the ocean
+                currents around it. It comes in two editions: a public edition with a guided tour, and a
+                research edition with every dataset and layer.
+              </p>
+            </div>
+            <div class="explorer-showcase-breakout explorer-showcase-breakout--hero">
+              <div class="explorer-showcase-frame explorer-showcase-frame--mobile-linkout">
+                <iframe title="3D ICE interactive Antarctica showcase" src="./tools/3D-interactive-cryosphere-explorer.html?mode=showcase&amp;preset=tools-hero&amp;mobileLinkout=1&amp;desktopInteractive=1&amp;recording=1&amp;recordingSpeed=0.60&amp;recordingZoomAmount=10" loading="eager" referrerpolicy="no-referrer"></iframe>
+                <a class="explorer-showcase-mobile-link" href="./explore/">
+                  <span class="explorer-showcase-mobile-link-badge">Tap to explore in 3D<span class="visually-hidden"> (public edition)</span></span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <section id="editions" class="explorer-section explorer-edition-section" aria-labelledby="editions-title">
+            <div class="explorer-region-intro">
+              <p class="explorer-region-label">Editions</p>
+              <h2 id="editions-title">Two ways to explore</h2>
+              <p>
+                Both editions run the same explorer on the same data. Start with the public
+                edition if you are new to the ice sheets, and open the research edition when you need
+                every dataset and layer.
+              </p>
+            </div>
+            <div class="explorer-edition-grid">
+              <article class="explorer-edition-card explorer-edition-card--public" data-edition="public" aria-labelledby="public-edition-title">
+                <p class="explorer-edition-audience">For everyone</p>
+                <h3 id="public-edition-title">Public edition</h3>
+                <p class="explorer-edition-lead">A guided first look at the ice sheets, with the science explained as you go.</p>
+                <ul class="explorer-edition-points" role="list">
+                  <li>An eight-stop guided tour, from the ice continent to the land hidden beneath it, the Southern Ocean and Greenland</li>
+                  <li>A plain-language note beside every layer, citing the data it draws on</li>
+                  <li>Ice flow, ocean currents, sea level, and the land that rises once the ice is gone</li>
+                  <li>Made for phones, tablets, classrooms and outreach stands</li>
+                </ul>
+                <p class="explorer-edition-meta">About five minutes · English and <span lang="zh-CN">中文</span></p>
+                <div class="explorer-actions">
+                  <a class="explorer-button explorer-button--primary" href="./explore/?tour=1">Start the guided tour</a>
+                  <a class="explorer-button explorer-button--ghost" href="./explore/">Explore on your own</a>
+                </div>
+              </article>
+              <article class="explorer-edition-card explorer-edition-card--research" data-edition="research" aria-labelledby="research-edition-title">
+                <p class="explorer-edition-audience">For researchers</p>
+                <h3 id="research-edition-title">Research edition</h3>
+                <p class="explorer-edition-lead">Every dataset, resolution and layer, with the sources behind them.</p>
+                <ul class="explorer-edition-points" role="list">
+                  <li>Bed topography from BedMachine and Bedmap3 in Antarctica, and from BedMachine and QRF in Greenland, each at two resolutions</li>
+                  <li>Ice velocity, basal friction and ocean currents in four depth bands, for both ice sheets</li>
+                  <li>In Antarctica, subglacial effective pressure and channels and, on the BedMachine terrain, ice-shelf basal melt and thermal driving</li>
+                  <li>The ice-free rebound from the published Paxman et al. (2022) response, with idealised ELRA and Airy models for comparison</li>
+                  <li>A data snapshot that links the datasets in view to their sources, and an along-flow profile of the ice surface, ice base and bed for any flowline you click</li>
+                </ul>
+                <p class="explorer-edition-meta">Best on a computer · English and <span lang="zh-CN">中文</span></p>
+                <div class="explorer-actions">
+                  <a class="explorer-button explorer-button--primary" href="./tools/3D-interactive-cryosphere-explorer.html">Open the research edition</a>
+                  <a class="explorer-button explorer-button--ghost" href="#source-data">See the source data</a>
+                </div>
+              </article>
+            </div>
+            <details class="explorer-edition-compare">
+              <summary>Compare the two editions</summary>
+              <div class="explorer-edition-table-wrap" role="region" tabindex="0" aria-labelledby="edition-compare-caption">
+                <table>
+                  <caption id="edition-compare-caption">What each edition offers</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Feature</th>
+                      <th scope="col">Public edition</th>
+                      <th scope="col">Research edition</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th scope="row">Guided tour and layer explainers</th>
+                      <td>Yes</td>
+                      <td>No</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Bed topography</th>
+                      <td>BedMachine, one resolution per region</td>
+                      <td>BedMachine, Bedmap3 (Antarctica) and QRF (Greenland), two resolutions each</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Ice flow</th>
+                      <td>Animated flowlines coloured by speed</td>
+                      <td>Flowlines, the surface velocity field and flowline profiles</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Ocean currents</th>
+                      <td>One layer, all depths together</td>
+                      <td>Four depth bands, each on its own</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Basal friction, subglacial water and ice-shelf melt</th>
+                      <td>No</td>
+                      <td>Yes; subglacial water and ice-shelf melt in Antarctica only</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Ice-free rebound</th>
+                      <td>The published Paxman et al. (2022) response</td>
+                      <td>The published response, plus idealised ELRA and Airy models with an adjustable sea-level datum</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Place search, names and research stations</th>
+                      <td>Yes</td>
+                      <td>Yes, plus drainage basins</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Sources</th>
+                      <td>Cited in the layer explainers</td>
+                      <td>A data snapshot linking the datasets in view to their sources</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Best on</th>
+                      <td>Phones, tablets and computers</td>
+                      <td>Computers with a larger screen</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          </section>
+
+          <section id="antarctica-features" class="explorer-section explorer-region" aria-labelledby="antarctica-features-title">
+            <div class="explorer-region-intro">
+              <p class="explorer-region-label">Antarctica</p>
+              <h2 id="antarctica-features-title">Discover Key Features of the Antarctic Ice Sheet</h2>
+              <p>
+                A vast, frozen desert at the bottom of the Earth, Antarctica holds 90% of the world’s ice
+                and hides a dynamic, hidden landscape of subglacial lakes and rivers that shape our future
+                coastlines.
+              </p>
+            </div>
+            <div class="explorer-video-grid explorer-video-grid--antarctica">
+              <article class="explorer-video-card" data-demo-slot="antarctica-velocity-flowlines" data-editions="public research">
+                <div class="explorer-video-copy">
+                  <h3>Antarctic ice velocity and flowlines</h3>
+                  <p>
+                    Watch how fast-flowing ice streams and drainage patterns connect the deep continental
+                    interior to outlet glaciers and massive ice shelves across Antarctica.
+                  </p>
+                  <ul class="explorer-edition-tags" role="list" aria-label="Available in">
+                    <li><span class="explorer-edition-tag explorer-edition-tag--public">Public edition</span></li>
+                    <li><span class="explorer-edition-tag explorer-edition-tag--research">Research edition</span></li>
+                  </ul>
+                </div>
+                <div class="explorer-video-media explorer-video-media--video-preview">
+                  <a class="explorer-preview-link explorer-preview-link--video" href="./explore/?region=antarctica&amp;preset=antarctica-velocity-flowlines" data-video-preview>
+                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/antarctica-velocity-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
+                      <source src="/tools/media/3d-ice/antarctica-velocity-preview.mp4" type="video/mp4" />
+                    </video>
+                    <span class="explorer-video-overlay">
+                      <span class="explorer-video-badge"><span>Loop preview · <span class="explorer-video-badge-click">Click</span><span class="explorer-video-badge-tap">Tap</span> to open</span></span>
+                    </span>
+                    <span class="visually-hidden">: Antarctic ice flow (public edition)</span>
+                  </a>
+                </div>
+                <p class="explorer-video-alt">Or open it in the <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-velocity-flowlines">research edition</a>, with the velocity field.</p>
+              </article>
+              <article class="explorer-video-card" data-demo-slot="antarctica-basin-boundary" data-editions="research">
+                <div class="explorer-video-copy">
+                  <h3>Basin boundaries</h3>
+                  <p>
+                    Visualize distinct catchment outlines to see exactly how the ice sheet is partitioned,
+                    highlighting why regional ice loss must be interpreted within its specific basin context.
+                  </p>
+                  <ul class="explorer-edition-tags" role="list" aria-label="Available in">
+                    <li><span class="explorer-edition-tag explorer-edition-tag--research">Research edition</span></li>
+                  </ul>
+                </div>
+                <div class="explorer-video-media explorer-video-media--video-preview">
+                  <a class="explorer-preview-link explorer-preview-link--video" href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-basin-boundary" data-video-preview>
+                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/antarctica-basin-boundary-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
+                      <source src="/tools/media/3d-ice/antarctica-basin-boundary-preview.mp4" type="video/mp4" />
+                    </video>
+                    <span class="explorer-video-overlay">
+                      <span class="explorer-video-badge"><span>Loop preview · <span class="explorer-video-badge-click">Click</span><span class="explorer-video-badge-tap">Tap</span> to open</span></span>
+                    </span>
+                    <span class="visually-hidden">: basin boundaries (research edition)</span>
+                  </a>
+                </div>
+              </article>
+              <article class="explorer-video-card" data-demo-slot="antarctica-subglacial-features" data-editions="research">
+                <div class="explorer-video-copy">
+                  <h3>Subglacial features</h3>
+                  <p>Reveal the hidden world. Map effective pressure and subglacial channels beneath miles of ice.</p>
+                  <ul class="explorer-edition-tags" role="list" aria-label="Available in">
+                    <li><span class="explorer-edition-tag explorer-edition-tag--research">Research edition</span></li>
+                  </ul>
+                </div>
+                <div class="explorer-video-media explorer-video-media--video-preview">
+                  <a class="explorer-preview-link explorer-preview-link--video" href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-subglacial-features" data-video-preview>
+                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/antarctica-subglacial-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
+                      <source src="/tools/media/3d-ice/antarctica-subglacial-preview.mp4" type="video/mp4" />
+                    </video>
+                    <span class="explorer-video-overlay">
+                      <span class="explorer-video-badge"><span>Loop preview · <span class="explorer-video-badge-click">Click</span><span class="explorer-video-badge-tap">Tap</span> to open</span></span>
+                    </span>
+                    <span class="visually-hidden">: subglacial features (research edition)</span>
+                  </a>
+                </div>
+              </article>
+              <article class="explorer-video-card" data-demo-slot="antarctica-ocean-circulations" data-editions="public research">
+                <div class="explorer-video-copy">
+                  <h3>Ocean circulations</h3>
+                  <p>
+                    Dive into the ever-changing circulation of the Southern Ocean and reveal its critical
+                    interactions with Antarctic ice shelves.
+                  </p>
+                  <ul class="explorer-edition-tags" role="list" aria-label="Available in">
+                    <li><span class="explorer-edition-tag explorer-edition-tag--public">Public edition</span></li>
+                    <li><span class="explorer-edition-tag explorer-edition-tag--research">Research edition</span></li>
+                  </ul>
+                </div>
+                <div class="explorer-video-media explorer-video-media--video-preview">
+                  <a class="explorer-preview-link explorer-preview-link--video" href="./explore/?region=antarctica&amp;preset=antarctica-ocean-circulations" data-video-preview>
+                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/antarctica-ocean-streamlines-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
+                      <source src="/tools/media/3d-ice/antarctica-ocean-streamlines-preview.mp4" type="video/mp4" />
+                    </video>
+                    <span class="explorer-video-overlay">
+                      <span class="explorer-video-badge"><span>Loop preview · <span class="explorer-video-badge-click">Click</span><span class="explorer-video-badge-tap">Tap</span> to open</span></span>
+                    </span>
+                    <span class="visually-hidden">: the Southern Ocean (public edition)</span>
+                  </a>
+                </div>
+                <p class="explorer-video-alt">Or open it in the <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-ocean-circulations">research edition</a>, with a switch for each depth band.</p>
+              </article>
+            </div>
+          </section>
+
+          <section id="greenland-features" class="explorer-section explorer-region" aria-labelledby="greenland-features-title">
+            <div class="explorer-region-intro">
+              <p class="explorer-region-label">Greenland</p>
+              <h2 id="greenland-features-title">Seamlessly Transition to Greenland in One Unified 3D Environment</h2>
+              <p>
+                Serving as the Arctic’s climate sentinel, the Greenland Ice Sheet is a rapidly transforming
+                giant whose accelerating melt directly drives global sea-level rise and influences ocean
+                circulation.
+              </p>
+            </div>
+            <div class="explorer-video-grid explorer-video-grid--greenland">
+              <article class="explorer-video-card" data-demo-slot="greenland-velocity-flowlines" data-editions="public research">
+                <div class="explorer-video-copy">
+                  <h3>Greenland ice velocity and flowlines</h3>
+                  <p>
+                    Focus on a complex network of outlet glaciers and fast-flow structures, visualizing how ice
+                    is swiftly routed from high-altitude interior catchments down to the coast.
+                  </p>
+                  <ul class="explorer-edition-tags" role="list" aria-label="Available in">
+                    <li><span class="explorer-edition-tag explorer-edition-tag--public">Public edition</span></li>
+                    <li><span class="explorer-edition-tag explorer-edition-tag--research">Research edition</span></li>
+                  </ul>
+                </div>
+                <div class="explorer-video-media explorer-video-media--video-preview">
+                  <a class="explorer-preview-link explorer-preview-link--video" href="./explore/?region=greenland&amp;preset=greenland-velocity-flowlines" data-video-preview>
+                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/greenland-velocity-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
+                      <source src="/tools/media/3d-ice/greenland-velocity-preview.mp4" type="video/mp4" />
+                    </video>
+                    <span class="explorer-video-overlay">
+                      <span class="explorer-video-badge"><span>Loop preview · <span class="explorer-video-badge-click">Click</span><span class="explorer-video-badge-tap">Tap</span> to open</span></span>
+                    </span>
+                    <span class="visually-hidden">: Greenland ice flow (public edition)</span>
+                  </a>
+                </div>
+                <p class="explorer-video-alt">Or open it in the <a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-velocity-flowlines">research edition</a>, with the velocity field.</p>
+              </article>
+              <article class="explorer-video-card" data-demo-slot="greenland-ocean-circulations" data-editions="public research">
+                <div class="explorer-video-copy">
+                  <h3>Ocean circulations</h3>
+                  <p>
+                    Examine how surrounding ocean currents interact with Greenland’s deep fjords, providing
+                    crucial context for the behavior and retreat of marine-terminating glaciers.
+                  </p>
+                  <ul class="explorer-edition-tags" role="list" aria-label="Available in">
+                    <li><span class="explorer-edition-tag explorer-edition-tag--public">Public edition</span></li>
+                    <li><span class="explorer-edition-tag explorer-edition-tag--research">Research edition</span></li>
+                  </ul>
+                </div>
+                <div class="explorer-video-media explorer-video-media--video-preview">
+                  <a class="explorer-preview-link explorer-preview-link--video" href="./explore/?region=greenland&amp;preset=greenland-ocean-circulations" data-video-preview>
+                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/greenland-ocean-circulations-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
+                      <source src="/tools/media/3d-ice/greenland-ocean-circulations-preview.mp4" type="video/mp4" />
+                    </video>
+                    <span class="explorer-video-overlay">
+                      <span class="explorer-video-badge"><span>Loop preview · <span class="explorer-video-badge-click">Click</span><span class="explorer-video-badge-tap">Tap</span> to open</span></span>
+                    </span>
+                    <span class="visually-hidden">: the ocean around Greenland (public edition)</span>
+                  </a>
+                </div>
+                <p class="explorer-video-alt">Or open it in the <a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-ocean-circulations">research edition</a>, with a switch for each depth band.</p>
+              </article>
+            </div>
+          </section>
+
+          <section id="latest-updates" class="explorer-section explorer-update-section" aria-labelledby="latest-updates-title">
+            <div class="explorer-region-intro">
+              <p class="explorer-region-label">Latest Updates</p>
+              <h2 id="latest-updates-title">What’s new in 3D ICE</h2>
+              <p>Follow the newest ways to explore polar data, with each release dated so you can quickly see what changed.</p>
+            </div>
+            <ol class="explorer-update-list">
+              <li>
+                <article class="explorer-update-card" aria-labelledby="public-edition-update-title">
+                  <div class="explorer-update-meta">
+                    <time class="explorer-update-date" datetime="2026-09-30">September 30, 2026</time>
+                    <span class="explorer-update-badge">Public edition</span>
+                  </div>
+                  <div class="explorer-update-body">
+                    <h3 id="public-edition-update-title">Meet the public edition, with a guided tour</h3>
+                    <p>
+                      3D ICE now comes in two editions. The new public edition keeps the core of the
+                      explorer for visitors, classrooms and outreach stands, and explains the science as you
+                      go, in English and Chinese. The research edition keeps every dataset and layer at its
+                      usual address.
+                    </p>
+                    <ul class="explorer-update-highlights">
+                      <li><strong>Tour:</strong> Eight stops take you from the ice continent to the bedrock beneath it, the Southern Ocean and Greenland.</li>
+                      <li><strong>Explainers:</strong> Open the (i) beside any layer to read, in plain language, what it shows and the data it draws on.</li>
+                      <li><strong>Remove the ice:</strong> Watch the ice melt away and the land beneath it rise, over three seconds.</li>
+                    </ul>
+                    <div class="explorer-actions">
+                      <a class="explorer-button explorer-button--primary" href="./explore/?tour=1">Start the guided tour</a>
+                    </div>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="explorer-update-card" aria-labelledby="isostatic-rebound-update-title">
+                  <div class="explorer-update-meta">
+                    <time class="explorer-update-date" datetime="2026-09-22">September 22, 2026</time>
+                    <span class="explorer-update-badge">Interactive explorer</span>
+                  </div>
+                  <div class="explorer-update-body">
+                    <h3 id="isostatic-rebound-update-title">Watch the bed rebound once the ice is gone</h3>
+                    <p>
+                      A new isostatic-rebound layer shows how far the solid Earth springs back once the
+                      present ice load is removed, so you can see which bed that sits below sea level today
+                      would rise above it, in both Antarctica and Greenland.
+                    </p>
+                    <ul class="explorer-update-highlights">
+                      <li><strong>Scenario:</strong> Scrub <strong>Deglaciation &amp; rebound</strong> from today through to full equilibrium.</li>
+                      <li><strong>Earth response:</strong> The published response of Paxman et al. (2022) by default, with regional flexure and local Airy isostasy as idealised what-ifs.</li>
+                      <li><strong>Emergence:</strong> Highlight newly emergent land and read the uplift, area and sea-level-equivalent figures alongside the model assumptions.</li>
+                    </ul>
+                    <div class="explorer-actions">
+                      <a class="explorer-button explorer-button--primary" href="./tools/3D-interactive-cryosphere-explorer.html">Open the research edition</a>
+                    </div>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="explorer-update-card" aria-labelledby="polar-place-search-update-title">
+                  <div class="explorer-update-meta">
+                    <time class="explorer-update-date" datetime="2026-08-13">August 13, 2026</time>
+                    <span class="explorer-update-badge">Interactive explorer</span>
+                  </div>
+                  <div class="explorer-update-body">
+                    <h3 id="polar-place-search-update-title">Find polar places and geographic features</h3>
+                    <p>
+                      The Antarctica and Greenland explorer now brings research stations, curated
+                      geographic names, and refined basins into one searchable experience.
+                    </p>
+                    <ul class="explorer-update-highlights">
+                      <li><strong>Layers:</strong> Choose the <strong>Places &amp; Geographic Features</strong> layers you want to see.</li>
+                      <li><strong>Search:</strong> Find places and features by name, including refined basins.</li>
+                      <li><strong>Focus:</strong> Jump between Antarctica and Greenland and move directly to a result.</li>
+                    </ul>
+                    <div class="explorer-actions">
+                      <a class="explorer-button explorer-button--primary" href="./tools/3D-interactive-cryosphere-explorer.html">Open the research edition</a>
+                    </div>
+                  </div>
+                </article>
+              </li>
+            </ol>
+          </section>
+
+          <section id="key-features" class="explorer-section explorer-feature-section" aria-labelledby="key-features-title">
+            <div class="explorer-region-intro">
+              <p class="explorer-region-label">Key Features</p>
+              <h2 id="key-features-title">What makes 3D ICE different</h2>
+            </div>
+            <div class="explorer-feature-grid">
+              <article class="explorer-feature-card">
+                <h3>Real 3D, right in your browser</h3>
+                <p>
+                  Rotate, zoom and tilt the ice sheets, make the ice see-through and exaggerate the relief,
+                  as if you were holding a physical model. There is nothing to install: any browser with
+                  WebGL will do.
+                </p>
+              </article>
+              <article class="explorer-feature-card">
+                <h3>Traceable to its sources</h3>
+                <p>
+                  Every layer is drawn from a published dataset, model or preprint and names its source, so
+                  what you see can be traced back to the original product.
+                </p>
+              </article>
+              <article class="explorer-feature-card">
+                <h3>Both ice sheets in one place</h3>
+                <p>
+                  Switch between Antarctica and Greenland in one environment, with the same controls and
+                  the same core layers for each: land, ice, ocean and the rebound once the ice is gone.
+                  Subglacial water and ice-shelf melt are for Antarctica only.
+                </p>
+              </article>
+              <article class="explorer-feature-card">
+                <h3>Smooth on phones, sharp on large screens</h3>
+                <p>
+                  Balanced terrain keeps phones and tablets smooth. For a large desktop screen, the research
+                  edition’s HD terrain (4 km in Antarctica, 1 km in Greenland) shows much finer detail.
+                </p>
+              </article>
+            </div>
+          </section>
+
+          <section id="source-data" class="explorer-section explorer-source-section" aria-labelledby="source-data-title">
+            <div class="explorer-region-intro">
+              <p class="explorer-region-label">Source Data</p>
+              <h2 id="source-data-title">The datasets behind 3D ICE</h2>
+              <p>
+                Every layer comes from a published dataset, model or preprint. The research edition’s data
+                snapshot links the datasets in view to their sources, and the public edition’s layer
+                explainers cite the data they draw on. 3D ICE itself is open source under the MIT License:
+                the code, and the scripts that prepare the data packages, are on <a href="https://github.com/yuwang115/3d-ice" target="_blank" rel="noopener">GitHub</a>.
+              </p>
+            </div>
+            <div class="explorer-source-columns">
+              <article class="explorer-source-column">
+                <h3>Antarctica</h3>
+                <ul class="explorer-source-list">
+                  <li><a href="https://nsidc.org/data/NSIDC-0756/versions/4" target="_blank" rel="noopener">MEaSUREs BedMachine Antarctica, Version 4</a></li>
+                  <li><a href="https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2" target="_blank" rel="noopener">Bedmap3 Antarctica, Version 1.0</a></li>
+                  <li><a href="https://nsidc.org/data/NSIDC-0709/versions/2" target="_blank" rel="noopener">MEaSUREs Antarctic Boundaries for IPY 2007-2009 from Satellite Radar, Version 2</a></li>
+                  <li><a href="https://nsidc.org/data/NSIDC-0754/versions/1" target="_blank" rel="noopener">MEaSUREs Phase-Based Antarctica Ice Velocity Map, Version 1</a></li>
+                  <li><a href="https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1" target="_blank" rel="noopener">Antarctic Ice-Sheet Basal Friction from Elmer/Ice Inversions</a></li>
+                  <li><a href="https://zenodo.org/records/12738170" target="_blank" rel="noopener">GlaDS Simulated Antarctic Wide Subglacial Hydrology</a></li>
+                  <li><a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full" target="_blank" rel="noopener">WAOM2 Annual-Mean Antarctic Ocean Circulation Fields</a></li>
+                  <li><a href="https://data.aad.gov.au/metadata/RISE" target="_blank" rel="noopener">Multi-Model Estimate of Antarctic Ice-Shelf Basal Melting and Ocean Drivers</a></li>
+                  <li><a href="https://doi.org/10.18739/A22Z12R8C" target="_blank" rel="noopener">Total Isostatic Response to the Complete Unloading of the Greenland and Antarctic Ice Sheets (Paxman, Austermann &amp; Hollyday, 2022)</a></li>
+                  <li><a href="https://doi.org/10.3189/S0260305500013586" target="_blank" rel="noopener">A Comparison of Different Ways of Dealing with Isostasy: Examples from Modelling the Antarctic Ice Sheet during the Last Glacial Cycle (Le Meur &amp; Huybrechts, 1996)</a></li>
+                  <li><a href="https://www.comnap.aq/antarctic-facilities-information" target="_blank" rel="noopener">COMNAP Antarctic Facilities List</a></li>
+                  <li><a href="https://placenames.aq/information" target="_blank" rel="noopener">SCAR Composite Gazetteer of Antarctica</a></li>
+                  <li><a href="https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-physical-labels/" target="_blank" rel="noopener">Natural Earth Physical Labels</a></li>
+                </ul>
+              </article>
+              <article class="explorer-source-column">
+                <h3>Greenland</h3>
+                <ul class="explorer-source-list">
+                  <li><a href="https://nsidc.org/data/idbmg4/versions/6" target="_blank" rel="noopener">IceBridge BedMachine Greenland, Version 6</a></li>
+                  <li><a href="https://doi.org/10.1017/jog.2025.10071" target="_blank" rel="noopener">QRF Greenland Subglacial Topography (2025)</a></li>
+                  <li><a href="https://doi.org/10.7280/D1WT11" target="_blank" rel="noopener">Glacier Catchments/Basins for the Greenland Ice Sheet (Mouginot &amp; Rignot, 2019)</a></li>
+                  <li><a href="https://nsidc.org/data/NSIDC-0776/versions/2" target="_blank" rel="noopener">MEaSUREs ITS_LIVE Regional Glacier and Ice Sheet Surface Velocities, Version 2</a></li>
+                  <li><a href="https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1" target="_blank" rel="noopener">Greenland Basal Friction Ensemble Inversion Reference</a></li>
+                  <li><a href="https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description" target="_blank" rel="noopener">Copernicus Marine Arctic Ocean Physics Analysis and Forecast</a></li>
+                  <li><a href="https://doi.org/10.18739/A22Z12R8C" target="_blank" rel="noopener">Total Isostatic Response to the Complete Unloading of the Greenland and Antarctic Ice Sheets (Paxman, Austermann &amp; Hollyday, 2022)</a></li>
+                  <li><a href="https://doi.org/10.3189/S0260305500013586" target="_blank" rel="noopener">A Comparison of Different Ways of Dealing with Isostasy: Examples from Modelling the Antarctic Ice Sheet during the Last Glacial Cycle (Le Meur &amp; Huybrechts, 1996)</a></li>
+                  <li><a href="https://www.interact-gis.org/" target="_blank" rel="noopener">INTERACT Research-Station Directory</a></li>
+                  <li><a href="https://kort.nunagis.gl/refserver/rest/services/PlacenamesRegister/PlacenamesRegisterSearch/MapServer/1" target="_blank" rel="noopener">Greenland Place Names Register (NunaGIS)</a></li>
+                  <li><a href="https://www.gebco.net/data-products/undersea-feature-names" target="_blank" rel="noopener">IHO-IOC GEBCO Gazetteer of Undersea Feature Names</a></li>
+                  <li><a href="https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-physical-labels/" target="_blank" rel="noopener">Natural Earth Physical Labels</a></li>
+                </ul>
+              </article>
+            </div>
+          </section>
+
+          <section id="feedback" class="explorer-section explorer-feedback-only explorer-community-section" aria-labelledby="feedback-title">
+            <div class="explorer-community-grid">
+              <div class="explorer-community-copy">
+                <p class="explorer-region-label">Community</p>
+                <h2 id="feedback-title">Let’s Build the Ultimate Cryosphere Hub Together</h2>
+                <p>
+                  3D ICE is continually evolving, and I’d love to hear feedback from the glaciology
+                  community to help me improve it further.
+                </p>
+                <ul class="explorer-community-list">
+                  <li><strong>Have data to share?</strong> If you have Antarctic or Greenland datasets you’d like me to integrate into 3D ICE, please reach out.</li>
+                  <li><strong>Spread the word:</strong> If you find this tool useful for your research, teaching, or outreach, please feel free to share it with your network.</li>
+                </ul>
+              </div>
+              <div class="explorer-feedback-panel explorer-feedback-panel--faq-style">
+                <div class="tool-feedback-root">
+                  <div class="tool-feedback-card">
+                    <div class="tool-feedback-card-inner">
+                      <div class="tool-feedback-heading">
+                        <div class="tool-feedback-body">
+                          If you have ideas, datasets, bug reports, or usability feedback for 3D ICE, send a
+                          quick note here. English or Chinese is welcome.
+                        </div>
+                      </div>
+                      <div id="faq-feedback-3d-ice-success" class="tool-feedback-success" aria-live="polite" tabindex="-1">
+                        <h3>Thanks for the note.</h3>
+                        <p>Your feedback has been sent. I read these messages to improve the tools and fix rough edges.</p>
+                        <button type="button" class="tool-feedback-reset" data-feedback-reset="faq-feedback-3d-ice-form">Send another message</button>
+                      </div>
+                      <div id="faq-feedback-3d-ice-error" class="tool-feedback-alert" aria-live="polite">
+                        <h3>Submission failed.</h3>
+                        <p>I could not send your message just now. Please try again, or email me directly if the issue persists.</p>
+                      </div>
+                      <form
+                        id="faq-feedback-3d-ice-form"
+                        class="tool-feedback-form"
+                        action="https://usebasin.com/f/53e802e0991e"
+                        method="POST"
+                        accept-charset="UTF-8"
+                        data-basin-form
+                        data-basin-success-action="render"
+                        data-basin-success-id="faq-feedback-3d-ice-success"
+                        data-basin-error-id="faq-feedback-3d-ice-error"
+                        data-default-tool="3D ICE: The Polar World at Your Fingertips"
+                        data-label-submit="Send feedback"
+                        data-label-sending="Sending..."
+                        data-status-sending="Submitting your feedback..."
+                        data-status-sent="Thanks. Your message has been sent."
+                        data-status-failed="Submission failed. Please try again or email me directly."
+                      >
+                        <input type="hidden" name="source_page" value="./tools/3d-ice/" />
+                        <input type="hidden" name="source_section" value="tools-feedback" data-feedback-source-section />
+                        <input type="hidden" name="page_url" data-feedback-page-url />
+                        <input type="hidden" name="page_title" value="3D ICE: The Polar World at Your Fingertips" />
+                        <input type="hidden" name="site_lang" value="en" />
+                        <div class="tool-feedback-honeypot" aria-hidden="true">
+                          <label for="faq-feedback-3d-ice-website">Leave this field empty</label>
+                          <input id="faq-feedback-3d-ice-website" type="text" name="website" tabindex="-1" autocomplete="off" />
+                        </div>
+                        <div class="tool-feedback-grid">
+                          <div class="tool-feedback-field">
+                            <label class="tool-feedback-label" for="faq-feedback-3d-ice-tool">Tool</label>
+                            <select id="faq-feedback-3d-ice-tool" class="tool-feedback-select" name="tool" required data-feedback-tool-select>
+                              <option value="" disabled>Select a tool</option>
+                              <option value="3D ICE: The Polar World at Your Fingertips" selected>3D ICE: The Polar World at Your Fingertips</option>
+                              <option value="Regularised Coulomb Sliding Law demo">Regularised Coulomb Sliding Law demo</option>
+                              <option value="Marine Ice Sheet Flowline Lab">Marine Ice Sheet Flowline Lab</option>
+                              <option value="General tools/site feedback">General tools/site feedback</option>
+                            </select>
+                          </div>
+                          <div class="tool-feedback-field">
+                            <label class="tool-feedback-label" for="faq-feedback-3d-ice-email">
+                              Email <span class="tool-feedback-hint">Optional, if you’d like a reply</span>
+                            </label>
+                            <input id="faq-feedback-3d-ice-email" class="tool-feedback-input" type="email" name="email" inputmode="email" autocomplete="email" placeholder="you@example.com" />
+                          </div>
+                          <div class="tool-feedback-field tool-feedback-field--full">
+                            <label class="tool-feedback-label" for="faq-feedback-3d-ice-message">Message</label>
+                            <textarea id="faq-feedback-3d-ice-message" class="tool-feedback-textarea" name="message" required placeholder="Tell me what worked, what felt confusing, what broke, or what you’d like me to add." data-feedback-message></textarea>
+                          </div>
+                        </div>
+                        <div class="tool-feedback-actions">
+                          <div class="tool-feedback-actions-left">
+                            <button type="submit" class="tool-feedback-submit">Send feedback</button>
+                            <a class="tool-feedback-secondary" href="mailto:wangyu@uchicago.edu">Email instead</a>
+                          </div>
+                          <div id="faq-feedback-3d-ice-status" class="tool-feedback-status" role="status"></div>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="explorer-community-cta-standalone">
+            <div class="explorer-community-cta-row">
+              <a class="explorer-button explorer-button--community-utility" href="./explore/?tour=1">Start the guided tour</a>
+              <a class="explorer-button explorer-button--browse-spotlight" href="https://yuwang.blog/tools/#tools-demo" rel="nofollow">Browse other research tools</a>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <div class="explorer-footer-logos" role="group" aria-label="IMAS and AAPP logos">
+        <div class="explorer-footer-logo explorer-footer-logo--imas">
+          <img src="/logos/imas-utas.png" data-light-src="/logos/imas-utas.png" data-dark-src="/logos/imas-utas-dark.png" alt="Institute for Marine and Antarctic Studies, University of Tasmania" width="494" height="230" loading="lazy" decoding="async" />
+        </div>
+        <div class="explorer-footer-logo explorer-footer-logo--aapp">
+          <img src="/logos/aapp.png" data-light-src="/logos/aapp.png" data-dark-src="/logos/aapp-dark.png" alt="Australian Antarctic Program Partnership" width="922" height="418" loading="lazy" decoding="async" />
+        </div>
+      </div>
+      <p class="explorer-footer-note">
+        © 2026 Yu Wang. Licensed under the
+        <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer">MIT License</a>.
+        <a href="https://github.com/yuwang115/3d-ice" target="_blank" rel="noopener">Source code on GitHub</a>.
+      </p>
+    </footer>
+    <script src="https://js.usebasin.com/v2.10.1.min.js" defer></script>
+  </body>
+</html>
