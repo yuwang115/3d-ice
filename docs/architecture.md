@@ -65,10 +65,16 @@ file, product version and reference it was built from.
 
 | Path | Role |
 | --- | --- |
-| `static/tools/3D-interactive-cryosphere-explorer.html` | English page: metadata, theme and asset-base bootstrap, control markup |
-| `static/zh/tools/3D-interactive-cryosphere-explorer.html` | Chinese page: the same shell with translated markup |
-| `static/tools/css/explorer.css` | Styles shared by both pages |
-| `static/tools/js/explorer-app.js` | Runtime shared by both pages: dataset registry, loading, scene graph, UI wiring, legends, metadata panel |
+| `static/tools/3D-interactive-cryosphere-explorer.html` | Research edition, English page: metadata, theme and asset-base bootstrap, control markup |
+| `static/zh/tools/3D-interactive-cryosphere-explorer.html` | Research edition, Chinese page: the same shell with translated markup |
+| `static/explore/index.html`, `static/zh/explore/index.html` | Public edition, English and Chinese: a smaller control set, the tour card and the explainer slots |
+| `static/tools/css/explorer.css` | Styles shared by every explorer page |
+| `static/tools/css/explore.css` | Public-edition additions: tour card, explainers |
+| `static/tools/js/explorer-app.js` | Runtime shared by every explorer page: dataset registry, loading, scene graph, UI wiring, legends, metadata panel, camera flights |
+| `static/tools/js/explore-guide.js` | The public edition's tour and explainers, which drive the explorer through its guide interface |
+| `static/tools/js/editions.js` | Edition profiles: the datasets, layers and runtime behaviours each edition offers |
+| `static/tools/js/explore-content.js`, `explore-tour.js` | Tour stops and public-edition copy in both locales; camera framing, flights and toggle ordering for the tour |
+| `static/tools/js/polar-projection.js` | EPSG:3031 and EPSG:3413 projections, for placing the camera by latitude and longitude |
 | `static/tools/js/data-contract.js` | Package decoder (the browser half of the data contract) |
 | `static/tools/antarctica-geometry-worker.js` | Module worker that builds velocity, basal-friction, hydrology and ocean-current geometry off the main thread |
 | `static/tools/gia-rebound-worker.js` | Module worker for the idealised isostatic-rebound solve |
@@ -83,7 +89,23 @@ and run unchanged under Node's test runner, which is how they are unit-tested.
 still large (about 10,000 lines), and moving further domain logic out of it into tested
 modules is ongoing work. Both locale pages load the same runtime and stylesheet: they
 differ only in markup text and page metadata, and every string the runtime displays is
-looked up through `t()`.
+looked up through `t()`. `explore-guide.js` is the public edition's only DOM module
+besides the runtime; its copy lives in `explore-content.js`, which a test keeps in step
+across both locales.
+
+**Editions.** Every explorer page loads the same runtime, and `<html data-edition>`
+(`research` when absent) selects a profile in `editions.js`. The profile restricts the
+region registry before anything reads it: datasets outside its list disappear, its
+disabled layers are switched off, and their package URLs are dropped, so nothing fetches,
+prefetches or primes them. The public page leaves those layers' controls out of its markup.
+The runtime binds every control unconditionally, so each missing control resolves to a
+detached stand-in whose state the profile fixes (for example all four ocean depth bands
+on, or the Earth response pinned to the published model), and which ignores writes. A
+preset or a side effect therefore cannot switch on a layer the page does not show. The
+profile also chooses the background warm-up list, flowline picking, the recording mode and
+the status wording. Editions with a guide load `explore-guide.js`, which drives the
+explorer as a user would, by setting the page's own controls, plus a small interface for
+camera flights and waits.
 
 **Loading.** Selecting a region and dataset fetches its terrain package and builds the
 terrain mesh. Overlay packages are fetched when a layer is first enabled or, after the
@@ -111,7 +133,9 @@ from a site root, a GitHub Pages project path, or a downstream site.
 for example `antarctica-velocity-flowlines` or `greenland-ocean-circulations`, which fixes
 the dataset and the layers shown) choose the initial view; the terrain dataset itself is
 chosen in the panel. `mode=showcase` and
-`mode=preview` are embedding modes; `recording=1` enables the camera-path recording panel.
+`mode=preview` are embedding modes; `recording=1` enables the camera-path recording panel
+in the research edition. In the public edition `tour=1`, or `tour=` a stop id such as
+`greenland`, opens the guided tour on load.
 Layer toggles and camera pose are not written back to the URL; the recording panel copies
 the current camera pose as text instead.
 
@@ -139,9 +163,11 @@ current Chrome, Edge, Firefox and Safari (Chrome and Edge 89+, Firefox 114+, Saf
 | Rebound solver against the analytic point-load (Kelvin function) solution and the Airy limit | node:test | `tests/js/gia-point-load.test.mjs`, `tests/js/gia-rebound.test.mjs` | JavaScript unit tests |
 | Published-response packages: node alignment, the published identities, quantization, provenance | pytest, node:test | `tests/test_prepare_isostatic_response.py`, `tests/js/examples.test.mjs` | Python and JavaScript unit tests |
 | Place search, label styling, refined-basin validation | node:test | `tests/js/polar-features.test.mjs` | JavaScript unit tests |
+| Edition profiles, polar projections against every catalogue position, tour framing and flights, and copy parity across locales | node:test | `tests/js/editions.test.mjs`, `polar-projection.test.mjs`, `explore-tour.test.mjs`, `explore-content.test.mjs` | JavaScript unit tests |
 | Every localisation key used at runtime resolves in both locales | node:test | `tests/js/locale-coverage.test.mjs` | JavaScript unit tests |
 | Metadata schema of every package; `CITATION.cff` and `codemeta.json` | pytest, cffconvert | `tests/test_metadata_schema.py` | Validate .meta.json files |
 | The distributable bundle contains every runtime file | Node | `scripts/smoke_compat_bundle.mjs` | Compatibility bundle smoke test |
-| The explorer loads, renders and responds in a real browser | Playwright | `tests/e2e/` | Browser E2E tests |
+| Both home pages link each edition, list every source the runtime cites and share one structure across locales | pytest | `tests/test_home_page.py`, `tests/test_home_latest_updates.py` | Python unit tests |
+| The explorer loads, renders and responds in a real browser; the public edition requests no research-only package and plays its tour in both locales; the home pages reach both editions from the first screen | Playwright | `tests/e2e/` | Browser E2E tests |
 
 Commands for running each suite locally are in the [README](../README.md#running-tests).

@@ -88,7 +88,7 @@ def test_latest_updates_is_localized_and_between_region_and_features(
     parser.feed(page_path.read_text(encoding="utf-8"))
 
     assert parser.id_counts.get("latest-updates") == 1
-    assert "/css/3d-ice-updates.css" in parser.stylesheets
+    assert "/css/3d-ice-home.css" in parser.stylesheets
     assert parser.ids.index("greenland-features") < parser.ids.index("latest-updates")
     assert parser.ids.index("latest-updates") < parser.ids.index("key-features")
     assert parser.latest_attrs.get("aria-labelledby") == "latest-updates-title"

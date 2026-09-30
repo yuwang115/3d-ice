@@ -8,6 +8,28 @@ All notable changes to 3D ICE are recorded here. The format follows
 
 ### Added
 
+- A public edition of the explorer at `/explore/` and `/zh/explore/`, for visitors,
+  classrooms and outreach stands. It offers each region's default terrain, see-through ice,
+  vertical exaggeration, place search, animated ice flowlines coloured by speed, ocean
+  currents under a single toggle, sea level and the published ice-free rebound. It adds an
+  eight-stop guided tour, with camera flights, layer changes and animated sliders, and a
+  plain-language explainer, with sources, beside every layer. `?tour=1` or `?tour=<stop id>`
+  opens the tour on load. On desktop the tour plays in the side panel next to the view; on
+  phones the card floats over the viewer and can be collapsed. The first time a visitor
+  switches "Remove the ice" on, the ice melts away over three seconds, from today's ice to
+  the fully rebounded land, instead of vanishing at once.
+- Edition profiles (`static/tools/js/editions.js`). Every explorer page runs the same
+  runtime, and `<html data-edition>` decides which datasets and layers it offers. A
+  restricted layer also loses its package URLs, so the public pages never fetch a
+  research-only package. Controls a page leaves out are replaced by detached stand-ins in a
+  fixed state, so no preset can switch those layers on.
+- Camera flights and geographic framing in the runtime: an eased flight between poses that
+  any camera input cancels, and a pose that frames a disc of a given diameter around a
+  latitude and longitude in the part of the viewer the page leaves uncovered. Browser
+  EPSG:3031 and EPSG:3413 projections (`static/tools/js/polar-projection.js`) reproduce
+  every stored position in the place catalogues.
+- Unit tests for the profiles, the projections, the tour logic and the copy, and browser
+  tests for the public edition.
 - The published total isostatic response of Paxman, Austermann & Hollyday (2022), grids v3
   (NSF Arctic Data Center, doi:10.18739/A22Z12R8C, CC BY 4.0), as the isostatic-rebound
   layer's default Earth response: laterally variable elastic thickness, the post-LGM
@@ -28,6 +50,21 @@ All notable changes to 3D ICE are recorded here. The format follows
 
 ### Changed
 
+- The home pages are rebuilt around the two editions. The hero leads with the guided tour
+  and a way into the research edition, both in the first screen of a laptop, and a new "Two
+  ways to explore" section introduces each edition, with a folded comparison table. Every
+  preview names the editions that offer it and opens in one of them. The update cards
+  announce the public edition and describe the published rebound response. The research
+  edition keeps its URL, features and behaviour, and the research pages link to the tour.
+- The home pages are now readable HTML with one stylesheet and one script, in the typefaces
+  the site already bundled (Space Grotesk and Playfair Display). Both are variable fonts, now
+  declared with their weight ranges, so bold text is real rather than synthesised and six
+  duplicate font files are gone. The 188 KB framework stylesheet, the Inter font and two
+  scripts that did nothing are gone too. Preview videos load only when scrolled into view and
+  stay on their posters with reduced motion or Data Saver. The page has a skip link, in-page
+  navigation, a visible focus ring on every control, including the preview videos, and text
+  and buttons at 4.5:1 contrast or better. The 404 page uses the same typefaces, and its
+  explorer button opens the public edition.
 - The ELRA and Airy responses are labelled idealised what-ifs; the sea-level datum slider
   applies to them only. The worked example's headline figure is now 2.94 million km² of
   newly emergent Antarctic bed (relative to the ice-free sea surface) instead of the
@@ -40,6 +77,13 @@ All notable changes to 3D ICE are recorded here. The format follows
 
 ### Fixed
 
+- The home pages' source list includes the Paxman et al. (2022) response, which the rebound
+  layer shows by default, and a test keeps the list in step with the sources the explorer
+  cites. Section labels are drawn small and in the accent colour as designed, rather than as
+  body text, and the update cards no longer touch.
+- A feedback message that fails to send no longer leaves the form stuck on "Sending..." with
+  the message wiped: the form library's failure path threw before reporting the failure. The
+  page works around it, shows the error and restores the message.
 - The rebound caveats no longer attribute the Amundsen Sea Embayment's 41 mm/yr uplift to
   the Last Glacial Maximum; it is a response to recent ice loss over a weak mantle
   (Barletta et al. 2018). The "full equilibrium after 15–20 kyr" note now says that this

@@ -113,3 +113,14 @@ def explorer_url(server: str) -> str:
 @pytest.fixture
 def home_url(server: str) -> str:
     return f"{server}/index.html"
+
+
+@pytest.fixture
+def explore_url(server: str) -> str:
+    """The public edition, which lives outside /tools/."""
+    return f"{server}/explore/"
+
+
+@pytest.fixture
+def explore_zh_url(server: str) -> str:
+    return f"{server}/zh/explore/"

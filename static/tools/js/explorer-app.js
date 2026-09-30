@@ -1,9 +1,11 @@
 /**
- * Explorer runtime shared by the English and Chinese explorer pages.
+ * Explorer runtime shared by every explorer page: both locales of the research edition
+ * and of the public edition.
  *
- * The page supplies the markup and <html lang>; its head scripts publish
- * window.__iceAssetBase, window.__iceRuntimeTheme and window.__3dIceLocale, and every
- * user-visible string goes through t(). Data packages are decoded by ./data-contract.js.
+ * The page supplies the markup, <html lang> and <html data-edition>; its head scripts
+ * publish window.__iceAssetBase, window.__iceRuntimeTheme and window.__3dIceLocale, and
+ * every user-visible string goes through t(). Data packages are decoded by
+ * ./data-contract.js, and ./editions.js says what each edition offers.
  */
 
 const queryParams = new URLSearchParams(window.location.search);
@@ -14,19 +16,35 @@ const assetUrl = (relativePath) =>
   assetBaseApi && typeof assetBaseApi.assetUrl === "function"
     ? assetBaseApi.assetUrl(relativePath)
     : new URL(String(relativePath || "").replace(/^\/+/, ""), new URL("/tools/", window.location.href)).toString();
-const { createPolarFeaturesController } = await import(assetUrl("js/polar-features.js"));
-const { fetchRefinedBasinJson } = await import(assetUrl("js/polar-refined-basins.js"));
-const { decodeFieldToFloat32, parseField } = await import(assetUrl("js/data-contract.js"));
+// Fetched together: none of these modules depends on another.
+const [
+  { createPolarFeaturesController },
+  { fetchRefinedBasinJson },
+  { decodeFieldToFloat32, parseField },
+  { applyEditionToRegions, getEditionProfile, getStandInSpec },
+  { projectLatLon },
+  { easeInOutCubic, flightDurationMs, framePose, interpolatePose, orbitPose },
+] = await Promise.all([
+  import(assetUrl("js/polar-features.js")),
+  import(assetUrl("js/polar-refined-basins.js")),
+  import(assetUrl("js/data-contract.js")),
+  import(assetUrl("js/editions.js")),
+  import(assetUrl("js/polar-projection.js")),
+  import(assetUrl("js/explore-tour.js")),
+]);
+const editionProfile = getEditionProfile(document.documentElement.dataset.edition);
+// An edition without the basin layer leaves basins out of place search as well.
+const searchesRefinedBasins = !editionProfile.disabledCapabilities.includes("refinedBasins");
 const polarFeatureDataUrls = Object.freeze({
   antarctica: Object.freeze({
     research_stations: assetUrl("data/antarctica_research_stations.json"),
     geographic_names: assetUrl("data/antarctica_geographic_names.json"),
-    refined_basins: assetUrl("data/antarctica_refined_basins_search.json"),
+    ...(searchesRefinedBasins ? { refined_basins: assetUrl("data/antarctica_refined_basins_search.json") } : {}),
   }),
   greenland: Object.freeze({
     research_stations: assetUrl("data/greenland_research_stations.json"),
     geographic_names: assetUrl("data/greenland_geographic_names.json"),
-    refined_basins: assetUrl("data/greenland_refined_basins_search.json"),
+    ...(searchesRefinedBasins ? { refined_basins: assetUrl("data/greenland_refined_basins_search.json") } : {}),
   }),
 });
 const lightLogoUrl = assetUrl("3d-ice-logo-light.jpg");
@@ -62,7 +80,7 @@ const isPreviewMode = mode === "preview";
 const showcaseMobileLinkoutMode = queryParams.get("mobileLinkout") === "1";
 const showcaseDesktopInteractiveMode = queryParams.get("desktopInteractive") === "1";
 const recordingModeRequested = queryParams.get("recording") === "1";
-const recordingModeEnabled = recordingModeRequested && !isShowcaseMode && !isPreviewMode;
+const recordingModeEnabled = recordingModeRequested && editionProfile.recording && !isShowcaseMode && !isPreviewMode;
 const coarsePointerQuery = window.matchMedia("(pointer: coarse)");
 const compactViewportQuery = window.matchMedia("(max-width: 980px)");
 const narrowViewportQuery = window.matchMedia("(max-width: 820px)");
@@ -132,7 +150,9 @@ const REBOUND_MODEL_KEYS = Object.freeze({
   local: "local",
 });
 
-const REGIONS = {
+// Every region and dataset the runtime knows. REGIONS below is this registry cut down to
+// what the page's edition offers, and is what everything else reads.
+const ALL_REGIONS = {
   antarctica: {
     key: "antarctica",
     label: "Antarctica",
@@ -424,6 +444,8 @@ const REGIONS = {
   },
 };
 
+const REGIONS = applyEditionToRegions(ALL_REGIONS, editionProfile);
+
 Object.entries(REGIONS).forEach(([regionKey, region]) => {
   const localizedRegion = getLocalizedRegionInfo(regionKey);
   if (localizedRegion.label) {
@@ -647,7 +669,7 @@ const panelBrandLogoEl = document.querySelector(".panel-brand-logo");
 const panelSubtitleEl = document.getElementById("panelSubtitle");
 const panelHeaderEl = document.querySelector(".panel-header");
 const statusEl = document.getElementById("status");
-const metaListEl = document.getElementById("metaList");
+const metaListEl = document.getElementById("metaList") || (editionProfile.standInControls ? document.createElement("ul") : null);
 const fieldStatsEl = document.getElementById("fieldStats");
 const metaSectionOpenState = new Map();
 const interactionHintEl = document.getElementById("interactionHint");
@@ -726,99 +748,132 @@ function bindRuntimeTheme() {
   runtimeThemeMediaQuery.addEventListener("change", runtimeThemeMediaHandler);
 }
 
+/**
+ * A page may leave out any control its edition does not offer (see js/editions.js), but
+ * the runtime binds its controls unconditionally. So a missing control resolves to a
+ * detached stand-in in the state the edition fixes, by default an unchecked checkbox
+ * that keeps its layer off. A stand-in input ignores writes, so no preset or side effect
+ * can switch on a layer the page does not show. Under an edition without stand-ins a
+ * missing control stays null, as it always has on the research pages.
+ */
+function resolveControl(id) {
+  const element = document.getElementById(id);
+  if (element) return element;
+  const spec = getStandInSpec(editionProfile, id);
+  return spec ? createControlStandIn(id, spec) : null;
+}
+
+function createControlStandIn(id, spec) {
+  const element = document.createElement(spec.tag || "input");
+  element.id = id;
+  element.dataset.standIn = "true";
+  if (!(element instanceof HTMLInputElement)) return element;
+  element.type = spec.type || "checkbox";
+  if (spec.min !== undefined) element.min = String(spec.min);
+  if (spec.max !== undefined) element.max = String(spec.max);
+  if (spec.value !== undefined) element.value = String(spec.value);
+  element.checked = Boolean(spec.checked);
+  const { checked, value } = element;
+  Object.defineProperties(element, {
+    checked: { get: () => checked, set: () => {} },
+    value: { get: () => value, set: () => {} },
+  });
+  return element;
+}
+
 const controlsUI = {
-  panelCloseButton: document.getElementById("panelCloseButton"),
-  polarSearchInput: document.getElementById("polarSearchInput"),
-  polarSearchResults: document.getElementById("polarSearchResults"),
-  polarSearchStatus: document.getElementById("polarSearchStatus"),
-  polarFeatureDetails: document.getElementById("polarFeatureDetails"),
-  showResearchStations: document.getElementById("showResearchStations"),
-  showGeographicNames: document.getElementById("showGeographicNames"),
-  regionPreset: document.getElementById("regionPreset"),
-  resolutionPreset: document.getElementById("resolutionPreset"),
-  exaggeration: document.getElementById("exaggeration"),
-  exaggerationValue: document.getElementById("exaggerationValue"),
-  iceOpacity: document.getElementById("iceOpacity"),
-  iceOpacityValue: document.getElementById("iceOpacityValue"),
-  showBed: document.getElementById("showBed"),
-  showIce: document.getElementById("showIce"),
-  showIceBottom: document.getElementById("showIceBottom"),
-  showVelocity: document.getElementById("showVelocity"),
-  showFlowline: document.getElementById("showFlowline"),
-  animateFlow: document.getElementById("animateFlow"),
-  flowlineProfileCardMount: document.getElementById("flowlineProfileCardMount"),
-  showBasalFriction: document.getElementById("showBasalFriction"),
-  showBasalMeltRow: document.getElementById("showBasalMeltRow"),
-  showBasalMelt: document.getElementById("showBasalMelt"),
-  showThermalDrivingRow: document.getElementById("showThermalDrivingRow"),
-  showThermalDriving: document.getElementById("showThermalDriving"),
-  showOceanCurrents: document.getElementById("showOceanCurrents"),
-  oceanCurrentLayerControls: document.getElementById("oceanCurrentLayerControls"),
-  showOceanLayerSurface: document.getElementById("showOceanLayerSurface"),
-  showOceanLayerUpper: document.getElementById("showOceanLayerUpper"),
-  showOceanLayerMid: document.getElementById("showOceanLayerMid"),
-  showOceanLayerLower: document.getElementById("showOceanLayerLower"),
-  showRefinedBasins: document.getElementById("showRefinedBasins"),
-  showRefinedBasinsLabel: document.getElementById("showRefinedBasinsLabel"),
-  showEffectivePressure: document.getElementById("showEffectivePressure"),
-  showSubglacialChannels: document.getElementById("showSubglacialChannels"),
-  showSea: document.getElementById("showSea"),
-  reboundLegendNote: document.getElementById("reboundLegendNote"),
-  showIsostaticRebound: document.getElementById("showIsostaticRebound"),
-  isostaticReboundControls: document.getElementById("isostaticReboundControls"),
-  reboundProgress: document.getElementById("reboundProgress"),
-  reboundProgressValue: document.getElementById("reboundProgressValue"),
-  reboundProgressNote: document.getElementById("reboundProgressNote"),
-  reboundModel: document.getElementById("reboundModel"),
-  reboundModelNote: document.getElementById("reboundModelNote"),
-  reboundSeaLevel: document.getElementById("reboundSeaLevel"),
-  reboundSeaLevelValue: document.getElementById("reboundSeaLevelValue"),
-  reboundSeaLevelNote: document.getElementById("reboundSeaLevelNote"),
-  highlightEmergentLand: document.getElementById("highlightEmergentLand"),
-  wireframe: document.getElementById("wireframe"),
-  resetView: document.getElementById("resetView"),
-  fullscreenToggle: document.getElementById("fullscreenToggle"),
-  interactionToggle: document.getElementById("interactionToggle"),
-  viewerFullscreenToggle: document.getElementById("viewerFullscreenToggle"),
-  bedLegendSection: document.getElementById("bedLegendSection"),
-  legendBar: document.getElementById("legendBar"),
-  velocityLegendSection: document.getElementById("velocityLegendSection"),
-  velocityLegendBar: document.getElementById("velocityLegendBar"),
-  velocityLegendLabels: document.getElementById("velocityLegendLabels"),
-  velocityLegendNote: document.getElementById("velocityLegendNote"),
-  basalFrictionLegendSection: document.getElementById("basalFrictionLegendSection"),
-  basalFrictionLegendBar: document.getElementById("basalFrictionLegendBar"),
-  basalFrictionLegendLabels: document.getElementById("basalFrictionLegendLabels"),
-  basalFrictionLegendNote: document.getElementById("basalFrictionLegendNote"),
-  basalMeltLegendSection: document.getElementById("basalMeltLegendSection"),
-  basalMeltLegendBar: document.getElementById("basalMeltLegendBar"),
-  basalMeltLegendLabels: document.getElementById("basalMeltLegendLabels"),
-  basalMeltLegendNote: document.getElementById("basalMeltLegendNote"),
-  thermalDrivingLegendSection: document.getElementById("thermalDrivingLegendSection"),
-  thermalDrivingLegendBar: document.getElementById("thermalDrivingLegendBar"),
-  thermalDrivingLegendLabels: document.getElementById("thermalDrivingLegendLabels"),
-  oceanLegendSection: document.getElementById("oceanLegendSection"),
-  oceanLegendCanvas: document.getElementById("oceanLegendCanvas"),
-  oceanLegendWarmLabel: document.getElementById("oceanLegendWarmLabel"),
-  oceanLegendColdLabel: document.getElementById("oceanLegendColdLabel"),
-  oceanLegendFreshLabel: document.getElementById("oceanLegendFreshLabel"),
-  oceanLegendSaltyLabel: document.getElementById("oceanLegendSaltyLabel"),
-  effectivePressureLegendSection: document.getElementById("effectivePressureLegendSection"),
-  effectivePressureLegendBar: document.getElementById("effectivePressureLegendBar"),
-  channelLegendSection: document.getElementById("channelLegendSection"),
-  channelLegendBar: document.getElementById("channelLegendBar"),
-  capturePanel: document.getElementById("capturePanel"),
-  captureHideButton: document.getElementById("captureHideButton"),
-  capturePlayButton: document.getElementById("capturePlayButton"),
-  captureResetButton: document.getElementById("captureResetButton"),
-  captureOrbitToggle: document.getElementById("captureOrbitToggle"),
-  captureZoomToggle: document.getElementById("captureZoomToggle"),
-  captureDirectionCw: document.getElementById("captureDirectionCw"),
-  captureDirectionCcw: document.getElementById("captureDirectionCcw"),
-  captureSpeed: document.getElementById("captureSpeed"),
-  captureSpeedValue: document.getElementById("captureSpeedValue"),
-  captureZoomAmount: document.getElementById("captureZoomAmount"),
-  captureZoomAmountValue: document.getElementById("captureZoomAmountValue"),
+  panelCloseButton: resolveControl("panelCloseButton"),
+  polarSearchInput: resolveControl("polarSearchInput"),
+  polarSearchResults: resolveControl("polarSearchResults"),
+  polarSearchStatus: resolveControl("polarSearchStatus"),
+  polarFeatureDetails: resolveControl("polarFeatureDetails"),
+  showResearchStations: resolveControl("showResearchStations"),
+  showGeographicNames: resolveControl("showGeographicNames"),
+  regionPreset: resolveControl("regionPreset"),
+  resolutionPreset: resolveControl("resolutionPreset"),
+  exaggeration: resolveControl("exaggeration"),
+  exaggerationValue: resolveControl("exaggerationValue"),
+  iceOpacity: resolveControl("iceOpacity"),
+  iceOpacityValue: resolveControl("iceOpacityValue"),
+  showBed: resolveControl("showBed"),
+  showIce: resolveControl("showIce"),
+  showIceBottom: resolveControl("showIceBottom"),
+  showVelocity: resolveControl("showVelocity"),
+  showFlowline: resolveControl("showFlowline"),
+  animateFlow: resolveControl("animateFlow"),
+  flowlineProfileCardMount: resolveControl("flowlineProfileCardMount"),
+  showBasalFriction: resolveControl("showBasalFriction"),
+  showBasalMeltRow: resolveControl("showBasalMeltRow"),
+  showBasalMelt: resolveControl("showBasalMelt"),
+  showThermalDrivingRow: resolveControl("showThermalDrivingRow"),
+  showThermalDriving: resolveControl("showThermalDriving"),
+  showOceanCurrents: resolveControl("showOceanCurrents"),
+  oceanCurrentLayerControls: resolveControl("oceanCurrentLayerControls"),
+  showOceanLayerSurface: resolveControl("showOceanLayerSurface"),
+  showOceanLayerUpper: resolveControl("showOceanLayerUpper"),
+  showOceanLayerMid: resolveControl("showOceanLayerMid"),
+  showOceanLayerLower: resolveControl("showOceanLayerLower"),
+  showRefinedBasins: resolveControl("showRefinedBasins"),
+  showRefinedBasinsLabel: resolveControl("showRefinedBasinsLabel"),
+  showEffectivePressure: resolveControl("showEffectivePressure"),
+  showSubglacialChannels: resolveControl("showSubglacialChannels"),
+  showSea: resolveControl("showSea"),
+  reboundLegendNote: resolveControl("reboundLegendNote"),
+  showIsostaticRebound: resolveControl("showIsostaticRebound"),
+  isostaticReboundControls: resolveControl("isostaticReboundControls"),
+  reboundProgress: resolveControl("reboundProgress"),
+  reboundProgressValue: resolveControl("reboundProgressValue"),
+  reboundProgressNote: resolveControl("reboundProgressNote"),
+  reboundModel: resolveControl("reboundModel"),
+  reboundModelNote: resolveControl("reboundModelNote"),
+  reboundSeaLevel: resolveControl("reboundSeaLevel"),
+  reboundSeaLevelValue: resolveControl("reboundSeaLevelValue"),
+  reboundSeaLevelNote: resolveControl("reboundSeaLevelNote"),
+  highlightEmergentLand: resolveControl("highlightEmergentLand"),
+  wireframe: resolveControl("wireframe"),
+  resetView: resolveControl("resetView"),
+  fullscreenToggle: resolveControl("fullscreenToggle"),
+  interactionToggle: resolveControl("interactionToggle"),
+  viewerFullscreenToggle: resolveControl("viewerFullscreenToggle"),
+  bedLegendSection: resolveControl("bedLegendSection"),
+  legendBar: resolveControl("legendBar"),
+  velocityLegendSection: resolveControl("velocityLegendSection"),
+  velocityLegendBar: resolveControl("velocityLegendBar"),
+  velocityLegendLabels: resolveControl("velocityLegendLabels"),
+  velocityLegendNote: resolveControl("velocityLegendNote"),
+  basalFrictionLegendSection: resolveControl("basalFrictionLegendSection"),
+  basalFrictionLegendBar: resolveControl("basalFrictionLegendBar"),
+  basalFrictionLegendLabels: resolveControl("basalFrictionLegendLabels"),
+  basalFrictionLegendNote: resolveControl("basalFrictionLegendNote"),
+  basalMeltLegendSection: resolveControl("basalMeltLegendSection"),
+  basalMeltLegendBar: resolveControl("basalMeltLegendBar"),
+  basalMeltLegendLabels: resolveControl("basalMeltLegendLabels"),
+  basalMeltLegendNote: resolveControl("basalMeltLegendNote"),
+  thermalDrivingLegendSection: resolveControl("thermalDrivingLegendSection"),
+  thermalDrivingLegendBar: resolveControl("thermalDrivingLegendBar"),
+  thermalDrivingLegendLabels: resolveControl("thermalDrivingLegendLabels"),
+  oceanLegendSection: resolveControl("oceanLegendSection"),
+  oceanLegendCanvas: resolveControl("oceanLegendCanvas"),
+  oceanLegendWarmLabel: resolveControl("oceanLegendWarmLabel"),
+  oceanLegendColdLabel: resolveControl("oceanLegendColdLabel"),
+  oceanLegendFreshLabel: resolveControl("oceanLegendFreshLabel"),
+  oceanLegendSaltyLabel: resolveControl("oceanLegendSaltyLabel"),
+  effectivePressureLegendSection: resolveControl("effectivePressureLegendSection"),
+  effectivePressureLegendBar: resolveControl("effectivePressureLegendBar"),
+  channelLegendSection: resolveControl("channelLegendSection"),
+  channelLegendBar: resolveControl("channelLegendBar"),
+  capturePanel: resolveControl("capturePanel"),
+  captureHideButton: resolveControl("captureHideButton"),
+  capturePlayButton: resolveControl("capturePlayButton"),
+  captureResetButton: resolveControl("captureResetButton"),
+  captureOrbitToggle: resolveControl("captureOrbitToggle"),
+  captureZoomToggle: resolveControl("captureZoomToggle"),
+  captureDirectionCw: resolveControl("captureDirectionCw"),
+  captureDirectionCcw: resolveControl("captureDirectionCcw"),
+  captureSpeed: resolveControl("captureSpeed"),
+  captureSpeedValue: resolveControl("captureSpeedValue"),
+  captureZoomAmount: resolveControl("captureZoomAmount"),
+  captureZoomAmountValue: resolveControl("captureZoomAmountValue"),
   captureManualButtons: Array.from(document.querySelectorAll("[data-capture-manual]")),
 };
 
@@ -1036,7 +1091,8 @@ const rememberedOceanCurrentLayerSelectionByRegion = {
 function getReadyStatusText(context) {
   if (isShowcaseMode) return "";
   if (isPreviewMode) return t("explorer.status.previewReady");
-  return context
+  // An edition with a single dataset per region has no dataset name worth reporting.
+  return context && editionProfile.detailedStatus
     ? t("explorer.status.readyWithContext", {
         region: context.dataset.regionLabel,
         dataset: context.dataset.label,
@@ -1048,6 +1104,9 @@ function getLoadingStatusText(region, dataset) {
   if (isShowcaseMode) return "";
   if (isPreviewMode) {
     return t("explorer.status.loadingPreview", { region: region.label });
+  }
+  if (!editionProfile.detailedStatus) {
+    return t("explorer.status.loadingRegion", { region: region.label });
   }
   return t("explorer.status.loadingCoreTerrain", { region: region.label, dataset: dataset.label });
 }
@@ -1498,7 +1557,7 @@ function isFlowlineGuidanceVisible() {
 }
 
 function maybeShowFlowlineGuidanceStatus() {
-  if (flowlineGuidanceStatusShown || isPreviewMode || isShowcaseMode) return;
+  if (flowlineGuidanceStatusShown || isPreviewMode || isShowcaseMode || !editionProfile.flowlinePicking) return;
   if (!statusEl || isCoarsePointerInput() || selectedFlowlineState) return;
   if (!isFlowlineGuidanceVisible()) return;
   flowlineGuidanceStatusShown = true;
@@ -2069,6 +2128,8 @@ function stepRuntime(deltaMs = 16) {
     stepRecordingMotion(safeDeltaMs / 1000);
   }
   stepFlowLightAnimation(safeDeltaMs / 1000);
+  // Flights keep to their schedule on slow frames instead of stretching with the 48 ms step.
+  stepCameraFlight(clamp(Number(deltaMs) || 0, 0, CAMERA_FLIGHT_FRAME_LIMIT_MS));
   if (orbit) orbit.update();
 }
 
@@ -4638,12 +4699,25 @@ function buildOceanCurrentMeshFromWorkerResult(oceanMeta, workerResult) {
   return group;
 }
 
+// Offset of the image in normalised device units (+x right, +y up) that keeps the camera's
+// target clear of page UI over part of the view: the public edition's floating tour card.
+// Zero everywhere else. It shifts the frustum off-axis, so scale and orbit are unchanged.
+let viewShift = [0, 0];
+
+function updateCameraProjection() {
+  camera.updateProjectionMatrix();
+  if (!viewShift[0] && !viewShift[1]) return;
+  camera.projectionMatrix.elements[8] -= viewShift[0];
+  camera.projectionMatrix.elements[9] -= viewShift[1];
+  camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+}
+
 function resizeRendererToViewer() {
   if (!renderer || !camera) return;
   const w = Math.max(1, viewerEl.clientWidth);
   const h = Math.max(1, viewerEl.clientHeight);
   camera.aspect = w / h;
-  camera.updateProjectionMatrix();
+  updateCameraProjection();
   renderer.setSize(w, h, false);
 }
 
@@ -4765,6 +4839,7 @@ function initScene() {
   orbit.maxDistance = 360;
   orbit.target.set(...initialPose.target);
   orbit.enabled = true;
+  orbit.addEventListener("start", cancelCameraFlight);
   renderer.domElement.style.touchAction = "none";
 
   const ambient = new THREE.AmbientLight(0xddefff, 0.75);
@@ -4777,6 +4852,7 @@ function initScene() {
 
 function resetCameraToDefaultPose() {
   if (!camera || !orbit) return;
+  cancelCameraFlight();
   stopShowcaseAutoOrbit({ syncBasePose: false });
   resetRecordingMotionState({ syncBasePose: false });
   const pose = getDefaultCameraPose();
@@ -4850,6 +4926,7 @@ function getCurrentCameraPose() {
     position: [Number(camera.position.x), Number(camera.position.y), Number(camera.position.z)],
     target: [Number(orbit.target.x), Number(orbit.target.y), Number(orbit.target.z)],
     fov: Number(camera.fov),
+    shift: [...viewShift],
   };
 }
 
@@ -4861,16 +4938,115 @@ function applyCameraPose(pose = null) {
   const target = coerceVec3(nextPose.target, fallbackPose.target);
   const fovValue = Number(nextPose.fov);
   const fov = Number.isFinite(fovValue) ? fovValue : Number(fallbackPose.fov);
+  // A pose without a view shift is centred.
+  const shift = Array.isArray(nextPose.shift) ? nextPose.shift.slice(0, 2).map((value) => Number(value) || 0) : [0, 0];
   const previousDamping = orbit.enableDamping;
   orbit.enableDamping = false;
   orbit.update();
   camera.position.set(...position);
   camera.fov = fov;
-  camera.updateProjectionMatrix();
+  viewShift = shift;
+  updateCameraProjection();
   orbit.target.set(...target);
   orbit.update();
   orbit.enableDamping = previousDamping;
   return getCurrentCameraPose();
+}
+
+// ------------------------------------------------------------------ camera flights
+//
+// An eased move from the current view to a pose, stepped from the render loop. Any
+// camera input from the user, a region load or a camera reset ends it where it is.
+
+let cameraFlight = null;
+const CAMERA_FLIGHT_FRAME_LIMIT_MS = 250;
+const DEFAULT_LOOK_AT_FOV = 42;
+// Beyond this the far side of the terrain sinks into the fog and past the far plane, so
+// a view that needs more room widens its field of view instead, up to the second limit.
+const MAX_LOOK_AT_DISTANCE = 150;
+const MAX_LOOK_AT_FOV = 75;
+
+/** Fly to `pose`; resolves true on arrival, false if the flight was cut short. */
+function flyCameraTo(pose, { durationMs = null } = {}) {
+  cancelCameraFlight();
+  const from = getCurrentCameraPose();
+  if (!from || !pose) return Promise.resolve(false);
+  const duration = flowMotionMediaQuery.matches ? 0 : Number(durationMs ?? flightDurationMs(from, pose));
+  if (!(duration > 0)) {
+    applyCameraPose(pose);
+    return Promise.resolve(true);
+  }
+  return new Promise((resolve) => {
+    cameraFlight = { from, to: pose, durationMs: duration, elapsedMs: 0, resolve };
+  });
+}
+
+function cancelCameraFlight() {
+  if (!cameraFlight) return;
+  const { resolve } = cameraFlight;
+  cameraFlight = null;
+  resolve(false);
+}
+
+function stepCameraFlight(deltaMs) {
+  if (!cameraFlight) return;
+  const flight = cameraFlight;
+  flight.elapsedMs += deltaMs;
+  const progress = Math.min(1, flight.elapsedMs / flight.durationMs);
+  applyCameraPose(interpolatePose(flight.from, flight.to, easeInOutCubic(progress)));
+  if (progress >= 1) {
+    cameraFlight = null;
+    flight.resolve(true);
+  }
+}
+
+/**
+ * The camera pose framing a geographic point of the loaded region. `lookAt` is
+ * { lat, lon, fitKm | distanceKm, azimuthDeg, elevationDeg, fov }, with the angles as
+ * js/explore-tour.js orbitPose() defines them. `fitKm` frames a disc of that diameter in
+ * the part of the viewer that `uncovered` (CSS-pixel margins covered by page UI) leaves
+ * free, whatever the screen size, as far as the fog allows. The target sits on the ice or
+ * bed surface at the current vertical exaggeration. Returns null for a point off the grid.
+ */
+function getLookAtPose(lookAt, { uncovered = {} } = {}) {
+  const context = currentCoreContext;
+  if (!context || !lookAt) return null;
+  let projected;
+  try {
+    projected = projectLatLon(Number(lookAt.lat), Number(lookAt.lon), context.dataset.regionKey);
+  } catch (_error) {
+    return null;
+  }
+  const gridPoint = projectPs71PointToGrid(context, projected.x, projected.y);
+  if (!gridPoint) return null;
+  const scenePoint = gridToSceneXZ(context, gridPoint.col, gridPoint.row);
+  let heightMeters = sampleGridHeightNearest(context, gridPoint.col, gridPoint.row, "surface");
+  if (!Number.isFinite(heightMeters)) heightMeters = sampleGridHeightNearest(context, gridPoint.col, gridPoint.row, "bed");
+  if (!Number.isFinite(heightMeters)) heightMeters = 0;
+  const exaggeration = Number(controlsUI.exaggeration.value) || 1;
+  const kmToUnits = 1000 / context.baseConfig.horizontalMetersPerUnit;
+  const fov = Number.isFinite(Number(lookAt.fov)) ? Number(lookAt.fov) : DEFAULT_LOOK_AT_FOV;
+  const target = [scenePoint.x, (heightMeters / context.baseConfig.verticalMetersPerUnit) * exaggeration, scenePoint.z];
+  if (Number(lookAt.fitKm) > 0) {
+    return framePose({
+      target,
+      diameter: Number(lookAt.fitKm) * kmToUnits,
+      azimuthDeg: lookAt.azimuthDeg,
+      elevationDeg: lookAt.elevationDeg,
+      fovDeg: fov,
+      maxFovDeg: Math.max(fov, MAX_LOOK_AT_FOV),
+      viewport: { width: viewerEl.clientWidth, height: viewerEl.clientHeight },
+      uncovered,
+      maxDistance: MAX_LOOK_AT_DISTANCE,
+    });
+  }
+  return orbitPose({
+    target,
+    distance: Math.min(Number(lookAt.distanceKm) * kmToUnits, MAX_LOOK_AT_DISTANCE),
+    azimuthDeg: lookAt.azimuthDeg,
+    elevationDeg: lookAt.elevationDeg,
+    fov,
+  });
 }
 
 function hasPendingLayerLoads() {
@@ -4974,7 +5150,9 @@ function collectExplorerState() {
   };
   return {
     ready: isExplorerReady(),
+    edition: editionProfile.key,
     mode: isShowcaseMode ? "showcase" : isPreviewMode ? "preview" : "interactive",
+    cameraFlight: Boolean(cameraFlight),
     region: currentRegionKey,
     dataset: currentDatasetKey,
     status: statusEl?.textContent || "",
@@ -5059,6 +5237,7 @@ function collectExplorerState() {
               z: Number(orbit.target.z.toFixed(2)),
             },
             fov: Number(camera.fov.toFixed(2)),
+            shift: viewShift.map((value) => Number(value.toFixed(4))),
           }
         : null,
     grid: currentCoreContext
@@ -5327,6 +5506,7 @@ function getPolarFeatureScenePoint(feature) {
 
 function focusPolarFeature(feature, point) {
   if (!camera || !orbit || !point) return;
+  cancelCameraFlight();
   const exaggeration = Number(controlsUI.exaggeration.value) || 1;
   const target = new THREE.Vector3(point.x, point.baseY * exaggeration, point.z);
   const direction = camera.position.clone().sub(orbit.target);
@@ -6787,7 +6967,7 @@ function bindInteractionGate() {
 }
 
 function bindFlowlinePicking() {
-  if (!renderer || !THREE) return;
+  if (!renderer || !THREE || !editionProfile.flowlinePicking) return;
   if (!flowlineRaycaster) flowlineRaycaster = new THREE.Raycaster();
   if (!flowlinePointerNdc) flowlinePointerNdc = new THREE.Vector2();
 
@@ -9949,18 +10129,18 @@ function startBackgroundWarmup() {
     backgroundWarmupTimer = null;
   }
 
+  const loaders = {
+    velocity: ensureVelocityLoaded,
+    basalFriction: ensureBasalFrictionLoaded,
+    hydrology: ensureHydrologyLoaded,
+    oceanCurrents: ensureOceanCurrentsLoaded,
+  };
   (async () => {
-    if (!context || context !== currentCoreContext || context.generation !== loadGeneration) return;
-    await ensureVelocityLoaded({ trigger: "warmup" });
-    if (!context || context !== currentCoreContext || context.generation !== loadGeneration) return;
-    await nextAnimationFrame();
-    await ensureBasalFrictionLoaded({ trigger: "warmup" });
-    if (!context || context !== currentCoreContext || context.generation !== loadGeneration) return;
-    await nextAnimationFrame();
-    await ensureHydrologyLoaded({ trigger: "warmup" });
-    if (!context || context !== currentCoreContext || context.generation !== loadGeneration) return;
-    await nextAnimationFrame();
-    await ensureOceanCurrentsLoaded({ trigger: "warmup" });
+    for (const [position, layer] of editionProfile.backgroundWarmup.entries()) {
+      if (!context || context !== currentCoreContext || context.generation !== loadGeneration) return;
+      if (position > 0) await nextAnimationFrame();
+      await loaders[layer]({ trigger: "warmup" });
+    }
   })().catch((error) => {
     console.warn("Background warmup failed:", error);
   });
@@ -9994,6 +10174,7 @@ async function loadAndBuildMeshes(datasetKey = currentDatasetKey) {
   }
 
   const generation = ++loadGeneration;
+  cancelCameraFlight();
   currentRegionKey = region.key;
   currentDatasetKey = dataset.id;
   datasetSelectionByRegion[currentRegionKey] = currentDatasetKey;
@@ -10228,6 +10409,76 @@ async function loadAndBuildMeshes(datasetKey = currentDatasetKey) {
   }
 }
 
+// ------------------------------------------------------------------ edition guide
+//
+// Editions with a guide (the public edition's tour and layer explainers) load it as a
+// separate module and drive the explorer only through this interface, the same way a
+// user would: by setting the page's own controls.
+
+const GUIDE_WAIT_TIMEOUT_MS = 90000;
+
+function isReboundSettling() {
+  return Boolean(reboundLoadPromise || reboundGeometryFrame !== null);
+}
+
+function createGuideApi() {
+  return Object.freeze({
+    locale: pageLocale,
+    /** A control of the page, or null for one the page does not show. */
+    getControl: (id) => {
+      const control = controlsUI[id];
+      return control && !control.dataset.standIn ? control : null;
+    },
+    getDefaultCameraPose: (regionKey = currentRegionKey) => getDefaultCameraPose(regionKey),
+    getCameraPose: () => getCurrentCameraPose(),
+    isFlying: () => Boolean(cameraFlight),
+    getLookAtPose,
+    flyTo: flyCameraTo,
+    cancelFlight: cancelCameraFlight,
+    closeMobilePanel() {
+      if (mobileDrawerEnabled) setMobilePanelOpen(false);
+    },
+    /** Switch region the way the region picker does; resolves once its terrain is built. */
+    async setRegion(regionKey, isCancelled = () => false) {
+      if (regionKey !== currentRegionKey) {
+        if (!controlsUI.regionPreset || lockedRegionKey || !REGIONS[regionKey]) {
+          throw new Error(t("explorer.errors.regionSwitchUnavailable"));
+        }
+        controlsUI.regionPreset.value = regionKey;
+        controlsUI.regionPreset.dispatchEvent(new Event("change"));
+      }
+      await waitUntilCondition(
+        () =>
+          isCancelled() ||
+          (currentRegionKey === regionKey &&
+            currentCoreContext?.generation === loadGeneration &&
+            !isLoadingOverlayVisible()),
+        GUIDE_WAIT_TIMEOUT_MS,
+        t("explorer.errors.regionLoadTimedOut", { region: regionKey })
+      );
+    },
+    /** Resolves once no layer, place catalogue or rebound field is still loading. */
+    whenIdle(isCancelled = () => false) {
+      return waitUntilCondition(
+        () => isCancelled() || (isExplorerReady() && !isReboundSettling()),
+        GUIDE_WAIT_TIMEOUT_MS,
+        t("explorer.errors.layersLoadTimedOut")
+      );
+    },
+  });
+}
+
+async function mountEditionGuide() {
+  try {
+    const { mountExploreGuide } = await import(assetUrl("js/explore-guide.js"));
+    mountExploreGuide(createGuideApi());
+  } catch (error) {
+    console.error("The guided tour could not be loaded:", error);
+    // Lets the page hide the controls that would have started it.
+    document.documentElement.dataset.guide = "failed";
+  }
+}
+
 async function main() {
   try {
     updateLoadingProgress(0.01, t("explorer.loading.initializingRuntime"));
@@ -10245,8 +10496,13 @@ async function main() {
     bindBackgroundWarmupTrigger();
     bindRecordingMode();
     renderLoop();
+    // Not awaited: the tour controls appear while the terrain is still loading.
+    if (editionProfile.guide) mountEditionGuide();
 
-    await Promise.all([loadBedColorTable(), ensureHydrologyColorTables()]);
+    await Promise.all([
+      loadBedColorTable(),
+      editionProfile.disabledCapabilities.includes("hydrology") ? null : ensureHydrologyColorTables(),
+    ]);
     updateBedLegend();
     updateVelocityLegend();
     updateBasalFrictionLegend();
