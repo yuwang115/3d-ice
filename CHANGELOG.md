@@ -50,9 +50,21 @@ All notable changes to 3D ICE are recorded here. The format follows
 
 ### Changed
 
-- The home page's Launch Explorer buttons open the public edition, and a note under the
-  hero buttons links to the research edition, which keeps its URL, features and behaviour.
-  The research pages link to the guided tour.
+- The home pages are rebuilt around the two editions. The hero leads with the guided tour
+  and a way into the research edition, both in the first screen of a laptop, and a new "Two
+  ways to explore" section introduces each edition, with a folded comparison table. Every
+  preview names the editions that offer it and opens in one of them. The update cards
+  announce the public edition and describe the published rebound response. The research
+  edition keeps its URL, features and behaviour, and the research pages link to the tour.
+- The home pages are now readable HTML with one stylesheet and one script, in the typefaces
+  the site already bundled (Space Grotesk and Playfair Display). Both are variable fonts, now
+  declared with their weight ranges, so bold text is real rather than synthesised and six
+  duplicate font files are gone. The 188 KB framework stylesheet, the Inter font and two
+  scripts that did nothing are gone too. Preview videos load only when scrolled into view and
+  stay on their posters with reduced motion or Data Saver. The page has a skip link, in-page
+  navigation, a visible focus ring on every control, including the preview videos, and text
+  and buttons at 4.5:1 contrast or better. The 404 page uses the same typefaces, and its
+  explorer button opens the public edition.
 - The ELRA and Airy responses are labelled idealised what-ifs; the sea-level datum slider
   applies to them only. The worked example's headline figure is now 2.94 million km² of
   newly emergent Antarctic bed (relative to the ice-free sea surface) instead of the
@@ -65,6 +77,13 @@ All notable changes to 3D ICE are recorded here. The format follows
 
 ### Fixed
 
+- The home pages' source list includes the Paxman et al. (2022) response, which the rebound
+  layer shows by default, and a test keeps the list in step with the sources the explorer
+  cites. Section labels are drawn small and in the accent colour as designed, rather than as
+  body text, and the update cards no longer touch.
+- A feedback message that fails to send no longer leaves the form stuck on "Sending..." with
+  the message wiped: the form library's failure path threw before reporting the failure. The
+  page works around it, shows the error and restores the message.
 - The rebound caveats no longer attribute the Amundsen Sea Embayment's 41 mm/yr uplift to
   the Last Glacial Maximum; it is a response to recent ice loss over a weak mantle
   (Barletta et al. 2018). The "full equilibrium after 15–20 kyr" note now says that this

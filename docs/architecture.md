@@ -167,6 +167,7 @@ current Chrome, Edge, Firefox and Safari (Chrome and Edge 89+, Firefox 114+, Saf
 | Every localisation key used at runtime resolves in both locales | node:test | `tests/js/locale-coverage.test.mjs` | JavaScript unit tests |
 | Metadata schema of every package; `CITATION.cff` and `codemeta.json` | pytest, cffconvert | `tests/test_metadata_schema.py` | Validate .meta.json files |
 | The distributable bundle contains every runtime file | Node | `scripts/smoke_compat_bundle.mjs` | Compatibility bundle smoke test |
-| The explorer loads, renders and responds in a real browser; the public edition requests no research-only package and plays its tour in both locales | Playwright | `tests/e2e/` | Browser E2E tests |
+| Both home pages link each edition, list every source the runtime cites and share one structure across locales | pytest | `tests/test_home_page.py`, `tests/test_home_latest_updates.py` | Python unit tests |
+| The explorer loads, renders and responds in a real browser; the public edition requests no research-only package and plays its tour in both locales; the home pages reach both editions from the first screen | Playwright | `tests/e2e/` | Browser E2E tests |
 
 Commands for running each suite locally are in the [README](../README.md#running-tests).

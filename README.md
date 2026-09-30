@@ -156,8 +156,9 @@ legacy `/tools/...` URLs unchanged.
 
 | Path | Purpose |
 | --- | --- |
-| `static/index.html`, `static/zh/index.html` | Landing pages (English and Chinese). |
-| `static/css/` | Landing-page styles. |
+| `static/index.html`, `static/zh/index.html` | Home pages (English and Chinese): the way into both editions, previews, updates, source data and feedback. |
+| `static/css/3d-ice-home.css`, `static/css/3d-ice-type.css`, `static/js/3d-ice-home.js` | Home-page styles, typefaces and behaviour (theme, preview videos, feedback form, language switcher). |
+| `static/fonts/` | Self-hosted Space Grotesk and Playfair Display (SIL Open Font License). |
 | `static/tools/3D-interactive-cryosphere-explorer.html`, `static/zh/tools/…` | Research-edition explorer pages (English and Chinese). |
 | `static/explore/index.html`, `static/zh/explore/index.html` | Public-edition explorer pages (English and Chinese). |
 | `static/tools/js/explorer-app.js`, `static/tools/css/explorer.css` | The explorer runtime and styles that every explorer page loads. |
@@ -306,7 +307,7 @@ present-day Antarctic uplift and lateral viscosity structure.
 This repository publishes `static/` directly to GitHub Pages. That serves:
 
 - `/` as the standalone landing page
-- `/css/3d-ice-home.css` as the vendored landing-page stylesheet
+- `/css/3d-ice-home.css` as the home-page stylesheet
 - `/explore/` as the public edition, with the guided tour
 - `/tools/3D-interactive-cryosphere-explorer.html` as the research edition
 - `/tools/data/*`, `/tools/media/3d-ice/*`, `/tools/vendor/*`, and `/tools/3d-antarctica/` as supporting assets
