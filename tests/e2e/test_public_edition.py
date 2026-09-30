@@ -305,8 +305,10 @@ class TestGuidedTour:
 
 SOLVE_TIMEOUT_MS = 90_000
 
-# Times the melt by the rebound slider's own events, from its last reading at 0 % before it
-# rose to the change that commits 100 %, on the frame clock the animation itself runs on.
+# Times the melt by the rebound slider's own events, from the first frame of the run to the
+# change that commits 100 %, on the frame clock the animation itself runs on. The run's
+# first frames still read 0 % (the slider moves in 0.5 % steps); the reset to 0 % before
+# the run is a committed change, which is how the probe tells the two apart.
 # Sampling frames instead misses up to a frame at each end, and the software renderer on a
 # CI runner can take a second over one, so the probe also reports the longest frame it saw.
 # Each frame it notes whether the runtime showed today's ice (0 %) before the melt and
@@ -316,16 +318,17 @@ INSTALL_MELT_PROBE = """() => {
     const frameTime = () => document.timeline.currentTime;
     const probe = {
         sawToday: false, sawPartMelted: false, rose: false,
-        lastZero: null, seconds: null, lastFrame: null, longestFrameMs: 0,
+        start: null, seconds: null, lastFrame: null, longestFrameMs: 0,
     };
     slider.addEventListener("input", () => {
-        if (probe.rose) return;
-        if (Number(slider.value) === 0) probe.lastZero = frameTime();
-        else probe.rose = true;
+        if (Number(slider.value) > 0) probe.rose = true;
+        else if (probe.start === null) probe.start = frameTime();
     });
     slider.addEventListener("change", () => {
-        if (probe.rose && probe.lastZero !== null && probe.seconds === null && Number(slider.value) === 100) {
-            probe.seconds = (frameTime() - probe.lastZero) / 1000;
+        const value = Number(slider.value);
+        if (value === 0) probe.start = null;
+        if (probe.rose && probe.start !== null && probe.seconds === null && value === 100) {
+            probe.seconds = (frameTime() - probe.start) / 1000;
         }
     });
     const sample = (now) => {
