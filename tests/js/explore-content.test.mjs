@@ -124,6 +124,13 @@ test("the tour visits both regions", () => {
   assert.equal(TOUR_CHAPTERS[0].view.region, "antarctica", "the tour starts in a known region");
 });
 
+test("the tour's melt runs as fast as the first-switch melt, 0 to 100 % in 3 s", () => {
+  const stop = TOUR_CHAPTERS.find((chapter) => chapter.id === "without-ice");
+  assert.deepEqual(stop.view.animate, { control: "reboundProgress", from: 0, to: 100, durationMs: 3000 });
+  const guide = readFileSync(resolve(repoRoot, "static/tools/js/explore-guide.js"), "utf8");
+  assert.match(guide, /REBOUND_DEMO = Object\.freeze\(\{ control: "reboundProgress", from: 0, to: 100, durationMs: 3000 \}\)/);
+});
+
 test("every explainer a public page asks for is written in both locales", () => {
   const infoIds = Object.keys(EXPLORE_CONTENT["en-US"].info).sort();
   assert.deepEqual(Object.keys(EXPLORE_CONTENT["zh-CN"].info).sort(), infoIds);

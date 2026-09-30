@@ -88,7 +88,7 @@ export const TOUR_CHAPTERS = deepFreeze([
       controls: { showIsostaticRebound: true, showSea: true },
       sliders: { exaggeration: 4.8, iceOpacity: 1 },
       camera: { lat: -90, lon: 0, fitKm: 5600, azimuthDeg: 0, elevationDeg: 50 },
-      animate: { control: "reboundProgress", from: 0, to: 100, durationMs: 9000 },
+      animate: { control: "reboundProgress", from: 0, to: 100, durationMs: 3000 },
     },
   },
   {
