@@ -322,3 +322,9 @@ class TestAssets:
             assert form.attrs.get(key), key
         chinese = re.compile(r"[一-鿿]")
         assert bool(chinese.search(form.attrs["data-status-sent"])) == (locale == "zh")
+
+
+@pytest.mark.parametrize(("locale", "path"), [("en", "/"), ("zh", "/zh/")])
+def test_the_feedback_form_names_the_page_it_was_sent_from(locale, path):
+    field = parse(locale).find("input", name="source_page")
+    assert field.attrs["value"] == path

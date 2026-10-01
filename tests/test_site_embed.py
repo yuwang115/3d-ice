@@ -78,6 +78,11 @@ def local_urls(nodes: list[Node], page_url: str, asset_base: str | None = None) 
                 parts = urlsplit(urljoin(base, value))
                 if parts.netloc == urlsplit(page_url).netloc:
                     paths.add(parts.path)
+            for candidate in element.attrs.get("srcset", "").split(","):
+                if candidate.strip():
+                    parts = urlsplit(urljoin(page_url, candidate.split()[0]))
+                    if parts.netloc == urlsplit(page_url).netloc:
+                        paths.add(parts.path)
     return paths
 
 
