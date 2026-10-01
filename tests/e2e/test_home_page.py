@@ -40,6 +40,10 @@ def _open(browser, url: str, *, viewport=(1440, 900), reduced_motion: str = "red
         else None,
     )
     page.goto(url, wait_until="load", timeout=NAVIGATION_TIMEOUT_MS)
+    # Layout is measured as visitors see it once the typefaces arrive. The heading face is not
+    # preloaded and can land after "load"; until then a wider fallback (DejaVu on Linux)
+    # wraps the hero onto extra lines.
+    page.evaluate("document.fonts.ready.then(() => true)")
     return context, page, errors, failed
 
 
@@ -63,6 +67,8 @@ class TestHomePageInABrowser:
         # 1440 x 900 is a common laptop screen; the browser's own bars leave about 800 px of page.
         context, page, _errors, _failed = _open(playwright_browser, server + HOME_PATHS[home_locale], viewport=(1440, 800))
         try:
+            loaded = page.evaluate("[...document.fonts].filter((face) => face.status === 'loaded').map((face) => face.family)")
+            assert {"Space Grotesk", "Playfair Display"} <= set(loaded), f"the bundled typefaces did not load: {loaded}"
             buttons = page.locator(".explorer-ice-hero .explorer-actions a")
             assert buttons.count() == 2
             for index in range(2):
