@@ -810,10 +810,17 @@ html.dark .explorer-theme-toggle .theme-icon-moon {
   margin-top: 1.45rem;
 }
 
+/* The two hero buttons share the row equally. A label never wraps inside its button: when
+   both no longer fit side by side, they stack. "Open the research edition" fills its button
+   with under 1 % to spare on macOS, and Linux and Windows draw text slightly wider. */
 .explorer-page-shell--ice .explorer-actions.explorer-actions--hero {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
+}
+
+.explorer-page-shell--ice .explorer-actions--hero .explorer-button {
+  flex: 1 1 0;
+  min-width: max-content;
+  white-space: nowrap;
 }
 
 .explorer-page-shell--ice .explorer-button {
@@ -2252,9 +2259,15 @@ html.dark .explorer-theme-toggle .theme-icon-moon {
     width: 100%;
   }
 
-  .explorer-page-shell--ice .explorer-actions.explorer-actions--hero,
   .explorer-page-shell--ice .explorer-community-cta-row {
     grid-template-columns: 1fr;
+  }
+
+  /* Stacked at full width, a label may wrap rather than overflow a narrow phone. */
+  .explorer-page-shell--ice .explorer-actions--hero .explorer-button {
+    flex: none;
+    min-width: 0;
+    white-space: normal;
   }
 
   .explorer-page-shell--ice .explorer-showcase-frame--mobile-linkout iframe {
