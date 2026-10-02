@@ -299,6 +299,32 @@
         <div class="info-card" data-info-card="seaLevel" hidden></div>
       </section>
 
+      <section id="iceProjectionRow" class="section" aria-labelledby="futureHeading" hidden>
+        <h2 id="futureHeading" class="section-title">Antarctica's future</h2>
+        <div class="toggle-row">
+          <label class="toggle"><input id="showIceProjection" type="checkbox" /> The future, to 2300</label>
+          <button class="info-toggle" type="button" data-info="projection">i</button>
+        </div>
+        <div class="info-card" data-info-card="projection" hidden></div>
+        <div id="iceProjectionControls" class="toggle-group" hidden>
+          <div class="control">
+            <label for="projectionScenario">Future</label>
+            <select id="projectionScenario"></select>
+          </div>
+          <div class="control">
+            <label for="projectionYear">Year <span id="projectionYearValue" class="mono">2015</span></label>
+            <div class="projection-timeline">
+              <button id="projectionPlay" type="button" class="projection-play" aria-label="Play">Play</button>
+              <input id="projectionYear" type="range" min="2015" max="2300" step="1" value="2015" />
+            </div>
+            <div id="projectionReadout" class="projection-readout" aria-live="polite"></div>
+            <svg id="projectionChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="Sea-level rise from Antarctica against time"></svg>
+            <div id="projectionNote" class="legend-note"></div>
+          </div>
+          <label class="toggle toggle--sub"><input id="projectionFlowline" type="checkbox" /> Ice flow</label>
+        </div>
+      </section>
+
       <section class="section" aria-labelledby="meltHeading">
         <h2 id="meltHeading" class="section-title">A world without ice</h2>
         <div class="toggle-row">
@@ -328,6 +354,13 @@
           <span>+3500 m</span>
         </div>
         <div class="legend-note" data-rebound-legend hidden></div>
+      </section>
+
+      <section id="projectionLegendSection" class="section legend-section" hidden>
+        <h2 class="section-title">Ice thickness change</h2>
+        <div id="projectionLegendBar" class="legend" aria-hidden="true"></div>
+        <div id="projectionLegendLabels" class="legend-labels"></div>
+        <div id="projectionLegendNote" class="legend-note"></div>
       </section>
 
       <section id="velocityLegendSection" class="section legend-section">

@@ -28,6 +28,8 @@ const SOURCES = Object.freeze({
   isostaticResponse: "https://doi.org/10.1038/s41598-022-15440-y",
   isostaticGrids: "https://doi.org/10.18739/A22Z12R8C",
   massBalance: "https://doi.org/10.5194/essd-15-1597-2023",
+  ismip6Paper: "https://doi.org/10.1029/2024EF004561",
+  ismip6Projections: "https://doi.org/10.5281/zenodo.13135599",
   comnap: "https://www.comnap.aq/antarctic-facilities-information",
   scarGazetteer: "https://data.aad.gov.au/aadc/gaz/scar/",
   interact: "https://www.interact-gis.org/",
@@ -310,6 +312,18 @@ const EN = {
         },
       ],
     },
+    projection: {
+      title: "Antarctica's future",
+      body: [
+        "Shows how the ice sheet may change from 2015 to 2300 in three futures: low emissions, high emissions, and high emissions with ice shelves breaking up as their surfaces melt. Press Play or drag the year.",
+        "Each map is the average change of eight computer models of the ice sheet from the ISMIP6 project, applied to today's ice. Red ice is thinning and blue ice thickening, and the ice-flow lines speed up and brighten where the glaciers flow faster. The number is how much Antarctica would raise the world's seas, with the range across the models.",
+        "Most of the difference between the futures comes after 2100. By 2300 the average of the eight models is 0.05 m with low emissions, 1.5 m with high emissions and 2.4 m when ice shelves collapse.",
+      ],
+      sources: [
+        { text: "ISMIP6 Antarctica 2300 projections: Seroussi et al. (2024), Earth's Future", url: SOURCES.ismip6Paper },
+        { text: "Model output: Nowicki & ISMIP6 Team (2024), CC BY 4.0", url: SOURCES.ismip6Projections },
+      ],
+    },
     places: {
       title: "Places",
       body: [
@@ -514,6 +528,18 @@ const ZH = {
           text: "Paxman、Austermann 与 Hollyday（2022），网格文件 v3（CC BY 4.0）",
           url: SOURCES.isostaticResponse,
         },
+      ],
+    },
+    projection: {
+      title: "南极的未来",
+      body: [
+        "展示 2015 年到 2300 年间南极冰盖在三种未来下可能发生的变化：低排放、高排放，以及高排放下冰架因表面融化而崩解。点击“播放”或拖动年份。",
+        "每幅图都是 ISMIP6 项目中八个冰盖计算机模型的平均变化，套用在今天的冰盖上。红色表示冰在变薄，蓝色表示变厚；冰川流得更快的地方，冰流线会加速并变亮。数字表示南极会让全球海平面上升多少，以及各模型给出的范围。",
+        "不同未来之间的差别大多出现在 2100 年以后。到 2300 年，八个模型的平均值在低排放下为 0.05 米，高排放下为 1.5 米，冰架崩解时为 2.4 米。",
+      ],
+      sources: [
+        { text: "ISMIP6 南极 2300 年预估：Seroussi 等（2024），Earth's Future", url: SOURCES.ismip6Paper },
+        { text: "模型输出：Nowicki 与 ISMIP6 团队（2024），CC BY 4.0", url: SOURCES.ismip6Projections },
       ],
     },
     places: {

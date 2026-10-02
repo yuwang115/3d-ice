@@ -8,6 +8,21 @@ All notable changes to 3D ICE are recorded here. The format follows
 
 ### Added
 
+- Ice-sheet projections to 2300 in both editions. A year slider and Play button morph the
+  Antarctic ice from 2015 to 2300 under three ISMIP6 scenarios with UKESM1-0-LL forcing: low
+  emissions (SSP1-2.6, `expAE10`), high emissions (SSP5-8.5, `expAE05`) and high emissions with
+  ice-shelf collapse (`expAE14`). Each is the equal-weight mean change of the eight ice sheet
+  models that ran all three (Seroussi et al. 2024; model output CC BY 4.0), applied to today's
+  BedMachine v4 ice, so the first frame is the ice already on screen. Thinning is scaled to
+  BedMachine's thickness so that each cell keeps the share of ice the models keep, which spares
+  the ice shelves the holes that adding the change outright would leave. The ice is coloured by
+  its thickness change, a readout and chart give the models' mean sea-level contribution with
+  their range, and the ice flowlines stay on, ride the projected surface and speed up and
+  brighten with the mean change in ice speed. They come on with the projection and go off
+  with it unless changed by hand, and a switch in the projection's controls shows or hides
+  them. The packages and the two scripts that build them
+  next to the 2D archive on an HPC system are in the repository (`docs/data-pipeline.md`).
+
 - A public edition of the explorer at `/explore/` and `/zh/explore/`, for visitors,
   classrooms and outreach stands. It offers each region's default terrain, see-through ice,
   vertical exaggeration, place search, animated ice flowlines coloured by speed, ocean
@@ -81,8 +96,10 @@ All notable changes to 3D ICE are recorded here. The format follows
 - The ice and ocean flow animation is quieter: particles are about half the size, sparser,
   tinted by the line colour rather than near-white, and travel roughly half as fast; the
   pulse along each line is dimmer.
-- Sidebar order: "Show ice-free isostatic rebound" now sits directly below "Show subglacial
-  channels", and "Animate ice & ocean flow" moves down beside "Wireframe mode".
+- Sidebar order: the research pages gather "Show future projection (ISMIP6, to 2300)" and
+  "Show ice-free isostatic rebound", the two interactive scenarios, in a section of their own
+  (Interactive Scenarios) below View Controls, and "Animate ice & ocean flow" moves down beside
+  "Wireframe mode".
 
 ### Fixed
 

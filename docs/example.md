@@ -21,7 +21,7 @@ the [README](../README.md#isostatic-rebound-ice-free-equilibrium)).
 1. Start the local preview (`python3 -m http.server 4173 --directory static`) and open
    <http://127.0.0.1:4173/tools/3D-interactive-cryosphere-explorer.html?region=antarctica>,
    which loads BedMachine Antarctica v4 on the Balanced 10 km grid, the default dataset.
-2. Under **View controls**, tick **Show ice-free isostatic rebound**. The defaults are the
+2. Under **Interactive Scenarios**, tick **Show ice-free isostatic rebound**. The defaults are the
    headline scenario: **Earth response** is the published response of Paxman et al. (2022)
    and **Deglaciation & rebound** is at 100 %. The sea-level datum slider is disabled: the
    published model fixes its own ice-free sea surface.

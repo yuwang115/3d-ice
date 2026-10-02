@@ -291,6 +291,54 @@
         <label class="toggle"><input id="showBasalFriction" type="checkbox" /> Show basal friction</label>
         <label class="toggle"><input id="showEffectivePressure" type="checkbox" /> Show effective pressure</label>
         <label class="toggle"><input id="showSubglacialChannels" type="checkbox" /> Show subglacial channels</label>
+        <div class="toggle-divider" aria-hidden="true"></div>
+        <label class="toggle"><input id="showOceanCurrents" type="checkbox" /> Show ocean streamlines</label>
+        <div id="oceanCurrentLayerControls" class="toggle-group toggle-group--grid" hidden>
+          <label class="toggle toggle--sub"><input id="showOceanLayerSurface" type="checkbox" /> Surface</label>
+          <label class="toggle toggle--sub"><input id="showOceanLayerUpper" type="checkbox" /> Upper</label>
+          <label class="toggle toggle--sub"><input id="showOceanLayerMid" type="checkbox" /> Mid</label>
+          <label class="toggle toggle--sub"><input id="showOceanLayerLower" type="checkbox" /> Lower</label>
+        </div>
+        <label id="showBasalMeltRow" class="toggle"><input id="showBasalMelt" type="checkbox" /> Show ice-shelf basal melt</label>
+        <label id="showThermalDrivingRow" class="toggle"><input id="showThermalDriving" type="checkbox" /> Show ice-shelf thermal driving</label>
+        <label class="toggle"><input id="showSea" type="checkbox" /> Show sea level (0 m)</label>
+        <div class="toggle-divider" aria-hidden="true"></div>
+        <label class="toggle"><input id="animateFlow" type="checkbox" checked /> Animate ice &amp; ocean flow</label>
+        <label class="toggle"><input id="wireframe" type="checkbox" /> Wireframe mode</label>
+        <button id="resetView" type="button">Reset Camera</button>
+        <button id="fullscreenToggle" type="button">Enter Fullscreen</button>
+      </section>
+
+      <section id="interactiveScenariosSection" class="section" aria-labelledby="interactiveScenariosHeading">
+        <h2 id="interactiveScenariosHeading" class="section-title">Interactive Scenarios</h2>
+        <div id="iceProjectionRow" hidden>
+          <label class="toggle"><input id="showIceProjection" type="checkbox" /> Show future projection (ISMIP6, to 2300)</label>
+          <div id="iceProjectionControls" class="toggle-group" hidden>
+            <div class="control">
+              <label for="projectionScenario">Scenario</label>
+              <select id="projectionScenario"></select>
+            </div>
+            <div class="control">
+              <label for="projectionYear">Year <span id="projectionYearValue" class="mono">2015</span></label>
+              <div class="projection-timeline">
+                <button id="projectionPlay" type="button" class="projection-play" aria-label="Play">Play</button>
+                <input id="projectionYear" type="range" min="2015" max="2300" step="1" value="2015" />
+              </div>
+              <div id="projectionReadout" class="projection-readout" aria-live="polite"></div>
+              <svg id="projectionChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="Sea-level contribution against time"></svg>
+            </div>
+            <div class="control">
+              <label for="projectionColorMode">Colour ice by</label>
+              <select id="projectionColorMode">
+                <option value="change" selected>Thickness change since 2015</option>
+                <option value="type">Grounded and floating ice</option>
+              </select>
+              <div id="projectionNote" class="legend-note"></div>
+            </div>
+            <label class="toggle toggle--sub"><input id="projectionFlowline" type="checkbox" /> Show ice flowlines</label>
+          </div>
+          <div class="toggle-divider" aria-hidden="true"></div>
+        </div>
         <label class="toggle"><input id="showIsostaticRebound" type="checkbox" /> Show ice-free isostatic rebound</label>
         <div id="isostaticReboundControls" class="toggle-group" hidden>
           <div class="control">
@@ -314,22 +362,6 @@
           </div>
           <label class="toggle toggle--sub"><input id="highlightEmergentLand" type="checkbox" checked /> Highlight newly emergent land</label>
         </div>
-        <div class="toggle-divider" aria-hidden="true"></div>
-        <label class="toggle"><input id="showOceanCurrents" type="checkbox" /> Show ocean streamlines</label>
-        <div id="oceanCurrentLayerControls" class="toggle-group toggle-group--grid" hidden>
-          <label class="toggle toggle--sub"><input id="showOceanLayerSurface" type="checkbox" /> Surface</label>
-          <label class="toggle toggle--sub"><input id="showOceanLayerUpper" type="checkbox" /> Upper</label>
-          <label class="toggle toggle--sub"><input id="showOceanLayerMid" type="checkbox" /> Mid</label>
-          <label class="toggle toggle--sub"><input id="showOceanLayerLower" type="checkbox" /> Lower</label>
-        </div>
-        <label id="showBasalMeltRow" class="toggle"><input id="showBasalMelt" type="checkbox" /> Show ice-shelf basal melt</label>
-        <label id="showThermalDrivingRow" class="toggle"><input id="showThermalDriving" type="checkbox" /> Show ice-shelf thermal driving</label>
-        <label class="toggle"><input id="showSea" type="checkbox" /> Show sea level (0 m)</label>
-        <div class="toggle-divider" aria-hidden="true"></div>
-        <label class="toggle"><input id="animateFlow" type="checkbox" checked /> Animate ice &amp; ocean flow</label>
-        <label class="toggle"><input id="wireframe" type="checkbox" /> Wireframe mode</label>
-        <button id="resetView" type="button">Reset Camera</button>
-        <button id="fullscreenToggle" type="button">Enter Fullscreen</button>
       </section>
 
       <section id="bedLegendSection" class="section">
@@ -341,6 +373,13 @@
           <span>+3500 m</span>
         </div>
         <div id="reboundLegendNote" class="legend-note" hidden></div>
+      </section>
+
+      <section id="projectionLegendSection" class="section" hidden>
+        <h2 class="section-title">Ice Thickness Change</h2>
+        <div id="projectionLegendBar" class="legend" aria-hidden="true"></div>
+        <div id="projectionLegendLabels" class="legend-labels"></div>
+        <div id="projectionLegendNote" class="legend-note"></div>
       </section>
 
       <section id="velocityLegendSection" class="section">

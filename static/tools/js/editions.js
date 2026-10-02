@@ -83,6 +83,9 @@ const PROFILES = deepFreeze({
       // own ice-free sea surface, so the datum stays at zero.
       reboundModel: { type: "text", value: "paxman2022" },
       reboundSeaLevel: { type: "range", min: 0, max: 70, value: 0 },
+      // The projection colours the ice by its thickness change; the grounded/floating view
+      // is a research-page option.
+      projectionColorMode: { tag: "select" },
     },
     // Just what the flowlines need. The Antarctic ocean package is tens of megabytes, too
     // much to fetch unasked on a phone, so it loads when its layer is switched on.

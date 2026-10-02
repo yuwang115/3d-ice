@@ -275,6 +275,54 @@
         <label class="toggle"><input id="showBasalFriction" type="checkbox" /> 显示基底摩擦</label>
         <label class="toggle"><input id="showEffectivePressure" type="checkbox" /> 显示有效压力</label>
         <label class="toggle"><input id="showSubglacialChannels" type="checkbox" /> 显示冰下通道</label>
+        <div class="toggle-divider" aria-hidden="true"></div>
+        <label class="toggle"><input id="showOceanCurrents" type="checkbox" /> 显示海洋流线</label>
+        <div id="oceanCurrentLayerControls" class="toggle-group toggle-group--grid" hidden>
+          <label class="toggle toggle--sub"><input id="showOceanLayerSurface" type="checkbox" /> 表层</label>
+          <label class="toggle toggle--sub"><input id="showOceanLayerUpper" type="checkbox" /> 上层</label>
+          <label class="toggle toggle--sub"><input id="showOceanLayerMid" type="checkbox" /> 中层</label>
+          <label class="toggle toggle--sub"><input id="showOceanLayerLower" type="checkbox" /> 下层</label>
+        </div>
+        <label id="showBasalMeltRow" class="toggle"><input id="showBasalMelt" type="checkbox" /> 显示冰架底部融化率</label>
+        <label id="showThermalDrivingRow" class="toggle"><input id="showThermalDriving" type="checkbox" /> 显示冰架底部热驱动</label>
+        <label class="toggle"><input id="showSea" type="checkbox" /> 显示海平面 (0 m)</label>
+        <div class="toggle-divider" aria-hidden="true"></div>
+        <label class="toggle"><input id="animateFlow" type="checkbox" checked /> 显示冰流与海流流光</label>
+        <label class="toggle"><input id="wireframe" type="checkbox" /> 线框模式</label>
+        <button id="resetView" type="button">视角重置</button>
+        <button id="fullscreenToggle" type="button">进入全屏</button>
+      </section>
+
+      <section id="interactiveScenariosSection" class="section" aria-labelledby="interactiveScenariosHeading">
+        <h2 id="interactiveScenariosHeading" class="section-title">交互式情景</h2>
+        <div id="iceProjectionRow" hidden>
+          <label class="toggle"><input id="showIceProjection" type="checkbox" /> 显示冰盖未来预估（ISMIP6，至 2300 年）</label>
+          <div id="iceProjectionControls" class="toggle-group" hidden>
+            <div class="control">
+              <label for="projectionScenario">情景</label>
+              <select id="projectionScenario"></select>
+            </div>
+            <div class="control">
+              <label for="projectionYear">年份 <span id="projectionYearValue" class="mono">2015</span></label>
+              <div class="projection-timeline">
+                <button id="projectionPlay" type="button" class="projection-play" aria-label="播放">播放</button>
+                <input id="projectionYear" type="range" min="2015" max="2300" step="1" value="2015" />
+              </div>
+              <div id="projectionReadout" class="projection-readout" aria-live="polite"></div>
+              <svg id="projectionChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="海平面贡献随时间的变化"></svg>
+            </div>
+            <div class="control">
+              <label for="projectionColorMode">冰面配色</label>
+              <select id="projectionColorMode">
+                <option value="change" selected>相对 2015 年的厚度变化</option>
+                <option value="type">接地冰与漂浮冰</option>
+              </select>
+              <div id="projectionNote" class="legend-note"></div>
+            </div>
+            <label class="toggle toggle--sub"><input id="projectionFlowline" type="checkbox" /> 显示冰流线</label>
+          </div>
+          <div class="toggle-divider" aria-hidden="true"></div>
+        </div>
         <label class="toggle"><input id="showIsostaticRebound" type="checkbox" /> 显示无冰状态下的地壳回弹</label>
         <div id="isostaticReboundControls" class="toggle-group" hidden>
           <div class="control">
@@ -298,22 +346,6 @@
           </div>
           <label class="toggle toggle--sub"><input id="highlightEmergentLand" type="checkbox" checked /> 高亮新出露陆地</label>
         </div>
-        <div class="toggle-divider" aria-hidden="true"></div>
-        <label class="toggle"><input id="showOceanCurrents" type="checkbox" /> 显示海洋流线</label>
-        <div id="oceanCurrentLayerControls" class="toggle-group toggle-group--grid" hidden>
-          <label class="toggle toggle--sub"><input id="showOceanLayerSurface" type="checkbox" /> 表层</label>
-          <label class="toggle toggle--sub"><input id="showOceanLayerUpper" type="checkbox" /> 上层</label>
-          <label class="toggle toggle--sub"><input id="showOceanLayerMid" type="checkbox" /> 中层</label>
-          <label class="toggle toggle--sub"><input id="showOceanLayerLower" type="checkbox" /> 下层</label>
-        </div>
-        <label id="showBasalMeltRow" class="toggle"><input id="showBasalMelt" type="checkbox" /> 显示冰架底部融化率</label>
-        <label id="showThermalDrivingRow" class="toggle"><input id="showThermalDriving" type="checkbox" /> 显示冰架底部热驱动</label>
-        <label class="toggle"><input id="showSea" type="checkbox" /> 显示海平面 (0 m)</label>
-        <div class="toggle-divider" aria-hidden="true"></div>
-        <label class="toggle"><input id="animateFlow" type="checkbox" checked /> 显示冰流与海流流光</label>
-        <label class="toggle"><input id="wireframe" type="checkbox" /> 线框模式</label>
-        <button id="resetView" type="button">视角重置</button>
-        <button id="fullscreenToggle" type="button">进入全屏</button>
       </section>
 
       <section id="bedLegendSection" class="section">
@@ -325,6 +357,13 @@
           <span>+3500 m</span>
         </div>
         <div id="reboundLegendNote" class="legend-note" hidden></div>
+      </section>
+
+      <section id="projectionLegendSection" class="section" hidden>
+        <h2 class="section-title">冰厚变化配色</h2>
+        <div id="projectionLegendBar" class="legend" aria-hidden="true"></div>
+        <div id="projectionLegendLabels" class="legend-labels"></div>
+        <div id="projectionLegendNote" class="legend-note"></div>
       </section>
 
       <section id="velocityLegendSection" class="section">

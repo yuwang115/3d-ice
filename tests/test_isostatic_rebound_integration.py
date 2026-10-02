@@ -3,7 +3,7 @@
 The repository has no generic en/zh parity test: parity is enforced per feature by
 asserting the same control ids and module references exist in both HTML files. These
 tests do that for the rebound layer, and additionally pin the control ordering so the
-layer cannot drift out of the view-controls section in one locale only.
+layer cannot drift out of the interactive-scenarios section in one locale only.
 """
 
 from __future__ import annotations
@@ -29,6 +29,9 @@ SOLVER_MODULES = (
     REPO_ROOT / "static" / "tools" / "js" / "fft2d.js",
 )
 REBOUND_WORKER = REPO_ROOT / "static" / "tools" / "gia-rebound-worker.js"
+
+# The section the rebound shares with the future projection: both are interactive scenarios.
+SCENARIOS_SECTION = "interactiveScenariosSection"
 
 CONTROL_IDS = (
     "showIsostaticRebound",
@@ -112,25 +115,36 @@ def test_rebound_control_ids_are_unique(explorer_ids: _IdCollector) -> None:
     assert duplicates == [], f"ids appearing other than exactly once: {duplicates}"
 
 
-def test_rebound_controls_sit_inside_the_view_controls_section(explorer_ids: _IdCollector) -> None:
+def test_rebound_controls_sit_in_the_interactive_scenarios_section(explorer_ids: _IdCollector) -> None:
     for control_id in CONTROL_IDS:
         if control_id == "reboundLegendNote":
             assert "bedLegendSection" in explorer_ids.ancestors[control_id]
             continue
-        assert "viewControlsSection" in explorer_ids.ancestors[control_id], control_id
+        assert SCENARIOS_SECTION in explorer_ids.ancestors[control_id], control_id
+        assert "viewControlsSection" not in explorer_ids.ancestors[control_id], control_id
     for control_id in CONTROL_IDS[2:-1]:
         assert "isostaticReboundControls" in explorer_ids.ancestors[control_id], control_id
 
 
-def test_rebound_toggle_follows_the_existing_layer_toggles(explorer_ids: _IdCollector) -> None:
-    """Sits after showBed (the polar-feature ordering contract), directly below the subglacial
-    channels, and ahead of the ocean layers and the animation/wireframe display toggles."""
+def test_the_scenarios_section_follows_the_view_controls(explorer_ids: _IdCollector) -> None:
+    """The future projection and the ice-free rebound share a section of their own, after the
+    layer and display toggles: the projection first, then the rebound, then the legends."""
     order = explorer_ids.order
-    assert order.index("showBed") < order.index("showSubglacialChannels")
-    assert order.index("showIsostaticRebound") == order.index("showSubglacialChannels") + 1
-    assert order.index("showIsostaticRebound") < order.index("isostaticReboundControls")
-    assert order.index("isostaticReboundControls") < order.index("showOceanCurrents")
+    assert order.index("showBed") < order.index("showSubglacialChannels") < order.index("showOceanCurrents")
     assert order.index("showSea") < order.index("animateFlow") < order.index("wireframe")
+    assert order.index("wireframe") < order.index(SCENARIOS_SECTION)
+    assert order.index(SCENARIOS_SECTION) < order.index("iceProjectionRow") < order.index("showIceProjection")
+    assert order.index("iceProjectionControls") < order.index("showIsostaticRebound")
+    assert order.index("showIsostaticRebound") < order.index("isostaticReboundControls")
+    assert order.index("isostaticReboundControls") < order.index("bedLegendSection")
+    for control_id in ("showIceProjection", "iceProjectionControls", "projectionFlowline"):
+        assert SCENARIOS_SECTION in explorer_ids.ancestors[control_id], control_id
+
+
+def test_the_scenarios_section_is_titled_in_each_locale() -> None:
+    english, chinese = (path.read_text(encoding="utf-8") for path in EXPLORERS)
+    assert '<h2 id="interactiveScenariosHeading" class="section-title">Interactive Scenarios</h2>' in english
+    assert '<h2 id="interactiveScenariosHeading" class="section-title">交互式情景</h2>' in chinese
 
 
 def test_rebound_controls_start_in_the_headline_scenario(explorer: str) -> None:

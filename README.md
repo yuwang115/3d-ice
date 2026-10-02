@@ -77,7 +77,7 @@ from the visualization to the underlying source products.
 
 | Edition | Pages | For | What it offers |
 | --- | --- | --- | --- |
-| Public | [`/explore/`](https://3d-ice.com/explore/), [`/zh/explore/`](https://3d-ice.com/zh/explore/) | Everyone: visitors, classrooms, outreach stands | Each region's default terrain, animated ice flowlines coloured by speed, ocean currents, sea level and the ice-free rebound (the ice melts away over three seconds the first time it is switched on), with an eight-stop guided tour and a plain-language explainer, with sources, for every layer. |
+| Public | [`/explore/`](https://3d-ice.com/explore/), [`/zh/explore/`](https://3d-ice.com/zh/explore/) | Everyone: visitors, classrooms, outreach stands | Each region's default terrain, animated ice flowlines coloured by speed, ocean currents, sea level, the ice-free rebound (the ice melts away over three seconds the first time it is switched on) and Antarctica's projected future to 2300, with an eight-stop guided tour and a plain-language explainer, with sources, for every layer. |
 | Research | [`/tools/3D-interactive-cryosphere-explorer.html`](https://3d-ice.com/tools/3D-interactive-cryosphere-explorer.html), `/zh/tools/…` | Researchers | Every dataset, resolution and layer, the data-snapshot panel, flowline profiles, the idealised rebound models and the recording mode. |
 
 A page names its edition with `<html data-edition>`, and `static/tools/js/editions.js` turns
@@ -191,12 +191,46 @@ replace the host's own home page. yuwang.blog builds its `/tools/3d-ice/` page t
 
 | Region | Layers in the experience | Representative source products |
 | --- | --- | --- |
-| Antarctica | Bed topography, surface elevation, thickness, mask, refined basins, velocity, basal friction, subglacial hydrology, ocean streamlines, basal melt, thermal driving, isostatic rebound | [BedMachine Antarctica v4](https://nsidc.org/data/NSIDC-0756/versions/4), [Bedmap3 v1.0](https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2) (CC BY 4.0), [MEaSUREs Antarctic Boundaries v2](https://nsidc.org/data/NSIDC-0709/versions/2), [MEaSUREs Phase-Based Antarctica Velocity v1](https://nsidc.org/data/NSIDC-0754/versions/1), [Antarctic basal friction inversions](https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1), [GlaDS Antarctic subglacial hydrology](https://zenodo.org/records/12738170), [WAOM2](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full), [RISE](https://data.aad.gov.au/metadata/RISE), [Paxman et al. (2022) isostatic response, grids v3](https://doi.org/10.18739/A22Z12R8C) (CC BY 4.0) |
+| Antarctica | Bed topography, surface elevation, thickness, mask, refined basins, velocity, basal friction, subglacial hydrology, ocean streamlines, basal melt, thermal driving, isostatic rebound, ice-sheet projections to 2300 | [BedMachine Antarctica v4](https://nsidc.org/data/NSIDC-0756/versions/4), [Bedmap3 v1.0](https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2) (CC BY 4.0), [MEaSUREs Antarctic Boundaries v2](https://nsidc.org/data/NSIDC-0709/versions/2), [MEaSUREs Phase-Based Antarctica Velocity v1](https://nsidc.org/data/NSIDC-0754/versions/1), [Antarctic basal friction inversions](https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1), [GlaDS Antarctic subglacial hydrology](https://zenodo.org/records/12738170), [WAOM2](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full), [RISE](https://data.aad.gov.au/metadata/RISE), [Paxman et al. (2022) isostatic response, grids v3](https://doi.org/10.18739/A22Z12R8C) (CC BY 4.0), [ISMIP6 Antarctica 2300 projections](https://doi.org/10.5281/zenodo.13135599) (CC BY 4.0; [Seroussi et al. 2024](https://doi.org/10.1029/2024EF004561)) |
 | Greenland | Bed topography, surface elevation, thickness, mask, basin boundaries, velocity, basal friction, ocean streamlines, isostatic rebound | [BedMachine Greenland v6](https://nsidc.org/data/idbmg4/versions/6), [QRF Greenland subglacial topography (2025)](https://doi.org/10.1017/jog.2025.10071), [MEaSUREs ITS_LIVE v2](https://nsidc.org/data/NSIDC-0776/versions/2), [Greenland basal friction ensemble inversion reference](https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1), [Copernicus Marine Arctic Ocean Physics](https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description), [Paxman et al. (2022) isostatic response, grids v3](https://doi.org/10.18739/A22Z12R8C) (CC BY 4.0) |
 
 Bedmap3 is available as a 10 km Balanced or 4 km HD Antarctica terrain alternative. Both modes support velocity, flowlines, basal friction, effective pressure, subglacial channels, refined basins, and WAOM2 ocean streamlines. The gridded velocity, basal-friction, and hydrology layers are regenerated on Bedmap3's native grid; the projected WAOM2 streamlines are clipped against the active terrain at runtime. RISE basal melt and thermal-driving fields remain exclusive to BedMachine v4.
 
 Greenland QRF subglacial topography (2025) is available as 3 km Balanced and 1 km HD terrain alternatives. The 300 m QRF GeoTIFF is sampled at pixel centres. The package replaces bed elevation only for grounded ice where the QRF prediction is valid, keeps BedMachine Greenland v6 surface elevation and mask, derives internally consistent thickness from those two fields, and falls back to BedMachine values over QRF gaps, ocean, and floating ice. Velocity, flowlines, basal friction, basins, and ocean streamlines reuse their existing BedMachine-aligned grids. The upstream data repository does not state a standalone data licence; confirm redistribution terms with the authors before publishing derived assets.
+
+### Ice-sheet projections (ISMIP6, to 2300)
+
+The projection layer plays Antarctica forward from 2015 to 2300 under three ISMIP6
+scenarios, all forced by UKESM1-0-LL: low emissions (SSP1-2.6), high emissions (SSP5-8.5),
+and high emissions with ice-shelf collapse driven by surface melt. Each scenario is the
+equal-weight mean of the eight ice sheet models that ran all three, out of the sixteen
+groups in Seroussi et al. (2024). Every model's change in thickness and in depth-averaged
+ice speed since 2015 is resampled conservatively onto the explorer's 10 km grid. The mean
+change is then applied to today's BedMachine v4 ice, so the first frame is the ice already on
+screen. Thickening is added as it is. Thinning is scaled by BedMachine thickness over the
+models' own 2015 thickness, so each cell keeps the share of its ice that the models keep;
+where the models average less than 10 m of ice, it is gone. Adding the thinning outright
+would riddle the ice shelves with holes, because the models' shelves start out thicker than
+BedMachine's in some cells and thinner in others.
+
+The browser rebuilds the surface and base by flotation on the BedMachine bed. It colours the
+ice by its thickness change and keeps the flowlines on: they ride the projected surface,
+recolour and speed up with today's speed plus the mean change, and drop out where the ice
+is gone. Switching the projection on switches the flowlines on, and switching it off
+switches them off again unless they were changed in between. A switch at the end of the
+projection's controls shows or hides them there; it is the same layer as the flowline toggle
+in the main list. On the research pages the projection and the isostatic rebound share the
+Interactive Scenarios section of the sidebar.
+
+The sea-level number and chart are the mean of the models' own published results, with
+their range. Because flotation is not linear, the averaged ice on the map implies more
+sea-level rise than that mean: by 2300 it is 0.15 m against 0.05 m (SSP1-2.6), 1.93 m
+against 1.46 m (SSP5-8.5) and 3.12 m against 2.43 m (with collapse). The packages record
+both figures. The packages,
+the pipeline (`docs/data-pipeline.md`) and the browser module
+(`static/tools/js/ice-projection.js`) are tested in `tests/test_prepare_ismip6_projection.py`,
+`tests/test_ismip6_2300_hpc_scripts.py`, `tests/js/ice-projection.test.mjs` and
+`tests/e2e/test_ice_projection.py`.
 
 ### Isostatic rebound (ice-free equilibrium)
 

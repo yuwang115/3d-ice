@@ -171,6 +171,7 @@ const ALL_REGIONS = {
       refinedBasins: true,
       hydrology: true,
       isostaticRebound: true,
+      iceProjection: false,
     },
     sources: {
       geometry: {
@@ -205,6 +206,10 @@ const ALL_REGIONS = {
         text: "Paxman, Austermann & Hollyday (2022) Total isostatic response to the complete unloading of the Greenland and Antarctic Ice Sheets; grid files v3 (2026), CC BY 4.0",
         url: "https://doi.org/10.18739/A22Z12R8C",
       },
+      iceProjection: {
+        text: "ISMIP6 Antarctica 2300 projections, mean of eight ice sheet models (Seroussi et al. 2024; Nowicki & ISMIP6 Team 2024), CC BY 4.0",
+        url: "https://doi.org/10.5281/zenodo.13135599",
+      },
     },
     // Short label for the effective-elastic-thickness model behind the published response.
     reboundTeModelLabel: "Swain & Kirby 2021",
@@ -227,6 +232,8 @@ const ALL_REGIONS = {
         oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20260312-waom2-combined-v3"),
         hydrologyMetaUrl: assetUrl("data/antarctica_subglacial_hydrology_480.meta.json"),
         hydrologyBinUrl: assetUrl("data/antarctica_subglacial_hydrology_480.bin"),
+        // The projection packages are resampled onto exactly this grid.
+        capabilities: { iceProjection: true },
       },
       hd: {
         id: "hd",
@@ -333,6 +340,7 @@ const ALL_REGIONS = {
       refinedBasins: true,
       hydrology: false,
       isostaticRebound: true,
+      iceProjection: false,
     },
     sources: {
       geometry: {
@@ -830,6 +838,22 @@ const controlsUI = {
   reboundSeaLevelValue: resolveControl("reboundSeaLevelValue"),
   reboundSeaLevelNote: resolveControl("reboundSeaLevelNote"),
   highlightEmergentLand: resolveControl("highlightEmergentLand"),
+  iceProjectionRow: resolveControl("iceProjectionRow"),
+  showIceProjection: resolveControl("showIceProjection"),
+  iceProjectionControls: resolveControl("iceProjectionControls"),
+  projectionScenario: resolveControl("projectionScenario"),
+  projectionYear: resolveControl("projectionYear"),
+  projectionYearValue: resolveControl("projectionYearValue"),
+  projectionPlay: resolveControl("projectionPlay"),
+  projectionReadout: resolveControl("projectionReadout"),
+  projectionChart: resolveControl("projectionChart"),
+  projectionColorMode: resolveControl("projectionColorMode"),
+  projectionNote: resolveControl("projectionNote"),
+  projectionFlowline: resolveControl("projectionFlowline"),
+  projectionLegendSection: resolveControl("projectionLegendSection"),
+  projectionLegendBar: resolveControl("projectionLegendBar"),
+  projectionLegendLabels: resolveControl("projectionLegendLabels"),
+  projectionLegendNote: resolveControl("projectionLegendNote"),
   wireframe: resolveControl("wireframe"),
   resetView: resolveControl("resetView"),
   fullscreenToggle: resolveControl("fullscreenToggle"),
@@ -936,6 +960,48 @@ let reboundLoadPromise = null;
 let reboundGeometryFrame = null;
 let reboundGeometryWantsNormals = false;
 let reboundSeaLevelDebounce = null;
+// Ice-sheet projection (see the "ice-sheet projection" section below). Declared up here
+// because the first region refresh, which runs at module load, already reads them.
+// ISMIP6 Antarctica 2300, mean of eight ice sheet models under UKESM1-0-LL forcing, in the
+// order the scenario picker lists them.
+const ICE_PROJECTION_SCENARIOS = Object.freeze([
+  Object.freeze({
+    key: "ae10",
+    packageMetaUrl: assetUrl("data/ismip6_2300_mean8_ae10_480.meta.json?v=20261002-mean8-v2"),
+    packageBinUrl: assetUrl("data/ismip6_2300_mean8_ae10_480.bin?v=20261002-mean8-v2"),
+    color: "#2f7fb8",
+  }),
+  Object.freeze({
+    key: "ae05",
+    packageMetaUrl: assetUrl("data/ismip6_2300_mean8_ae05_480.meta.json?v=20261002-mean8-v2"),
+    packageBinUrl: assetUrl("data/ismip6_2300_mean8_ae05_480.bin?v=20261002-mean8-v2"),
+    color: "#c2412d",
+  }),
+  Object.freeze({
+    key: "ae14",
+    packageMetaUrl: assetUrl("data/ismip6_2300_mean8_ae14_480.meta.json?v=20261002-mean8-v2"),
+    packageBinUrl: assetUrl("data/ismip6_2300_mean8_ae14_480.bin?v=20261002-mean8-v2"),
+    color: "#7b2d6b",
+  }),
+]);
+const ICE_PROJECTION_DEFAULT_SCENARIO = "ae05";
+let iceProjectionModule = null;
+let iceProjectionModulePromise = null;
+let iceProjectionProbePromise = null;
+let iceProjectionProbeSettled = false;
+let iceProjectionLoadPromise = null;
+const iceProjectionMetaCache = new Map();
+const iceProjectionDataCache = new Map();
+let iceProjectionScene = null;
+let iceProjectionActive = false;
+let iceProjectionYear = 2015;
+let iceProjectionPlaying = false;
+let iceProjectionFrame = null;
+let iceProjectionChartGeometry = null;
+// Whether switching the projection on raised the sea plane, so switching it off can lower it.
+let iceProjectionRaisedSea = false;
+// The same for the flowlines, which the projection shows by default.
+let iceProjectionRaisedFlowlines = false;
 let velocityDataTexture = null;
 let velocityContinuousSamplingWarningIssued = false;
 let basalMeltDataTexture = null;
@@ -1297,6 +1363,7 @@ function updateRegionLayerAvailability(regionKey) {
   syncRiseToggleRowVisibility(capabilities);
   setToggleAvailability(controlsUI.showVelocity, capabilities.velocity);
   setToggleAvailability(controlsUI.showFlowline, capabilities.velocity && capabilities.flowline);
+  syncProjectionFlowlineToggle();
   setToggleAvailability(controlsUI.showBasalFriction, basalFrictionAvailable);
   setToggleAvailability(controlsUI.showBasalMelt, riseAvailable);
   setToggleAvailability(controlsUI.showThermalDriving, riseAvailable);
@@ -1308,6 +1375,7 @@ function updateRegionLayerAvailability(regionKey) {
     controlsUI.showIsostaticRebound,
     Boolean(!isShowcaseMode && capabilities.isostaticRebound)
   );
+  updateIceProjectionAvailability();
   updateOceanCurrentLayerControls();
   updateLegendVisibility();
 }
@@ -1360,6 +1428,9 @@ function updateLegendVisibility() {
   }
   if (controlsUI.channelLegendSection) {
     controlsUI.channelLegendSection.hidden = !(hydrologyAvailable && controlsUI.showSubglacialChannels.checked);
+  }
+  if (controlsUI.projectionLegendSection) {
+    controlsUI.projectionLegendSection.hidden = !(isIceProjectionActive() && getIceProjectionColorMode() === "change");
   }
 }
 
@@ -1416,6 +1487,7 @@ function applyExplorerPresetControls(preset) {
     showSubglacialChannels: false,
     showSea: false,
     showIsostaticRebound: false,
+    showIceProjection: false,
   };
   const presetToggles = preset.toggles || {};
   for (const [key, defaultValue] of Object.entries(toggleDefaults)) {
@@ -1565,6 +1637,7 @@ function maybeShowFlowlineGuidanceStatus() {
 }
 
 function refreshFlowlineGuidanceUi() {
+  syncProjectionFlowlineToggle();
   updateInteractionHint(getShowcaseInteractionHintActiveState());
   maybeShowFlowlineGuidanceStatus();
 }
@@ -2130,6 +2203,7 @@ function stepRuntime(deltaMs = 16) {
   stepFlowLightAnimation(safeDeltaMs / 1000);
   // Flights keep to their schedule on slow frames instead of stretching with the 48 ms step.
   stepCameraFlight(clamp(Number(deltaMs) || 0, 0, CAMERA_FLIGHT_FRAME_LIMIT_MS));
+  stepIceProjectionPlayback(safeDeltaMs / 1000);
   if (orbit) orbit.update();
 }
 
@@ -2936,17 +3010,15 @@ function sampleColorStops(stops, t) {
   return stops[stops.length - 1][1];
 }
 
+const VELOCITY_COLOR_STOPS = [
+  [0.0, [0.06, 0.2, 0.5]],
+  [0.35, [0.08, 0.62, 0.86]],
+  [0.65, [0.95, 0.9, 0.27]],
+  [1.0, [0.9, 0.2, 0.12]],
+];
+
 function velocityColor(speedMetersPerYear) {
-  const scaled = velocityScaleT(speedMetersPerYear);
-  return sampleColorStops(
-    [
-      [0.0, [0.06, 0.2, 0.5]],
-      [0.35, [0.08, 0.62, 0.86]],
-      [0.65, [0.95, 0.9, 0.27]],
-      [1.0, [0.9, 0.2, 0.12]],
-    ],
-    scaled
-  );
+  return sampleColorStops(VELOCITY_COLOR_STOPS, velocityScaleT(speedMetersPerYear));
 }
 
 function basalFrictionColor(valueMpa) {
@@ -4005,10 +4077,28 @@ function buildFlowlineProfileSummary(field, flowlineIndex, merged) {
   };
 }
 
-function createFlowLightMaterial({ staticOpacity, activeBaseOpacity, pulseOpacity, flowRate, useSegmentRates = false, depthTest = true }) {
+function flowLightDefines({ useSegmentRates = false, usePhase = false, useVisibility = false } = {}) {
+  return {
+    ...(useSegmentRates ? { USE_SEGMENT_FLOW_RATE: "" } : {}),
+    // A per-vertex phase offset keeps the pulses continuous when their rates change, which
+    // the ice flowlines need while they follow an ice-sheet projection.
+    ...(usePhase ? { USE_FLOW_PHASE: "" } : {}),
+    ...(useVisibility ? { USE_FLOW_VISIBILITY: "" } : {}),
+  };
+}
+
+function createFlowLightMaterial({
+  staticOpacity,
+  activeBaseOpacity,
+  pulseOpacity,
+  flowRate,
+  useSegmentRates = false,
+  usePhase = false,
+  depthTest = true,
+}) {
   return new THREE.ShaderMaterial({
     glslVersion: THREE.GLSL1,
-    defines: useSegmentRates ? { USE_SEGMENT_FLOW_RATE: "" } : {},
+    defines: flowLightDefines({ useSegmentRates, usePhase }),
     uniforms: {
       uFlowTime: flowLightUniforms.time,
       uFlowEnabled: flowLightUniforms.enabled,
@@ -4029,11 +4119,15 @@ function createFlowLightMaterial({ staticOpacity, activeBaseOpacity, pulseOpacit
       #ifdef USE_SEGMENT_FLOW_RATE
         attribute float flowRate;
       #endif
+      #ifdef USE_FLOW_PHASE
+        attribute float flowPhase;
+      #endif
 
       varying vec3 vColor;
       varying float vFlowDistance;
       varying float vFlowRate;
       varying float vFlowGlow;
+      varying float vFlowPhase;
 
       void main() {
         vColor = color;
@@ -4042,6 +4136,11 @@ function createFlowLightMaterial({ staticOpacity, activeBaseOpacity, pulseOpacit
           vFlowRate = flowRate;
         #else
           vFlowRate = 1.0;
+        #endif
+        #ifdef USE_FLOW_PHASE
+          vFlowPhase = flowPhase;
+        #else
+          vFlowPhase = 0.0;
         #endif
         vFlowGlow = flowGlow;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
@@ -4063,13 +4162,14 @@ function createFlowLightMaterial({ staticOpacity, activeBaseOpacity, pulseOpacit
       varying float vFlowDistance;
       varying float vFlowRate;
       varying float vFlowGlow;
+      varying float vFlowPhase;
 
       void main() {
         if (uFlowEnabled < 0.5 || vFlowGlow < 0.5) {
           gl_FragColor = vec4(vColor, uStaticOpacity);
           return;
         }
-        float phase = fract(vFlowDistance * uPatternScale - uFlowTime * uFlowRate * vFlowRate);
+        float phase = fract(vFlowDistance * uPatternScale - uFlowTime * uFlowRate * vFlowRate - vFlowPhase);
         float leading = smoothstep(0.03, 0.09, phase);
         float trailing = 1.0 - smoothstep(0.20, 0.34, phase);
         float pulse = leading * trailing;
@@ -4093,10 +4193,10 @@ function createStaticFlowLineMaterial({ baseOpacity, depthTest = true }) {
   });
 }
 
-function createFlowLightParticleMaterial({ flowRate, pointSize, useSegmentRates = false }) {
+function createFlowLightParticleMaterial({ flowRate, pointSize, useSegmentRates = false, usePhase = false, useVisibility = false }) {
   return new THREE.ShaderMaterial({
     glslVersion: THREE.GLSL1,
-    defines: useSegmentRates ? { USE_SEGMENT_FLOW_RATE: "" } : {},
+    defines: flowLightDefines({ useSegmentRates, usePhase, useVisibility }),
     uniforms: {
       uFlowTime: flowLightUniforms.time,
       uFlowEnabled: flowLightUniforms.enabled,
@@ -4115,12 +4215,19 @@ function createFlowLightParticleMaterial({ flowRate, pointSize, useSegmentRates 
       #ifdef USE_SEGMENT_FLOW_RATE
         attribute float flowRate;
       #endif
+      #ifdef USE_FLOW_PHASE
+        attribute float flowPhase;
+      #endif
+      #ifdef USE_FLOW_VISIBILITY
+        attribute float flowVisible;
+      #endif
 
       uniform float uPointSize;
 
       varying vec3 vColor;
       varying float vFlowDistance;
       varying float vFlowRate;
+      varying float vFlowPhase;
 
       void main() {
         vColor = color;
@@ -4129,6 +4236,19 @@ function createFlowLightParticleMaterial({ flowRate, pointSize, useSegmentRates 
           vFlowRate = flowRate;
         #else
           vFlowRate = 1.0;
+        #endif
+        #ifdef USE_FLOW_PHASE
+          vFlowPhase = flowPhase;
+        #else
+          vFlowPhase = 0.0;
+        #endif
+        #ifdef USE_FLOW_VISIBILITY
+          if (flowVisible < 0.5) {
+            // Outside the clip volume, so the point is never rasterised.
+            gl_PointSize = 0.0;
+            gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+            return;
+          }
         #endif
         vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
         gl_PointSize = uPointSize * clamp(90.0 / max(1.0, -viewPosition.z), 0.6, 1.25);
@@ -4148,10 +4268,11 @@ function createFlowLightParticleMaterial({ flowRate, pointSize, useSegmentRates 
       varying vec3 vColor;
       varying float vFlowDistance;
       varying float vFlowRate;
+      varying float vFlowPhase;
 
       void main() {
         if (uFlowEnabled < 0.5) discard;
-        float phase = fract(vFlowDistance * uPatternScale - uFlowTime * uFlowRate * vFlowRate);
+        float phase = fract(vFlowDistance * uPatternScale - uFlowTime * uFlowRate * vFlowRate - vFlowPhase);
         float leading = smoothstep(0.03, 0.09, phase);
         float trailing = 1.0 - smoothstep(0.20, 0.34, phase);
         float pulse = leading * trailing;
@@ -4169,7 +4290,7 @@ function createFlowLightParticleMaterial({ flowRate, pointSize, useSegmentRates 
   });
 }
 
-function addFlowLightParticleOverlay(lines, { sampleStride, pointSize, flowRate, useSegmentRates = false }) {
+function addFlowLightParticleOverlay(lines, { sampleStride, pointSize, flowRate, useSegmentRates = false, followsProjection = false }) {
   const geometry = lines?.geometry;
   const position = geometry?.getAttribute("position");
   const color = geometry?.getAttribute("color");
@@ -4182,10 +4303,12 @@ function addFlowLightParticleOverlay(lines, { sampleStride, pointSize, flowRate,
   const particleColors = [];
   const particleDistances = [];
   const particleRates = [];
+  const sourceVertices = [];
   const safeStride = Math.max(1, Math.floor(sampleStride));
   for (let segmentIndex = 0; segmentIndex < Math.floor(position.count / 2); segmentIndex += safeStride) {
     const vertexIndex = segmentIndex * 2 + 1;
     if (flowGlow.getX(vertexIndex) < 0.5) continue;
+    sourceVertices.push(vertexIndex);
     particlePositions.push(position.getX(vertexIndex), position.getY(vertexIndex), position.getZ(vertexIndex));
     particleColors.push(color.getX(vertexIndex), color.getY(vertexIndex), color.getZ(vertexIndex));
     particleDistances.push(flowDistance.getX(vertexIndex));
@@ -4200,13 +4323,25 @@ function addFlowLightParticleOverlay(lines, { sampleStride, pointSize, flowRate,
   if (useSegmentRates) {
     particleGeometry.setAttribute("flowRate", new THREE.BufferAttribute(new Float32Array(particleRates), 1));
   }
+  if (followsProjection) {
+    const count = sourceVertices.length;
+    particleGeometry.setAttribute("flowPhase", new THREE.BufferAttribute(new Float32Array(count), 1));
+    particleGeometry.setAttribute("flowVisible", new THREE.BufferAttribute(new Float32Array(count).fill(1), 1));
+  }
 
   const particles = new THREE.Points(
     particleGeometry,
-    createFlowLightParticleMaterial({ flowRate, pointSize, useSegmentRates })
+    createFlowLightParticleMaterial({
+      flowRate,
+      pointSize,
+      useSegmentRates,
+      usePhase: followsProjection,
+      useVisibility: followsProjection,
+    })
   );
   particles.renderOrder = lines.renderOrder + 0.1;
   particles.userData.isFlowLightParticleOverlay = true;
+  if (followsProjection) particles.userData.sourceVertices = Uint32Array.from(sourceVertices);
   lines.add(particles);
   return particles;
 }
@@ -4257,6 +4392,9 @@ function buildFlowlineMesh(field) {
   const flowDistances = [];
   const flowRates = [];
   const flowGlows = [];
+  const vertexCols = [];
+  const vertexRows = [];
+  const vertexSpeeds = [];
   const segmentFlowlineIndices = [];
   const flowlines = [];
 
@@ -4295,6 +4433,9 @@ function buildFlowlineMesh(field) {
       flowDistances.push(flowDistance, flowDistance + segmentLength);
       flowRates.push(getIceFlowLightRate(p0.speed), getIceFlowLightRate(p1.speed));
       flowGlows.push(1, 1);
+      vertexCols.push(p0.col, p1.col);
+      vertexRows.push(p0.row, p1.row);
+      vertexSpeeds.push(p0.speed, p1.speed);
       segmentFlowlineIndices.push(flowlineIndex);
       flowDistance += segmentLength;
     }
@@ -4311,6 +4452,7 @@ function buildFlowlineMesh(field) {
       rates: flowRates,
       glows: flowGlows,
     });
+    geometry.setAttribute("flowPhase", new THREE.BufferAttribute(new Float32Array(positions.length / 3), 1));
   }
   const material = buildFlowLights
     ? createFlowLightMaterial({
@@ -4319,6 +4461,7 @@ function buildFlowlineMesh(field) {
         pulseOpacity: FLOW_LIGHT_PULSE_OPACITY,
         flowRate: FLOW_LIGHT_ICE_RATE,
         useSegmentRates: true,
+        usePhase: true,
       })
     : createStaticFlowLineMaterial({ baseOpacity: FLOW_LIGHT_STATIC_OPACITY });
   const lines = new THREE.LineSegments(geometry, material);
@@ -4331,8 +4474,18 @@ function buildFlowlineMesh(field) {
       pointSize: FLOW_LIGHT_ICE_PARTICLE_SIZE,
       flowRate: FLOW_LIGHT_ICE_RATE,
       useSegmentRates: true,
+      followsProjection: true,
     });
   }
+  // What an ice-sheet projection needs to move the lines with the ice and restore them.
+  lines.userData.projectionBase = {
+    cols: Float32Array.from(vertexCols),
+    rows: Float32Array.from(vertexRows),
+    speeds: Float32Array.from(vertexSpeeds),
+    positions: Float32Array.from(positions),
+    colors: Float32Array.from(colors),
+    rates: buildFlowLights ? Float32Array.from(flowRates) : null,
+  };
   lines.userData.flowlineCount = flowlines.length;
   lines.userData.flowlines = flowlines;
   lines.userData.segmentFlowlineIndices = Uint32Array.from(segmentFlowlineIndices);
@@ -5056,6 +5209,7 @@ function hasPendingLayerLoads() {
       hydrologyLoadPromise ||
       oceanCurrentLoadPromise ||
       refinedBasinLoadPromise ||
+      iceProjectionLoadPromise ||
       polarFeaturesController?.getState().loading
   );
 }
@@ -5102,6 +5256,7 @@ async function rebuildStaticFlowLightLayers() {
     if (rebuiltFlowlines) {
       flowlineMesh = rebuiltFlowlines;
       scene.add(flowlineMesh);
+      if (isIceProjectionActive()) applyIceProjectionToFlowlines(iceProjectionScene, { force: true });
     }
     updateFlowlineVisibility();
   }
@@ -5143,6 +5298,7 @@ function collectExplorerState() {
     showSubglacialChannels: Boolean(controlsUI.showSubglacialChannels?.checked),
     showSea: Boolean(controlsUI.showSea?.checked),
     showIsostaticRebound: Boolean(controlsUI.showIsostaticRebound?.checked),
+    showIceProjection: Boolean(controlsUI.showIceProjection?.checked),
     highlightEmergentLand: Boolean(controlsUI.highlightEmergentLand?.checked),
     wireframe: Boolean(controlsUI.wireframe?.checked),
     showResearchStations: Boolean(controlsUI.showResearchStations?.checked),
@@ -5206,6 +5362,7 @@ function collectExplorerState() {
         ? Number(currentCoreContext.reboundStats.maxTopographyChangeMeters.toFixed(1))
         : null,
     },
+    iceProjection: collectIceProjectionState(),
     featureLayers: polarFeatureState.featureLayers,
     search: polarFeatureState.search,
     selectedFeature: polarFeatureState.selectedFeature,
@@ -5222,6 +5379,7 @@ function collectExplorerState() {
       oceanCurrents: Boolean(controlsUI.oceanLegendSection && !controlsUI.oceanLegendSection.hidden),
       effectivePressure: Boolean(controlsUI.effectivePressureLegendSection && !controlsUI.effectivePressureLegendSection.hidden),
       subglacialChannels: Boolean(controlsUI.channelLegendSection && !controlsUI.channelLegendSection.hidden),
+      iceProjection: Boolean(controlsUI.projectionLegendSection && !controlsUI.projectionLegendSection.hidden),
     },
     camera:
       camera && orbit
@@ -5252,6 +5410,7 @@ function collectExplorerState() {
     meshes: {
       bed: Boolean(bedMesh && bedMesh.visible),
       isostaticRebound: Boolean(bedMesh && bedMesh.visible && isReboundActive()),
+      iceProjection: Boolean(isIceProjectionActive() && iceMesh && iceMesh.visible),
       ice: Boolean(iceMesh && iceMesh.visible),
       iceBottom: Boolean(iceBottomMesh && iceBottomMesh.visible),
       velocity: Boolean(velocitySurfaceMesh && velocitySurfaceMesh.visible),
@@ -5334,6 +5493,7 @@ function clearRefinedBasinOverlays() {
 
 function clearModelMeshes() {
   polarFeaturesController?.clearScene();
+  releaseIceProjectionScene();
   bedMesh = disposeMesh(bedMesh);
   iceMesh = disposeMesh(iceMesh);
   iceBottomMesh = disposeMesh(iceBottomMesh);
@@ -5413,6 +5573,9 @@ function pickVisibleFlowlineAtClientPoint(clientX, clientY) {
   if (!(renderer && camera && flowlineMesh && flowlineMesh.visible && flowlineRaycaster && flowlinePointerNdc)) {
     return false;
   }
+  // Under a projection the lines show projected ice (and collapsed segments) but their
+  // profiles are today's, so they are not offered for picking.
+  if (isIceProjectionActive()) return false;
 
   const rect = renderer.domElement.getBoundingClientRect();
   if (!(rect.width > 0 && rect.height > 0)) return false;
@@ -5970,7 +6133,8 @@ async function ensureRefinedBasinsLoaded({ trigger = "prefetch" } = {}) {
 
 function updateIceSideVisibility() {
   if (!iceSideMesh) return;
-  iceSideMesh.visible = controlsUI.showIce.checked && controlsUI.showIceBottom.checked;
+  // The side skirt is built from the dataset's own ice margin, which the projection moves.
+  iceSideMesh.visible = !isIceProjectionActive() && controlsUI.showIce.checked && controlsUI.showIceBottom.checked;
 }
 
 function syncIceMaterialMode(opacityValue = Number(controlsUI.iceOpacity?.value)) {
@@ -6051,6 +6215,7 @@ function updateFlowlineVisibility() {
 
   if (flowlineMesh) {
     flowlineMesh.visible = true;
+    if (isIceProjectionActive()) applyIceProjectionToFlowlines(iceProjectionScene, { force: true });
     updateSelectedFlowlineVisualState();
     refreshFlowlineGuidanceUi();
     return;
@@ -6076,6 +6241,7 @@ function updateFlowlineVisibility() {
     const built = buildFlowlineMesh(velocityField);
     if (!built) {
       controlsUI.showFlowline.checked = false;
+      syncProjectionFlowlineToggle();
       if (statusEl.textContent === t("explorer.status.computingFlowlines")) {
         statusEl.textContent = previousStatus;
       }
@@ -6085,6 +6251,7 @@ function updateFlowlineVisibility() {
     flowlineMesh = built;
     scene.add(flowlineMesh);
     flowlineMesh.visible = true;
+    if (isIceProjectionActive()) applyIceProjectionToFlowlines(iceProjectionScene, { force: true });
     updateSelectedFlowlineVisualState();
     refreshFlowlineGuidanceUi();
     if (statusEl.textContent === t("explorer.status.computingFlowlines")) {
@@ -7298,6 +7465,8 @@ function bindUI() {
     updateMetaFromCurrentState();
   });
   controlsUI.showFlowline.addEventListener("change", () => {
+    // A visitor's own choice wins over the projection's.
+    iceProjectionRaisedFlowlines = false;
     updateLegendVisibility();
     if (controlsUI.showFlowline.checked && !velocityField) {
       refreshFlowlineGuidanceUi();
@@ -7424,6 +7593,8 @@ function bindUI() {
   });
   controlsUI.showSea.addEventListener("change", () => {
     if (seaLevelMesh) seaLevelMesh.visible = controlsUI.showSea.checked;
+    // A visitor's own choice wins over the projection's.
+    iceProjectionRaisedSea = false;
   });
 
   controlsUI.showIsostaticRebound?.addEventListener("change", () => {
@@ -7485,6 +7656,59 @@ function bindUI() {
   controlsUI.highlightEmergentLand?.addEventListener("change", () => {
     if (isReboundActive()) applyReboundGeometry({ recomputeNormals: false });
   });
+
+  controlsUI.showIceProjection?.addEventListener("change", () => {
+    if (controlsUI.showIceProjection.checked) {
+      raiseFlowlinesForProjection();
+      updateIceProjectionControlsUi();
+      ensureIceProjectionLoaded();
+      return;
+    }
+    deactivateIceProjection();
+    refreshIceProjectionUi();
+  });
+  controlsUI.projectionScenario?.addEventListener("change", () => {
+    renderIceProjectionChart();
+    if (controlsUI.showIceProjection?.checked) ensureIceProjectionLoaded();
+  });
+  controlsUI.projectionYear?.addEventListener("input", () => {
+    stopIceProjectionPlayback();
+    setIceProjectionYear(Number(controlsUI.projectionYear.value));
+  });
+  controlsUI.projectionYear?.addEventListener("change", () => {
+    updateMetaFromCurrentState();
+  });
+  controlsUI.projectionPlay?.addEventListener("click", () => {
+    if (iceProjectionPlaying) {
+      stopIceProjectionPlayback();
+      updateMetaFromCurrentState();
+      return;
+    }
+    startIceProjectionPlayback();
+  });
+  controlsUI.projectionFlowline?.addEventListener("change", () => {
+    const layer = controlsUI.showFlowline;
+    if (!layer || layer.disabled || layer.checked === controlsUI.projectionFlowline.checked) {
+      syncProjectionFlowlineToggle();
+      return;
+    }
+    layer.checked = controlsUI.projectionFlowline.checked;
+    layer.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  controlsUI.projectionColorMode?.addEventListener("change", () => {
+    if (isIceProjectionActive()) applyIceProjectionYear();
+    updateIceProjectionControlsUi();
+    updateLegendVisibility();
+  });
+  // Turning on a layer drawn against the present-day ice or bed hands the scene back.
+  for (const key of ICE_PROJECTION_EXCLUSIVE_TOGGLES) {
+    controlsUI[key]?.addEventListener("change", () => {
+      if (!controlsUI[key].checked || !controlsUI.showIceProjection?.checked) return;
+      controlsUI.showIceProjection.checked = false;
+      deactivateIceProjection();
+      refreshIceProjectionUi();
+    });
+  }
 
   controlsUI.wireframe.addEventListener("change", () => {
     const enable = controlsUI.wireframe.checked;
@@ -7962,6 +8186,11 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
           )}</li>`,
         ];
 
+  const projectionItems = buildIceProjectionMetaItems();
+  if (projectionItems.length && dataset.sources.iceProjection) {
+    sourceLines.push(renderSourceLine(t("explorer.meta.sourceIceProjection"), dataset.sources.iceProjection));
+  }
+
   const selectedFlowlineCard =
     capabilities.velocity && capabilities.flowline && controlsUI.showFlowline.checked
       ? renderSelectedFlowlineCard(selectedFlowlineState)
@@ -7980,6 +8209,9 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
     renderMetaSection("ocean-circulation", t("explorer.meta.oceanSection"), oceanCurrentItems),
     renderMetaSection("basal-melt", t("explorer.meta.riseSection"), riseItems),
     renderMetaSection("isostatic-rebound", t("explorer.meta.isostaticReboundSection"), reboundItems, {
+      defaultOpen: true,
+    }),
+    renderMetaSection("ice-projection", t("explorer.meta.iceProjectionSection"), projectionItems, {
       defaultOpen: true,
     }),
     renderMetaSection("sources", t("explorer.meta.sourcesSection"), sourceLines),
@@ -8195,6 +8427,9 @@ function blendEmergentHighlight(rgb, blend) {
 function applyReboundGeometry({ recomputeNormals = true } = {}) {
   const context = currentCoreContext;
   if (!context || !bedMesh) return;
+  // While the projection is on it owns the bed and ice meshes; it hands them back through
+  // this function when it is switched off.
+  if (isIceProjectionActive()) return;
 
   const active = isReboundActive();
   const fraction = active ? getReboundFraction() : 0;
@@ -8740,6 +8975,1205 @@ async function ensureIsostaticReboundLoaded({ trigger = "toggle" } = {}) {
     });
 
   return reboundLoadPromise;
+}
+
+// ------------------------------------------------------------------ ice-sheet projection
+//
+// Plays back an ice-sheet projection on the BedMachine Balanced grid. Each package holds the
+// ice thickness at keyframe years for every cell the ice ever covers, plus the bed there;
+// js/ice-projection.js interpolates between keyframes and rebuilds surface and base by
+// flotation. While the layer is on, the ice surface and ice bottom meshes carry dedicated
+// projection geometries (one vertex per domain cell) and the bed mesh carries the package's
+// bed inside the domain, so the existing ice controls (visibility, opacity, exaggeration,
+// wireframe) keep working unchanged.
+//
+// The packages are the ISMIP6 2300 multi-model means (scripts/prepare_ismip6_projection.py):
+// the mean change of eight models applied to today's BedMachine ice, so the first frame is
+// the ice the explorer already draws. They also carry the mean change in ice speed, which
+// the flowlines follow: they stay on, ride the projected surface, recolour and speed up
+// with today's speed plus that change, and drop out where the ice is gone.
+
+const ICE_PROJECTION_PLAYBACK_YEARS_PER_SECOND = 12;
+const ICE_PROJECTION_LEGEND_TICKS = [-1000, -100, -10, 0, 10, 100, 1000];
+const ICE_PROJECTION_COLOR_LUT_SIZE = 256;
+const ICE_PROJECTION_THICKNESS_COLOR_MAX_M = 4200;
+// Floating ice is drawn distinctly bluer than grounded ice so ice-shelf loss reads at a glance.
+const ICE_PROJECTION_FLOATING_THIN_RGB = [0.33, 0.62, 0.88];
+const ICE_PROJECTION_FLOATING_THICK_RGB = [0.56, 0.8, 0.97];
+const ICE_PROJECTION_CHART = Object.freeze({ left: 30, right: 254, top: 14, bottom: 80 });
+// Layers drawn against the present-day ice or bed, which the projection replaces. The
+// flowlines are not among them: they follow the projection (see the flowline section).
+const ICE_PROJECTION_EXCLUSIVE_TOGGLES = [
+  "showVelocity",
+  "showBasalFriction",
+  "showEffectivePressure",
+  "showSubglacialChannels",
+  "showBasalMelt",
+  "showThermalDriving",
+  "showOceanCurrents",
+  "showRefinedBasins",
+  "showIsostaticRebound",
+];
+
+function loadIceProjectionModule() {
+  if (iceProjectionModule) return Promise.resolve(iceProjectionModule);
+  if (!iceProjectionModulePromise) {
+    iceProjectionModulePromise = import(assetUrl("js/ice-projection.js")).then((module) => {
+      iceProjectionModule = module;
+      return module;
+    });
+  }
+  return iceProjectionModulePromise;
+}
+
+function isIceProjectionCapable() {
+  const region = getRegionConfig(currentRegionKey);
+  const dataset = getDatasetConfig(region.key, datasetSelectionByRegion[region.key] || currentDatasetKey);
+  return Boolean(!isShowcaseMode && !isPreviewMode && dataset?.capabilities?.iceProjection);
+}
+
+function isIceProjectionActive() {
+  return iceProjectionActive;
+}
+
+function getIceProjectionColorMode() {
+  return controlsUI.projectionColorMode?.value === "type" ? "type" : "change";
+}
+
+function getAvailableIceProjectionScenarios() {
+  return ICE_PROJECTION_SCENARIOS.filter((scenario) => iceProjectionMetaCache.get(scenario.key));
+}
+
+function getSelectedIceProjectionScenario() {
+  const available = getAvailableIceProjectionScenarios();
+  return available.find((scenario) => scenario.key === controlsUI.projectionScenario?.value) || available[0] || null;
+}
+
+const ICE_PROJECTION_LABEL_KEYS = Object.freeze({
+  ae10: { long: "explorer.projection.scenarioAe10", short: "explorer.projection.shortAe10" },
+  ae05: { long: "explorer.projection.scenarioAe05", short: "explorer.projection.shortAe05" },
+  ae14: { long: "explorer.projection.scenarioAe14", short: "explorer.projection.shortAe14" },
+});
+
+function getIceProjectionScenarioLabel(key, { short = false } = {}) {
+  const keys = ICE_PROJECTION_LABEL_KEYS[key];
+  if (!keys) return key;
+  return t(short ? keys.short : keys.long);
+}
+
+async function fetchIceProjectionMeta(scenario) {
+  try {
+    const response = await fetch(scenario.packageMetaUrl);
+    if (!response.ok) {
+      // A missing package hides its scenario, as on a host that does not deploy it.
+      if (response.status !== 404) {
+        console.warn(`Ice-sheet projection ${scenario.key}: metadata returned HTTP ${response.status}.`);
+      }
+      return null;
+    }
+    const meta = await response.json();
+    return meta?.geometry_type === "sparse_grid_time_series" ? meta : null;
+  } catch (error) {
+    console.warn(`Ice-sheet projection ${scenario.key}: metadata unavailable.`, error);
+    return null;
+  }
+}
+
+function probeIceProjectionScenarios() {
+  if (!iceProjectionProbePromise) {
+    iceProjectionProbePromise = Promise.all(
+      ICE_PROJECTION_SCENARIOS.map(async (scenario) => {
+        iceProjectionMetaCache.set(scenario.key, await fetchIceProjectionMeta(scenario));
+      })
+    ).then(() => {
+      iceProjectionProbeSettled = true;
+      populateIceProjectionScenarios();
+      updateIceProjectionAvailability();
+      return getAvailableIceProjectionScenarios().length > 0;
+    });
+  }
+  return iceProjectionProbePromise;
+}
+
+function populateIceProjectionScenarios() {
+  const select = controlsUI.projectionScenario;
+  if (!select) return;
+  const previous = select.value;
+  select.innerHTML = "";
+  for (const scenario of getAvailableIceProjectionScenarios()) {
+    const option = document.createElement("option");
+    option.value = scenario.key;
+    option.textContent = getIceProjectionScenarioLabel(scenario.key);
+    select.appendChild(option);
+  }
+  const preferred = previous || ICE_PROJECTION_DEFAULT_SCENARIO;
+  if (Array.from(select.options).some((option) => option.value === preferred)) select.value = preferred;
+}
+
+function updateIceProjectionAvailability() {
+  const available = isIceProjectionCapable() && getAvailableIceProjectionScenarios().length > 0;
+  if (controlsUI.iceProjectionRow) controlsUI.iceProjectionRow.hidden = !available;
+  if (controlsUI.showIceProjection) {
+    controlsUI.showIceProjection.disabled = !available;
+    // Until the probe answers, keep a preset's request alive rather than dropping it.
+    if (!available && (iceProjectionProbeSettled || !isIceProjectionCapable())) {
+      controlsUI.showIceProjection.checked = false;
+      lowerFlowlinesRaisedByProjection();
+    }
+  }
+  updateIceProjectionControlsUi();
+}
+
+function formatSignedFixed(value, digits) {
+  if (!Number.isFinite(value)) return "n/a";
+  const text = Math.abs(value).toLocaleString(numberLocale, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+  if (Math.abs(value) < 0.5 * 10 ** -digits) return text;
+  return `${value > 0 ? "+" : "−"}${text}`;
+}
+
+function formatThicknessChangeTick(value) {
+  if (value === 0) return "0";
+  const magnitude = Math.abs(value).toLocaleString(numberLocale);
+  const unit = Math.abs(value) === ICE_PROJECTION_LEGEND_TICKS[ICE_PROJECTION_LEGEND_TICKS.length - 1] ? " m" : "";
+  return `${value > 0 ? "+" : "−"}${magnitude}${unit}`;
+}
+
+function sampleIceProjectionSeries(values) {
+  const series = iceProjectionScene?.projection.series;
+  if (!series || !iceProjectionModule) return Number.NaN;
+  return iceProjectionModule.sampleSeries(series.years, values, iceProjectionYear);
+}
+
+function updateIceProjectionPlayButton() {
+  const button = controlsUI.projectionPlay;
+  if (!button) return;
+  const label = iceProjectionPlaying ? t("explorer.projection.pause") : t("explorer.projection.play");
+  button.textContent = label;
+  button.setAttribute("aria-label", label);
+  button.setAttribute("aria-pressed", String(iceProjectionPlaying));
+  button.disabled = !iceProjectionActive;
+}
+
+function syncIceProjectionYearControls() {
+  const year = Math.round(iceProjectionYear);
+  if (controlsUI.projectionYear) controlsUI.projectionYear.value = String(year);
+  if (controlsUI.projectionYearValue) controlsUI.projectionYearValue.textContent = String(year);
+}
+
+/**
+ * The projection's own flowline switch is a second handle on the flowline layer, so the
+ * flowlines can be shown or hidden without leaving the projection's controls. It always
+ * shows the layer's state, including when the layer is unavailable.
+ */
+function syncProjectionFlowlineToggle() {
+  const mirror = controlsUI.projectionFlowline;
+  const layer = controlsUI.showFlowline;
+  if (!mirror || !layer) return;
+  mirror.checked = layer.checked;
+  mirror.disabled = layer.disabled;
+}
+
+function updateIceProjectionControlsUi() {
+  const enabled = Boolean(controlsUI.showIceProjection?.checked);
+  if (controlsUI.iceProjectionControls) controlsUI.iceProjectionControls.hidden = !enabled;
+  syncProjectionFlowlineToggle();
+  const projection = iceProjectionScene?.projection || null;
+  if (controlsUI.projectionYear && projection) {
+    controlsUI.projectionYear.min = String(projection.firstYear);
+    controlsUI.projectionYear.max = String(projection.lastYear);
+  }
+  syncIceProjectionYearControls();
+  updateIceProjectionPlayButton();
+  if (controlsUI.projectionNote) {
+    const first = projection?.firstYear ?? Number(controlsUI.projectionYear?.min || 2015);
+    const note =
+      getIceProjectionColorMode() === "type"
+        ? t("explorer.projection.noteType")
+        : t("explorer.projection.noteChange", { first });
+    const models = iceProjectionMetaCache.get(getSelectedIceProjectionScenario()?.key)?.models?.length || 8;
+    // Chinese sentences run on without a space between them.
+    const joiner = isChineseLocale ? "" : " ";
+    controlsUI.projectionNote.textContent = `${note}${joiner}${t("explorer.projection.ensembleNote", { models })}`;
+  }
+  renderIceProjectionChart();
+  updateIceProjectionReadout();
+}
+
+function updateIceProjectionReadout() {
+  const el = controlsUI.projectionReadout;
+  if (!el) return;
+  const series = iceProjectionScene?.projection.series;
+  if (!series || !iceProjectionActive) {
+    el.innerHTML = "";
+    updateIceProjectionChartCursor();
+    return;
+  }
+  const areaText = (km2, baselineKm2) =>
+    t("explorer.projection.areaValue", {
+      value: (km2 / 1e6).toLocaleString(numberLocale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      change: `${formatSignedFixed(((km2 - baselineKm2) / baselineKm2) * 100, 1)}%`,
+    });
+  const seaLevel = [
+    t("explorer.projection.readoutSeaLevel"),
+    t("explorer.projection.seaLevelValue", { value: formatSignedFixed(sampleIceProjectionSeries(series.seaLevel), 2) }),
+  ];
+  const rows = [seaLevel];
+  if (series.seaLevelMin.length && series.seaLevelMax.length) {
+    // An ensemble package: the spread of its models, and the grounded ice of the map shown.
+    rows.push([
+      t("explorer.projection.readoutRange"),
+      t("explorer.projection.rangeValue", {
+        low: formatSignedFixed(sampleIceProjectionSeries(series.seaLevelMin), 2),
+        high: formatSignedFixed(sampleIceProjectionSeries(series.seaLevelMax), 2),
+      }),
+    ]);
+    const cellKm2 = iceProjectionScene.cellAreaKm2;
+    rows.push([
+      t("explorer.projection.readoutGroundedMap"),
+      areaText(iceProjectionScene.groundedCellCount * cellKm2, iceProjectionScene.baselineGroundedCellCount * cellKm2),
+    ]);
+  } else {
+    const fromSeries = (values) => areaText(sampleIceProjectionSeries(values), values[0]);
+    rows.push([t("explorer.projection.readoutGrounded"), fromSeries(series.groundedArea)]);
+    rows.push([t("explorer.projection.readoutFloating"), fromSeries(series.floatingArea)]);
+  }
+  const html = rows
+    .map(([label, value]) => `<span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong>`)
+    .join("");
+  // Rewritten only when it changes, as playback redraws it every frame.
+  if (el.innerHTML !== html) el.innerHTML = html;
+  updateIceProjectionChartCursor();
+}
+
+function niceCeiling(value) {
+  if (!(value > 0)) return 0.1;
+  const magnitude = 10 ** Math.floor(Math.log10(value));
+  for (const step of [1, 2, 2.5, 5, 10]) {
+    if (step * magnitude >= value - 1e-12) return step * magnitude;
+  }
+  return 10 * magnitude;
+}
+
+/** Sea-level curves of every available scenario, with a cursor on the year shown. */
+function renderIceProjectionChart() {
+  const svg = controlsUI.projectionChart;
+  if (!svg) return;
+  const curves = getAvailableIceProjectionScenarios()
+    .map((scenario) => ({ scenario, series: iceProjectionMetaCache.get(scenario.key)?.series }))
+    .filter(({ series }) => Array.isArray(series?.years) && Array.isArray(series?.sea_level_contribution_m));
+  if (!controlsUI.showIceProjection?.checked || curves.length === 0) {
+    svg.innerHTML = "";
+    iceProjectionChartGeometry = null;
+    return;
+  }
+
+  let first = Infinity;
+  let last = -Infinity;
+  let low = 0;
+  let high = 0;
+  const activeKey = getSelectedIceProjectionScenario()?.key;
+  // The active scenario's model spread, when its package carries one, is drawn as a band
+  // and kept inside the axes.
+  const activeSeries = curves.find(({ scenario }) => scenario.key === activeKey)?.series;
+  const band =
+    Array.isArray(activeSeries?.sea_level_contribution_min_m) && Array.isArray(activeSeries?.sea_level_contribution_max_m)
+      ? { min: activeSeries.sea_level_contribution_min_m, max: activeSeries.sea_level_contribution_max_m }
+      : null;
+  for (const { series } of curves) {
+    first = Math.min(first, series.years[0]);
+    last = Math.max(last, series.years[series.years.length - 1]);
+    for (const value of series.sea_level_contribution_m) {
+      if (!Number.isFinite(value)) continue;
+      low = Math.min(low, value);
+      high = Math.max(high, value);
+    }
+  }
+  for (const value of band ? [...band.min, ...band.max] : []) {
+    if (!Number.isFinite(value)) continue;
+    low = Math.min(low, value);
+    high = Math.max(high, value);
+  }
+  const yMax = niceCeiling(high);
+  const yMin = low < 0 ? -niceCeiling(-low) : 0;
+  const { left, right, top, bottom } = ICE_PROJECTION_CHART;
+  const xOf = (year) => left + ((year - first) / Math.max(1, last - first)) * (right - left);
+  const yOf = (value) => bottom - ((value - yMin) / (yMax - yMin)) * (bottom - top);
+  const fmtAxis = (value) =>
+    value.toLocaleString(numberLocale, { maximumFractionDigits: value !== 0 && Math.abs(value) < 1 ? 2 : 1 });
+
+  const parts = [
+    `<line class="axis" x1="${left}" y1="${yOf(0).toFixed(1)}" x2="${right}" y2="${yOf(0).toFixed(1)}" />`,
+    `<line class="axis" x1="${left}" y1="${top}" x2="${left}" y2="${bottom}" />`,
+    `<text class="label" x="${left - 3}" y="${(yOf(yMax) + 3).toFixed(1)}" text-anchor="end">${fmtAxis(yMax)} m</text>`,
+    `<text class="label" x="${left - 3}" y="${(yOf(0) + 3).toFixed(1)}" text-anchor="end">0</text>`,
+  ];
+  for (const year of [first, 2100, 2200, last]) {
+    if (year < first || year > last || (year !== first && year !== last && (year - first < 30 || last - year < 30))) {
+      continue;
+    }
+    parts.push(`<text class="label" x="${xOf(year).toFixed(1)}" y="${bottom + 10}" text-anchor="middle">${year}</text>`);
+  }
+  if (band && activeSeries) {
+    const upper = activeSeries.years.map((year, i) => `${xOf(year).toFixed(1)},${yOf(band.max[i]).toFixed(1)}`);
+    const lower = activeSeries.years.map((year, i) => `${xOf(year).toFixed(1)},${yOf(band.min[i]).toFixed(1)}`).reverse();
+    const color = curves.find(({ scenario }) => scenario.key === activeKey).scenario.color;
+    parts.push(`<path class="band" fill="${color}" d="M${upper.join("L")}L${lower.join("L")}Z" />`);
+  }
+  const ordered = [...curves].sort((a, b) => (a.scenario.key === activeKey) - (b.scenario.key === activeKey));
+  for (const { scenario, series } of ordered) {
+    const path = series.years
+      .map((year, i) => `${i === 0 ? "M" : "L"}${xOf(year).toFixed(1)},${yOf(series.sea_level_contribution_m[i]).toFixed(1)}`)
+      .join("");
+    const activeClass = scenario.key === activeKey ? " is-active" : "";
+    parts.push(`<path class="series${activeClass}" stroke="${scenario.color}" d="${path}" />`);
+  }
+  curves.forEach(({ scenario }, i) => {
+    parts.push(
+      `<text class="label label--series" x="${left + 4 + i * Math.floor((right - left) / Math.max(1, curves.length))}" y="${top - 5}" style="fill:${scenario.color}">${escapeHtml(
+        getIceProjectionScenarioLabel(scenario.key, { short: true })
+      )}</text>`
+    );
+  });
+  const activeColor = curves.find(({ scenario }) => scenario.key === activeKey)?.scenario.color || "currentColor";
+  parts.push(`<line class="cursor" x1="${left}" y1="${top}" x2="${left}" y2="${bottom}" />`);
+  parts.push(`<circle class="cursor-dot" r="2.6" cx="${left}" cy="${yOf(0).toFixed(1)}" fill="${activeColor}" />`);
+  svg.innerHTML = parts.join("");
+  svg.setAttribute("aria-label", t("explorer.projection.chartLabel", { first, last }));
+  iceProjectionChartGeometry = { xOf, yOf, activeKey };
+  updateIceProjectionChartCursor();
+}
+
+function updateIceProjectionChartCursor() {
+  const svg = controlsUI.projectionChart;
+  const geometry = iceProjectionChartGeometry;
+  if (!svg || !geometry) return;
+  const cursor = svg.querySelector(".cursor");
+  const dot = svg.querySelector(".cursor-dot");
+  const x = geometry.xOf(iceProjectionYear).toFixed(1);
+  cursor?.setAttribute("x1", x);
+  cursor?.setAttribute("x2", x);
+  const series = iceProjectionMetaCache.get(geometry.activeKey)?.series;
+  if (!dot || !series || !iceProjectionModule) return;
+  const value = iceProjectionModule.sampleSeries(series.years, series.sea_level_contribution_m, iceProjectionYear);
+  dot.setAttribute("cx", x);
+  dot.setAttribute("cy", geometry.yOf(Number.isFinite(value) ? value : 0).toFixed(1));
+}
+
+function renderIceProjectionLegend(module) {
+  updateContinuousLegend(controlsUI.projectionLegendBar, (t) => module.thicknessChangeRampColor(t));
+  renderTickLegendLabels(
+    controlsUI.projectionLegendLabels,
+    ICE_PROJECTION_LEGEND_TICKS,
+    (value) => module.thicknessChangeScaleT(value),
+    formatThicknessChangeTick,
+    { minGapPx: 4 }
+  );
+  if (controlsUI.projectionLegendNote) {
+    controlsUI.projectionLegendNote.textContent = t("explorer.projection.legendNote", {
+      first: iceProjectionScene?.projection.firstYear ?? 2015,
+    });
+  }
+}
+
+function buildIceProjectionColorLuts(module) {
+  const size = ICE_PROJECTION_COLOR_LUT_SIZE;
+  const luts = {
+    change: new Uint8Array(size * 3),
+    grounded: new Uint8Array(size * 3),
+    floating: new Uint8Array(size * 3),
+    groundedBottom: new Uint8Array(size * 3),
+    floatingBottom: new Uint8Array(size * 3),
+  };
+  const put = (lut, i, rgb) => {
+    lut[3 * i] = Math.round(clamp01(rgb[0]) * 255);
+    lut[3 * i + 1] = Math.round(clamp01(rgb[1]) * 255);
+    lut[3 * i + 2] = Math.round(clamp01(rgb[2]) * 255);
+  };
+  for (let i = 0; i < size; i += 1) {
+    const t = i / (size - 1);
+    const thickness = t * ICE_PROJECTION_THICKNESS_COLOR_MAX_M;
+    put(luts.change, i, module.thicknessChangeRampColor(t));
+    put(luts.grounded, i, iceColor(thickness, 2));
+    put(luts.floating, i, lerpColor(ICE_PROJECTION_FLOATING_THIN_RGB, ICE_PROJECTION_FLOATING_THICK_RGB, t));
+    put(luts.groundedBottom, i, iceBottomColor(thickness, 2));
+    put(luts.floatingBottom, i, iceBottomColor(thickness, 3));
+  }
+  return luts;
+}
+
+function createIceProjectionGeometry(context, projection, triangleCapacity) {
+  const { cellIndex, domainCount, nx } = projection;
+  const { horizontalMetersPerUnit } = context.baseConfig;
+  const halfX = (context.nx - 1) / 2;
+  const halfY = (context.ny - 1) / 2;
+  const dx = context.meta.grid.dx_m;
+  const absDy = Math.abs(context.meta.grid.dy_m);
+  // Same horizontal placement as buildSurfaceGeometry, so the vertices sit on the terrain's.
+  const positions = new Float32Array(domainCount * 3);
+  for (let v = 0; v < domainCount; v += 1) {
+    const cell = cellIndex[v];
+    const col = cell % nx;
+    const row = (cell - col) / nx;
+    positions[3 * v] = ((col - halfX) * dx) / horizontalMetersPerUnit;
+    positions[3 * v + 2] = ((row - halfY) * absDy) / horizontalMetersPerUnit;
+  }
+  const dynamic = (attribute) => attribute.setUsage(THREE.DynamicDrawUsage);
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", dynamic(new THREE.BufferAttribute(positions, 3)));
+  geometry.setAttribute("normal", dynamic(new THREE.BufferAttribute(new Float32Array(domainCount * 3), 3)));
+  geometry.setAttribute("color", dynamic(new THREE.BufferAttribute(new Uint8Array(domainCount * 3), 3, true)));
+  geometry.setIndex(dynamic(new THREE.BufferAttribute(new Uint32Array(Math.max(3, triangleCapacity)), 1)));
+  geometry.setDrawRange(0, 0);
+  return geometry;
+}
+
+function buildIceProjectionScene(context, scenarioKey, projection, module) {
+  const triangles = module.buildDomainTriangles(projection);
+  const count = projection.domainCount;
+  const baseline = new Float32Array(count);
+  module.blendThicknessInto(projection, projection.firstYear, baseline);
+  const horizontal = context.baseConfig.horizontalMetersPerUnit;
+  // Grounded ice of the first frame, for the readout's change in grounded area.
+  const scratch = new Float32Array(count);
+  const baselineGrounded = new Uint8Array(count);
+  module.flotationGeometryInto(projection.bed, baseline, projection.densityRatio, scratch, new Float32Array(count), baselineGrounded);
+  let baselineGroundedCellCount = 0;
+  for (let v = 0; v < count; v += 1) baselineGroundedCellCount += baselineGrounded[v];
+  return {
+    context,
+    scenarioKey,
+    projection,
+    module,
+    triangles,
+    surfaceGeometry: createIceProjectionGeometry(context, projection, triangles.length),
+    bottomGeometry: createIceProjectionGeometry(context, projection, triangles.length),
+    baseSurfaceGeometry: null,
+    baseBottomGeometry: null,
+    luts: buildIceProjectionColorLuts(module),
+    baseline,
+    thickness: new Float32Array(count),
+    surface: new Float32Array(count),
+    base: new Float32Array(count),
+    grounded: new Uint8Array(count),
+    ice: new Uint8Array(count),
+    heights: new Float32Array(count),
+    speedChange: new Float32Array(count),
+    indexDirty: true,
+    boundsReady: false,
+    iceVertexCount: 0,
+    groundedCellCount: baselineGroundedCellCount,
+    baselineGroundedCellCount,
+    cellAreaKm2: Math.abs(projection.grid.dx_m * projection.grid.dy_m) / 1e6,
+    triangleIndexCount: 0,
+    dxUnits: Math.abs(context.meta.grid.dx_m) / horizontal,
+    dzUnits: Math.abs(context.meta.grid.dy_m) / horizontal,
+  };
+}
+
+function rebuildIceProjectionIndex(sceneState) {
+  const { surfaceGeometry, bottomGeometry } = sceneState;
+  const count = sceneState.module.collectIceTriangles(sceneState.triangles, sceneState.ice, surfaceGeometry.index.array);
+  bottomGeometry.index.array.set(surfaceGeometry.index.array.subarray(0, count));
+  for (const geometry of [surfaceGeometry, bottomGeometry]) {
+    geometry.index.clearUpdateRanges();
+    geometry.index.addUpdateRange(0, count);
+    geometry.index.needsUpdate = true;
+    geometry.setDrawRange(0, count);
+  }
+  sceneState.triangleIndexCount = count;
+  sceneState.indexDirty = false;
+}
+
+/** Rewrite both projection meshes for `iceProjectionYear`. Cheap enough to run every frame. */
+function applyIceProjectionYear() {
+  const sceneState = iceProjectionScene;
+  if (!sceneState || !iceProjectionActive) return;
+  const { projection, module, luts, thickness, surface, base, grounded, ice, heights, baseline } = sceneState;
+  iceProjectionYear = module.blendThicknessInto(projection, iceProjectionYear, thickness).year;
+  module.flotationGeometryInto(projection.bed, thickness, projection.densityRatio, surface, base, grounded);
+  module.blendSpeedChangeInto(projection, iceProjectionYear, sceneState.speedChange);
+
+  const verticalMetersPerUnit = sceneState.context.baseConfig.verticalMetersPerUnit;
+  const top = sceneState.surfaceGeometry.attributes;
+  const bottom = sceneState.bottomGeometry.attributes;
+  const topPositions = top.position.array;
+  const bottomPositions = bottom.position.array;
+  const topColors = top.color.array;
+  const bottomColors = bottom.color.array;
+  const changeMode = getIceProjectionColorMode() === "change";
+  const lutMax = ICE_PROJECTION_COLOR_LUT_SIZE - 1;
+  let iceCount = 0;
+  for (let v = 0; v < projection.domainCount; v += 1) {
+    const h = thickness[v];
+    const hasIce = h > 0 ? 1 : 0;
+    if (ice[v] !== hasIce) {
+      ice[v] = hasIce;
+      sceneState.indexDirty = true;
+    }
+    topPositions[3 * v + 1] = surface[v] / verticalMetersPerUnit;
+    bottomPositions[3 * v + 1] = base[v] / verticalMetersPerUnit;
+    if (!hasIce) continue;
+    iceCount += 1;
+    const thicknessSlot = 3 * Math.round(clamp01(h / ICE_PROJECTION_THICKNESS_COLOR_MAX_M) * lutMax);
+    let topLut = luts.change;
+    let topSlot = 3 * Math.round(module.thicknessChangeScaleT(h - baseline[v]) * lutMax);
+    if (!changeMode) {
+      topLut = grounded[v] ? luts.grounded : luts.floating;
+      topSlot = thicknessSlot;
+    }
+    const bottomLut = grounded[v] ? luts.groundedBottom : luts.floatingBottom;
+    for (let c = 0; c < 3; c += 1) {
+      topColors[3 * v + c] = topLut[topSlot + c];
+      bottomColors[3 * v + c] = bottomLut[thicknessSlot + c];
+    }
+  }
+  sceneState.iceVertexCount = iceCount;
+  let groundedCount = 0;
+  for (let v = 0; v < projection.domainCount; v += 1) groundedCount += ice[v] & grounded[v];
+  sceneState.groundedCellCount = groundedCount;
+  if (sceneState.indexDirty) rebuildIceProjectionIndex(sceneState);
+
+  for (let v = 0; v < projection.domainCount; v += 1) heights[v] = topPositions[3 * v + 1];
+  module.heightfieldNormalsInto(projection, heights, sceneState.dxUnits, sceneState.dzUnits, top.normal.array, ice);
+  for (let v = 0; v < projection.domainCount; v += 1) heights[v] = bottomPositions[3 * v + 1];
+  module.heightfieldNormalsInto(projection, heights, sceneState.dxUnits, sceneState.dzUnits, bottom.normal.array, ice);
+  for (const attributes of [top, bottom]) {
+    attributes.position.needsUpdate = true;
+    attributes.normal.needsUpdate = true;
+    attributes.color.needsUpdate = true;
+  }
+  if (!sceneState.boundsReady) {
+    sceneState.surfaceGeometry.computeBoundingSphere();
+    sceneState.bottomGeometry.computeBoundingSphere();
+    sceneState.boundsReady = true;
+  }
+  applyIceProjectionToFlowlines(sceneState);
+  updateIceProjectionReadout();
+}
+
+function scheduleIceProjectionUpdate() {
+  if (iceProjectionFrame !== null) return;
+  iceProjectionFrame = window.requestAnimationFrame(() => {
+    iceProjectionFrame = null;
+    applyIceProjectionYear();
+  });
+}
+
+function setIceProjectionYear(year, { immediate = false } = {}) {
+  const projection = iceProjectionScene?.projection;
+  iceProjectionYear = projection ? clamp(Number(year), projection.firstYear, projection.lastYear) : Number(year);
+  syncIceProjectionYearControls();
+  // The readout is redrawn with the geometry, which it partly describes (grounded area).
+  if (immediate) applyIceProjectionYear();
+  else scheduleIceProjectionUpdate();
+}
+
+/** Put the model's own bed under the projected ice; the dataset's bed stays elsewhere. */
+function applyIceProjectionBed(sceneState) {
+  if (!bedMesh) return;
+  const { projection } = sceneState;
+  const verticalMetersPerUnit = sceneState.context.baseConfig.verticalMetersPerUnit;
+  const positions = bedMesh.geometry.getAttribute("position");
+  const colors = bedMesh.geometry.getAttribute("color");
+  for (let v = 0; v < projection.domainCount; v += 1) {
+    const height = projection.bed[v];
+    if (!Number.isFinite(height)) continue;
+    const cell = projection.cellIndex[v];
+    positions.array[3 * cell + 1] = height / verticalMetersPerUnit;
+    const rgb = bedColor(height);
+    colors.array[3 * cell] = Math.round(clamp01(rgb[0]) * 255);
+    colors.array[3 * cell + 1] = Math.round(clamp01(rgb[1]) * 255);
+    colors.array[3 * cell + 2] = Math.round(clamp01(rgb[2]) * 255);
+  }
+  positions.needsUpdate = true;
+  colors.needsUpdate = true;
+  bedMesh.geometry.computeVertexNormals();
+}
+
+function hideOverlaysForIceProjection() {
+  if (controlsUI.showIsostaticRebound?.checked) {
+    controlsUI.showIsostaticRebound.checked = false;
+    updateReboundControlsUi();
+    // The rebound scenario rewrote every bed vertex, but the projection only replaces the
+    // bed inside its domain, so put the dataset's own bed (and ice) back first. This must
+    // run before the projection marks itself active, which would make it a no-op.
+    applyReboundGeometry({ recomputeNormals: false });
+  }
+  // The overlays baked onto the present-day ice or bed go; the flowlines stay and follow
+  // the projected surface instead.
+  let changed = false;
+  for (const key of ICE_PROJECTION_EXCLUSIVE_TOGGLES) {
+    const control = controlsUI[key];
+    if (key !== "showIsostaticRebound" && control?.checked) {
+      control.checked = false;
+      changed = true;
+    }
+  }
+  if (!changed) return;
+  if (velocitySurfaceMesh) velocitySurfaceMesh.visible = false;
+  if (basalFrictionMesh) basalFrictionMesh.visible = false;
+  if (effectivePressureMesh) effectivePressureMesh.visible = false;
+  if (subglacialChannelMesh) subglacialChannelMesh.visible = false;
+  updateRiseOverlayVisibility();
+  updateOceanCurrentLayerControls();
+  updateOceanCurrentLayerVisibility();
+  updateRefinedBasinVisibility();
+}
+
+/** The projection shows the flowlines by default: switch the layer on with it if it is off. */
+function raiseFlowlinesForProjection() {
+  const layer = controlsUI.showFlowline;
+  if (!layer || layer.disabled || layer.checked) return;
+  layer.checked = true;
+  layer.dispatchEvent(new Event("change", { bubbles: true }));
+  // After the event, whose listener clears the flag for choices made by hand.
+  iceProjectionRaisedFlowlines = true;
+}
+
+/** Switch the flowlines off again if the projection switched them on and they were left so. */
+function lowerFlowlinesRaisedByProjection() {
+  if (!iceProjectionRaisedFlowlines) return;
+  iceProjectionRaisedFlowlines = false;
+  const layer = controlsUI.showFlowline;
+  if (!layer?.checked) return;
+  layer.checked = false;
+  layer.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+function activateIceProjection() {
+  const sceneState = iceProjectionScene;
+  if (!sceneState || iceProjectionActive || !iceMesh || !iceBottomMesh) return false;
+  if (sceneState.context !== currentCoreContext) return false;
+  hideOverlaysForIceProjection();
+  // A picked flowline's profile is today's; it would hang at today's surface over projected ice.
+  if (selectedFlowlineState) clearSelectedFlowline({ updateMeta: false });
+  sceneState.baseSurfaceGeometry = iceMesh.geometry;
+  sceneState.baseBottomGeometry = iceBottomMesh.geometry;
+  iceMesh.geometry = sceneState.surfaceGeometry;
+  iceBottomMesh.geometry = sceneState.bottomGeometry;
+  iceProjectionActive = true;
+  sceneState.indexDirty = true;
+  if (iceSideMesh) iceSideMesh.visible = false;
+  applyIceProjectionBed(sceneState);
+  // Undo any fade the rebound scenario left on the ice.
+  const opacity = Number(controlsUI.iceOpacity.value);
+  syncIceMaterialMode(opacity);
+  iceBottomMesh.material.opacity = Math.max(0.12, opacity * 0.82);
+  // Floating ice rides on the waterline, so show it.
+  if (controlsUI.showSea && !controlsUI.showSea.checked) {
+    controlsUI.showSea.checked = true;
+    if (seaLevelMesh) seaLevelMesh.visible = true;
+    iceProjectionRaisedSea = true;
+  }
+  updateReboundSeaPlane();
+  setIceProjectionYear(iceProjectionYear, { immediate: true });
+  return true;
+}
+
+function deactivateIceProjection() {
+  stopIceProjectionPlayback();
+  if (!iceProjectionActive) {
+    lowerFlowlinesRaisedByProjection();
+    return;
+  }
+  const sceneState = iceProjectionScene;
+  iceProjectionActive = false;
+  if (iceMesh && sceneState?.baseSurfaceGeometry) iceMesh.geometry = sceneState.baseSurfaceGeometry;
+  if (iceBottomMesh && sceneState?.baseBottomGeometry) iceBottomMesh.geometry = sceneState.baseBottomGeometry;
+  if (sceneState) {
+    sceneState.baseSurfaceGeometry = null;
+    sceneState.baseBottomGeometry = null;
+  }
+  // Hands the bed and ice back to the dataset, or to the rebound scenario if that is on.
+  applyReboundGeometry({ recomputeNormals: true });
+  restoreFlowlinesFromProjection();
+  lowerFlowlinesRaisedByProjection();
+  // The rebound shows its own waterline, so the sea plane stays if that took over.
+  if (iceProjectionRaisedSea && controlsUI.showSea?.checked && !controlsUI.showIsostaticRebound?.checked) {
+    controlsUI.showSea.checked = false;
+    if (seaLevelMesh) seaLevelMesh.visible = false;
+  }
+  iceProjectionRaisedSea = false;
+  updateIceSideVisibility();
+  updateIceProjectionReadout();
+}
+
+/** Drop the projection meshes, putting the dataset's own ice geometry back first. */
+function releaseIceProjectionScene() {
+  stopIceProjectionPlayback();
+  if (iceProjectionFrame !== null) {
+    window.cancelAnimationFrame(iceProjectionFrame);
+    iceProjectionFrame = null;
+  }
+  const sceneState = iceProjectionScene;
+  iceProjectionScene = null;
+  if (!sceneState) {
+    iceProjectionActive = false;
+    return;
+  }
+  if (iceProjectionActive) {
+    if (iceMesh && sceneState.baseSurfaceGeometry) iceMesh.geometry = sceneState.baseSurfaceGeometry;
+    if (iceBottomMesh && sceneState.baseBottomGeometry) iceBottomMesh.geometry = sceneState.baseBottomGeometry;
+  }
+  iceProjectionActive = false;
+  restoreFlowlinesFromProjection();
+  sceneState.surfaceGeometry.dispose();
+  sceneState.bottomGeometry.dispose();
+}
+
+// ---------------------------------------------------------------- flowlines under a projection
+//
+// The ice flowlines are traced once on today's velocity. While a projection is on they keep
+// today's paths but ride its surface, take today's speed plus the projection's mean speed
+// change for their colour and pulse rate, and drop out segment by segment where the ice is
+// gone. A per-vertex phase offset keeps the pulses continuous as their rates change.
+
+const FLOWLINE_PROJECTION_MIN_YEAR_STEP = 0.25;
+const FLOWLINE_PROJECTION_MIN_COVER = 0.5;
+let flowlineSpeedColorLut = null;
+
+function getFlowlineSpeedColorLut() {
+  if (!flowlineSpeedColorLut) {
+    flowlineSpeedColorLut = new Float32Array(256 * 3);
+    for (let i = 0; i < 256; i += 1) {
+      const rgb = sampleColorStops(VELOCITY_COLOR_STOPS, i / 255);
+      flowlineSpeedColorLut.set(rgb, 3 * i);
+    }
+  }
+  return flowlineSpeedColorLut;
+}
+
+function getFlowlineProjectionState(lines, sceneState) {
+  const base = lines.userData.projectionBase;
+  let follow = lines.userData.projectionFollow;
+  if (follow?.projection === sceneState.projection) return follow;
+  const count = base.cols.length;
+  follow = {
+    projection: sceneState.projection,
+    sampler: sceneState.module.buildDomainSampler(sceneState.projection, base.cols, base.rows),
+    surface: new Float32Array(count),
+    speedChange: new Float32Array(count),
+    covered: new Uint8Array(count),
+    rates: base.rates ? Float32Array.from(base.rates) : null,
+    nextRates: base.rates ? new Float32Array(count) : null,
+    year: Number.NaN,
+    visibleSegments: 0,
+  };
+  lines.userData.projectionFollow = follow;
+  return follow;
+}
+
+function updateFlowlineParticlesFromLines(lines, { visibleOf, module, timeTimesRate }) {
+  const position = lines.geometry.getAttribute("position").array;
+  const color = lines.geometry.getAttribute("color").array;
+  const lineRates = lines.geometry.getAttribute("flowRate")?.array || null;
+  for (const child of lines.children) {
+    const sources = child.userData?.sourceVertices;
+    if (!child.userData?.isFlowLightParticleOverlay || !sources) continue;
+    const attributes = child.geometry.attributes;
+    const rates = attributes.flowRate?.array || null;
+    const phases = attributes.flowPhase?.array || null;
+    const visible = attributes.flowVisible?.array || null;
+    const nextRates = rates ? new Float32Array(rates.length) : null;
+    for (let i = 0; i < sources.length; i += 1) {
+      const v = sources[i];
+      attributes.position.array.set(position.subarray(3 * v, 3 * v + 3), 3 * i);
+      attributes.color.array.set(color.subarray(3 * v, 3 * v + 3), 3 * i);
+      if (nextRates && lineRates) nextRates[i] = lineRates[v];
+      if (visible) visible[i] = visibleOf(v);
+    }
+    if (rates && phases && nextRates) {
+      module.rephaseInto(phases, rates, nextRates, timeTimesRate);
+      rates.set(nextRates);
+      attributes.flowRate.needsUpdate = true;
+      attributes.flowPhase.needsUpdate = true;
+    }
+    attributes.position.needsUpdate = true;
+    attributes.color.needsUpdate = true;
+    if (attributes.flowVisible) attributes.flowVisible.needsUpdate = true;
+  }
+}
+
+/** Move, recolour and re-rate the ice flowlines for the projection year shown. */
+function applyIceProjectionToFlowlines(sceneState, { force = false } = {}) {
+  const lines = flowlineMesh;
+  const base = lines?.userData?.projectionBase;
+  // Hidden lines are skipped; updateFlowlineVisibility catches them up when they reappear.
+  if (!sceneState || !iceProjectionActive || !base || !lines.visible) return;
+  const follow = getFlowlineProjectionState(lines, sceneState);
+  // Small steps are skipped to keep playback smooth, but the first and last years always land.
+  const { firstYear, lastYear } = sceneState.projection;
+  const atEnd = iceProjectionYear === firstYear || iceProjectionYear === lastYear;
+  if (!force && !atEnd && Math.abs(iceProjectionYear - follow.year) < FLOWLINE_PROJECTION_MIN_YEAR_STEP) return;
+  if (!force && iceProjectionYear === follow.year) return;
+  follow.year = iceProjectionYear;
+
+  const { module } = sceneState;
+  // A majority rule keeps the segments at today's ice edge, where a corner can fall just off
+  // the projection domain, so opening the layer changes nothing until the ice moves.
+  const cover = FLOWLINE_PROJECTION_MIN_COVER;
+  module.sampleDomainInto(follow.sampler, sceneState.surface, sceneState.ice, follow.surface, follow.covered, cover);
+  module.sampleDomainInto(follow.sampler, sceneState.speedChange, sceneState.ice, follow.speedChange, null, cover);
+
+  const verticalMetersPerUnit = sceneState.context.baseConfig.verticalMetersPerUnit;
+  const geometry = lines.geometry;
+  const positions = geometry.getAttribute("position").array;
+  const colors = geometry.getAttribute("color").array;
+  const lut = getFlowlineSpeedColorLut();
+  const nextRates = follow.nextRates;
+  // velocityScaleT and getIceFlowLightRate, with their settings read once per update.
+  const { range, knee } = getVelocityVisualizationConfig();
+  const minSpeed = Number(range[0]);
+  const maxSpeed = Number(range[1]);
+  const safeKnee = Math.max(1e-6, Number(knee) || 1);
+  const logRange = Math.log1p(maxSpeed / safeKnee);
+  const referenceSpeed = Math.max(20, Number.isFinite(currentVelocityMedianSpeed) ? currentVelocityMedianSpeed : 100);
+  const writeVertex = (v, visible) => {
+    const p = 3 * v;
+    positions[p] = base.positions[p];
+    positions[p + 2] = base.positions[p + 2];
+    positions[p + 1] = visible ? (follow.surface[v] + FLOWLINE_SURFACE_OFFSET_M) / verticalMetersPerUnit : base.positions[p + 1];
+    const speed = Math.max(0, base.speeds[v] + (visible ? follow.speedChange[v] : 0));
+    const clamped = Math.min(maxSpeed, Math.max(minSpeed, speed));
+    const scaled = Math.min(1, Math.max(0, Math.log1p(clamped / safeKnee) / logRange));
+    const slot = 3 * Math.round(scaled * 255);
+    colors[p] = lut[slot];
+    colors[p + 1] = lut[slot + 1];
+    colors[p + 2] = lut[slot + 2];
+    if (nextRates) nextRates[v] = clamp(0.62 + Math.sqrt(speed / referenceSpeed) * 0.34, 0.62, 2.1);
+  };
+  const count = base.cols.length;
+  let visibleSegments = 0;
+  for (let a = 0; a + 1 < count; a += 2) {
+    const b = a + 1;
+    const visible = follow.covered[a] === 1 && follow.covered[b] === 1;
+    if (visible) visibleSegments += 1;
+    writeVertex(a, visible);
+    writeVertex(b, visible);
+    if (!visible) {
+      // A zero-length segment draws nothing, in the animated and the static material alike.
+      positions[3 * b] = positions[3 * a];
+      positions[3 * b + 1] = positions[3 * a + 1];
+      positions[3 * b + 2] = positions[3 * a + 2];
+    }
+  }
+  follow.visibleSegments = visibleSegments;
+
+  const timeTimesRate = flowLightUniforms.time.value * FLOW_LIGHT_ICE_RATE;
+  const rate = geometry.getAttribute("flowRate");
+  const phase = geometry.getAttribute("flowPhase");
+  if (rate && phase && follow.rates) {
+    module.rephaseInto(phase.array, follow.rates, follow.nextRates, timeTimesRate);
+    follow.rates.set(follow.nextRates);
+    rate.array.set(follow.nextRates);
+    rate.needsUpdate = true;
+    phase.needsUpdate = true;
+  }
+  geometry.getAttribute("position").needsUpdate = true;
+  geometry.getAttribute("color").needsUpdate = true;
+  updateFlowlineParticlesFromLines(lines, {
+    visibleOf: (v) => (follow.covered[v - (v % 2)] && follow.covered[v - (v % 2) + 1] ? 1 : 0),
+    module,
+    timeTimesRate,
+  });
+}
+
+/** Put the flowlines back on today's surface, speeds and paths. */
+function restoreFlowlinesFromProjection() {
+  const lines = flowlineMesh;
+  const base = lines?.userData?.projectionBase;
+  const follow = lines?.userData?.projectionFollow;
+  if (!base || !follow) return;
+  const geometry = lines.geometry;
+  geometry.getAttribute("position").array.set(base.positions);
+  geometry.getAttribute("color").array.set(base.colors);
+  geometry.getAttribute("position").needsUpdate = true;
+  geometry.getAttribute("color").needsUpdate = true;
+  const timeTimesRate = flowLightUniforms.time.value * FLOW_LIGHT_ICE_RATE;
+  const rate = geometry.getAttribute("flowRate");
+  const phase = geometry.getAttribute("flowPhase");
+  const module = iceProjectionModule;
+  if (rate && phase && follow.rates && base.rates && module) {
+    module.rephaseInto(phase.array, follow.rates, base.rates, timeTimesRate);
+    rate.array.set(base.rates);
+    rate.needsUpdate = true;
+    phase.needsUpdate = true;
+  }
+  if (module) updateFlowlineParticlesFromLines(lines, { visibleOf: () => 1, module, timeTimesRate });
+  lines.userData.projectionFollow = null;
+}
+
+function refreshIceProjectionUi() {
+  updateIceProjectionControlsUi();
+  updateLegendVisibility();
+  updateMetaFromCurrentState();
+}
+
+async function ensureIceProjectionLoaded() {
+  const context = currentCoreContext;
+  if (!context || context.generation !== loadGeneration || !isIceProjectionCapable()) return false;
+  const scenario = getSelectedIceProjectionScenario();
+  if (!scenario) return false;
+  if (iceProjectionScene?.context === context && iceProjectionScene.scenarioKey === scenario.key) {
+    if (controlsUI.showIceProjection?.checked) activateIceProjection();
+    refreshIceProjectionUi();
+    return true;
+  }
+  if (iceProjectionLoadPromise) {
+    // A load for whatever was selected when it started is in flight; if the selection has
+    // moved on since, load again once it settles.
+    const settled = await iceProjectionLoadPromise;
+    if (
+      context === currentCoreContext &&
+      context.generation === loadGeneration &&
+      iceProjectionScene?.scenarioKey !== getSelectedIceProjectionScenario()?.key
+    ) {
+      return ensureIceProjectionLoaded();
+    }
+    return settled;
+  }
+
+  const loading = (async () => {
+    const module = await loadIceProjectionModule();
+    let projection = iceProjectionDataCache.get(scenario.packageBinUrl);
+    if (!projection) {
+      setLoadingOverlayVisible(true);
+      statusEl.textContent = t("explorer.status.loadingIceProjection");
+      const buffer = await fetchArrayBufferWithProgress(
+        scenario.packageBinUrl,
+        0.05,
+        0.85,
+        t("explorer.loading.downloadingIceProjection"),
+        errorLabel("explorer.errors.failedToLoadIceProjection")
+      );
+      if (context !== currentCoreContext || context.generation !== loadGeneration) return false;
+      updateLoadingProgress(0.9, t("explorer.loading.buildingIceProjection"));
+      projection = module.decodeIceProjection(iceProjectionMetaCache.get(scenario.key), buffer);
+      iceProjectionDataCache.set(scenario.packageBinUrl, projection);
+    }
+    if (context !== currentCoreContext || context.generation !== loadGeneration) return false;
+    if (!gridsMatch(projection.grid, context.meta.grid)) {
+      throw new Error(t("explorer.errors.iceProjectionGridMismatch"));
+    }
+
+    releaseIceProjectionScene();
+    iceProjectionScene = buildIceProjectionScene(context, scenario.key, projection, module);
+    iceProjectionYear = clamp(iceProjectionYear, projection.firstYear, projection.lastYear);
+    renderIceProjectionLegend(module);
+    if (controlsUI.showIceProjection?.checked) activateIceProjection();
+    refreshIceProjectionUi();
+    statusEl.textContent = getReadyStatusText(context);
+    updateLoadingProgress(1, t("explorer.loading.iceProjectionReady"));
+    setLoadingOverlayVisible(false);
+    return true;
+  })()
+    .catch((error) => {
+      console.error("Ice-sheet projection failed to load:", error);
+      if (context === currentCoreContext && context.generation === loadGeneration) {
+        if (controlsUI.showIceProjection) controlsUI.showIceProjection.checked = false;
+        deactivateIceProjection();
+        releaseIceProjectionScene();
+        applyReboundGeometry({ recomputeNormals: true });
+        refreshIceProjectionUi();
+        setTransientStatus(t("explorer.status.iceProjectionUnavailable"));
+        setLoadingOverlayVisible(false);
+      }
+      return false;
+    })
+    .finally(() => {
+      if (iceProjectionLoadPromise === loading) iceProjectionLoadPromise = null;
+    });
+  iceProjectionLoadPromise = loading;
+  return loading;
+}
+
+function startIceProjectionPlayback() {
+  const projection = iceProjectionScene?.projection;
+  if (!projection || !iceProjectionActive) return;
+  if (iceProjectionYear >= projection.lastYear) setIceProjectionYear(projection.firstYear, { immediate: true });
+  iceProjectionPlaying = true;
+  // A live region rewritten every frame would flood screen readers; it speaks again on stop.
+  controlsUI.projectionReadout?.setAttribute("aria-live", "off");
+  updateIceProjectionPlayButton();
+}
+
+function stopIceProjectionPlayback() {
+  if (!iceProjectionPlaying) return;
+  iceProjectionPlaying = false;
+  controlsUI.projectionReadout?.setAttribute("aria-live", "polite");
+  updateIceProjectionPlayButton();
+}
+
+function stepIceProjectionPlayback(deltaSeconds) {
+  if (!iceProjectionPlaying) return;
+  const projection = iceProjectionScene?.projection;
+  if (!projection || !iceProjectionActive) {
+    stopIceProjectionPlayback();
+    return;
+  }
+  const next = Math.min(projection.lastYear, iceProjectionYear + deltaSeconds * ICE_PROJECTION_PLAYBACK_YEARS_PER_SECOND);
+  setIceProjectionYear(next, { immediate: true });
+  if (next >= projection.lastYear) {
+    stopIceProjectionPlayback();
+    updateMetaFromCurrentState();
+  }
+}
+
+function buildIceProjectionMetaItems() {
+  const sceneState = iceProjectionScene;
+  if (!sceneState || !iceProjectionActive) return [];
+  const meta = iceProjectionMetaCache.get(sceneState.scenarioKey) || {};
+  const { projection } = sceneState;
+  const { series } = projection;
+  const fmt = (value, digits) =>
+    Number.isFinite(Number(value))
+      ? Number(value).toLocaleString(numberLocale, { minimumFractionDigits: digits, maximumFractionDigits: digits })
+      : "n/a";
+  const item = (label, value, compact = false) =>
+    `<li${compact ? ' class="meta-compact"' : ""}><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</li>`;
+  const period = { first: projection.firstYear, last: projection.lastYear };
+  const experiment = meta.experiment || {};
+  const models = Array.isArray(meta.models) ? meta.models : [];
+  const geometryCheck = meta.validation?.sea_level_of_packed_geometry_m || {};
+  const volumeCheck = meta.validation?.volume_change_captured || {};
+
+  const items = [
+    item(
+      t("explorer.meta.iceProjectionExperiment"),
+      t("explorer.meta.iceProjectionExperimentValue", {
+        id: experiment.id || sceneState.scenarioKey,
+        climate: experiment.climate_model || "",
+        scenario: experiment.scenario || "",
+      })
+    ),
+    item(
+      t("explorer.meta.iceProjectionModels"),
+      t("explorer.meta.iceProjectionModelsValue", { count: models.length, names: models.join(", ") }),
+      true
+    ),
+  ];
+  if (series) {
+    items.push(
+      item(
+        t("explorer.meta.iceProjectionYear"),
+        t("explorer.meta.iceProjectionYearMeanValue", {
+          year: Math.round(iceProjectionYear),
+          sle: formatSignedFixed(sampleIceProjectionSeries(series.seaLevel), 2),
+          low: formatSignedFixed(sampleIceProjectionSeries(series.seaLevelMin), 2),
+          high: formatSignedFixed(sampleIceProjectionSeries(series.seaLevelMax), 2),
+        })
+      ),
+      item(
+        t("explorer.meta.iceProjectionSeaLevel"),
+        t("explorer.meta.iceProjectionSeaLevelMeanValue", {
+          ...period,
+          end: formatSignedFixed(series.seaLevel[series.seaLevel.length - 1], 2),
+          packed: formatSignedFixed(Number(geometryCheck.end_packed), 2),
+        }),
+        true
+      )
+    );
+  }
+  items.push(
+    item(
+      t("explorer.meta.iceProjectionMethod"),
+      t("explorer.meta.iceProjectionMethodValue", {
+        count: models.length,
+        captured: fmt(Number(volumeCheck.end_ratio) * 100, 0),
+      }),
+      true
+    ),
+    item(
+      t("explorer.meta.iceProjectionKeyframes"),
+      t("explorer.meta.iceProjectionKeyframesMeanValue", {
+        ...period,
+        count: projection.frameCount,
+        interval: meta.keyframes?.interval_years ?? "n/a",
+        cells: Math.round(projection.domainCount).toLocaleString(numberLocale),
+      }),
+      true
+    )
+  );
+  return items;
+}
+
+function collectIceProjectionState() {
+  const sceneState = iceProjectionScene;
+  const projection = sceneState?.projection || null;
+  let meanIceSurfaceMeters = null;
+  if (sceneState && iceProjectionActive && sceneState.iceVertexCount > 0) {
+    let sum = 0;
+    for (let v = 0; v < projection.domainCount; v += 1) {
+      if (sceneState.ice[v]) sum += sceneState.surface[v];
+    }
+    meanIceSurfaceMeters = Number((sum / sceneState.iceVertexCount).toFixed(1));
+  }
+  // Outside its domain the projection must leave the dataset's own bed untouched.
+  let bedMatchesDatasetOutsideDomain = null;
+  const context = currentCoreContext;
+  if (sceneState && iceProjectionActive && bedMesh && context) {
+    const positions = bedMesh.geometry.getAttribute("position").array;
+    const { bedHeights, bedValid } = context;
+    const verticalMetersPerUnit = context.baseConfig.verticalMetersPerUnit;
+    bedMatchesDatasetOutsideDomain = true;
+    for (let cell = 0; cell < bedHeights.length; cell += 1) {
+      if (projection.vertexOfCell[cell] >= 0 || !bedValid[cell]) continue;
+      if (Math.abs(positions[3 * cell + 1] - bedHeights[cell] / verticalMetersPerUnit) > 1e-4) {
+        bedMatchesDatasetOutsideDomain = false;
+        break;
+      }
+    }
+  }
+  const sle = projection?.series ? sampleIceProjectionSeries(projection.series.seaLevel) : Number.NaN;
+  return {
+    available: Boolean(controlsUI.iceProjectionRow && !controlsUI.iceProjectionRow.hidden),
+    probed: iceProjectionProbeSettled,
+    enabled: Boolean(controlsUI.showIceProjection?.checked),
+    active: iceProjectionActive,
+    loaded: Boolean(sceneState),
+    scenarios: getAvailableIceProjectionScenarios().map((scenario) => scenario.key),
+    scenario: sceneState?.scenarioKey || null,
+    year: Number(iceProjectionYear.toFixed(2)),
+    firstYear: projection?.firstYear ?? null,
+    lastYear: projection?.lastYear ?? null,
+    keyframes: projection?.frameCount ?? null,
+    playing: iceProjectionPlaying,
+    colorMode: getIceProjectionColorMode(),
+    domainCells: projection?.domainCount ?? null,
+    iceCells: sceneState && iceProjectionActive ? sceneState.iceVertexCount : null,
+    triangles: sceneState && iceProjectionActive ? sceneState.triangleIndexCount / 3 : null,
+    meanIceSurfaceMeters,
+    bedMatchesDatasetOutsideDomain,
+    seaLevelContributionMeters: Number.isFinite(sle) ? Number(sle.toFixed(4)) : null,
+    flowlines: collectFlowlineProjectionState(),
+  };
+}
+
+function collectFlowlineProjectionState() {
+  const lines = flowlineMesh;
+  const follow = lines?.userData?.projectionFollow || null;
+  const base = lines?.userData?.projectionBase || null;
+  if (!lines || !base) return { built: false, following: false };
+  const segments = Math.floor(base.cols.length / 2);
+  let meanRate = null;
+  const rates = lines.geometry.getAttribute("flowRate")?.array;
+  if (rates && rates.length) {
+    let sum = 0;
+    for (let i = 0; i < rates.length; i += 1) sum += rates[i];
+    meanRate = Number((sum / rates.length).toFixed(4));
+  }
+  return {
+    built: true,
+    visible: Boolean(lines.visible),
+    following: Boolean(follow),
+    segments,
+    visibleSegments: follow ? follow.visibleSegments : segments,
+    followedYear: follow && Number.isFinite(follow.year) ? Number(follow.year.toFixed(2)) : null,
+    meanRate,
+  };
 }
 
 function buildCoreSceneFromContext(context) {
@@ -9860,6 +11294,7 @@ async function ensureVelocityLoaded({ trigger = "prefetch" } = {}) {
         context.velocityUnavailable = true;
         controlsUI.showVelocity.checked = false;
         controlsUI.showFlowline.checked = false;
+        syncProjectionFlowlineToggle();
         velocitySurfaceMesh = disposeMesh(velocitySurfaceMesh);
         flowlineMesh = disposeMesh(flowlineMesh);
         selectedFlowlineHighlight = disposeObject3D(selectedFlowlineHighlight);
@@ -10204,6 +11639,7 @@ async function loadAndBuildMeshes(datasetKey = currentDatasetKey) {
   terminateGeometryWorker();
   terminateReboundWorker();
   reboundLoadPromise = null;
+  iceProjectionLoadPromise = null;
   if (reboundGeometryFrame !== null) {
     window.cancelAnimationFrame(reboundGeometryFrame);
     reboundGeometryFrame = null;
@@ -10394,6 +11830,13 @@ async function loadAndBuildMeshes(datasetKey = currentDatasetKey) {
       ensureIsostaticReboundLoaded({ trigger: "toggle" });
     } else {
       updateReboundControlsUi();
+    }
+    if (isIceProjectionCapable()) {
+      probeIceProjectionScenarios().then(() => {
+        if (generation === loadGeneration && controlsUI.showIceProjection?.checked) ensureIceProjectionLoaded();
+      });
+    } else {
+      updateIceProjectionControlsUi();
     }
     if (!isShowcaseMode && !isPreviewMode) {
       const warmupDelay = viewerInteracted ? 180 : 900;

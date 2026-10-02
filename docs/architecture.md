@@ -49,6 +49,8 @@ by 250 m, and hybridising a bed product with another product's surface and mask.
 | `combine_antarctica_ocean_current_datasets.py` | The cavity-margin and open-ocean streamline packages | `antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean` |
 | `prepare_greenland_ocean_currents.py` | Copernicus Marine Arctic Ocean physics analysis | `greenland_ocean_currents_cmems_202508` |
 | `prepare_greenland_basins.py` | Greenland drainage basins | `greenland_basins_ps_v1_4_2.json` |
+| `regrid_ismip6_2300_run.py`, `combine_ismip6_2300_mean.py` | ISMIP6 Antarctica 2300 model output (run next to the 2D archive on an HPC system) | per-run 10 km fields and the 8-model mean change per experiment |
+| `prepare_ismip6_projection.py` | the 8-model mean change, BedMachine v4 Balanced, the published scalars | `ismip6_2300_mean8_ae{05,10,14}_480` |
 | `prepare_polar_features.py` | Research-station and place-name catalogues | `*_research_stations.json`, `*_geographic_names.json` |
 | `prepare_refined_basin_search.mjs` | IMBIE refined Antarctic basins; the Greenland basins above | `*_refined_basins_search.json` |
 
@@ -79,6 +81,7 @@ file, product version and reference it was built from.
 | `static/tools/antarctica-geometry-worker.js` | Module worker that builds velocity, basal-friction, hydrology and ocean-current geometry off the main thread |
 | `static/tools/gia-rebound-worker.js` | Module worker for the idealised isostatic-rebound solve |
 | `static/tools/js/gia-rebound.js`, `gia-grid.js`, `fft2d.js` | Published-response summary, flexural and Airy isostasy solver, grid utilities and 2-D FFT |
+| `static/tools/js/ice-projection.js` | Ice-sheet projection playback: package decoding, keyframe interpolation, flotation geometry, triangles, normals, speed change along the flowlines and colour scale |
 | `static/tools/js/polar-feature-search.js`, `polar-feature-label-style.js`, `polar-refined-basins.js`, `polar-features.js` | Place and feature search, label styling, refined-basin validation, and the controller that binds them to the scene |
 | `static/js/3d-ice-locale.js` | English and Chinese strings, published as `window.__3dIceLocale` |
 | `static/tools/vendor/three/` | Three.js r161 and `OrbitControls`, vendored so the runtime has no install step |
@@ -124,6 +127,25 @@ flexure of an elastic plate over a fluid mantle (or local Airy isostasy) from th
 terrain package's bed, surface, thickness and mask, so they need no extra data. Browsers
 without module workers fall back to a main-thread solve.
 
+**Ice-sheet projections** play the ISMIP6 Antarctica 2300 multi-model means. For the
+Antarctic Balanced dataset the runtime requests each registered scenario's metadata once the
+terrain is ready and shows the layer only for scenarios that answer. When it is on, the ice
+surface and ice bottom meshes swap to projection geometries with one vertex per domain cell,
+the bed mesh takes the package's bed inside the domain, and every frame of the year slider or
+playback rewrites heights, colours, normals and (when the ice extent changes) the index
+buffer. The ice flowlines stay on: they keep today's paths but ride the projected surface,
+take today's speed plus the package's mean speed change for their colour and pulse rate, and
+collapse segment by segment where the ice is gone; a per-vertex phase offset keeps the pulses
+continuous as their rates change, and picking a flowline is off while the projection is.
+The projection's controls end with their own flowline switch (`#projectionFlowline`), a
+second handle on the flowline layer: it sets `#showFlowline` and dispatches its change
+event, and it is kept in step with that toggle, including when the layer is unavailable.
+Switching the projection on (its toggle, not a scenario change) turns the flowline layer on
+if it is off, and switching it off turns the layer off again unless it was changed in
+between, the same rule the sea plane follows.
+Layers drawn against the present-day ice or bed, and the isostatic-rebound layer, are
+mutually exclusive with it.
+
 **Asset base.** Asset URLs resolve against a base taken, in order, from the `assetBase`
 query parameter, `window.__ICE_ASSET_BASE__`, a `<meta name="3d-ice-asset-base">` tag,
 or the `/tools/` segment of the page's own path. This is what lets the same files serve
@@ -165,6 +187,7 @@ current Chrome, Edge, Firefox and Safari (Chrome and Edge 89+, Firefox 114+, Saf
 | Every committed package decodes in the browser to the statistics Python recorded | node:test | `tests/js/data-contract.test.mjs` | JavaScript unit tests |
 | Rebound solver against the analytic point-load (Kelvin function) solution and the Airy limit | node:test | `tests/js/gia-point-load.test.mjs`, `tests/js/gia-rebound.test.mjs` | JavaScript unit tests |
 | Published-response packages: node alignment, the published identities, quantization, provenance | pytest, node:test | `tests/test_prepare_isostatic_response.py`, `tests/js/examples.test.mjs` | Python and JavaScript unit tests |
+| Projection decoding, interpolation, flotation, triangles, normals, speed change; the ISMIP6 packer's frames, sea-level series and package layout | node:test, pytest | `tests/js/ice-projection.test.mjs`, `tests/test_prepare_ismip6_projection.py` | JavaScript and Python unit tests |
 | Place search, label styling, refined-basin validation | node:test | `tests/js/polar-features.test.mjs` | JavaScript unit tests |
 | Edition profiles, polar projections against every catalogue position, tour framing and flights, and copy parity across locales | node:test | `tests/js/editions.test.mjs`, `polar-projection.test.mjs`, `explore-tour.test.mjs`, `explore-content.test.mjs` | JavaScript unit tests |
 | Every localisation key used at runtime resolves in both locales | node:test | `tests/js/locale-coverage.test.mjs` | JavaScript unit tests |
