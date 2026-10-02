@@ -57,3 +57,66 @@ Notes:
   what a rebuild must pass to reproduce a package.
 - `scripts/plot_antarctica_depth_averaged_ocean_speed.py` is a diagnostic plot of the WAOM2
   field, not a package builder.
+
+## Ice-sheet projections (ISMIP6 Antarctica 2300)
+
+The `ismip6_2300_mean8_ae{05,10,14}_480` packages show the mean of eight ISMIP6 Antarctica
+2300 models (Seroussi et al. 2024) for UKESM1-0-LL SSP1-2.6 (`expAE10`), SSP5-8.5 (`expAE05`)
+and SSP5-8.5 with ice-shelf collapse (`expAE14`). The eight are the main submissions of the
+groups that ran all three: DOE_MALI_4km, ILTS_SICOPOLIS, IMAU_UFEMISM1, LSCE_GRISLI,
+UCM_Yelmo, UCSD_ISSM, ULB_fETISh-KoriBU1 and UNN_Ua. The model output is CC BY 4.0 (Nowicki &
+ISMIP6 Team 2024, doi:10.5281/zenodo.13135599, on the Ghub Globus collection
+`GHub-ISMIP6-Projections-2300`); the published scalars come from Seroussi & Pelle (2024,
+doi:10.5281/zenodo.10528582). Three steps rebuild them; the first two run next to the 2D
+archive (17 TB) on an HPC system, the third in this repository:
+
+1. `scripts/regrid_ismip6_2300_run.py` resamples one run conservatively onto the explorer's
+   10 km grid at 5-year keyframes: cell-mean thickness, ice fraction, and the
+   ice-area-weighted depth-averaged speed. It checks that ice volume is conserved, matches
+   records to years by position as ISMIP6's `process_scalars.m` does (dropping the initial
+   state of a 287-record run), and rebuilds axes a file declares but never wrote (IMAU).
+   Each run takes seconds; all 24 took under a minute as one 24-core job.
+2. `scripts/combine_ismip6_2300_mean.py` forms, per experiment, the equal-weight mean of each
+   model's change since 2015 in thickness and in speed. A model's speed counts only where its
+   cell-mean thickness is at least 10 m and its speed at most 20 km/yr: thin remnant ice can
+   carry unphysical speeds.
+3. `scripts/prepare_ismip6_projection.py` applies the mean change to BedMachine v4 Balanced
+   ice (present-day ice cells only), keeps the speed change where at least four models
+   contribute, attaches the published sea-level mean and spread, and writes the package.
+   Thickening is added as it is. Thinning is scaled by BedMachine thickness over the models'
+   mean 2015 thickness, so each cell keeps the share of its ice that the models keep of
+   theirs. Ice is gone where the models' mean thickness falls below 10 m, and ice that
+   remains is at least 1 m thick, the packing resolution:
+
+```bash
+python scripts/prepare_ismip6_projection.py \
+  --ensemble ismip6_2300_mean8_expAE05_10km.nc --experiment expAE05 \
+  --scalars <Zenodo 10528582>/ComputedScalars --basename ismip6_2300_mean8_ae05_480
+```
+
+The regridded volume change of every model matches its published `ivol` (Seroussi & Pelle
+2024) once the ice density and ISMIP6's map-scale factor are applied. The ratio is 1.05-1.07,
+which is 1/ρ<sub>ice</sub> times an area factor of 1.02-1.04 over the regions that lose ice.
+
+The thinning is scaled because the models start from their own 2015 ice. On the ice shelves
+it is 26 % thinner to 18 % thicker than BedMachine, cell by cell (10th to 90th percentile).
+Where the models thin a shelf by nearly its whole thickness, adding their mean thinning
+outright empties every cell in which it exceeds BedMachine's thickness and keeps the rest.
+By 2300 under SSP5-8.5 that left 872 holes in the shelves, most of them a single cell. The
+scaled frames leave 41, all of them where the models' mean thickness has fallen below 10 m:
+there the shelves read as open water rather than a few metres of film.
+
+The packer records two checks in `validation`. The packed frames change the ice volume by
+100-105 % of the models' mean change: scaling moves ice loss towards the cells where
+BedMachine is the thicker. The geometry's own volume above flotation implies more sea-level
+rise by 2300 than the published mean:
+
+| Experiment | Geometry implies | Published mean |
+|---|---|---|
+| `expAE10` | 0.15 m | 0.05 m |
+| `expAE05` | 1.93 m | 1.46 m |
+| `expAE14` | 3.12 m | 2.43 m |
+
+This is because flotation is non-linear where the models disagree about which basins
+collapse. The explorer therefore shows the published mean as its number. The explorer registers the three
+basenames in `ICE_PROJECTION_SCENARIOS` in `static/tools/js/explorer-app.js`.

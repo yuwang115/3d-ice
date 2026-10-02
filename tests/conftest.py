@@ -61,6 +61,23 @@ def polar_features_module():
 
 
 @pytest.fixture(scope="session")
+def ismip6_projection_module():
+    return _load_script_module("prepare_ismip6_projection.py")
+
+
+@pytest.fixture(scope="session")
+def ismip6_regrid_module():
+    pytest.importorskip("netCDF4", reason="netCDF4 not installed")
+    return _load_script_module("regrid_ismip6_2300_run.py")
+
+
+@pytest.fixture(scope="session")
+def ismip6_combine_module():
+    pytest.importorskip("netCDF4", reason="netCDF4 not installed")
+    return _load_script_module("combine_ismip6_2300_mean.py")
+
+
+@pytest.fixture(scope="session")
 def velocity_module():
     pytest.importorskip("netCDF4", reason="netCDF4 not installed")
     return _load_script_module("prepare_antarctica_velocity.py")

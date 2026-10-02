@@ -20,6 +20,9 @@ script produced a package: the metadata is the whole interface.
   grid cell.
 - **Streamline packages** (ocean currents) set `"geometry_type": "streamlines_3d"` and have
   no grid; their fields hold one value per streamline segment.
+- **Sparse time-series packages** (ice-sheet projections) set
+  `"geometry_type": "sparse_grid_time_series"`. They carry a `grid`, but only a mask covers
+  it; their other fields hold one value per domain cell, or per domain cell and keyframe.
 
 ## Grid
 
@@ -120,6 +123,28 @@ the elastic-thickness model and the 65.3 m eustatic term, `validation` the resid
 MD5 the download was checked against. `source_package` names the terrain package whose grid
 it shares; the QRF Greenland terrain has no package of its own and the explorer pairs it
 with the BedMachine Greenland v6 one.
+
+**Ice-sheet projections.** The fields are, in this order, `thickness` (`int16`, m,
+`frames.count × domain.cell_count` values, frame-major: keyframe *k*, domain cell *i* is
+value `k · cell_count + i`), an optional `speed_change` (`int16`, m/yr, frame-major like
+`thickness`), `bed` (`int16`, m, one value per domain cell) and `domain_mask` (`uint8`,
+`nx · ny`, `1` for domain cells). Domain cells are the mask's non-zero cells in row-major
+order, and are the cells with ice in at least one keyframe. The `int16` fields come first so
+that they start on even offsets. `frames.years` lists the keyframe years in increasing order;
+`physical_constants.density_ratio` is ρ<sub>ice</sub>/ρ<sub>seawater</sub>, from which the browser rebuilds
+`base = max(bed, −H · ratio)` and `surface = base + H`. `series` holds annual diagnostics:
+`sea_level_contribution_m` always, the model spread `sea_level_contribution_min_m` and
+`sea_level_contribution_max_m` for an ensemble package, or grounded and floating area for a
+single-model one. The committed packages (`ismip6_2300_mean8_ae{05,10,14}_480`) are ISMIP6
+Antarctica 2300 multi-model means: `thickness` is BedMachine v4 thickness plus the mean
+change of eight models, `bed` is the BedMachine bed, `speed_change` the mean change in
+depth-averaged ice speed since 2015 that the flowlines follow, and `series` the mean, minimum
+and maximum of the models' published sea-level contribution. `experiment`, `models`,
+`sources`, `method` and `validation` record the scenario, the models averaged, the citations
+(CC BY 4.0), how the mean was formed, and how much of the mean volume change the packed frames
+keep and the sea level their geometry implies. Rule 3 above does not apply to this family; the
+contract test checks instead that the mask, bed and frame sizes agree with `domain` and
+`frames`.
 
 **Streamlines.** Each segment stores its end points as `x0_ps_m`, `y0_ps_m`, `depth0_m`
 and `x1_ps_m`, `y1_ps_m`, `depth1_m` (projected metres and depth in metres), the potential
