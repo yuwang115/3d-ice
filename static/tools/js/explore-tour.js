@@ -38,13 +38,16 @@ export const TOUR_CONTROL_DEFAULTS = Object.freeze({
   showOceanCurrents: false,
   showSea: false,
   showIsostaticRebound: false,
+  showIceProjection: false,
   showGeographicNames: false,
   showResearchStations: false,
 });
 
-// Switching the rebound layer on hides every overlay drawn on today's surfaces, so it
-// must come after the toggles it would otherwise undo.
-const SWITCHED_ON_LAST = new Set(["showIsostaticRebound"]);
+// Switching the rebound layer on hides every overlay drawn on today's surfaces, so it must
+// come after the toggles it would otherwise undo. The projection comes after the layers it
+// keeps, the flowlines and the sea, which it would otherwise switch on itself and so switch
+// off again when it closes.
+const SWITCHED_ON_LAST = new Set(["showIsostaticRebound", "showIceProjection"]);
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -224,6 +227,23 @@ export function flightDurationMs(from, to) {
 export function easeInOutCubic(t) {
   const s = clamp(Number(t) || 0, 0, 1);
   return s < 0.5 ? 4 * s ** 3 : 1 - (-2 * s + 2) ** 3 / 2;
+}
+
+function linear(t) {
+  return clamp(Number(t) || 0, 0, 1);
+}
+
+/**
+ * The easing a slider animation asks for. Animations ease in and out unless they say
+ * "linear", as one that runs a timeline does, so that every year takes as long as the next.
+ */
+export function easingFor(name) {
+  return name === "linear" ? linear : easeInOutCubic;
+}
+
+/** The value a slider animation { from, to, easing } has reached `progress` of the way through. */
+export function animationValue({ from, to, easing }, progress) {
+  return from + (to - from) * easingFor(easing)(progress);
 }
 
 /** A chapter's full toggle state: its own settings over the defaults. */

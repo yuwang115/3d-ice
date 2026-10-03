@@ -11881,6 +11881,7 @@ function createGuideApi() {
     closeMobilePanel() {
       if (mobileDrawerEnabled) setMobilePanelOpen(false);
     },
+    getRegion: () => currentRegionKey,
     /** Switch region the way the region picker does; resolves once its terrain is built. */
     async setRegion(regionKey, isCancelled = () => false) {
       if (regionKey !== currentRegionKey) {
@@ -11899,6 +11900,31 @@ function createGuideApi() {
         GUIDE_WAIT_TIMEOUT_MS,
         t("explorer.errors.regionLoadTimedOut", { region: regionKey })
       );
+    },
+    /** Resolves once the projection knows its scenarios; its toggle stays disabled until then. */
+    whenProjectionScenariosKnown(isCancelled = () => false) {
+      return waitUntilCondition(
+        () => isCancelled() || iceProjectionProbeSettled || !isIceProjectionCapable(),
+        GUIDE_WAIT_TIMEOUT_MS,
+        t("explorer.errors.layersLoadTimedOut")
+      );
+    },
+    /**
+     * The year the projection shows and the models' mean sea-level contribution since its
+     * first year, in metres; null while the projection is off or still loading.
+     */
+    getProjectionReadout() {
+      const series = iceProjectionActive ? iceProjectionScene?.projection.series : null;
+      if (!series) return null;
+      const seaLevel = sampleIceProjectionSeries(series.seaLevel);
+      return { year: Math.round(iceProjectionYear), seaLevelMeters: Number.isFinite(seaLevel) ? seaLevel : null };
+    },
+    /**
+     * Keeps the projection's readout from speaking while the guide sweeps through the years,
+     * as the runtime's own playback does: rewritten every frame, it would flood screen readers.
+     */
+    quietProjectionReadout(quiet) {
+      controlsUI.projectionReadout?.setAttribute("aria-live", quiet || iceProjectionPlaying ? "off" : "polite");
     },
     /** Resolves once no layer, place catalogue or rebound field is still loading. */
     whenIdle(isCancelled = () => false) {

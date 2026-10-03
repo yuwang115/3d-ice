@@ -410,10 +410,35 @@ body.tour-open.mobile-drawer .hud {
   color: var(--tour-text);
 }
 
-.tour-card__nav--primary {
+.tour-card__nav--primary,
+.tour-card__nav--start {
   border-color: var(--button-border);
   background: var(--button-bg);
   color: var(--button-text);
+}
+
+/* The projection's year and sea-level change, above the buttons so it shows when collapsed. */
+.tour-card__readout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  margin: 8px 0 4px;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--tour-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.tour-card__readout[hidden] {
+  display: none;
+}
+
+.tour-card__readout-year {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--tour-text);
 }
 
 .tour-card__nav--quiet {

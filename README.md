@@ -77,7 +77,7 @@ from the visualization to the underlying source products.
 
 | Edition | Pages | For | What it offers |
 | --- | --- | --- | --- |
-| Public | [`/explore/`](https://3d-ice.com/explore/), [`/zh/explore/`](https://3d-ice.com/zh/explore/) | Everyone: visitors, classrooms, outreach stands | Each region's default terrain, animated ice flowlines coloured by speed, ocean currents, sea level, the ice-free rebound (the ice melts away over three seconds the first time it is switched on) and Antarctica's projected future to 2300, with an eight-stop guided tour and a plain-language explainer, with sources, for every layer. |
+| Public | [`/explore/`](https://3d-ice.com/explore/), [`/zh/explore/`](https://3d-ice.com/zh/explore/) | Everyone: visitors, classrooms, outreach stands | Each region's default terrain, animated ice flowlines coloured by speed, ocean currents, sea level, the ice-free rebound (the ice melts away over three seconds the first time it is switched on) and Antarctica's projected future to 2300, with a nine-stop guided tour and a plain-language explainer, with sources, for every layer. |
 | Research | [`/tools/3D-interactive-cryosphere-explorer.html`](https://3d-ice.com/tools/3D-interactive-cryosphere-explorer.html), `/zh/tools/…` | Researchers | Every dataset, resolution and layer, the data-snapshot panel, flowline profiles, the idealised rebound models and the recording mode. |
 
 A page names its edition with `<html data-edition>`, and `static/tools/js/editions.js` turns

@@ -26,13 +26,16 @@ All notable changes to 3D ICE are recorded here. The format follows
 - A public edition of the explorer at `/explore/` and `/zh/explore/`, for visitors,
   classrooms and outreach stands. It offers each region's default terrain, see-through ice,
   vertical exaggeration, place search, animated ice flowlines coloured by speed, ocean
-  currents under a single toggle, sea level and the published ice-free rebound. It adds an
-  eight-stop guided tour, with camera flights, layer changes and animated sliders, and a
-  plain-language explainer, with sources, beside every layer. `?tour=1` or `?tour=<stop id>`
-  opens the tour on load. On desktop the tour plays in the side panel next to the view; on
-  phones the card floats over the viewer and can be collapsed. The first time a visitor
-  switches "Remove the ice" on, the ice melts away over three seconds, from today's ice to
-  the fully rebounded land, instead of vanishing at once.
+  currents under a single toggle, sea level and the published ice-free rebound. It adds a
+  nine-stop guided tour, with camera flights, layer changes and animated sliders, and a
+  plain-language explainer, with sources, beside every layer. One stop plays Antarctica's
+  future under high emissions (`expAE05`) from 2015 to 2300, its card reading out the year
+  and the sea-level change from Antarctica as they pass, and the last stop ends the tour in
+  Antarctica or Greenland, whichever the visitor picks to explore first. `?tour=1` or
+  `?tour=<stop id>` opens the tour on load. On desktop the tour plays in the side panel
+  next to the view; on phones the card floats over the viewer and can be collapsed. The
+  first time a visitor switches "Remove the ice" on, the ice melts away over three seconds,
+  from today's ice to the fully rebounded land, instead of vanishing at once.
 - Edition profiles (`static/tools/js/editions.js`). Every explorer page runs the same
   runtime, and `<html data-edition>` decides which datasets and layers it offers. A
   restricted layer also loses its package URLs, so the public pages never fetch a

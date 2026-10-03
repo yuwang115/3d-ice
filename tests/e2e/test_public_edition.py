@@ -35,6 +35,7 @@ TOUR_STOPS = [
     ("rivers-of-ice", "antarctica", {"showIce", "showBed", "showFlowline"}),
     ("floating-ice", "antarctica", {"showIce", "showBed", "showSea"}),
     ("southern-ocean", "antarctica", {"showIce", "showBed", "showOceanCurrents"}),
+    ("high-emissions", "antarctica", {"showIce", "showBed", "showFlowline", "showSea", "showIceProjection"}),
     ("without-ice", "antarctica", {"showIce", "showBed", "showIsostaticRebound", "showSea"}),
     ("greenland", "greenland", {"showIce", "showBed", "showFlowline"}),
     ("your-turn", "greenland", {"showIce", "showBed"}),
@@ -46,9 +47,12 @@ PUBLIC_TOGGLES = {
     "showOceanCurrents",
     "showSea",
     "showIsostaticRebound",
+    "showIceProjection",
     "showGeographicNames",
     "showResearchStations",
 }
+# The high-emission projection's mean sea-level rise from Antarctica by 2300 (its package).
+HIGH_EMISSIONS_2300_SEA_LEVEL = "+1.46 m"
 
 
 def _state(page) -> dict:
@@ -215,7 +219,21 @@ class TestGuidedTour:
                 assert state["meshes"]["flowline"] and state["legends"]["velocity"]
             if stop_id == "southern-ocean":
                 assert state["meshes"]["oceanCurrents"] and state["legends"]["oceanCurrents"]
+            if stop_id == "high-emissions":
+                # Under reduced motion the years jump straight to the end of the projection.
+                _wait_projection_year(page, 2300)
+                projection = _state(page)["iceProjection"]
+                assert projection["active"] and projection["scenario"] == "ae05"
+                assert projection["flowlines"]["following"]
+                _wait_readout(page, "2300", HIGH_EMISSIONS_2300_SEA_LEVEL)
+            if stop_id == "your-turn":
+                # Next gave way to the region choice; focus went to the heading, not to a choice.
+                assert page.locator(".tour-card__nav--primary").is_hidden()
+                assert page.evaluate("document.activeElement.classList.contains('tour-card__title')")
+                assert page.locator(".tour-card__readout").is_hidden()
             if stop_id == "without-ice":
+                # Switching the projection off took the years the tour ran through back with it.
+                assert state["iceProjection"]["year"] == 2015
                 # The stop's slider animation runs after the card settles.
                 _wait_rebound_complete(page)
                 rebound = _state(page)["isostaticRebound"]
@@ -225,9 +243,16 @@ class TestGuidedTour:
         offending = [url for url in requests if "/tools/data/" in url and RESEARCH_ONLY_PACKAGE.search(url)]
         assert offending == [], "the whole tour stays on public-edition packages"
 
-        page.locator(".tour-card__nav--primary").click()  # Finish
+        # The tour ends in Greenland; starting to explore in Antarctica takes the visitor back.
+        page.locator('.tour-card__nav--start[data-region="antarctica"]').click()
         assert page.locator("#tourCard").is_hidden()
         assert page.locator("#tourStartButton").inner_text() == "Start the tour"
+        page.wait_for_function(
+            "() => { const s = JSON.parse(window.render_game_to_text()); return s.region === 'antarctica' && s.ready; }",
+            timeout=STOP_TIMEOUT_MS,
+        )
+        assert _switched_on(_state(page)) == {"showIce", "showBed"}
+        assert errors == []
 
     def test_keyboard_moves_between_stops_and_closes_the_tour(self, public_page):
         page, _errors = public_page
@@ -257,7 +282,7 @@ class TestGuidedTour:
         page.locator("#tourStartButton").click()
         _wait_for_stop(page, "ice-continent")
         dots = page.locator(".tour-card__stop")
-        for stop in (5, 0, 6, 2):
+        for stop in (6, 0, 7, 2):
             dots.nth(stop).click()
             page.wait_for_timeout(40)
         state = _wait_for_stop(page, "rivers-of-ice")
@@ -291,6 +316,111 @@ class TestGuidedTour:
             after = _wait_for_stop(page, "floating-ice")["camera"]
             # The 180th meridian runs along +z, so the view moved out over the Ross Sea side.
             assert after["target"]["z"] > before["target"]["z"] + 10, "the view moved over the Ross Ice Shelf"
+        finally:
+            context.close()
+
+    def test_the_last_stop_starts_exploring_where_the_visitor_chooses(self, playwright_browser, explore_url):
+        context, page, errors = _open(playwright_browser, f"{explore_url}?tour=your-turn")
+        try:
+            _wait_for_stop(page, "your-turn")
+            choices = page.locator(".tour-card__nav--start")
+            assert [choices.nth(i).get_attribute("aria-label") for i in range(choices.count())] == [
+                "Start exploring in Antarctica",
+                "Start exploring in Greenland",
+            ]
+            # The stop flew to Antarctica's opening view. Move away from it, then choose Antarctica.
+            opening = _state(page)["camera"]
+            page.evaluate(ZOOM_IN)
+            page.wait_for_function(CAMERA_MOVED_FROM, arg=opening, timeout=READY_TIMEOUT_MS)
+            choices.nth(0).click()
+            assert page.locator("#tourCard").is_hidden()
+            _wait_camera_still(page)
+            assert _state(page)["camera"] == opening, "back at Antarctica's opening view"
+            # The next tour starts from the top, and its last stop can take the visitor to Greenland.
+            page.locator("#tourStartButton").click()
+            _wait_for_stop(page, "ice-continent")
+            page.locator(".tour-card__stop").last.click()
+            _wait_for_stop(page, "your-turn")
+            page.locator('.tour-card__nav--start[data-region="greenland"]').click()
+            assert page.locator("#tourCard").is_hidden()
+            page.wait_for_function(
+                """() => { const s = JSON.parse(window.render_game_to_text());
+                    return s.region === 'greenland' && s.ready && !s.cameraFlight; }""",
+                timeout=STOP_TIMEOUT_MS,
+            )
+            arrived = _state(page)["camera"]
+            page.locator("#resetView").click()
+            _wait_camera_still(page)
+            assert _state(page)["camera"] == arrived, "at Greenland's opening view, as Reset view gives it"
+            assert errors == []
+        finally:
+            context.close()
+
+    def test_the_high_emission_stop_plays_the_years_with_a_live_readout(self, playwright_browser, explore_url):
+        context, page, errors = _open(
+            playwright_browser, f"{explore_url}?tour=high-emissions", reduced_motion="no-preference"
+        )
+        try:
+            page.evaluate(INSTALL_YEAR_PROBE)
+            _wait_for_stop(page, "high-emissions")
+            # The years run on after the card settles; the card reads them out as they pass, a
+            # frame behind at most.
+            page.wait_for_function(
+                "() => Number(document.querySelector('.tour-card__readout-year')?.textContent) > 2050",
+                timeout=READY_TIMEOUT_MS,
+            )
+            shown = page.evaluate(SWEEP_STATE)
+            assert 2050 < shown["readout"] <= shown["year"] <= 2300, shown
+            # The panel's readout, a live region, keeps quiet rather than announce every year.
+            if shown["year"] < 2300:
+                assert shown["live"] == "off", shown
+
+            # Playing the stop again starts over from 2015, quiet again while the years run.
+            page.evaluate("() => window.__yearProbe.mark()")
+            page.locator(".tour-card__nav--quiet").click()
+            page.wait_for_function("() => window.__yearProbe.lowest <= 2015", timeout=READY_TIMEOUT_MS)
+            page.wait_for_function(
+                "() => JSON.parse(window.render_game_to_text()).iceProjection.year > 2040", timeout=READY_TIMEOUT_MS
+            )
+            assert page.evaluate(SWEEP_STATE)["live"] == "off"
+
+            # Closing the tour stops the years where they are and lets the readout speak again.
+            page.keyboard.press("Escape")
+            assert page.locator("#tourCard").is_hidden()
+            page.wait_for_function(READOUT_SPEAKS, timeout=READY_TIMEOUT_MS)
+            stopped = _state(page)["iceProjection"]["year"]
+            page.wait_for_timeout(1000)
+            assert _state(page)["iceProjection"]["year"] == stopped < 2300
+
+            # Resuming the tour plays the stop again from 2015, through to 2300.
+            page.evaluate("() => window.__yearProbe.mark()")
+            page.locator("#tourStartButton").click()
+            page.wait_for_function("() => window.__yearProbe.lowest <= 2015", timeout=READY_TIMEOUT_MS)
+            _wait_projection_year(page, 2300)
+            _wait_readout(page, "2300", HIGH_EMISSIONS_2300_SEA_LEVEL)
+            page.wait_for_function(READOUT_SPEAKS, timeout=READY_TIMEOUT_MS)
+            assert errors == []
+        finally:
+            context.close()
+
+    def test_a_projection_that_fails_to_load_leaves_the_stop_with_a_message(self, playwright_browser, explore_url):
+        context = playwright_browser.new_context(viewport={"width": 1280, "height": 800}, reduced_motion="reduce")
+        try:
+            page = context.new_page()
+            errors: list[str] = []
+            page.on("pageerror", lambda error: errors.append(str(error)))
+            page.route(
+                "**/ismip6_2300_mean8_ae05_480.bin*", lambda route: route.fulfill(status=503, body="unavailable")
+            )
+            page.goto(f"{explore_url}?tour=high-emissions", wait_until="domcontentloaded", timeout=30_000)
+            page.wait_for_function(
+                """() => document.querySelector('.tour-card__status')?.textContent
+                    === 'This stop could not be shown. Try it again, or carry on exploring.'""",
+                timeout=STOP_TIMEOUT_MS,
+            )
+            assert not _state(page)["toggles"]["showIceProjection"]
+            assert page.locator(".tour-card__readout").is_hidden()
+            assert errors == []
         finally:
             context.close()
 
@@ -353,6 +483,52 @@ LOWEST_PROGRESS = """async (ms) => {
     }
     return lowest;
 }"""
+
+
+# Zooms the view in, as a mouse wheel over the viewer does.
+ZOOM_IN = (
+    "() => document.querySelector('#viewerShell canvas').dispatchEvent("
+    "new WheelEvent('wheel', { deltaY: -600, bubbles: true, cancelable: true }))"
+)
+CAMERA_MOVED_FROM = """(before) => { const p = JSON.parse(window.render_game_to_text()).camera.position;
+    return p.x !== before.position.x || p.y !== before.position.y || p.z !== before.position.z; }"""
+# The tour card's readout year, the projection's year and the panel readout's aria-live.
+SWEEP_STATE = """() => ({
+    readout: Number(document.querySelector('.tour-card__readout-year').textContent),
+    year: JSON.parse(window.render_game_to_text()).iceProjection.year,
+    live: document.getElementById('projectionReadout').getAttribute('aria-live'),
+})"""
+READOUT_SPEAKS = "() => document.getElementById('projectionReadout').getAttribute('aria-live') === 'polite'"
+# Records the lowest year the projection's slider is set to after mark(), so that a test can
+# tell a sweep started over however few frames a software renderer draws meanwhile.
+INSTALL_YEAR_PROBE = """() => {
+    const slider = document.getElementById('projectionYear');
+    const probe = { lowest: Infinity, mark() { probe.lowest = Infinity; } };
+    slider.addEventListener('input', () => { probe.lowest = Math.min(probe.lowest, Number(slider.value)); });
+    window.__yearProbe = probe;
+}"""
+
+
+def _wait_camera_still(page) -> None:
+    page.wait_for_function("() => !JSON.parse(window.render_game_to_text()).cameraFlight", timeout=READY_TIMEOUT_MS)
+
+
+def _wait_projection_year(page, year: int) -> None:
+    page.wait_for_function(
+        f"""() => {{ const p = JSON.parse(window.render_game_to_text()).iceProjection;
+            return p.active && p.year === {year}; }}""",
+        timeout=STOP_TIMEOUT_MS,
+    )
+
+
+def _wait_readout(page, *parts: str) -> None:
+    """Wait until the tour card's projection readout is shown and reads every one of `parts`."""
+    page.wait_for_function(
+        """(parts) => { const readout = document.querySelector('.tour-card__readout');
+            return readout && !readout.hidden && parts.every((part) => readout.textContent.includes(part)); }""",
+        arg=list(parts),
+        timeout=READY_TIMEOUT_MS,
+    )
 
 
 def _wait_rebound_complete(page) -> None:
@@ -424,6 +600,15 @@ class TestPublicEditionOnAPhone:
             # The view turns about the pole it shows, shifted up clear of the card.
             assert abs(camera["target"]["x"]) < 1 and abs(camera["target"]["z"]) < 1, camera["target"]
             assert camera["shift"][1] > 0.2, camera["shift"]
+            # The last stop's Back and its two regions share one row, all within reach.
+            card.locator(".tour-card__stop").last.tap()
+            _wait_for_stop(page, "your-turn")
+            buttons = card.locator(".tour-card__actions .tour-card__nav:not([hidden])")
+            assert buttons.count() == 3
+            for i in range(3):
+                box = buttons.nth(i).bounding_box()
+                assert box is not None and box["x"] >= 0 and box["x"] + box["width"] <= 390, box
+                assert box["y"] + box["height"] <= 844, box
             card.locator(".tour-card__header-buttons button").last.tap()  # close
             page.wait_for_function(
                 "() => JSON.parse(window.render_game_to_text()).camera.shift.every((value) => value === 0)",
@@ -454,9 +639,14 @@ class TestChinesePublicEdition:
             _wait_for_stop(page, "ice-continent")
             assert errors == []
             assert page.locator(".tour-card__title").inner_text() == "被冰封的大陆"
-            assert page.locator(".tour-card__counter").inner_text() == "第 1 站，共 8 站"
+            assert page.locator(".tour-card__counter").inner_text() == "第 1 站，共 9 站"
             assert page.locator('button[data-info="rebound"]').get_attribute("aria-label") == "关于移除冰层"
             assert _state(page)["status"] == "就绪"
+            page.locator(".tour-card__stop").last.click()
+            _wait_for_stop(page, "your-turn")
+            choices = page.locator(".tour-card__nav--start")
+            assert [choices.nth(i).inner_text() for i in range(choices.count())] == ["南极洲", "格陵兰"]
+            assert choices.nth(0).get_attribute("aria-label") == "从南极洲开始探索"
         finally:
             context.close()
 

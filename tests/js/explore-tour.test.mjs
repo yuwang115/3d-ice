@@ -8,8 +8,10 @@ import test from "node:test";
 
 import {
   TOUR_CONTROL_DEFAULTS,
+  animationValue,
   clampChapterIndex,
   easeInOutCubic,
+  easingFor,
   flightDurationMs,
   framePose,
   interpolatePose,
@@ -225,6 +227,27 @@ test("the easing curve starts slow, ends slow and is symmetric", () => {
   assert.equal(easeInOutCubic(2), 1);
 });
 
+test("a slider animation eases in and out unless it runs a timeline", () => {
+  assert.equal(easingFor(undefined), easeInOutCubic);
+  assert.equal(easingFor("inOutCubic"), easeInOutCubic);
+  const linear = easingFor("linear");
+  for (const t of [0, 0.1, 0.25, 0.5, 0.9, 1]) assertClose(linear(t), t, 1e-12, `linear at ${t}`);
+  assert.equal(linear(-1), 0);
+  assert.equal(linear(2), 1);
+  assert.equal(linear(Number.NaN), 0);
+});
+
+test("a timeline animation passes the years at an even pace, and an eased one does not", () => {
+  const timeline = { control: "projectionYear", from: 2015, to: 2300, durationMs: 15000, easing: "linear" };
+  assertClose(animationValue(timeline, 0), 2015, 1e-9);
+  assertClose(animationValue(timeline, 0.25), 2086.25, 1e-9);
+  assertClose(animationValue(timeline, 1), 2300, 1e-9);
+  const eased = { ...timeline, easing: undefined };
+  assertClose(animationValue(eased, 0.25), 2015 + 285 * easeInOutCubic(0.25), 1e-9);
+  assert.ok(animationValue(eased, 0.25) < animationValue(timeline, 0.25), "an eased run starts slowly");
+  assertClose(animationValue({ from: 100, to: 0 }, 0.5), 50, 1e-9);
+});
+
 test("a chapter switches layers off before it switches any on", () => {
   const current = { showFlowline: true, showOceanCurrents: false, showSea: false, showBed: true };
   const desired = { showFlowline: false, showOceanCurrents: true, showSea: true, showBed: true };
@@ -254,6 +277,26 @@ test("the rebound layer is switched off before a flow layer comes back", () => {
   ]);
 });
 
+test("the projection is switched on after the layers it keeps, and off before the others come on", () => {
+  const plan = planToggleChanges(
+    { showIceProjection: false, showFlowline: false, showSea: false, showOceanCurrents: true },
+    { showIceProjection: true, showFlowline: true, showSea: true, showOceanCurrents: false }
+  );
+  assert.deepEqual(plan, [
+    { id: "showOceanCurrents", checked: false },
+    { id: "showFlowline", checked: true },
+    { id: "showSea", checked: true },
+    { id: "showIceProjection", checked: true },
+  ]);
+  assert.deepEqual(
+    planToggleChanges({ showIceProjection: true, showIsostaticRebound: false }, { showIceProjection: false, showIsostaticRebound: true }),
+    [
+      { id: "showIceProjection", checked: false },
+      { id: "showIsostaticRebound", checked: true },
+    ]
+  );
+});
+
 test("a chapter leaves unchanged toggles alone", () => {
   assert.deepEqual(planToggleChanges({ showBed: true }, { showBed: true }), []);
   assert.deepEqual(planToggleChanges({ showBed: true, showSea: true }, { showBed: true }), []);
@@ -264,6 +307,8 @@ test("a chapter's controls fill in every public toggle, so chapters can be visit
   assert.deepEqual(Object.keys(controls).sort(), Object.keys(TOUR_CONTROL_DEFAULTS).sort());
   assert.equal(controls.showFlowline, true);
   assert.equal(controls.showIce, TOUR_CONTROL_DEFAULTS.showIce);
+  // A chapter that does not ask for the projection switches it off, like any other layer.
+  assert.equal(controls.showIceProjection, false);
   assert.throws(() => resolveChapterControls({ showBasalFriction: true }), /showBasalFriction/);
 });
 

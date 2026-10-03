@@ -10,12 +10,14 @@
  * [data-info-card] of the same name; and [data-rebound-legend] is shown while the rebound
  * layer is on. A URL parameter tour=1 (or tour=<stop id>) opens the tour on load. The first
  * time a visitor switches the rebound layer on, the ice melts away over a few seconds.
+ * While a stop shows the projection, the card reads out its year and sea-level change, and
+ * the last stop ends the tour in the region the visitor picks.
  */
 
 import { TOUR_CHAPTERS, getExploreContent } from "./explore-content.js";
 import {
+  animationValue,
   clampChapterIndex,
-  easeInOutCubic,
   planToggleChanges,
   resolveChapterControls,
   viewShiftFor,
@@ -84,18 +86,29 @@ function setSlider(api, id, value, { commit = true } = {}) {
   if (commit) control.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
+/** Choose an option of a menu, if the menu offers it. */
+function setMenu(api, id, value) {
+  const menu = api.getControl(id);
+  const option = String(value);
+  if (!menu || menu.disabled || menu.value === option) return;
+  if (!Array.from(menu.options).some((candidate) => candidate.value === option)) return;
+  menu.value = option;
+  menu.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
 // The animation driving each slider, by control id: starting one takes the slider over.
 const sliderAnimations = new Map();
 
 /**
- * Move a slider from `from` to `to` over `durationMs`, eased, sending input events as a
- * drag would and a change event at the end. It stops where it is when `isCancelled()`
- * turns true, when the user takes the slider (by pointer, keyboard or assistive
- * technology), or when another animation takes the slider over. A stopped run still
- * commits its value, so the runtime finishes the frame it was drawing. Under reduced
- * motion it jumps straight to `to`. Resolves when it ends or stops.
+ * Move a slider from `from` to `to` over `durationMs`, eased as `easing` says (see
+ * animationValue), sending input events as a drag would and a change event at the end. It
+ * stops where it is when `isCancelled()` turns true, when the user takes the slider (by
+ * pointer, keyboard or assistive technology), or when another animation takes the slider
+ * over. A stopped run still commits its value, so the runtime finishes the frame it was
+ * drawing. Under reduced motion it jumps straight to `to`. Resolves when it ends or stops.
  */
-function playSlider(api, { control, from, to, durationMs }, isCancelled = () => false) {
+function playSlider(api, animation, isCancelled = () => false) {
+  const { control, to, durationMs } = animation;
   const slider = api.getControl(control);
   if (!slider) return Promise.resolve();
   const token = {};
@@ -136,7 +149,7 @@ function playSlider(api, { control, from, to, durationMs }, isCancelled = () => 
         finish({ commitTo: to });
         return;
       }
-      setSlider(api, control, from + (to - from) * easeInOutCubic(progress), { commit: false });
+      setSlider(api, control, animationValue(animation, progress), { commit: false });
       window.requestAnimationFrame(tick);
     };
     window.requestAnimationFrame(tick);
@@ -229,6 +242,65 @@ function mountReboundDemo(api) {
 
 // ------------------------------------------------------------------ guided tour
 
+/**
+ * The projection's year and sea-level change, for the tour card. render(view) shows them
+ * for a stop whose view shows the projection, following it every frame as the years run
+ * or it finishes loading; render(null) hides them.
+ */
+function createProjectionReadout(api, ui) {
+  const element = createElement("p", { className: "tour-card__readout", attrs: { hidden: "" } });
+  const year = createElement("span", { className: "tour-card__readout-year" });
+  const seaLevel = createElement("span", { className: "tour-card__readout-sea-level" });
+  element.append(year, seaLevel);
+  const seaLevelFormat = new Intl.NumberFormat(api.locale, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    signDisplay: "exceptZero",
+  });
+  // Rewritten only when it changes, as the readout is redrawn every frame.
+  const setText = (node, text) => {
+    if (node.textContent !== text) node.textContent = text;
+  };
+  let frame = 0;
+
+  function render(view) {
+    if (frame) window.cancelAnimationFrame(frame);
+    frame = 0;
+    const shown = Boolean(view?.controls?.showIceProjection);
+    // A scenario other than the stop's would put numbers on the card that its text does not give.
+    const asked = shown && Object.entries(view.menus || {}).every(([id, value]) => api.getControl(id)?.value === String(value));
+    const reading = asked ? api.getProjectionReadout() : null;
+    element.hidden = !reading;
+    if (reading) {
+      setText(year, interpolate(ui.readoutYear, { year: reading.year }));
+      const value = Number.isFinite(reading.seaLevelMeters)
+        ? seaLevelFormat.format(reading.seaLevelMeters).replace("-", "\u2212")
+        : null;
+      setText(seaLevel, value === null ? "" : interpolate(ui.readoutSeaLevel, { value }));
+    }
+    if (shown) frame = window.requestAnimationFrame(() => render(view));
+  }
+
+  return { element, render };
+}
+
+/** The last stop's buttons for the regions it offers to start exploring in, if it offers any. */
+function createStartButtons(content, onChoose) {
+  const last = TOUR_CHAPTERS[TOUR_CHAPTERS.length - 1];
+  const labels = content.chapters[last.id].startRegions || {};
+  return (last.startRegions || []).map((region) => {
+    const label = labels[region] || region;
+    const name = interpolate(content.ui.startIn, { region: label });
+    const button = createElement("button", {
+      className: "tour-card__nav tour-card__nav--start",
+      text: label,
+      attrs: { type: "button", hidden: "", "aria-label": name, title: name, "data-region": region },
+    });
+    button.addEventListener("click", () => onChoose(region));
+    return button;
+  });
+}
+
 function createTour(api, content) {
   const card = document.getElementById("tourCard");
   const panelLauncher = document.getElementById("tourStartButton");
@@ -256,6 +328,9 @@ function createTour(api, content) {
     attrs: { type: "button", hidden: "" },
   });
   const nextButton = createElement("button", { className: "tour-card__nav tour-card__nav--primary", attrs: { type: "button" } });
+  // The last stop can end the tour with a choice of region to explore, in place of Finish.
+  const startButtons = createStartButtons(content, (region) => startExploring(region));
+  const readout = createProjectionReadout(api, ui);
   const stops = createElement("ol", { className: "tour-card__stops", attrs: { "aria-label": ui.stopsLabel } });
   const stopButtons = TOUR_CHAPTERS.map((chapter, index) => {
     const title = content.chapters[chapter.id].title;
@@ -278,9 +353,9 @@ function createTour(api, content) {
   text.append(heading, body);
   collapseButton.setAttribute("aria-controls", text.id);
   const actions = createElement("div", { className: "tour-card__actions" });
-  actions.append(backButton, replayButton, nextButton);
+  actions.append(backButton, replayButton, nextButton, ...startButtons);
   const footer = createElement("div", { className: "tour-card__footer" });
-  footer.append(actions, stops);
+  footer.append(readout.element, actions, stops);
   card.replaceChildren(header, text, announcer, status, footer);
   card.setAttribute("aria-label", ui.tourLabel);
 
@@ -357,9 +432,8 @@ function createTour(api, content) {
     }
   }
 
-  // Keep focus in the card when the button holding it is about to disappear.
-  function keepFocusInCard(button) {
-    if (document.activeElement === button) nextButton.focus({ preventScroll: true });
+  function renderReadout() {
+    readout.render(open && index >= 0 ? TOUR_CHAPTERS[index].view : null);
   }
 
   function renderStop() {
@@ -371,16 +445,29 @@ function createTour(api, content) {
     const sources = renderSources(copy.sources, ui.sources);
     if (sources) body.append(sources);
     announcer.textContent = `${counter.textContent}: ${copy.title}`;
-    if (index === 0) keepFocusInCard(backButton);
+    const last = index === TOUR_CHAPTERS.length - 1;
+    const choosing = last && startButtons.length > 0;
+    // Keep focus in the card when the button holding it is about to disappear. Next takes
+    // it, shown first so that it can; on the last stop the heading does, as a choice of
+    // region ends the tour, which an Enter key held down on Next must not do.
+    const leaving = [
+      ...(index === 0 ? [backButton] : []),
+      ...(chapter.view.animate ? [] : [replayButton]),
+      ...(choosing ? [nextButton] : startButtons),
+    ];
+    if (!choosing) nextButton.hidden = false;
+    if (leaving.includes(document.activeElement)) (choosing ? heading : nextButton).focus({ preventScroll: true });
     backButton.disabled = index === 0;
-    if (!chapter.view.animate) keepFocusInCard(replayButton);
     replayButton.hidden = !chapter.view.animate;
-    nextButton.textContent = index === TOUR_CHAPTERS.length - 1 ? ui.finish : ui.next;
+    nextButton.hidden = choosing;
+    nextButton.textContent = last ? ui.finish : ui.next;
+    for (const button of startButtons) button.hidden = !choosing;
     stopButtons.forEach((button, stopIndex) => {
       if (stopIndex === index) button.setAttribute("aria-current", "step");
       else button.removeAttribute("aria-current");
     });
     card.dataset.stop = chapter.id;
+    renderReadout();
   }
 
   function renderStatus(message = "") {
@@ -395,12 +482,20 @@ function createTour(api, content) {
   async function applyView(view, desired, isCancelled) {
     // Layers go off before a region switch, so the new region does not load them only
     // to have them hidden again; the rest go on once its terrain is in place.
-    for (const change of planToggleChanges(currentToggles(desired), desired)) {
-      if (!change.checked) setToggle(api, change.id, false);
+    const offs = planToggleChanges(currentToggles(desired), desired).filter((change) => !change.checked);
+    for (const change of offs) setToggle(api, change.id, false);
+    // The projection opens on today's ice, so the years a stop ran through go back with it.
+    const projectionYear = api.getControl("projectionYear");
+    if (projectionYear && offs.some((change) => change.id === "showIceProjection")) {
+      setSlider(api, "projectionYear", projectionYear.min);
     }
     if (view.region) await api.setRegion(view.region, isCancelled);
+    // Its toggle stays disabled until the projection knows which scenarios it has.
+    if (desired.showIceProjection) await api.whenProjectionScenariosKnown(isCancelled);
     if (isCancelled()) return false;
     for (const [id, value] of Object.entries(view.sliders || {})) setSlider(api, id, value);
+    // Before the toggles, so that a layer switched on loads the option the stop asks for.
+    for (const [id, value] of Object.entries(view.menus || {})) setMenu(api, id, value);
     for (const { id, checked } of planToggleChanges(currentToggles(desired), desired)) setToggle(api, id, checked);
     if (view.animate) {
       setSlider(api, view.animate.control, view.animate.from);
@@ -415,6 +510,21 @@ function createTour(api, content) {
         : api.getLookAtPose(view.camera, { uncovered: coveredMargins() });
     await api.flyTo(pose);
     return !isCancelled();
+  }
+
+  // Sweeping the projection's years would have its readout in the panel speak every year,
+  // so it stays quiet meanwhile, as it does when the projection's own Play runs. A replay
+  // can start its sweep before the one it replaces stops, on its next frame, so the sweeps
+  // are counted.
+  let projectionSweeps = 0;
+  async function playAnimation(animation, isCancelled) {
+    const quiet = animation.control === "projectionYear";
+    if (quiet && projectionSweeps++ === 0) api.quietProjectionReadout(true);
+    try {
+      await playSlider(api, animation, isCancelled);
+    } finally {
+      if (quiet && --projectionSweeps === 0) api.quietProjectionReadout(false);
+    }
   }
 
   async function goTo(nextIndex) {
@@ -435,13 +545,17 @@ function createTour(api, content) {
       renderStatus();
       await api.whenIdle(isCancelled);
       if (isCancelled()) return;
-      // A layer whose data failed to load is switched back off by the runtime.
-      const missing = Object.entries(desired).filter(([id, on]) => on && api.getControl(id) && !api.getControl(id).checked);
+      // A layer whose data failed to load is switched back off by the runtime, and a menu
+      // without the option asked for keeps its own.
+      const missing = [
+        ...Object.entries(desired).filter(([id, on]) => on && api.getControl(id) && !api.getControl(id).checked),
+        ...Object.entries(view.menus || {}).filter(([id, value]) => api.getControl(id) && api.getControl(id).value !== String(value)),
+      ];
       if (missing.length) {
         renderStatus(ui.loadFailed);
         return;
       }
-      if (view.animate) await playSlider(api, view.animate, isCancelled);
+      if (view.animate) await playAnimation(view.animate, isCancelled);
     } catch (error) {
       if (isCancelled()) return;
       console.warn("Tour stop could not be shown:", error);
@@ -460,6 +574,7 @@ function createTour(api, content) {
       api.cancelFlight();
       refitView();
     }
+    renderReadout();
     syncLaunchers();
   }
 
@@ -478,6 +593,24 @@ function createTour(api, content) {
     returnTo?.focus({ preventScroll: true });
   }
 
+  // Finishing starts the next tour from the top rather than resuming at the end.
+  function finish() {
+    close();
+    index = -1;
+    syncLaunchers();
+  }
+
+  // Ends the tour at the opening view of the region the visitor chose to explore.
+  function startExploring(regionKey) {
+    finish();
+    if (regionKey === api.getRegion()) {
+      api.flyTo(api.getDefaultCameraPose());
+      return;
+    }
+    // Loading the region puts the camera at its opening view.
+    api.setRegion(regionKey).catch((error) => console.warn("The region could not be opened:", error));
+  }
+
   collapseButton.addEventListener("click", () => setCollapsed(!collapsed));
   closeButton.addEventListener("click", close);
   // The runtime switches the drawer layout on resize; follow it on the next frame.
@@ -490,14 +623,8 @@ function createTour(api, content) {
   document.addEventListener("webkitfullscreenchange", replaceCard);
   backButton.addEventListener("click", () => goTo(index - 1));
   nextButton.addEventListener("click", () => {
-    if (index < TOUR_CHAPTERS.length - 1) {
-      goTo(index + 1);
-      return;
-    }
-    // Finishing starts the next tour from the top rather than resuming at the end.
-    close();
-    index = -1;
-    syncLaunchers();
+    if (index < TOUR_CHAPTERS.length - 1) goTo(index + 1);
+    else finish();
   });
   replayButton.addEventListener("click", () => goTo(index));
   for (const launcher of launchers) {

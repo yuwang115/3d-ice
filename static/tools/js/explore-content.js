@@ -2,12 +2,15 @@
  * Copy and stop definitions for the public edition's guided tour and layer explainers.
  *
  * TOUR_CHAPTERS says what each stop shows: the region, the layer toggles (see
- * TOUR_CONTROL_DEFAULTS in ./explore-tour.js), the sliders, where the camera goes and an
- * optional slider animation, played once the camera has arrived. A camera is either "default", the region's opening view, or
- * { lat, lon, fitKm, azimuthDeg, elevationDeg }: it frames a disc fitKm across round that
- * point, whatever the size of the screen, looking from azimuth 0 (the lower edge of the
- * map, as the default view does) or 90 (its right-hand edge). A stop without a region
- * stays in the current one.
+ * TOUR_CONTROL_DEFAULTS in ./explore-tour.js), the sliders, the menus, where the camera
+ * goes and an optional slider animation, played once the camera has arrived; it eases in
+ * and out unless it says easing: "linear". A camera is either "default", the region's
+ * opening view, or { lat, lon, fitKm, azimuthDeg, elevationDeg }: it frames a disc fitKm
+ * across round that point, whatever the size of the screen, looking from azimuth 0 (the
+ * lower edge of the map, as the default view does) or 90 (its right-hand edge). A stop
+ * without a region stays in the current one. A stop that shows the projection also shows
+ * its year and sea-level change on the card. The last stop's startRegions replace its Finish
+ * button with a choice of region to start exploring in.
  *
  * EXPLORE_CONTENT holds the words, one entry per locale; tests/js/explore-content.test.mjs
  * keeps the two locales in step. Numbers quoted without a citation were measured on the
@@ -89,6 +92,19 @@ export const TOUR_CHAPTERS = deepFreeze([
     },
   },
   {
+    id: "high-emissions",
+    view: {
+      region: "antarctica",
+      // The flowlines speed up with the projected ice, and the floating ice rides on the sea.
+      controls: { showIceProjection: true, showFlowline: true, showSea: true },
+      menus: { projectionScenario: "ae05" },
+      sliders: { exaggeration: 4.8, iceOpacity: 1 },
+      camera: { lat: -82, lon: -100, fitKm: 3900, azimuthDeg: -50, elevationDeg: 52 },
+      // A timeline, so every year passes at the same pace: 2015 to 2300 in 15 seconds.
+      animate: { control: "projectionYear", from: 2015, to: 2300, durationMs: 15000, easing: "linear" },
+    },
+  },
+  {
     id: "without-ice",
     view: {
       region: "antarctica",
@@ -114,6 +130,7 @@ export const TOUR_CHAPTERS = deepFreeze([
       sliders: { exaggeration: 4.8, iceOpacity: 1 },
       camera: "default",
     },
+    startRegions: ["antarctica", "greenland"],
   },
 ]);
 
@@ -139,6 +156,9 @@ const EN = {
     infoButton: "About {name}",
     infoClose: "Close",
     reboundLegend: "Orange: land that would rise out of the sea.",
+    readoutYear: "{year}",
+    readoutSeaLevel: "Sea-level change from Antarctica: {value} m",
+    startIn: "Start exploring in {region}",
   },
   chapters: {
     "ice-continent": {
@@ -198,6 +218,18 @@ const EN = {
         { text: "Ice-shelf thinning: Paolo, Fricker & Padman (2015)", url: SOURCES.iceShelfThinning },
       ],
     },
+    "high-emissions": {
+      title: "If emissions stay high",
+      body: [
+        "What happens next depends on how much more greenhouse gas the world emits. Here eight computer models of the ice sheet play out a future in which emissions stay high (the scenario called SSP5-8.5), from 2015 to 2300, and the map shows their average.",
+        "Red ice is thinning and blue ice thickening. For about a century little changes, as extra snow falling inland makes up for the ice lost at the coast. Then the warming ocean thins the ice shelves and the glaciers behind them speed up: their flow lines brighten. In places the ice thins by more than a kilometre, mostly in West Antarctica but also along parts of the East Antarctic coast.",
+        "By 2300 Antarctica would raise sea level around the world by about 1.5 m, the average of the eight models, which range from no rise at all to 4 m. With low emissions the same models give about 5 cm on average. After the tour, you can compare this future with the others in the panel.",
+      ],
+      sources: [
+        { text: "ISMIP6 Antarctica 2300 projections: Seroussi et al. (2024), Earth's Future", url: SOURCES.ismip6Paper },
+        { text: "Model output: Nowicki & ISMIP6 Team (2024), CC BY 4.0", url: SOURCES.ismip6Projections },
+      ],
+    },
     "without-ice": {
       title: "If the ice were gone",
       body: [
@@ -230,8 +262,10 @@ const EN = {
       body: [
         "That is the end of the tour. Now explore on your own: switch layers on and off, search for a research station or a mountain range, and drag to look around.",
         "Tap the i beside a layer to find out what it shows. The research edition has every dataset in 3D ICE, including the friction under the ice, its meltwater and more detailed maps.",
+        "Where would you like to start?",
       ],
       sources: [],
+      startRegions: { antarctica: "Antarctica", greenland: "Greenland" },
     },
   },
   info: {
@@ -363,6 +397,9 @@ const ZH = {
     infoButton: "关于{name}",
     infoClose: "关闭",
     reboundLegend: "橙色：将会升出海面的陆地。",
+    readoutYear: "{year} 年",
+    readoutSeaLevel: "南极造成的海平面变化：{value} 米",
+    startIn: "从{region}开始探索",
   },
   chapters: {
     "ice-continent": {
@@ -422,6 +459,18 @@ const ZH = {
         { text: "冰架变薄：Paolo、Fricker 与 Padman（2015）", url: SOURCES.iceShelfThinning },
       ],
     },
+    "high-emissions": {
+      title: "如果排放居高不下",
+      body: [
+        "未来会怎样，取决于世界还会排放多少温室气体。这里，八个冰盖计算机模型演算了温室气体排放持续居高不下的未来（称为 SSP5-8.5 情景），从 2015 年一直到 2300 年，地图显示的是它们的平均值。",
+        "红色表示冰在变薄，蓝色表示变厚。大约一个世纪内变化不大：内陆增加的降雪弥补了海岸边损失的冰。此后，变暖的海洋削薄了冰架，冰架后方的冰川随之加速，冰流线也变得更亮。有些地方的冰层减薄超过 1 公里，大多在西南极，东南极沿岸的部分地区也是如此。",
+        "在这一未来中，到 2300 年，南极会使全球海平面上升约 1.5 米。这是八个模型的平均值，各模型的结果从完全不上升到上升 4 米不等。在低排放下，同样这些模型给出的上升平均约 5 厘米。导览结束后，可以在面板中把这一未来与其他未来作比较。",
+      ],
+      sources: [
+        { text: "ISMIP6 南极 2300 年预估：Seroussi 等（2024），Earth's Future", url: SOURCES.ismip6Paper },
+        { text: "模型输出：Nowicki 与 ISMIP6 团队（2024），CC BY 4.0", url: SOURCES.ismip6Projections },
+      ],
+    },
     "without-ice": {
       title: "如果冰消失了",
       body: [
@@ -454,8 +503,10 @@ const ZH = {
       body: [
         "导览到此结束。现在请自由探索：打开或关闭各个图层，搜索一个科考站或一座山脉，拖动画面四处看看。",
         "点击图层旁的 i，可以了解它显示的内容。专业版包含 3D ICE 的全部数据集，包括冰下的摩擦、冰下融水和更精细的地图。",
+        "想从哪里开始？",
       ],
       sources: [],
+      startRegions: { antarctica: "南极洲", greenland: "格陵兰" },
     },
   },
   info: {
