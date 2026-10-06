@@ -195,6 +195,6 @@ current Chrome, Edge, Firefox and Safari (Chrome and Edge 89+, Firefox 114+, Saf
 | The distributable bundle contains every runtime file | Node | `scripts/smoke_compat_bundle.mjs` | Compatibility bundle smoke test |
 | Every page a host builds from the bundle links only to files the bundle carries, and the home pages keep the structure yuwang.blog's copy is built from | pytest | `tests/test_site_embed.py` | Python unit tests |
 | Both home pages link each edition, list every source the runtime cites and share one structure across locales | pytest | `tests/test_home_page.py`, `tests/test_home_latest_updates.py` | Python unit tests |
-| The explorer loads, renders and responds in a real browser; the public edition requests no research-only package and plays its tour in both locales; the home pages reach both editions from the first screen | Playwright | `tests/e2e/` | Browser E2E tests |
+| The explorer loads, renders and responds in a real browser; the public edition requests no research-only package, plays its whole tour and shows it in Chinese; the home pages reach both editions from the first screen | Playwright | `tests/e2e/` | Browser E2E tests |
 
 Commands for running each suite locally are in the [README](../README.md#running-tests).
