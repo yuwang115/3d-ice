@@ -49,7 +49,7 @@ vector products into compact binary packages with provenance metadata, which a
 static JavaScript application built with Three.js [@threejs] and WebGL renders
 without plugins or server-side computation, on desktop and mobile devices.
 
-![The 3D ICE explorer. (a) The interface, with Antarctic ice-surface speed [@mouginot2019] and surface-layer WAOM2 ocean streamlines [@richter2022] over BedMachine Antarctica v4 [@morlighem2020]. (b) Greenland ice-surface speed from ITS_LIVE [@gardner2024] over BedMachine Greenland v6 [@morlighem2017]. (c) The ice-free Antarctic bed after complete isostatic rebound under the idealised regional-flexure response. Vertical scales are exaggerated.\label{fig:overview}](docs/images/explorer-overview.jpg)
+![The 3D ICE explorer. (a) The interface, with Antarctic ice-surface speed [@mouginot2019] and surface-layer WAOM2 ocean streamlines [@richter2022] over BedMachine Antarctica v4 [@morlighem2020]. (b) Greenland ice-surface speed from ITS_LIVE [@gardner2024] over BedMachine Greenland v6 [@morlighem2017]. (c) Antarctic ice in 2300 under high emissions (SSP5-8.5), the mean of eight ISMIP6 models [@seroussi2024], coloured by thickness change since 2015 (red: thinning), with flowlines coloured by speed, at the public edition's high-emission tour stop. Vertical scales are exaggerated.\label{fig:overview}](docs/images/explorer-overview.jpg)
 
 # Statement of need
 
