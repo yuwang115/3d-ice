@@ -4,7 +4,7 @@ All notable changes to 3D ICE are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
-## [0.3.0] — Unreleased
+## [0.3.0] — 2026-10-06
 
 ### Added
 
@@ -127,6 +127,8 @@ All notable changes to 3D ICE are recorded here. The format follows
   walk it in English and check its Chinese copy.
 - The paper no longer says that every data layer links to its source (Greenland's basin
   boundaries have no link) or that a URL parameter selects the terrain dataset (none does).
+- The paper's PDF printed the citation of Paxman et al. (2022) and its grids as a broken
+  parenthetical; it now reads "Paxman et al. (2022, 2026)".
 
 ## [0.2.0] — 2026-09-27
 
@@ -204,7 +206,7 @@ hydrology, WAOM2 and Copernicus ocean streamlines, RISE ice-shelf basal melt and
 driving, and drainage-basin boundaries, together with the preparation scripts and the
 compatibility-bundle release workflow.
 
-[0.3.0]: https://github.com/yuwang115/3d-ice/compare/v0.2.0...HEAD
+[0.3.0]: https://github.com/yuwang115/3d-ice/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/yuwang115/3d-ice/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/yuwang115/3d-ice/releases/tag/v0.1.2
 [0.1.1]: https://github.com/yuwang115/3d-ice/releases/tag/v0.1.1
