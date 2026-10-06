@@ -38,125 +38,129 @@ of the Antarctic and Greenland ice sheets in a web browser
 (\autoref{fig:overview}). It combines terrain, ice velocity, ocean circulation,
 ice-shelf basal melting, basal friction, subglacial hydrology, and drainage
 basins in layered three-dimensional scenes. Users can rotate and zoom each ice
-sheet, switch datasets and quality levels, search polar places and geographic
-features, show the ice-free bed after isostatic rebound, and follow links to
-the original data products.
+sheet, switch datasets and resolutions, search polar places, show the ice-free
+bed after isostatic rebound, play multi-model projections of Antarctic ice to
+2300, and follow links to the source data. A research edition offers every
+dataset and layer; a public edition for classrooms and outreach pairs a subset
+with a guided tour and plain-language explanations.
 
-An offline Python pipeline converts heterogeneous
-NetCDF, HDF5, GeoTIFF, and vector products into compact binary arrays paired
-with machine-readable provenance metadata. A static JavaScript application,
-built with Three.js [@threejs] and WebGL, decodes these packages and renders
-them without plugins or server-side computation. This separation keeps the
-scientific transformations reproducible and the public interface simple to
-deploy, share, and use on desktop and mobile devices.
+An offline Python pipeline converts heterogeneous NetCDF, HDF5, GeoTIFF, and
+vector products into compact binary packages with provenance metadata, which a
+static JavaScript application built with Three.js [@threejs] and WebGL renders
+without plugins or server-side computation, on desktop and mobile devices.
 
-![The 3D ICE explorer. (a) The interface, with Antarctic ice-surface speed [@mouginot2019] and surface-layer WAOM2 ocean streamlines [@richter2022] over BedMachine Antarctica v4 [@morlighem2020]. (b) Greenland ice-surface speed from ITS_LIVE [@gardner2024] over BedMachine Greenland v6 [@morlighem2017]. (c) The ice-free Antarctic bed after complete isostatic rebound under the idealised regional-flexure response. Vertical scales are exaggerated.\label{fig:overview}](docs/images/explorer-overview.jpg)
+![The 3D ICE explorer. (a) The interface, with Antarctic ice-surface speed [@mouginot2019] and surface-layer WAOM2 ocean streamlines [@richter2022] over BedMachine Antarctica v4 [@morlighem2020]. (b) Greenland ice-surface speed from ITS_LIVE [@gardner2024] over BedMachine Greenland v6 [@morlighem2017]. (c) Antarctic ice in 2300 under high emissions (SSP5-8.5), the mean of eight ISMIP6 models [@seroussi2024], coloured by thickness change since 2015 (red: thinning), with flowlines coloured by speed, at the public edition's high-emission tour stop. Vertical scales are exaggerated.\label{fig:overview}](docs/images/explorer-overview.jpg)
 
 # Statement of need
 
 Modern cryosphere science generates large, gridded datasets in specialized
-formats and polar stereographic coordinate systems. Inspecting several products
-together commonly requires a desktop GIS, a numerical computing environment,
-or purpose-built scripts. These workflows suit quantitative
-analysis but require installation, data transfer, reprojection, and
-preprocessing before a user can see an ice sheet in context.
+formats and polar stereographic coordinate systems, and ice-sheet projections
+add terabyte-scale multi-model archives. Inspecting several products together
+commonly requires a desktop GIS, a numerical computing environment, or
+purpose-built scripts. These workflows suit quantitative analysis but require
+installation, data transfer, reprojection, and preprocessing before a user can
+see an ice sheet in context.
 
-That barrier particularly affects researchers in adjacent disciplines,
-educators who want to use real polar data in teaching, and scientists preparing
-interactive research communication. They need a rapid way to see relationships
-among ice geometry, flow, ocean forcing, and basal processes while retaining a
-path back to the source datasets. 3D ICE addresses this need with a curated,
-zero-install view rather than attempting to replace GIS or numerical analysis.
-Its research purpose is to make heterogeneous cryosphere products easier to
-compare, explain, and select for subsequent analysis.
+The barrier falls hardest on researchers in adjacent disciplines, educators who
+want to teach with real polar data, and scientists preparing interactive
+research communication, who need to see quickly how ice geometry, flow, ocean
+forcing, and basal processes relate, with a path back to the source data. 3D ICE
+provides a curated, zero-install view, not a replacement for GIS or numerical
+analysis; its research purpose is to make heterogeneous cryosphere products
+easier to compare, explain, and select for analysis.
 
 # State of the field
 
-Quantarctica is a comprehensive Antarctic data package, analysis environment,
-and visualization platform centred on a desktop QGIS workflow
-[@matsuoka2021], and QGreenland is its counterpart QGIS data package for
-Greenland [@moon2023qgreenland]. Both are well suited to local geospatial
-analysis and span a broader range of disciplines than 3D ICE. In contrast, 3D ICE trades
-general GIS operations for an immediately shareable, curated 3D experience that
-uses a common interaction model for both Antarctica and Greenland.
+Quantarctica [@matsuoka2021] and its Greenland counterpart QGreenland
+[@moon2023qgreenland] are comprehensive data packages and mapping environments
+for desktop QGIS. They
+suit local geospatial analysis and span more disciplines than 3D ICE, which
+trades general GIS operations for an immediately shareable, curated 3D view with
+one interaction model for both ice sheets.
 
-NASA Worldview provides rapid web access to more than a thousand global
-satellite-imagery layers, including polar views, temporal comparison, animation,
-and data download [@nasa_worldview]. Its focus is two-dimensional, often
-near-real-time Earth observation imagery. 3D ICE instead combines terrain with
-subsurface and model-derived fields such as basal friction, hydrology, basal
-melt, and depth-dependent ocean circulation.
+NASA Worldview offers web access to more than a thousand global
+satellite-imagery layers, with polar views, temporal comparison, animation, and
+data download [@nasa_worldview], but focuses on two-dimensional, often
+near-real-time imagery. 3D ICE instead combines terrain with subsurface and
+model-derived fields such as basal friction, hydrology, basal melt,
+depth-dependent ocean circulation, and projected ice geometry.
 
-General 3D geospatial libraries such as CesiumJS [@cesiumjs] provide a
-high-precision WGS84 globe, scalable data formats, and rendering primitives for
-building web applications. Three.js provides the lower-level
-graphics foundation used by 3D ICE [@threejs]. Neither library supplies a
-cryosphere data model, polar-grid conversion, provenance records, layer
-semantics, or data curation. Contributing these product-specific transformations
-to a general rendering engine would therefore not address the research need.
-3D ICE reuses established graphics infrastructure while concentrating its
-scholarly contribution in the reproducible polar-data pipeline, explicit data
-contract, and domain-specific interaction design.
+General 3D libraries such as CesiumJS [@cesiumjs], with its high-precision
+WGS84 globe and scalable data formats, and Three.js [@threejs], the lower-level
+graphics that 3D ICE uses, supply no cryosphere data model, polar-grid
+conversion, provenance records, layer semantics, or data curation. Contributing
+these product-specific transformations to a general rendering engine would not
+address the research need, so 3D ICE reuses established graphics infrastructure
+and concentrates its scholarly contribution in the reproducible polar-data
+pipeline, the data contract, and domain-specific interaction design.
 
 # Software design
 
-3D ICE uses a two-stage, contract-oriented architecture. The offline stage reads
+3D ICE has two stages joined by a specified data contract. The offline stage reads
 authoritative source products, reconciles their coordinate conventions, and
 resamples fields onto terrain-aligned polar grids with NumPy [@harris2020].
-Floating-point grids are quantized to signed 16-bit arrays for browser delivery.
-This introduces a controlled precision-versus-transfer-size trade-off: scale,
-offset, fill value, units, grid geometry, statistics, source citation, and
-processing provenance are stored in a paired `.meta.json` file so that decoding
-is deterministic and the loss of precision is inspectable. The metadata schema,
-specified in the repository, is the boundary between scientific preparation and
-visualization. A single decoder module reads it in the page, in the geometry
-worker, and in a test that decodes every committed package and checks it against
-the statistics the pipeline recorded before quantizing: every quantized field
-reproduces them to within half a quantization step.
+Floating-point grids are quantized to signed 16-bit arrays for browser delivery,
+a controlled trade of precision for transfer size: a paired `.meta.json` file
+stores scale, offset, fill value, units, grid geometry, statistics, source
+citation, and processing provenance, so decoding is deterministic and the loss
+of precision inspectable. One decoder module reads this metadata in the page,
+in the geometry worker, and in a test that checks every committed package
+against the statistics recorded before quantization, to within half a
+quantization step.
 
-Computationally expensive transformations are performed before deployment.
-For example, Antarctic ocean-current packages are generated by advecting
-particles through multi-depth WAOM2 velocity fields, balancing seeds by region
-and depth, and controlling streamline density [@richter2022; @dias2023]. This
-offline choice leaves the public application needing only static hosting, with
-no database, application server, or restricted compute resources.
-The trade-off is that integrating or updating a source product requires
-regenerating and versioning its web package.
+Expensive transformations run before deployment, so the application needs only
+static hosting; the trade-off is that updating a source product means
+regenerating its package. Antarctic ocean streamlines, for example, are
+integrated through multi-depth WAOM2 velocity fields with seeds balanced by
+region and depth [@richter2022; @dias2023]. The projection layer plays the
+equal-weight mean of eight ISMIP6 Antarctica 2300 models, one per modelling
+group, under three UKESM1-0-LL scenarios: low emissions, high emissions, and
+high emissions with ice-shelf collapse
+[@seroussi2024; @nowicki2024ismip6; @nowicki2020; @barthel2020;
+@jourdain2020]. Scripts beside the 8 TB archive on a supercomputer regrid each
+model conservatively. A packer applies the models' mean thickness change since
+2015 to today's BedMachine ice at 5-year keyframes, scaling thinning to
+BedMachine's thickness so that ice shelves do not break into spurious holes,
+and stores their mean speed change. The browser interpolates between keyframes,
+rebuilds the ice by flotation on the static bed, and moves the flowlines,
+coloured by today's speed plus that change, onto the projected surface. The averaged geometry implies more sea-level rise than the mean of the
+models' published contributions (1.93 against 1.46 m by 2300 under high
+emissions), partly because flotation is non-linear where the models disagree
+about which basins collapse, so the explorer reports the published mean and
+range [@seroussi2024data].
 
-The online stage fetches binary arrays, reconstructs terrain and overlays, and
-renders them with Three.js. Geometry construction runs in Web Workers so that
-large grids do not block interface updates. Balanced and HD packages make the
-resolution-versus-memory choice explicit across mobile and desktop devices. The
-English and Chinese pages are thin shells around one shared runtime; logic that
-needs neither the page nor the scene, such as package decoding, place search,
-label styling, and refined-basin validation, lives in separate modules that run
-unchanged under Node's test runner. URL parameters select the region, terrain
-dataset, and display mode, and every data layer links to its source product.
+Web Workers build overlay geometry off the main thread, and Balanced and HD
+packages trade resolution against memory. Logic that needs neither page nor
+scene, such as package decoding, place search, the rebound solver, and
+projection playback, lives in modules that run unchanged under Node's test
+runner. Both editions, in English and Chinese, are thin shells around one
+runtime: an edition profile removes restricted datasets and layers, with their
+package URLs, before anything is fetched, and pins the controls a page omits to
+fixed states, so the public pages can neither request nor show a research-only
+layer.
 
 The isostatic-rebound layer shows which parts of today's sub-sea-level bed would
 emerge once glacial isostatic adjustment is complete. By default it displays the
-published response of @paxman2022 [@paxman2026data], sampled at the terrain
-nodes: elastic-plate flexure with laterally variable elastic thickness
-[@swain2021; @steffen2018], remaining post-LGM disequilibrium, and water
-loading under a sea surface raised by both ice sheets' meltwater. For comparison
-it also solves an elastic-lithosphere, relaxed-asthenosphere steady state
-[@lemeur1996; @lingle1985] spectrally [@bueler2007] and, as an upper bound on
-peak uplift, local Airy isostasy [@turcotte2002], with an adjustable datum; the
-solver is verified against the analytic point-load solution in Kelvin functions
-[@brotchie1969]. Sea-level-equivalent figures follow @gregory2019. The interface
-states each response's assumptions, including that the present bed is not in
-balance with the present load [@whitehouse2019] and that low mantle viscosity
-beneath parts of West Antarctica shortens the response time by orders of
-magnitude [@barletta2018].
+published response of Paxman et al. [-@paxman2022; -@paxman2026data]: elastic-plate
+flexure with
+laterally variable elastic thickness [@swain2021; @steffen2018], remaining
+post-LGM disequilibrium, and water loading under a sea surface raised by both
+ice sheets' meltwater. For comparison it solves an elastic-lithosphere,
+relaxed-asthenosphere steady state [@lemeur1996; @lingle1985] spectrally
+[@bueler2007] and, as an upper bound on peak uplift, local Airy isostasy
+[@turcotte2002]. Sea-level-equivalent figures follow @gregory2019. The
+interface states each response's assumptions, including that the present bed is
+not in balance with the present load
+[@whitehouse2019] and that response times are orders of magnitude shorter over
+the low-viscosity mantle beneath parts of West Antarctica [@barletta2018].
 
-The domain contract is checked at several levels: unit tests cover
-quantization, coordinate sampling, metadata statistics, search, the rebound
-solver, and bounded geometry; the contract test covers every committed package;
-integration tests regenerate derived packages and compare
-them with the committed files; compatibility tests build a distributable static
-bundle; and Playwright tests load the explorer and exercise browser
-interactions. These checks run in continuous integration and locally, without
-the production website.
+Unit tests cover quantization, coordinate sampling, metadata statistics,
+search, projection playback, edition profiles, the tour and its copy in both
+languages, and the rebound solver against the analytic Kelvin-function
+point-load solution [@brotchie1969]; integration tests regenerate derived
+packages and compare them with the committed files; and Playwright tests load
+both editions, check that the public edition requests no research-only package,
+and walk its tour stop by stop. All run in continuous integration and locally.
 
 # Research impact statement
 
@@ -178,23 +182,22 @@ interpret in standard two-dimensional plots [@aapp2026;
 @spatialsource2026]. From its launch on 22 March to 27 September 2026, the public
 site recorded 578 active users and about 1,200 page views.
 
-The public application and versioned compatibility bundle [@wang2026software]
-integrate representative products for bed geometry [@morlighem2020;
-@pritchard2025; @morlighem2017; @palmer2025], ice velocity [@mouginot2019;
-@gardner2018; @gardner2024], ocean circulation [@richter2022; @dias2023;
-@cmems2025], ice-shelf basal melting [@galtonfenzi2025], basal friction
-[@jager2026antarctica; @jager2026greenland;
-@jager2026aisefi; @jager2026grisefi], subglacial hydrology
-[@werder2013; @ehrenfeucht2025; @ehrenfeucht2024], drainage boundaries
-[@rignot2011; @mouginot2017boundaries; @mouginot2019basins], and polar places
-[@scar_gazetteer; @comnap2024].
+3D ICE integrates representative products for bed geometry
+[@morlighem2020; @pritchard2025; @morlighem2017; @palmer2025], ice velocity
+[@mouginot2019; @gardner2018; @gardner2024], ocean circulation [@richter2022;
+@dias2023; @cmems2025], ice-shelf basal melting [@galtonfenzi2025], basal
+friction [@jager2026antarctica; @jager2026greenland; @jager2026aisefi;
+@jager2026grisefi], subglacial hydrology [@werder2013; @ehrenfeucht2025;
+@ehrenfeucht2024], drainage boundaries [@rignot2011; @mouginot2017boundaries;
+@mouginot2019basins], and polar places [@scar_gazetteer; @comnap2024].
 
 The repository supplies a specified data contract, a documented preparation
-pipeline, tagged releases with a changelog, contribution and support pathways,
-and worked examples that run from a clean clone. One reproduces the rebound figures the
-explorer reports for Antarctica, including 2.94 million km² of today's
-sub-sea-level bed emerging above the ice-free sea surface; another regenerates
-six derived data packages whose payloads match the committed files byte for byte.
+pipeline, tagged releases with a changelog and a compatibility bundle
+[@wang2026software], contribution and support pathways, and worked examples that
+run from a clean clone: one reproduces the explorer's Antarctic rebound
+figures, including 2.94 million km² of today's sub-sea-level bed emerging above
+the ice-free sea surface, and another regenerates six derived data packages
+whose payloads match the committed files byte for byte.
 
 # AI usage disclosure
 
@@ -204,18 +207,17 @@ the OpenAI Codex coding agent (GPT-5-family models, February to August 2026)
 from Y. Wang's natural-language specifications, data, and review, as the
 project's public coverage describes [@aapp2026]. Anthropic's Claude Code
 (Claude Opus 4.6 in March and April 2026; Claude Opus 5 and Claude Opus 5.5 in
-September 2026) was used for later work: parts of the interface, test
-infrastructure, the isostatic-rebound layer and its data pipeline, the
-refactoring that moved the runtime into shared and tested modules, the
-repository documentation, reference checking, and the drafting and
-copy-editing of this paper. Y. Wang selected the datasets and scientific
+September and October 2026) was used for later work: parts of the interface,
+including the public edition and the home pages; test infrastructure; the
+isostatic-rebound and projection layers and their data pipelines; the
+refactoring of the runtime into shared, tested modules; the repository
+documentation; reference checking; and the drafting and copy-editing of this
+paper. Y. Wang selected the datasets and scientific
 methods and set the architecture. Every AI-generated step was checked by hand
 before it was kept: Y. Wang read each change, ran the explorer to confirm its
 behaviour, validated each scientific layer against its source product, and
-checked every reference against its source. Automated benchmarks back this
-review: every decoded package is compared with the statistics recorded before
-quantization, and the rebound solver with the analytic point-load solution. The
-authors accept responsibility for the
+checked every reference against its source. The automated checks described
+above back this review. The authors accept responsibility for the
 accuracy, originality, licensing, and integrity of the submitted work.
 
 # Author contributions
@@ -234,7 +236,10 @@ Tasmanian Graduate Research Scholarship, and continued at the Climate Systems
 Engineering initiative, University of Chicago. The authors gratefully acknowledge
 the providers of the data that make 3D ICE possible: the National Snow and Ice
 Data Center, the UK Polar Data Centre, ITS_LIVE, the Copernicus Marine Service,
-the Australian Antarctic Division, SCAR, COMNAP, and the authors of the QRF,
-WAOM2, GlaDS, and basal-friction products.
+the Australian Antarctic Division, the NSF Arctic Data Center, SCAR, COMNAP, and
+the authors of the QRF, WAOM2, GlaDS, and basal-friction products. They also
+acknowledge the World Climate Research Programme for coordinating CMIP6, the
+climate and ice-sheet modelling groups, the Earth System Grid Federation, and
+ISMIP6 and Ghub for the projections.
 
 # References

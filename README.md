@@ -466,8 +466,8 @@ software release. The repository also includes a machine-readable
   author  = {Wang, Yu and Lin, Yucheng},
   title   = {{3D ICE}: An Interactive Browser-Based Cryosphere Explorer for Antarctica and Greenland},
   year    = {2026},
-  version = {0.2.0},
-  url     = {https://github.com/yuwang115/3d-ice/releases/tag/v0.2.0}
+  version = {0.3.0},
+  url     = {https://github.com/yuwang115/3d-ice/releases/tag/v0.3.0}
 }
 ```
 

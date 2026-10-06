@@ -68,7 +68,7 @@ UCM_Yelmo, UCSD_ISSM, ULB_fETISh-KoriBU1 and UNN_Ua. The model output is CC BY 4
 ISMIP6 Team 2024, doi:10.5281/zenodo.13135599, on the Ghub Globus collection
 `GHub-ISMIP6-Projections-2300`); the published scalars come from Seroussi & Pelle (2024,
 doi:10.5281/zenodo.10528582). Three steps rebuild them; the first two run next to the 2D
-archive (17 TB) on an HPC system, the third in this repository:
+archive (8 TB) on an HPC system, the third in this repository:
 
 1. `scripts/regrid_ismip6_2300_run.py` resamples one run conservatively onto the explorer's
    10 km grid at 5-year keyframes: cell-mean thickness, ice fraction, and the

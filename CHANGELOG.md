@@ -4,7 +4,7 @@ All notable changes to 3D ICE are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.3.0] — Unreleased
 
 ### Added
 
@@ -103,6 +103,10 @@ All notable changes to 3D ICE are recorded here. The format follows
   "Show ice-free isostatic rebound", the two interactive scenarios, in a section of their own
   (Interactive Scenarios) below View Controls, and "Animate ice & ocean flow" moves down beside
   "Wireframe mode".
+- The JOSS paper describes the public edition and the ISMIP6 2300 projections, cites the
+  ISMIP6 papers and datasets the ISMIP6 data terms ask for, acknowledges CMIP6, ESGF, ISMIP6
+  and Ghub, and extends the AI-usage disclosure to October 2026. Figure 1(c) shows the
+  projected ice in 2300 under high emissions instead of the idealised ice-free bed.
 
 ### Fixed
 
@@ -118,6 +122,11 @@ All notable changes to 3D ICE are recorded here. The format follows
   (Barletta et al. 2018). The "full equilibrium after 15–20 kyr" note now says that this
   is a property of the single ELRA relaxation time, and that full re-equilibration takes of
   order 100 kyr.
+- `docs/data-pipeline.md` gave the ISMIP6 2300 archive on NCI Gadi as 17 TB; it is 8 TB.
+  `docs/architecture.md` said the browser tests play the public tour in both locales; they
+  walk it in English and check its Chinese copy.
+- The paper no longer says that every data layer links to its source (Greenland's basin
+  boundaries have no link) or that a URL parameter selects the terrain dataset (none does).
 
 ## [0.2.0] — 2026-09-27
 
@@ -195,6 +204,7 @@ hydrology, WAOM2 and Copernicus ocean streamlines, RISE ice-shelf basal melt and
 driving, and drainage-basin boundaries, together with the preparation scripts and the
 compatibility-bundle release workflow.
 
+[0.3.0]: https://github.com/yuwang115/3d-ice/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/yuwang115/3d-ice/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/yuwang115/3d-ice/releases/tag/v0.1.2
 [0.1.1]: https://github.com/yuwang115/3d-ice/releases/tag/v0.1.1
