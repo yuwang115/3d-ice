@@ -141,7 +141,8 @@ layer.
 
 The isostatic-rebound layer shows which parts of today's sub-sea-level bed would
 emerge once glacial isostatic adjustment is complete. By default it displays the
-published response of @paxman2022 [@paxman2026data]: elastic-plate flexure with
+published response of Paxman et al. [-@paxman2022; -@paxman2026data]: elastic-plate
+flexure with
 laterally variable elastic thickness [@swain2021; @steffen2018], remaining
 post-LGM disequilibrium, and water loading under a sea surface raised by both
 ice sheets' meltwater. For comparison it solves an elastic-lithosphere,
