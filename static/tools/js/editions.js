@@ -23,11 +23,22 @@ const CAPABILITY_URL_KEYS = Object.freeze({
   velocity: Object.freeze(["velocityMetaUrl", "velocityBinUrl"]),
   basalFriction: Object.freeze(["basalFrictionMetaUrl", "basalFrictionBinUrl"]),
   rise: Object.freeze(["riseMetaUrl", "riseBinUrl"]),
-  oceanCurrents: Object.freeze(["oceanCurrentsMetaUrl", "oceanCurrentsBinUrl"]),
+  oceanCurrents: Object.freeze([
+    "oceanCurrentsMetaUrl",
+    "oceanCurrentsBinUrl",
+    "oceanCurrentsLightMetaUrl",
+    "oceanCurrentsLightBinUrl",
+  ]),
   hydrology: Object.freeze(["hydrologyMetaUrl", "hydrologyBinUrl"]),
   refinedBasins: Object.freeze(["refinedBasinsUrl"]),
   isostaticRebound: Object.freeze(["reboundMetaUrl", "reboundBinUrl"]),
 });
+
+/** Package URL keys and the keys of their light versions, which phones load instead. */
+const LIGHT_PACKAGE_URL_KEYS = Object.freeze([
+  Object.freeze(["oceanCurrentsMetaUrl", "oceanCurrentsLightMetaUrl"]),
+  Object.freeze(["oceanCurrentsBinUrl", "oceanCurrentsLightBinUrl"]),
+]);
 
 function deepFreeze(value) {
   if (value && typeof value === "object" && !Object.isFrozen(value)) {
@@ -153,5 +164,34 @@ export function applyEditionToRegions(regions, profile) {
         { ...withoutCapabilities(region, disabledCapabilities), datasets, defaultDatasetKey },
       ];
     })
+  );
+}
+
+function withLightUrls(config) {
+  if (!LIGHT_PACKAGE_URL_KEYS.some(([, lightKey]) => lightKey in config)) return { ...config };
+  const next = { ...config };
+  for (const [key, lightKey] of LIGHT_PACKAGE_URL_KEYS) {
+    if (next[lightKey]) next[key] = next[lightKey];
+    delete next[lightKey];
+  }
+  return next;
+}
+
+/**
+ * Swap in the light version of every package that has one, for phones, small windows and
+ * Save-Data connections: the Antarctic ocean streamlines are 62 MB in full and 12 MB light.
+ * Returns new region and dataset objects and leaves the input untouched.
+ */
+export function withLightPackages(regions) {
+  return Object.fromEntries(
+    Object.entries(regions).map(([regionKey, region]) => [
+      regionKey,
+      {
+        ...withLightUrls(region),
+        datasets: Object.fromEntries(
+          Object.entries(region.datasets || {}).map(([datasetKey, dataset]) => [datasetKey, withLightUrls(dataset)])
+        ),
+      },
+    ])
   );
 }

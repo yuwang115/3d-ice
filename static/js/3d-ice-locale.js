@@ -218,7 +218,7 @@
           modelNotePublishedQrf:
             "The published grid was computed for the BedMachine Greenland v6 ice load; the QRF bed changes the flexural response by about 10 m RMS, well inside the model spread.",
           modelNoteFlexural:
-            "Idealised: a thin elastic plate on a fluid asthenosphere, D = 1e25 N m, flexural length scale {lengthScale} km. Lithospheric strength spreads the load, lowering peak uplift and raising a slight forebulge beyond the former margin.",
+            "Idealised: a thin elastic plate on a fluid asthenosphere, D = 1e25 N m, flexural length scale {lengthScale} km. Lithospheric strength spreads the response, lowering peak uplift; beyond the former margin, the forebulge that the ice had raised subsides slightly.",
           modelNoteLocal:
             "Idealised: Airy isostasy applied column by column, with no lithospheric strength. This is the upper bound on peak uplift and shows more short-wavelength detail than the solid Earth can actually support.",
           seaLevelNoteZero:
@@ -266,6 +266,8 @@
           cold: "Cold",
           fresh: "Fresh",
           salty: "Salty",
+          effectivePressureNote:
+            "Over-pressurised bed, where water pressure exceeds the ice overburden (N < 0), is not drawn.",
         },
         meta: {
           reboundMillionKm2: "{value} million km\u00b2",
@@ -310,9 +312,9 @@
           reboundVolumeAboveFlotation: "Volume above flotation",
           reboundSle: "Sea-level equivalent",
           reboundSlePublishedAntarctica:
-            "above flotation; cf. the 57.9 m published for BedMachine Antarctica v4. The residual is a dataset-version and ocean-area convention difference, not a grid-resolution effect: the 10 km and 4 km packages agree to 0.01%, while Bedmap3 gives 57.1 m on the same grids.",
+            "above flotation, converted at freshwater density as Gregory et al. (2019) define sea-level equivalent; cf. 57.9 ± 0.9 m published for BedMachine Antarctica v1 (Morlighem et al., 2020). The 10 km and 4 km packages agree to 0.01%, and Bedmap3 gives 58.6 m on the same grids.",
           reboundSlePublishedGreenland:
-            "above flotation; the commonly quoted 7.4 m is a total-ice-volume figure, which this grid reproduces to within 0.3%.",
+            "above flotation, converted at freshwater density as Gregory et al. (2019) define sea-level equivalent; cf. 7.42 ± 0.05 m published for BedMachine Greenland v3 (Morlighem et al., 2017).",
           reboundSolveGrid: "Flexure solve grid",
           reboundConvergence: "Picard convergence",
           reboundAssumptions: "Assumptions",
@@ -672,7 +674,7 @@
           modelNotePublishedQrf:
             "已发表网格按 BedMachine Greenland v6 的冰载荷计算；QRF 基岩使挠曲响应改变约 10 m（均方根），远小于模型离散度。",
           modelNoteFlexural:
-            "理想化：流变软流圈之上的薄弹性板，D = 1e25 N m，挠曲特征长度 {lengthScale} km。岩石圈强度将载荷向外分摊，因而峰值抬升更低，并在原冰缘之外形成轻微的前缘隆起。",
+            "理想化：流体软流圈之上的薄弹性板，D = 1e25 N m，挠曲特征长度 {lengthScale} km。岩石圈强度使响应向外扩展，因而峰值抬升更低；原冰缘之外，冰载荷曾抬起的前缘隆起会轻微沉降。",
           modelNoteLocal:
             "理想化：逐列应用 Airy 地壳平衡，不考虑岩石圈强度。这给出峰值抬升的上界，且其短波细节超出固体地球实际能够支撑的程度。",
           seaLevelNoteZero:
@@ -718,6 +720,7 @@
           cold: "冷",
           fresh: "淡",
           salty: "咸",
+          effectivePressureNote: "水压超过冰体上覆压力的过压区域（N < 0）不予显示。",
         },
         meta: {
           reboundMillionKm2: "{value} \u767e\u4e07 km\u00b2",
@@ -728,7 +731,7 @@
           isostaticReboundSection: "地壳回弹（模拟）",
           reboundModelLabel: "固体地球响应",
           reboundModelPublished: "已发表：Paxman 等（2022），网格第 3 版",
-          reboundModelFlexural: "理想化区域挠曲（弹性板 + 流变软流圈）",
+          reboundModelFlexural: "理想化区域挠曲（弹性板 + 流体软流圈）",
           reboundModelLocal: "理想化局地（Airy）地壳平衡",
           reboundElasticThickness: "弹性厚度",
           reboundPublishedEarthModelValue: "{teModel}，横向变化；密度取值：冰 917、海水 1028、地幔 3330 kg/m3",
@@ -762,9 +765,9 @@
           reboundVolumeAboveFlotation: "漂浮阈值以上体积",
           reboundSle: "等效海平面",
           reboundSlePublishedAntarctica:
-            "为漂浮阈值以上的部分；可对比 BedMachine Antarctica v4 发表的 57.9 m。二者的差异来自数据集版本与海洋面积约定，而非网格分辨率：10 km 与 4 km 数据包的结果相差不到 0.01%，而 Bedmap3 在相同网格上给出 57.1 m。",
+            "为漂浮阈值以上的部分，按淡水密度换算（即 Gregory 等 2019 对海平面当量的定义）；可对比 Morlighem 等（2020）对 BedMachine Antarctica v1 发表的 57.9 ± 0.9 m。10 km 与 4 km 数据包的结果相差不到 0.01%，Bedmap3 在相同网格上给出 58.6 m。",
           reboundSlePublishedGreenland:
-            "为漂浮阈值以上的部分；常被引用的 7.4 m 是冰体总体积对应的数值，本网格可将其复现至 0.3% 以内。",
+            "为漂浮阈值以上的部分，按淡水密度换算（即 Gregory 等 2019 对海平面当量的定义）；可对比 Morlighem 等（2017）对 BedMachine Greenland v3 发表的 7.42 ± 0.05 m。",
           reboundSolveGrid: "挠曲求解网格",
           reboundConvergence: "Picard 收敛情况",
           reboundAssumptions: "假设",

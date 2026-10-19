@@ -101,7 +101,10 @@ import {
 /** BedMachine's own hydrostatic constants, so the flotation algebra closes on its geometry. */
 export const ICE_DENSITY_KG_M3 = 917;
 export const SEAWATER_DENSITY_KG_M3 = 1027;
-/** Subglacial lake water (Lake Vostok), which is fresh rather than marine. */
+/**
+ * Fresh water: subglacial lake water (Lake Vostok), and the density Gregory et al. (2019)
+ * use to define sea-level equivalent (362.5 Gt of ice per mm over GLOBAL_OCEAN_AREA_M2).
+ */
 export const FRESHWATER_DENSITY_KG_M3 = 1000;
 export const MANTLE_DENSITY_KG_M3 = 3300;
 export const GRAVITY_M_PER_S2 = 9.81;
@@ -575,9 +578,11 @@ function accumulateReboundTotals({
     validBedAreaKm2: toKm2(validArea),
     iceVolumeKm3: iceVolumeM3 / 1e9,
     volumeAboveFlotationKm3: volumeAboveFlotationM3 / 1e9,
+    // Gregory et al. (2019): sea-level equivalent is mass over freshwater density times the
+    // ocean area. Morlighem et al. (2017, 2020) quote 7.42 m and 57.9 m the same way.
     sleMeters:
       (volumeAboveFlotationM3 * ICE_DENSITY_KG_M3) /
-      (SEAWATER_DENSITY_KG_M3 * GLOBAL_OCEAN_AREA_M2),
+      (FRESHWATER_DENSITY_KG_M3 * GLOBAL_OCEAN_AREA_M2),
   };
 }
 

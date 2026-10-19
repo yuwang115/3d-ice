@@ -15,7 +15,9 @@
  * EXPLORE_CONTENT holds the words, one entry per locale; tests/js/explore-content.test.mjs
  * keeps the two locales in step. Numbers quoted without a citation were measured on the
  * packages this edition loads (10 km BedMachine Antarctica v4, 3 km BedMachine Greenland v6
- * and the velocity grids resampled onto them).
+ * and the velocity grids resampled onto them), with areas corrected for the polar
+ * stereographic scale factor. The stretch of the heights is the true one, from
+ * ./vertical-scale.js.
  *
  * No DOM or scene dependencies: this module runs unchanged under Node's test runner.
  */
@@ -164,9 +166,9 @@ const EN = {
     "ice-continent": {
       title: "A continent buried in ice",
       body: [
-        "Antarctica is covered by an ice sheet of about 13.5 million km², larger than the United States and Mexico put together. On average the ice is more than 2 km thick.",
+        "Antarctica is covered by an ice sheet of about 14 million km², larger than the United States and Mexico put together. The ice resting on land is on average more than 2 km thick.",
         "It holds enough water to raise sea level around the world by about 58 metres, if all of it melted.",
-        "Heights here are stretched about five times so that you can see the shape of the ice. At true scale the ice sheet would be as thin, compared with its width, as a sheet of paper on a dinner plate.",
+        "Heights here are stretched about 66 times so that you can see the shape of the ice. At true scale the ice sheet would be as thin, compared with its width, as a sheet of paper on a dinner plate.",
       ],
       sources: [
         { text: "Ice and bedrock: BedMachine Antarctica v4 (Morlighem et al., 2020)", url: SOURCES.bedMachineAntarctica },
@@ -176,7 +178,7 @@ const EN = {
       title: "The land beneath the ice",
       body: [
         "With the ice made almost see-through, the land beneath it appears: mountain ranges, valleys and deep basins that no one has ever seen. They were mapped by radar that sees through the ice, flown over it for decades.",
-        "Shades of blue show bedrock below today's sea level. Almost half of the ice sheet rests on such a bed, and West Antarctica almost entirely. Beneath Denman Glacier in East Antarctica the bed drops more than 3.5 km below sea level, the deepest canyon on land.",
+        "Shades of blue show bedrock below today's sea level. Almost half of the ice sheet rests on such a bed, as does most of West Antarctica. Beneath Denman Glacier in East Antarctica the bed drops more than 3.5 km below sea level, the deepest canyon on land.",
         "Under the highest part of the ice, Dome A, lie the Gamburtsev Mountains, a range about the size of the Alps buried completely by the ice.",
       ],
       sources: [
@@ -187,7 +189,7 @@ const EN = {
       title: "Rivers of ice",
       body: [
         "Ice flows. Pulled by its own weight, it spreads from the high interior towards the coast. Each line traces the path the ice takes, and its colour shows how fast it moves.",
-        "Two-thirds of the ice creeps along at less than 10 metres a year. Near the coast the flow gathers into ice streams and glaciers that move hundreds of metres to kilometres a year. Pine Island Glacier, in West Antarctica, reaches about 4 km a year.",
+        "Nearly two-thirds of the ice resting on land creeps along at less than 10 metres a year. Near the coast the flow gathers into ice streams and glaciers that move hundreds of metres to kilometres a year. Pine Island Glacier, in West Antarctica, reaches about 4 km a year.",
       ],
       sources: [
         {
@@ -234,7 +236,7 @@ const EN = {
       title: "If the ice were gone",
       body: [
         "The ice is so heavy that it has pressed the Earth's crust down into the mantle beneath. Watch what happens as the ice melts away.",
-        "Freed of its load, the land slowly rises again, by up to about a kilometre in places, over many thousands of years. Orange marks land that would rise out of the sea.",
+        "Freed of its load, the land slowly rises again, by up to about a kilometre in places, over tens of thousands of years. Orange marks land that would rise out of the sea.",
         "Even then, much of West Antarctica would stay under water, leaving a scatter of islands. The sea here is drawn at its level in that ice-free world, raised by the meltwater of both ice sheets.",
       ],
       sources: [
@@ -282,7 +284,7 @@ const EN = {
     exaggeration: {
       title: "Stretch the heights",
       body: [
-        "Ice sheets are thousands of kilometres wide but only a few kilometres thick. Stretching the heights makes their shape visible. At 1× you see the true proportions, which look almost flat.",
+        "Ice sheets are thousands of kilometres wide but only a few kilometres thick. Stretching the heights makes their shape visible. Even at the lowest setting the heights are stretched about seven times; at true proportions the ice sheet would look almost flat.",
       ],
       sources: [],
     },
@@ -329,7 +331,7 @@ const EN = {
     seaLevel: {
       title: "Sea level",
       body: [
-        "A flat, see-through surface at today's sea level. Everything beneath it is under water: the sea floor, and the bedrock under much of the ice.",
+        "A flat, see-through surface at today's sea level. Everything beneath it lies below sea level: the sea floor, and the bedrock under much of the ice, which is buried by ice rather than water.",
       ],
       sources: [],
     },
@@ -337,7 +339,7 @@ const EN = {
       title: "Remove the ice",
       body: [
         "Shows the land as it would be long after all the ice had melted. Without the weight of the ice the crust slowly springs back, rising by up to about a kilometre. Orange marks land that would rise out of the sea, and the sea is drawn at its level in that ice-free world.",
-        "The slider blends between today (0%) and that final state (100%). It is not a timeline: the real rebound takes many thousands of years.",
+        "The slider blends between today (0%) and that final state (100%). It is not a timeline: the real rebound takes tens of thousands of years.",
       ],
       sources: [
         {
@@ -405,9 +407,9 @@ const ZH = {
     "ice-continent": {
       title: "被冰封的大陆",
       body: [
-        "南极洲覆盖着一个面积约 1350 万平方公里的冰盖，比美国和墨西哥加起来还大。冰层平均厚度超过 2 公里。",
+        "南极洲覆盖着一个面积约 1400 万平方公里的冰盖，比美国和墨西哥加起来还大。压在陆地上的冰平均厚度超过 2 公里。",
         "如果这些冰全部融化，全球海平面将上升约 58 米。",
-        "为了看清冰盖的形状，这里把高度拉伸了约五倍。按真实比例，冰盖的厚度与宽度之比，就像餐盘上的一张纸那么薄。",
+        "为了看清冰盖的形状，这里把高度拉伸了约 66 倍。按真实比例，冰盖的厚度与宽度之比，就像餐盘上的一张纸那么薄。",
       ],
       sources: [
         { text: "冰层与基岩：BedMachine Antarctica v4（Morlighem 等，2020）", url: SOURCES.bedMachineAntarctica },
@@ -417,7 +419,7 @@ const ZH = {
       title: "冰下的大地",
       body: [
         "把冰层调得几乎透明，冰下的大地就显现出来：山脉、河谷和深邃的盆地，从来没有人亲眼见过。它们是几十年来用飞机搭载、能穿透冰层的雷达测绘出来的。",
-        "蓝色表示低于今天海平面的基岩。将近一半的冰盖就压在这样的基岩上，西南极几乎全部如此。在东南极的登曼冰川下方，基岩深达海平面以下 3.5 公里以上，是陆地上最深的峡谷。",
+        "蓝色表示低于今天海平面的基岩。将近一半的冰盖就压在这样的基岩上，西南极的大部分冰盖也是如此。在东南极的登曼冰川下方，基岩深达海平面以下 3.5 公里以上，是陆地上最深的峡谷。",
         "在冰盖的最高处冰穹 A 之下，埋藏着甘布尔采夫山脉。这条山脉的规模与阿尔卑斯山相当，却完全被冰覆盖。",
       ],
       sources: [
@@ -428,7 +430,7 @@ const ZH = {
       title: "冰的河流",
       body: [
         "冰是会流动的。在自身重量的作用下，冰从高耸的内陆向海岸扩展。每条线描绘出冰流动的路径，颜色表示流动的快慢。",
-        "三分之二的冰每年移动不到 10 米。靠近海岸时，冰汇聚成冰流和冰川，每年移动数百米乃至数公里。西南极的松岛冰川每年流动约 4 公里。",
+        "压在陆地上的冰中，将近三分之二每年移动不到 10 米。靠近海岸时，冰汇聚成冰流和冰川，每年移动数百米乃至数公里。西南极的松岛冰川每年流动约 4 公里。",
       ],
       sources: [
         {
@@ -475,7 +477,7 @@ const ZH = {
       title: "如果冰消失了",
       body: [
         "冰实在太重，把地壳压进了下方的地幔。来看看冰融化时会发生什么。",
-        "卸下重负之后，陆地会慢慢回升，有些地方最多可升高约 1 公里，这个过程要持续数千年乃至更久。橙色表示将会升出海面的陆地。",
+        "卸下重负之后，陆地会慢慢回升，有些地方最多可升高约 1 公里，这个过程要持续数万年。橙色表示将会升出海面的陆地。",
         "即便如此，西南极的大部分仍会留在水下，只剩下星罗棋布的岛屿。这里的海面画在那个无冰世界的海平面上，其中包含了两大冰盖的融水。",
       ],
       sources: [
@@ -521,7 +523,7 @@ const ZH = {
     exaggeration: {
       title: "拉伸高度",
       body: [
-        "冰盖宽达数千公里，厚度却只有几公里。把高度拉伸之后，才能看清它们的形状。设为 1× 时是真实比例，看起来几乎是平的。",
+        "冰盖宽达数千公里，厚度却只有几公里。把高度拉伸之后，才能看清它们的形状。即使调到最低，高度也被拉伸了约七倍；按真实比例，冰盖看起来几乎是平的。",
       ],
       sources: [],
     },
@@ -565,14 +567,14 @@ const ZH = {
     },
     seaLevel: {
       title: "海平面",
-      body: ["一个位于今天海平面高度的半透明平面。它下方的一切都在水下：海底，以及许多冰层下方的基岩。"],
+      body: ["一个位于今天海平面高度的半透明平面。它下方的一切都低于海平面：海底，以及许多冰层之下的基岩——那里覆盖的是冰，而不是海水。"],
       sources: [],
     },
     rebound: {
       title: "移除冰层",
       body: [
         "显示冰全部融化很久以后陆地的样子。没有了冰的重量，地壳会慢慢回弹，最多升高约 1 公里。橙色表示将会升出海面的陆地，海面则画在那个无冰世界的海平面上。",
-        "滑块在今天（0%）和最终状态（100%）之间过渡，并不代表时间进程：真实的回弹需要数千年乃至更久。",
+        "滑块在今天（0%）和最终状态（100%）之间过渡，并不代表时间进程：真实的回弹需要数万年。",
       ],
       sources: [
         {

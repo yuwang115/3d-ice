@@ -134,7 +134,7 @@ test("interpolated rebound strings substitute every placeholder", () => {
     ["explorer.rebound.progressNote", { percent: 60, elapsed: "about 2.7 kyr", tau: 3000 }],
     ["explorer.rebound.progressNoteComplete", { tau: 3000 }],
     ["explorer.rebound.modelNoteFlexural", { lengthScale: 133 }],
-    ["explorer.rebound.seaLevelNoteZero", { sle: "56.5" }],
+    ["explorer.rebound.seaLevelNoteZero", { sle: "58.1" }],
     ["explorer.rebound.seaLevelNoteRaised", { datum: 57 }],
     ["explorer.rebound.years", { value: 1200 }],
     ["explorer.rebound.kiloyears", { value: "2.7" }],

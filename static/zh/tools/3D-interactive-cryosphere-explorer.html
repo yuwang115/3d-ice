@@ -39,14 +39,17 @@
   />
   <meta property="og:locale" content="zh_CN" />
   <meta property="og:locale:alternate" content="en_US" />
-  <meta property="og:image" content="https://3d-ice.com/tools/3d-ice-logo.jpg" />
+  <meta property="og:image" content="https://3d-ice.com/tools/3d-ice-share.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="627" />
+  <meta property="og:image:alt" content="3D ICE 中的南极冰盖及其周边海底（高度经过夸大）" />
   <meta property="twitter:card" content="summary_large_image" />
   <meta property="twitter:title" content="3D ICE：冰冻圈交互探索平台" />
   <meta
     property="twitter:description"
     content="面向南极洲与格陵兰的交互式 3D 冰冻圈探索平台。可直接启动完整 3D ICE 运行时，或返回介绍页查看背景、数据集与功能导览。"
   />
-  <meta property="twitter:image" content="https://3d-ice.com/tools/3d-ice-logo.jpg" />
+  <meta property="twitter:image" content="https://3d-ice.com/tools/3d-ice-share.jpg" />
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -234,7 +237,7 @@
           </select>
         </div>
         <div class="control">
-          <label for="exaggeration">高程缩放 <span id="exaggerationValue" class="mono">4.0x</span></label>
+          <label for="exaggeration">高程缩放 <span id="exaggerationValue" class="mono">55×</span></label>
           <input id="exaggeration" type="range" min="0.5" max="8" step="0.1" value="4" />
         </div>
         <div class="control">
@@ -384,7 +387,7 @@
         <h2 class="section-title">基底摩擦配色</h2>
         <div id="basalFrictionLegendBar" class="legend" aria-hidden="true"></div>
         <div id="basalFrictionLegendLabels" class="legend-labels">
-          <span>0 Mpa</span>
+          <span>0 MPa</span>
           <span>0.02</span>
           <span>0.04</span>
           <span>0.08</span>
@@ -434,22 +437,27 @@
       <section id="effectivePressureLegendSection" class="section">
         <h2 class="section-title">有效压力配色</h2>
         <div id="effectivePressureLegendBar" class="legend" aria-hidden="true"></div>
-        <div class="legend-labels">
+        <div id="effectivePressureLegendLabels" class="legend-labels">
           <span>0 MPa</span>
           <span>1</span>
+          <span>2</span>
           <span>3</span>
-          <span>5</span>
+          <span>4</span>
+          <span>≥5</span>
         </div>
+        <div id="effectivePressureLegendNote" class="legend-note"></div>
       </section>
 
       <section id="channelLegendSection" class="section">
         <h2 class="section-title">通道流量配色</h2>
         <div id="channelLegendBar" class="legend" aria-hidden="true"></div>
-        <div class="legend-labels">
-          <span>0.001 m3/s</span>
+        <div id="channelLegendLabels" class="legend-labels">
+          <span>0.001 m³/s</span>
           <span>0.01</span>
+          <span>0.1</span>
           <span>1</span>
-          <span>100</span>
+          <span>10</span>
+          <span>≥100</span>
         </div>
       </section>
 

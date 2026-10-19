@@ -42,6 +42,7 @@ import {
   REBOUND_MODELS,
   REBOUND_RELAXATION_TIME_YEARS,
   SEAWATER_DENSITY_KG_M3,
+  GLOBAL_OCEAN_AREA_M2,
   solveIsostaticRebound,
   summarisePublishedResponse,
 } from "../../static/tools/js/gia-rebound.js";
@@ -683,6 +684,11 @@ test("statistics account for emergence, ice volume and sea-level equivalent", ()
     Math.abs(stats.volumeAboveFlotationKm3 / stats.iceVolumeKm3 - aboveFlotation / 2500) < 1e-6
   );
   assert.ok(stats.sleMeters > 0 && stats.sleMeters < stats.iceVolumeKm3);
+  // Sea-level equivalent as Gregory et al. (2019) define it: the mass above flotation over
+  // freshwater density times the ocean area (362.5 Gt per mm), not over seawater density.
+  const gregorySle =
+    (stats.volumeAboveFlotationKm3 * 1e9 * ICE_DENSITY_KG_M3) / (FRESHWATER_DENSITY_KG_M3 * GLOBAL_OCEAN_AREA_M2);
+  assert.ok(Math.abs(stats.sleMeters - gregorySle) <= 1e-12 * gregorySle, `${stats.sleMeters} vs ${gregorySle}`);
   assert.ok(stats.maxUpliftRow >= 0 && stats.maxUpliftColumn >= 0);
   // The rebounded bed is everywhere above the datum, so the deepest ice-covered point is
   // too. This statistic is scoped to the present ice footprint, not the whole domain.

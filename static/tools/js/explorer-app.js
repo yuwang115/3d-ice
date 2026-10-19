@@ -21,9 +21,11 @@ const [
   { createPolarFeaturesController },
   { fetchRefinedBasinJson },
   { decodeFieldToFloat32, parseField },
-  { applyEditionToRegions, getEditionProfile, getStandInSpec },
+  { applyEditionToRegions, getEditionProfile, getStandInSpec, withLightPackages },
   { projectLatLon },
   { easeInOutCubic, flightDurationMs, framePose, interpolatePose, orbitPose },
+  { BASE_HORIZONTAL_VERTICAL_SCALE_RATIO, formatVerticalExaggeration },
+  { summariseMasked },
 ] = await Promise.all([
   import(assetUrl("js/polar-features.js")),
   import(assetUrl("js/polar-refined-basins.js")),
@@ -31,6 +33,8 @@ const [
   import(assetUrl("js/editions.js")),
   import(assetUrl("js/polar-projection.js")),
   import(assetUrl("js/explore-tour.js")),
+  import(assetUrl("js/vertical-scale.js")),
+  import(assetUrl("js/layer-stats.js")),
 ]);
 const editionProfile = getEditionProfile(document.documentElement.dataset.edition);
 // An edition without the basin layer leaves basins out of place search as well.
@@ -228,10 +232,12 @@ const ALL_REGIONS = {
         basalFrictionBinUrl: assetUrl("data/antarctica_basal_friction_480.bin?v=20260314-taub-v1"),
         riseMetaUrl: assetUrl("data/rise_antarctica_480.meta.json"),
         riseBinUrl: assetUrl("data/rise_antarctica_480.bin"),
-        oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20260312-waom2-combined-v3"),
-        oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20260312-waom2-combined-v3"),
-        hydrologyMetaUrl: assetUrl("data/antarctica_subglacial_hydrology_480.meta.json"),
-        hydrologyBinUrl: assetUrl("data/antarctica_subglacial_hydrology_480.bin"),
+        oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20261018-waom2-xy-v4"),
+        oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20261018-waom2-xy-v4"),
+        oceanCurrentsLightMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.meta.json?v=20261018-waom2-xy-v4"),
+        oceanCurrentsLightBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.bin?v=20261018-waom2-xy-v4"),
+        hydrologyMetaUrl: assetUrl("data/antarctica_subglacial_hydrology_480.meta.json?v=20261018-channels-v2"),
+        hydrologyBinUrl: assetUrl("data/antarctica_subglacial_hydrology_480.bin?v=20261018-channels-v2"),
         // The projection packages are resampled onto exactly this grid.
         capabilities: { iceProjection: true },
       },
@@ -249,10 +255,12 @@ const ALL_REGIONS = {
         basalFrictionBinUrl: assetUrl("data/antarctica_basal_friction_741.bin?v=20260314-taub-v1"),
         riseMetaUrl: assetUrl("data/rise_antarctica_741.meta.json"),
         riseBinUrl: assetUrl("data/rise_antarctica_741.bin"),
-        oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20260312-waom2-combined-v3"),
-        oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20260312-waom2-combined-v3"),
-        hydrologyMetaUrl: assetUrl("data/antarctica_subglacial_hydrology_741.meta.json"),
-        hydrologyBinUrl: assetUrl("data/antarctica_subglacial_hydrology_741.bin"),
+        oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20261018-waom2-xy-v4"),
+        oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20261018-waom2-xy-v4"),
+        oceanCurrentsLightMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.meta.json?v=20261018-waom2-xy-v4"),
+        oceanCurrentsLightBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.bin?v=20261018-waom2-xy-v4"),
+        hydrologyMetaUrl: assetUrl("data/antarctica_subglacial_hydrology_741.meta.json?v=20261018-channels-v2"),
+        hydrologyBinUrl: assetUrl("data/antarctica_subglacial_hydrology_741.bin?v=20261018-channels-v2"),
       },
       bedmap3: {
         id: "bedmap3",
@@ -266,10 +274,12 @@ const ALL_REGIONS = {
         velocityBinUrl: assetUrl("data/bedmap3_antarctica_velocity_10km.bin"),
         basalFrictionMetaUrl: assetUrl("data/bedmap3_antarctica_basal_friction_10km.meta.json"),
         basalFrictionBinUrl: assetUrl("data/bedmap3_antarctica_basal_friction_10km.bin"),
-        oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20260312-waom2-combined-v3"),
-        oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20260312-waom2-combined-v3"),
-        hydrologyMetaUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_10km.meta.json"),
-        hydrologyBinUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_10km.bin"),
+        oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20261018-waom2-xy-v4"),
+        oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20261018-waom2-xy-v4"),
+        oceanCurrentsLightMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.meta.json?v=20261018-waom2-xy-v4"),
+        oceanCurrentsLightBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.bin?v=20261018-waom2-xy-v4"),
+        hydrologyMetaUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_10km.meta.json?v=20261018-channels-v2"),
+        hydrologyBinUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_10km.bin?v=20261018-channels-v2"),
         capabilities: {
           velocity: true,
           basalFriction: true,
@@ -299,10 +309,12 @@ const ALL_REGIONS = {
         velocityBinUrl: assetUrl("data/bedmap3_antarctica_velocity_4km.bin"),
         basalFrictionMetaUrl: assetUrl("data/bedmap3_antarctica_basal_friction_4km.meta.json"),
         basalFrictionBinUrl: assetUrl("data/bedmap3_antarctica_basal_friction_4km.bin"),
-        oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20260312-waom2-combined-v3"),
-        oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20260312-waom2-combined-v3"),
-        hydrologyMetaUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_4km.meta.json"),
-        hydrologyBinUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_4km.bin"),
+        oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20261018-waom2-xy-v4"),
+        oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20261018-waom2-xy-v4"),
+        oceanCurrentsLightMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.meta.json?v=20261018-waom2-xy-v4"),
+        oceanCurrentsLightBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.bin?v=20261018-waom2-xy-v4"),
+        hydrologyMetaUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_4km.meta.json?v=20261018-channels-v2"),
+        hydrologyBinUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_4km.bin?v=20261018-channels-v2"),
         capabilities: {
           velocity: true,
           basalFriction: true,
@@ -452,7 +464,15 @@ const ALL_REGIONS = {
   },
 };
 
-const REGIONS = applyEditionToRegions(ALL_REGIONS, editionProfile);
+// Phones, small windows and Save-Data connections get the light version of a package where
+// one exists: 12 MB of Antarctic ocean streamlines rather than 62 MB.
+const prefersLightPackages =
+  Boolean(navigator.connection?.saveData) ||
+  Boolean(window.matchMedia?.("(max-width: 900px), (max-height: 500px)")?.matches);
+const REGIONS = applyEditionToRegions(
+  prefersLightPackages ? withLightPackages(ALL_REGIONS) : ALL_REGIONS,
+  editionProfile
+);
 
 Object.entries(REGIONS).forEach(([regionKey, region]) => {
   const localizedRegion = getLocalizedRegionInfo(regionKey);
@@ -884,8 +904,11 @@ const controlsUI = {
   oceanLegendSaltyLabel: resolveControl("oceanLegendSaltyLabel"),
   effectivePressureLegendSection: resolveControl("effectivePressureLegendSection"),
   effectivePressureLegendBar: resolveControl("effectivePressureLegendBar"),
+  effectivePressureLegendLabels: resolveControl("effectivePressureLegendLabels"),
+  effectivePressureLegendNote: resolveControl("effectivePressureLegendNote"),
   channelLegendSection: resolveControl("channelLegendSection"),
   channelLegendBar: resolveControl("channelLegendBar"),
+  channelLegendLabels: resolveControl("channelLegendLabels"),
   capturePanel: resolveControl("capturePanel"),
   captureHideButton: resolveControl("captureHideButton"),
   capturePlayButton: resolveControl("capturePlayButton"),
@@ -1043,7 +1066,9 @@ let viewerResizeObserver = null;
 let viewerResizeAnimationFrame = 0;
 let viewerResizeStabilizeTimer = null;
 let lastRenderFrameTimeMs = 0;
-let pendingViewResetOnLoad = false;
+// A portrait or narrow viewer opens on the fixed pose, then frames the ice sheet once the
+// first terrain has loaded (see getDefaultCameraPose), unless a preset sets the camera.
+let pendingViewResetOnLoad = !isShowcaseMode && !isPreviewMode && !initialExplorerPreset?.camera && viewerIsNarrow();
 let geometryWorker = null;
 let geometryWorkerRequestSeq = 0;
 let flowlineRaycaster = null;
@@ -1429,6 +1454,14 @@ function updateLegendVisibility() {
   if (controlsUI.channelLegendSection) {
     controlsUI.channelLegendSection.hidden = !(hydrologyAvailable && controlsUI.showSubglacialChannels.checked);
   }
+  // Tick labels can only be laid out while their section is visible (a hidden one has no
+  // width), so lay these out again whenever their sections may just have been shown.
+  if (controlsUI.effectivePressureLegendSection && !controlsUI.effectivePressureLegendSection.hidden) {
+    scheduleTickLegendLayout(controlsUI.effectivePressureLegendLabels);
+  }
+  if (controlsUI.channelLegendSection && !controlsUI.channelLegendSection.hidden) {
+    scheduleTickLegendLayout(controlsUI.channelLegendLabels);
+  }
   if (controlsUI.projectionLegendSection) {
     controlsUI.projectionLegendSection.hidden = !(isIceProjectionActive() && getIceProjectionColorMode() === "change");
   }
@@ -1504,7 +1537,7 @@ function applyExplorerPresetControls(preset) {
   if (controlsUI.exaggeration) {
     const exaggeration = Number.isFinite(preset.exaggeration) ? preset.exaggeration : Number(controlsUI.exaggeration.value);
     controlsUI.exaggeration.value = String(exaggeration);
-    controlsUI.exaggerationValue.textContent = `${exaggeration.toFixed(1).replace(/\.0$/, "")}x`;
+    controlsUI.exaggerationValue.textContent = formatVerticalExaggeration(exaggeration);
   }
 
   if (controlsUI.iceOpacity) {
@@ -1559,9 +1592,29 @@ const DEFAULT_CAMERA_POSES = {
   },
 };
 
+/**
+ * The opening view framed as a disc, as the tour frames its stops. The fixed poses above
+ * suit a landscape viewer; on a portrait or narrow one they crop the ice sheet to a close-up.
+ */
+const DEFAULT_LOOK_AT = {
+  antarctica: { lat: -90, lon: 0, fitKm: 5600, azimuthDeg: 0, elevationDeg: 55 },
+  greenland: { lat: 71, lon: -41, fitKm: 2900, azimuthDeg: 0, elevationDeg: 55 },
+};
+
+function viewerIsNarrow() {
+  const width = viewerEl?.clientWidth || window.innerWidth;
+  const height = viewerEl?.clientHeight || window.innerHeight;
+  return width < 700 || width < height;
+}
+
 function getDefaultCameraPose(regionKey = currentRegionKey) {
   if (isShowcaseMode) {
     return initialExplorerPreset?.camera || SHOWCASE_PRESETS["home-hero"].camera;
+  }
+  // The framing needs the region's terrain, so it applies once that has loaded.
+  if (viewerIsNarrow() && currentCoreContext?.dataset?.regionKey === regionKey && DEFAULT_LOOK_AT[regionKey]) {
+    const framed = getLookAtPose(DEFAULT_LOOK_AT[regionKey]);
+    if (framed) return framed;
   }
   return DEFAULT_CAMERA_POSES[regionKey] || DEFAULT_CAMERA_POSES.antarctica;
 }
@@ -2218,7 +2271,6 @@ function lerpColor(from, to, t) {
 const BED_ELEVATION_MIN = -7000;
 const BED_ELEVATION_MAX = 3500;
 const TARGET_WORLD_EXTENT_UNITS = 128;
-const BASE_HORIZONTAL_VERTICAL_SCALE_RATIO = 52000 / 3800;
 const FLOWLINE_PICK_MOVE_THRESHOLD_PX = 7;
 const FLOWLINE_PROFILE_SAMPLE_TARGET = 88;
 const FLOWLINE_HIGHLIGHT_SAMPLE_TARGET = 144;
@@ -2665,7 +2717,7 @@ function formatVelocityTick(value) {
 }
 
 function formatBasalFrictionTick(value) {
-  if (value === 0) return "0 Mpa";
+  if (value === 0) return "0 MPa";
   if (Math.abs(value) < 0.1) return formatCoord(value, 2);
   if (Math.abs(value) < 1) {
     const roundedToTenth = Number(value.toFixed(1));
@@ -2876,11 +2928,37 @@ function updateThermalDrivingLegend() {
   `;
 }
 
+const EFFECTIVE_PRESSURE_LEGEND_TICKS_PA = [0, 1e6, 2e6, 3e6, 4e6, EFFECTIVE_PRESSURE_REFERENCE_PA];
+const CHANNEL_LEGEND_TICKS_M3_PER_S = [1e-3, 1e-2, 1e-1, 1, 10, CHANNEL_DISCHARGE_MAX];
+
+function formatEffectivePressureTick(pressurePa) {
+  if (pressurePa === 0) return "0 MPa";
+  const megapascals = formatCoord(pressurePa / 1e6, 0);
+  // Colours saturate at the reference pressure, which some cells exceed.
+  return pressurePa >= EFFECTIVE_PRESSURE_REFERENCE_PA ? `≥${megapascals}` : megapascals;
+}
+
+function formatChannelDischargeTick(discharge) {
+  if (discharge === CHANNEL_DISCHARGE_MIN) return "0.001 m³/s";
+  if (discharge >= CHANNEL_DISCHARGE_MAX) return `≥${formatCoord(discharge, 0)}`;
+  return discharge < 1 ? String(discharge) : formatCoord(discharge, 0);
+}
+
 function updateEffectivePressureLegend() {
   updateContinuousLegend(controlsUI.effectivePressureLegendBar, (t) => {
     const pressure = t * EFFECTIVE_PRESSURE_REFERENCE_PA;
     return effectivePressureColor(pressure);
   });
+  // Labels sit at their values on the linear bar, not evenly spaced.
+  renderTickLegendLabels(
+    controlsUI.effectivePressureLegendLabels,
+    EFFECTIVE_PRESSURE_LEGEND_TICKS_PA,
+    (pressure) => pressure / EFFECTIVE_PRESSURE_REFERENCE_PA,
+    formatEffectivePressureTick
+  );
+  if (controlsUI.effectivePressureLegendNote) {
+    controlsUI.effectivePressureLegendNote.textContent = t("explorer.legends.effectivePressureNote");
+  }
 }
 
 function updateChannelLegend() {
@@ -2888,6 +2966,13 @@ function updateChannelLegend() {
     const discharge = CHANNEL_DISCHARGE_MIN * (CHANNEL_DISCHARGE_MAX / CHANNEL_DISCHARGE_MIN) ** clamp01(t);
     return subglacialChannelColor(discharge);
   });
+  // Labels sit at their values on the logarithmic bar, not evenly spaced.
+  renderTickLegendLabels(
+    controlsUI.channelLegendLabels,
+    CHANNEL_LEGEND_TICKS_M3_PER_S,
+    channelDischargeNormalized,
+    formatChannelDischargeTick
+  );
 }
 
 function getOceanCurrentVisualizationRanges(oceanMeta) {
@@ -6838,6 +6923,8 @@ function refreshResponsiveLayout() {
   scheduleTickLegendLayout(controlsUI?.velocityLegendLabels);
   scheduleTickLegendLayout(controlsUI?.basalFrictionLegendLabels, { minGapPx: 8 });
   scheduleTickLegendLayout(controlsUI?.basalMeltLegendLabels);
+  scheduleTickLegendLayout(controlsUI?.effectivePressureLegendLabels);
+  scheduleTickLegendLayout(controlsUI?.channelLegendLabels);
   if (shouldUseShowcaseMobileLinkout() && interactionGateActive) {
     setInteractionGateActive(false);
   }
@@ -7414,7 +7501,7 @@ function bindUI() {
 
   controlsUI.exaggeration.addEventListener("input", () => {
     const value = Number(controlsUI.exaggeration.value);
-    controlsUI.exaggerationValue.textContent = `${value.toFixed(1)}x`;
+    controlsUI.exaggerationValue.textContent = formatVerticalExaggeration(value);
   if (bedMesh) bedMesh.scale.y = value;
   if (iceMesh) iceMesh.scale.y = value;
   if (iceBottomMesh) iceBottomMesh.scale.y = value;
@@ -7752,6 +7839,25 @@ function bindUI() {
   updateFullscreenControls();
 }
 
+/**
+ * Thickness and ice-speed statistics over ice-covered cells, computed once per load and
+ * cached on the context. Either is null until its arrays are available.
+ */
+function summariseCurrentIceStatistics() {
+  const context = currentCoreContext;
+  if (!context?.thickness || !context?.iceValid) return { thickness: null, speed: null };
+  if (context.iceThicknessStats === undefined) {
+    context.iceThicknessStats = summariseMasked(context.thickness, context.iceValid, { quantiles: false });
+  }
+  const velocityMatchesContext =
+    velocityField?.velocitySpeed && velocityField.velocityValid && velocityField.iceValid === context.iceValid;
+  if (context.iceSpeedStats === undefined && velocityMatchesContext) {
+    const { velocitySpeed, velocityValid } = velocityField;
+    context.iceSpeedStats = summariseMasked(velocitySpeed, (index) => context.iceValid[index] && velocityValid[index]);
+  }
+  return { thickness: context.iceThicknessStats, speed: context.iceSpeedStats ?? null };
+}
+
 function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hydrologyMeta, oceanCurrentMeta, velocityMedianSpeed) {
   const region = getRegionConfig(dataset.regionKey);
   const capabilities = dataset.capabilities || region.capabilities;
@@ -7759,8 +7865,13 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   const bedStats = meta.fields.find((f) => f.name === "bed").stats_m;
   const thickStats = meta.fields.find((f) => f.name === "thickness").stats_m;
   const speedField = velocityMeta?.fields?.find((f) => f.name === "speed");
-  const speedStats = speedField?.stats_m_per_year;
-  const speedQuantiles = speedField?.quantiles_m_per_year;
+  // Package statistics cover every grid cell, ocean included; the snapshot reports the ice.
+  const iceStats = summariseCurrentIceStatistics();
+  const meanIceThickness = iceStats.thickness ? iceStats.thickness.mean : thickStats.mean;
+  // The package's own speed statistics include open ocean at 0, so none are shown until the
+  // velocity layer has been built and the ice-only ones computed.
+  const speedStats = iceStats.speed;
+  const speedQuantiles = iceStats.speed?.quantiles;
   const basalFrictionField = basalFrictionMeta?.fields?.find((f) => f.name === "basal_friction");
   const basalFrictionStats = basalFrictionField?.stats_mpa;
   const basalFrictionQuantiles = basalFrictionField?.quantiles_mpa;
@@ -7893,7 +8004,7 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
     `<li><strong>${t("explorer.meta.bedElevation")}:</strong> ${fmtInt(bedStats.min)} to ${fmtInt(bedStats.max)} m</li>`,
     `<li><strong>${t("explorer.meta.maxIceThickness")}:</strong> ${fmtInt(thickStats.max)} m</li>`,
     `<li><strong>${t("explorer.meta.meanIceThickness")}:</strong> ${
-      Number.isFinite(thickStats.mean) ? `${fmtInt(thickStats.mean)} m` : notApplicableText
+      Number.isFinite(meanIceThickness) ? `${fmtInt(meanIceThickness)} m` : notApplicableText
     }</li>`,
     ...(qrfHybridSummary
       ? [
@@ -7905,13 +8016,13 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   const velocityItems = capabilities.velocity
     ? [
         `<li><strong>${t("explorer.meta.surfaceSpeedRange")}:</strong> ${
-          speedStats ? `${fmtInt(speedStats.min)} to ${fmtInt(speedStats.max)} m/yr` : notApplicableText
+          speedStats ? `${fmtInt(speedStats.min)} to ${fmtInt(speedStats.max)} m/yr` : availableOnDemandText
         }</li>`,
         `<li><strong>${t("explorer.meta.speedQuantiles")}:</strong> ${
           quantileSummary([
             quantileEntry(
               "median",
-              Number.isFinite(Number(speedQuantiles?.median)) ? speedQuantiles.median : velocityMedianSpeed,
+              speedQuantiles?.median,
               fmtInt,
               " m/yr"
             ),
@@ -8018,14 +8129,14 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
           ]) || notApplicableText
         }</li>`,
         `<li><strong>${t("explorer.meta.channelDischargeRange")}:</strong> ${
-          channelStats ? `${fmtQ(channelStats.min)} to ${fmtQ(channelStats.max)} m3/s` : notApplicableText
+          channelStats ? `${fmtQ(channelStats.min)} to ${fmtQ(channelStats.max)} m³/s` : notApplicableText
         }</li>`,
         `<li><strong>${t("explorer.meta.dischargeQuantiles")}:</strong> ${
           quantileSummary([
-            quantileEntry("median", channelQuantiles?.median, fmtQ, " m3/s"),
-            quantileEntry("P90", channelQuantiles?.q90, fmtQ, " m3/s"),
-            quantileEntry("P95", channelQuantiles?.q95, fmtQ, " m3/s"),
-            quantileEntry("P99", channelQuantiles?.q99, fmtQ, " m3/s"),
+            quantileEntry("median", channelQuantiles?.median, fmtQ, " m³/s"),
+            quantileEntry("P90", channelQuantiles?.q90, fmtQ, " m³/s"),
+            quantileEntry("P95", channelQuantiles?.q95, fmtQ, " m³/s"),
+            quantileEntry("P99", channelQuantiles?.q99, fmtQ, " m³/s"),
           ]) || notApplicableText
         }</li>`,
         `<li><strong>${t("explorer.meta.renderedChannels")}:</strong> ${
@@ -8226,7 +8337,7 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
       `${t("explorer.meta.fieldStatsBed")}: ${Math.round(bedStats.min)} m to ${Math.round(bedStats.max)} m`,
       `${t("explorer.meta.fieldStatsIceMax")}: ${Math.round(thickStats.max)} m`,
       `${t("explorer.meta.fieldStatsVelocityMax")}: ${
-        capabilities.velocity && speedStats ? `${Math.round(speedStats.max)} m/yr` : notApplicableText
+        !capabilities.velocity ? notApplicableText : speedStats ? `${Math.round(speedStats.max)} m/yr` : availableOnDemandText
       }`,
     ];
     if (capabilities.oceanCurrents && oceanStreamlineCount > 0) {
@@ -11571,7 +11682,11 @@ function startBackgroundWarmup() {
     oceanCurrents: ensureOceanCurrentsLoaded,
   };
   (async () => {
-    for (const [position, layer] of editionProfile.backgroundWarmup.entries()) {
+    // On light devices the ocean package waits until its layer is switched on.
+    const warmupLayers = editionProfile.backgroundWarmup.filter(
+      (layer) => !(prefersLightPackages && layer === "oceanCurrents")
+    );
+    for (const [position, layer] of warmupLayers.entries()) {
       if (!context || context !== currentCoreContext || context.generation !== loadGeneration) return;
       if (position > 0) await nextAnimationFrame();
       await loaders[layer]({ trigger: "warmup" });

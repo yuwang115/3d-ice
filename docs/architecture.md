@@ -78,6 +78,8 @@ file, product version and reference it was built from.
 | `static/tools/js/explore-content.js`, `explore-tour.js` | Tour stops and public-edition copy in both locales; camera framing, flights and toggle ordering for the tour |
 | `static/tools/js/polar-projection.js` | EPSG:3031 and EPSG:3413 projections, for placing the camera by latitude and longitude |
 | `static/tools/js/data-contract.js` | Package decoder (the browser half of the data contract) |
+| `static/tools/js/vertical-scale.js` | The scene's base vertical scale and the true vertical exaggeration the slider label shows |
+| `static/tools/js/layer-stats.js` | Statistics of a field over the cells a layer draws, for the Data Snapshot |
 | `static/tools/antarctica-geometry-worker.js` | Module worker that builds velocity, basal-friction, hydrology and ocean-current geometry off the main thread |
 | `static/tools/gia-rebound-worker.js` | Module worker for the idealised isostatic-rebound solve |
 | `static/tools/js/gia-rebound.js`, `gia-grid.js`, `fft2d.js` | Published-response summary, flexural and Airy isostasy solver, grid utilities and 2-D FFT |
@@ -191,6 +193,8 @@ current Chrome, Edge, Firefox and Safari (Chrome and Edge 89+, Firefox 114+, Saf
 | Place search, label styling, refined-basin validation | node:test | `tests/js/polar-features.test.mjs` | JavaScript unit tests |
 | Edition profiles, polar projections against every catalogue position, tour framing and flights, and copy parity across locales | node:test | `tests/js/editions.test.mjs`, `polar-projection.test.mjs`, `explore-tour.test.mjs`, `explore-content.test.mjs` | JavaScript unit tests |
 | Every localisation key used at runtime resolves in both locales | node:test | `tests/js/locale-coverage.test.mjs` | JavaScript unit tests |
+| True vertical exaggeration in labels and copy; Data Snapshot statistics over the drawn cells | node:test | `tests/js/vertical-scale.test.mjs`, `tests/js/layer-stats.test.mjs` | JavaScript unit tests |
+| Ocean-streamline orientation (ROMS components to EPSG:3031 x/y; the circumpolar current flows east in the packages) and subglacial channel filtering | pytest | `tests/test_ocean_current_orientation.py`, `tests/test_prepare_subglacial_hydrology.py` | Python unit and integration tests |
 | Metadata schema of every package; `CITATION.cff` and `codemeta.json` | pytest, cffconvert | `tests/test_metadata_schema.py` | Validate .meta.json files |
 | The distributable bundle contains every runtime file | Node | `scripts/smoke_compat_bundle.mjs` | Compatibility bundle smoke test |
 | Every page a host builds from the bundle links only to files the bundle carries, and the home pages keep the structure yuwang.blog's copy is built from | pytest | `tests/test_site_embed.py` | Python unit tests |

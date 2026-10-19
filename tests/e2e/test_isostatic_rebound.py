@@ -267,7 +267,7 @@ class TestIsostaticRebound:
         rebound = _state(page)["isostaticRebound"]
 
         # The published response for BedMachine Greenland v6: 829.0 m of solid-surface
-        # uplift and 0.39 million km^2 newly emergent, over ice holding ~7.3 m of sea level.
+        # uplift and 0.39 million km^2 newly emergent, over ice holding ~7.5 m of sea level.
         assert rebound["solvedModel"] == "paxman2022"
         assert abs(rebound["maxUpliftMeters"] - 829.0) < 0.2
         assert abs(rebound["emergentAreaKm2"] - 394_199) < 5

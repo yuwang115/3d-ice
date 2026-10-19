@@ -51,7 +51,7 @@ Bed above sea level today                                   6,634,908 km²
 Bed above the ice-free sea surface after rebound            9,560,313 km²
 Newly emergent land                                         2,941,863 km²
 Still below the ice-free sea surface under the present ice  4,351,870 km²
-Sea-level equivalent                                        56.53 m
+Sea-level equivalent                                        58.05 m
 ```
 
 Options: `--region greenland` uses BedMachine Greenland v6, `--dataset` selects any other
@@ -80,10 +80,12 @@ response instead, which alone accepts `--sea-level <metres>`.
   averages 35.8 m under the grounded ice and peaks where ice thickness changes steeply.
 - **The 4 km HD grid agrees to within 0.2 %** (2,936,401 km² emergent), because both packages
   sample the same 500 m published grid.
-- **The sea-level equivalent, 56.5 m,** is the ice volume above flotation converted with
-  the densities of ice (917 kg m⁻³) and seawater (1027 kg m⁻³) and an ocean area of
-  3.625 × 10¹⁴ m², following Gregory et al. (2019). Converting to meltwater at freshwater
-  density instead gives a figure about 3 % higher.
+- **The sea-level equivalent, 58.1 m,** is the ice volume above flotation converted to
+  mass with an ice density of 917 kg m⁻³ and spread over an ocean area of 3.625 × 10¹⁴ m²
+  at freshwater density (1000 kg m⁻³), as Gregory et al. (2019) define sea-level
+  equivalent (362.5 Gt per mm). Morlighem et al. (2020) give 57.9 ± 0.9 m for BedMachine
+  Antarctica v1 the same way. Converting at seawater density instead would give a figure
+  2.6 % lower.
 
 **Against the idealised response.** `node examples/isostatic-rebound.mjs --model flexural`
 solves an elastic plate of uniform rigidity (`D = 1e25 N m`) at today's datum instead. It
