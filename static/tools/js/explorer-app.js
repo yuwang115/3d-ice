@@ -191,7 +191,7 @@ const ALL_REGIONS = {
         url: "https://data.aad.gov.au/metadata/RISE",
       },
       oceanCurrents: {
-        text: "Whole Antarctica Ocean Model 2-km (WAOM2) simulated annual-mean ocean circulation, temperature and salinity",
+        text: "Whole Antarctic Ocean Model 2-km (WAOM2) simulated annual-mean ocean circulation, temperature and salinity (Boeira Dias et al., 2023), redistributed with the authors' permission",
         url: "https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full",
       },
       basins: {
@@ -356,8 +356,8 @@ const ALL_REGIONS = {
         url: "https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1",
       },
       oceanCurrents: {
-        text: "Copernicus Marine Arctic Ocean Physics Analysis and Forecast (monthly mean ocean velocity, temperature, and salinity)",
-        url: "https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description",
+        text: "Generated using E.U. Copernicus Marine Service Information: Arctic Ocean Physics Analysis and Forecast (monthly mean ocean velocity, temperature and salinity)",
+        url: "https://doi.org/10.48670/moi-00001",
       },
       basins: "Greenland Basins PS v1.4.2 catchment boundaries",
       isostaticResponse: {

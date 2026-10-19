@@ -15,11 +15,14 @@
     <meta property="og:url" content="https://3d-ice.com/zh/" />
     <meta property="og:title" content="3D ICE：冰冻圈交互探索平台" />
     <meta property="og:description" content="以 3D 方式探索南极洲与格陵兰。在科普版中跟随导览，或打开专业版，查看全部数据集、分辨率与图层。" />
-    <meta property="og:image" content="https://3d-ice.com/tools/featured.png" />
+    <meta property="og:image" content="https://3d-ice.com/tools/3d-ice-share.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="627" />
+    <meta property="og:image:alt" content="3D ICE 中的南极冰盖及其周边海底（高度经过夸大）" />
     <meta property="og:locale" content="zh_CN" />
     <meta property="og:locale:alternate" content="en_US" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://3d-ice.com/tools/featured.png" />
+    <meta name="twitter:image" content="https://3d-ice.com/tools/3d-ice-share.jpg" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
@@ -72,13 +75,13 @@
         "operatingSystem": "Any",
         "browserRequirements": "需要支持 WebGL 的现代浏览器。",
         "inLanguage": "zh-CN",
-        "image": "https://3d-ice.com/tools/featured.png",
-        "thumbnailUrl": "https://3d-ice.com/tools/featured.png",
+        "image": "https://3d-ice.com/tools/3d-ice-share.jpg",
+        "thumbnailUrl": "https://3d-ice.com/tools/3d-ice-share.jpg",
         "featureList": [
           "科普版：九站导览与通俗易懂的图层说明",
           "专业版：全部数据集、分辨率与图层",
           "在同一个交互式 3D 环境中探索南极洲与格陵兰",
-          "直达每个源数据集的链接"
+          "列出并链接全部源数据集；专业版数据快照链接当前显示的数据集"
         ],
         "author": { "@type": "Person", "name": "Yu Wang", "url": "https://yuwang.blog/" },
         "publisher": { "@type": "Organization", "name": "Yu Wang", "url": "https://3d-ice.com/" },
@@ -120,7 +123,7 @@
             "name": "我可以在 3D ICE 中探索哪些数据？",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "南极洲与格陵兰的基岩地形、冰厚与冰流、海洋环流、海平面以及无冰状态下的地壳均衡回弹；专业版还提供基底摩擦，以及南极的冰下水文和冰架底部融化。每个图层都来自已发表的数据集、模型或预印本。"
+              "text": "南极洲与格陵兰的基岩地形、冰厚与冰流、海洋环流、海平面以及无冰状态下的地壳均衡回弹，以及基于八个 ISMIP6 模型的南极冰盖 2300 年预估；专业版还提供基底摩擦，以及南极的冰下水文和冰架底部融化。每个图层都来自已发表的数据集、模型或预印本。"
             }
           },
           {
@@ -223,7 +226,7 @@
                 <ul class="explorer-edition-points" role="list">
                   <li>九站导览：从冰雪大陆出发，探访冰层下隐藏的陆地、南大洋和南极的未来，再到格陵兰</li>
                   <li>每个图层旁都有通俗易懂的说明，并注明所用数据的来源</li>
-                  <li>冰流、洋流、海平面，以及冰盖消失后抬升的陆地</li>
+                  <li>冰流、洋流、海平面、南极到 2300 年的未来，以及冰盖消失后抬升的陆地</li>
                   <li>适合手机、平板、课堂教学和科普展台</li>
                 </ul>
                 <p class="explorer-edition-meta">约六分钟 · 中文与 <span lang="en">English</span></p>
@@ -240,6 +243,7 @@
                   <li>南极的 BedMachine 与 Bedmap3、格陵兰的 BedMachine 与 QRF 基岩地形，各有两种分辨率</li>
                   <li>两大冰盖的冰流速度、基底摩擦，以及分四个深度层的洋流</li>
                   <li>南极另有冰下有效压力与水文通道，以及基于 BedMachine 地形的冰架底部融化与热驱动</li>
+                  <li>南极冰盖在三种 ISMIP6 情景下到 2300 年的预估：八个冰盖模型的平均，并给出海平面贡献的范围</li>
                   <li>基于已发表的 Paxman 等（2022）响应的无冰回弹，并提供理想化的 ELRA 与 Airy 模型作对比</li>
                   <li>数据快照为当前显示的数据集链接来源；点击任意冰流线，即可查看冰面、冰底与基岩的沿流剖面</li>
                 </ul>
@@ -287,6 +291,11 @@
                       <th scope="row">基底摩擦、冰下水文与冰架融化</th>
                       <td>无</td>
                       <td>有；冰下水文与冰架融化仅限南极</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">南极的未来（ISMIP6，至 2300 年）</th>
+                      <td>三种情景，按冰厚变化着色</td>
+                      <td>同上，或按接地冰/漂浮冰着色，数据快照列出方法与模型</td>
                     </tr>
                     <tr>
                       <th scope="row">无冰回弹</th>
@@ -368,7 +377,7 @@
               <article class="explorer-video-card" data-demo-slot="antarctica-subglacial-features" data-editions="research">
                 <div class="explorer-video-copy">
                   <h3>冰下特征</h3>
-                  <p>探秘冰盖之下的隐秘世界。精准映射巨厚冰层深处的有效压力分布与冰下水文通道。</p>
+                  <p>探秘冰盖之下的隐秘世界：展示巨厚冰层之下模拟的有效压力分布与冰下水文通道。</p>
                   <ul class="explorer-edition-tags" role="list" aria-label="所属版本">
                     <li><span class="explorer-edition-tag explorer-edition-tag--research">专业版</span></li>
                   </ul>
@@ -474,6 +483,28 @@
             </div>
             <ol class="explorer-update-list">
               <li>
+                <article class="explorer-update-card" aria-labelledby="projection-update-title">
+                  <div class="explorer-update-meta">
+                    <time class="explorer-update-date" datetime="2026-10-06">2026年10月6日</time>
+                    <span class="explorer-update-badge">两个版本</span>
+                  </div>
+                  <div class="explorer-update-body">
+                    <h3 id="projection-update-title">看南极冰盖演变到 2300 年</h3>
+                    <p>
+                      年份滑块从 2015 年播放到 2300 年，展示低排放、高排放以及高排放并伴随冰架崩解三种情景下南极冰盖的变化。每幅图都是八个 ISMIP6 冰盖模型（Seroussi 等，2024）的平均变化，套用到今天的冰盖上，并给出各模型对海平面的贡献及其范围。
+                    </p>
+                    <ul class="explorer-update-highlights">
+                      <li><strong>情景：</strong>UKESM1-0-LL 气候强迫下的 SSP1-2.6 与 SSP5-8.5，以及冰架因表面融化而崩解的 SSP5-8.5。</li>
+                      <li><strong>冰流线：</strong>冰流线贴合预估的冰面，并在模型中冰川加速的地方加速。</li>
+                      <li><strong>导览：</strong>新增一站，用十五秒播放高排放下的未来。</li>
+                    </ul>
+                    <div class="explorer-actions">
+                      <a class="explorer-button explorer-button--primary" href="./tools/3D-interactive-cryosphere-explorer.html">打开专业版</a>
+                    </div>
+                  </div>
+                </article>
+              </li>
+              <li>
                 <article class="explorer-update-card" aria-labelledby="public-edition-update-title">
                   <div class="explorer-update-meta">
                     <time class="explorer-update-date" datetime="2026-09-30">2026年9月30日</time>
@@ -556,7 +587,7 @@
               </article>
               <article class="explorer-feature-card">
                 <h3>两大冰盖，一处尽览</h3>
-                <p>在同一环境中切换南极洲与格陵兰，两者使用相同的控件和相同的核心图层：陆地、冰盖、海洋，以及冰盖消失后的回弹。冰下水文与冰架融化仅限南极。</p>
+                <p>在同一环境中切换南极洲与格陵兰，两者使用相同的控件和相同的核心图层：陆地、冰盖、海洋，以及冰盖消失后的回弹。冰下水文、冰架融化与 2300 年预估仅限南极。</p>
               </article>
               <article class="explorer-feature-card">
                 <h3>手机流畅，大屏清晰</h3>
@@ -570,7 +601,7 @@
               <p class="explorer-region-label">源数据</p>
               <h2 id="source-data-title">3D ICE 背后的数据集</h2>
               <p>
-                每个图层都来自已发表的数据集、模型或预印本。专业版的数据快照为当前显示的数据集链接来源，科普版的图层说明也注明了所用数据。3D ICE 本身以 MIT 许可证开源：代码以及生成数据包的脚本都在 <a href="https://github.com/yuwang115/3d-ice" target="_blank" rel="noopener">GitHub</a> 上。
+                每个图层都来自已发表的数据集、模型或预印本。专业版的数据快照为当前显示的数据集链接来源，科普版的图层说明也注明了所用数据。3D ICE 的代码以及生成数据包的脚本以 MIT 许可证在 <a href="https://github.com/yuwang115/3d-ice" target="_blank" rel="noopener">GitHub</a> 上开源；数据本身仍遵循其提供方的许可与条款，详见 <a href="https://github.com/yuwang115/3d-ice/blob/main/DATA_LICENSES.md" target="_blank" rel="noopener" lang="en">DATA_LICENSES.md</a>。
               </p>
             </div>
             <div class="explorer-source-columns">
@@ -588,7 +619,7 @@
                   <li><a href="https://doi.org/10.18739/A22Z12R8C" target="_blank" rel="noopener">格陵兰与南极冰盖完全卸载后的总均衡响应（Paxman、Austermann 与 Hollyday，2022）</a></li>
                   <li><a href="https://doi.org/10.5281/zenodo.13135599" target="_blank" rel="noopener">ISMIP6 南极冰盖 2300 年预估（Nowicki 与 ISMIP6 团队，2024；Seroussi 等，2024）</a></li>
                   <li><a href="https://doi.org/10.3189/S0260305500013586" target="_blank" rel="noopener">不同地壳均衡处理方法的比较：以末次冰期旋回南极冰盖模拟为例（Le Meur &amp; Huybrechts, 1996）</a></li>
-                  <li><a href="https://www.comnap.aq/antarctic-facilities-information" target="_blank" rel="noopener">COMNAP 南极设施名录</a></li>
+                  <li><a href="https://www.comnap.aq/antarctic-facilities-information" target="_blank" rel="noopener">COMNAP 南极设施名录（COMNAP 2025；仅限教育与非商业用途）</a></li>
                   <li><a href="https://placenames.aq/information" target="_blank" rel="noopener">SCAR 南极综合地名录</a></li>
                   <li><a href="https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-physical-labels/" target="_blank" rel="noopener">Natural Earth 自然地理标注</a></li>
                 </ul>
@@ -601,7 +632,7 @@
                   <li><a href="https://doi.org/10.7280/D1WT11" target="_blank" rel="noopener">格陵兰冰盖冰川汇水流域（Mouginot &amp; Rignot, 2019）</a></li>
                   <li><a href="https://nsidc.org/data/NSIDC-0776/versions/2" target="_blank" rel="noopener" lang="en">MEaSUREs ITS_LIVE Regional Glacier and Ice Sheet Surface Velocities, Version 2</a></li>
                   <li><a href="https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1" target="_blank" rel="noopener" lang="en">Greenland Basal Friction Ensemble Inversion Reference</a></li>
-                  <li><a href="https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description" target="_blank" rel="noopener" lang="en">Copernicus Marine Arctic Ocean Physics Analysis and Forecast</a></li>
+                  <li><a href="https://doi.org/10.48670/moi-00001" target="_blank" rel="noopener" lang="en">Arctic Ocean Physics Analysis and Forecast, generated using E.U. Copernicus Marine Service Information</a></li>
                   <li><a href="https://doi.org/10.18739/A22Z12R8C" target="_blank" rel="noopener">格陵兰与南极冰盖完全卸载后的总均衡响应（Paxman、Austermann 与 Hollyday，2022）</a></li>
                   <li><a href="https://doi.org/10.3189/S0260305500013586" target="_blank" rel="noopener">不同地壳均衡处理方法的比较：以末次冰期旋回南极冰盖模拟为例（Le Meur &amp; Huybrechts, 1996）</a></li>
                   <li><a href="https://www.interact-gis.org/" target="_blank" rel="noopener">INTERACT 科考站名录</a></li>
@@ -725,9 +756,9 @@
         </div>
       </div>
       <p class="explorer-footer-note">
-        © 2026 Yu Wang。本作品采用
+        © 2026 Yu Wang。代码采用
         <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer">MIT 许可证</a>
-        授权。<a href="https://github.com/yuwang115/3d-ice" target="_blank" rel="noopener">在 GitHub 查看源代码</a>。
+        授权；数据版权归其提供方所有，遵循各自的许可（见<a href="#source-data">数据来源</a>）。<a href="https://github.com/yuwang115/3d-ice" target="_blank" rel="noopener">在 GitHub 查看源代码</a>。
       </p>
     </footer>
     <script src="https://js.usebasin.com/v2.10.1.min.js" defer></script>

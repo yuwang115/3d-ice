@@ -27,7 +27,7 @@ const SOURCES = Object.freeze({
   greenlandVelocity: "https://nsidc.org/data/NSIDC-0776/versions/2",
   waom: "https://doi.org/10.3389/fmars.2023.1027704",
   iceShelfThinning: "https://doi.org/10.1126/science.aaa0940",
-  arcticOcean: "https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description",
+  arcticOcean: "https://doi.org/10.48670/moi-00001",
   isostaticResponse: "https://doi.org/10.1038/s41598-022-15440-y",
   isostaticGrids: "https://doi.org/10.18739/A22Z12R8C",
   massBalance: "https://doi.org/10.5194/essd-15-1597-2023",
@@ -323,7 +323,7 @@ const EN = {
       ],
       sources: [
         { text: "Antarctica: WAOM2 ocean model, annual mean (Dias et al., 2023)", url: SOURCES.waom },
-        { text: "Greenland: Copernicus Marine Arctic Ocean analysis, monthly mean", url: SOURCES.arcticOcean },
+        { text: "Greenland: generated using E.U. Copernicus Marine Service Information (Arctic Ocean analysis, August 2025 monthly mean)", url: SOURCES.arcticOcean },
       ],
     },
     seaLevel: {
@@ -364,7 +364,7 @@ const EN = {
         "Research stations are the year-round and summer bases where scientists live and work. Place names cover mountains, glaciers, ice shelves and seas. Search for any of them to fly there.",
       ],
       sources: [
-        { text: "Antarctic stations: COMNAP Antarctic Facilities List", url: SOURCES.comnap },
+        { text: "Antarctic stations: COMNAP Antarctic Facilities List (COMNAP 2025), for educational and non-commercial use", url: SOURCES.comnap },
         { text: "Antarctic names: SCAR Composite Gazetteer of Antarctica", url: SOURCES.scarGazetteer },
         { text: "Greenland stations: INTERACT research-station directory", url: SOURCES.interact },
         { text: "Greenland names: Greenland Place Names Register, via NunaGIS", url: SOURCES.greenlandPlaceNames },
@@ -560,7 +560,7 @@ const ZH = {
       ],
       sources: [
         { text: "南极：WAOM2 海洋模式，年平均（Dias 等，2023）", url: SOURCES.waom },
-        { text: "格陵兰：哥白尼海洋服务北冰洋分析，月平均", url: SOURCES.arcticOcean },
+        { text: "格陵兰：使用欧盟哥白尼海洋服务（E.U. Copernicus Marine Service）信息生成（北冰洋分析，2025 年 8 月月平均）", url: SOURCES.arcticOcean },
       ],
     },
     seaLevel: {
@@ -599,7 +599,7 @@ const ZH = {
         "科考站是科学家常年或夏季生活、工作的基地。地名涵盖山脉、冰川、冰架和海域。搜索其中任何一个，就能飞过去看看。",
       ],
       sources: [
-        { text: "南极科考站：COMNAP 南极设施名录", url: SOURCES.comnap },
+        { text: "南极科考站：COMNAP 南极设施名录（COMNAP 2025），仅限教育与非商业用途", url: SOURCES.comnap },
         { text: "南极地名：SCAR 南极综合地名录", url: SOURCES.scarGazetteer },
         { text: "格陵兰科考站：INTERACT 科考站名录", url: SOURCES.interact },
         { text: "格陵兰地名：格陵兰地名登记册（NunaGIS）", url: SOURCES.greenlandPlaceNames },
