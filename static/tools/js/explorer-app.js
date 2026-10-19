@@ -3052,7 +3052,7 @@ function getOceanCurrentVisualizationRanges(oceanMeta) {
 }
 
 function formatOceanLegendValue(value, unit, digits = 1) {
-  if (!Number.isFinite(value)) return `n/a ${unit}`;
+  if (!Number.isFinite(value)) return `${t("explorer.meta.notApplicable")} ${unit}`;
   return `${Number(value).toLocaleString(numberLocale, {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,

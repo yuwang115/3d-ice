@@ -40,9 +40,9 @@ test("an array runs its parts together, so one line can credit a data set and it
   assert.ok(html.endsWith(">article (2025)</a>"));
 });
 
-test("a source line labels its source and appends a suffix", () => {
+test("a source line labels its source and appends a suffix, all escaped", () => {
   assert.equal(
-    renderSourceLine("Melt <drivers>", "RISE", " (15 cells)"),
-    '<li class="meta-compact"><strong>Melt &lt;drivers&gt;:</strong> RISE (15 cells)</li>'
+    renderSourceLine("Melt <drivers>", "RISE", " (15 <cells>)"),
+    '<li class="meta-compact"><strong>Melt &lt;drivers&gt;:</strong> RISE (15 &lt;cells&gt;)</li>'
   );
 });

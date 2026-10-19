@@ -27,5 +27,5 @@ export function renderSourceValue(source) {
 }
 
 export function renderSourceLine(label, source, suffix = "") {
-  return `<li class="meta-compact"><strong>${escapeHtml(label)}:</strong> ${renderSourceValue(source)}${suffix}</li>`;
+  return `<li class="meta-compact"><strong>${escapeHtml(label)}:</strong> ${renderSourceValue(source)}${escapeHtml(suffix)}</li>`;
 }
