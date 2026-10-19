@@ -8039,12 +8039,12 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
     ? isChineseLocale
       ? `基于年平均模式场预计算 ${fmtInt(
           oceanStreamlineCount
-        )} 条海洋流线，覆盖四个垂向层（表层、上层、中层、下层），其中 ${fmtInt(
+        )} 条海洋流线，种子点位于当地水深的 3–18 %、18–40 %、40–70 % 和 70–95 % 四个深度带（表层、上层、中层、下层），其中 ${fmtInt(
           cavityMargin80kmStreamlineCount
         )} 条位于冰架腔体及 80 km 沿岸带，${fmtInt(remoteOpenOceanStreamlineCount)} 条位于外海。`
       : `Precomputed ${fmtInt(
           oceanStreamlineCount
-        )} ocean streamlines from annual mean model fields across four vertical layers (surface, upper, mid, lower), including ${fmtInt(
+        )} ocean streamlines from annual mean model fields, seeded in four depth bands at 3–18, 18–40, 40–70 and 70–95 % of the local water depth (surface, upper, mid, lower), including ${fmtInt(
           cavityMargin80kmStreamlineCount
         )} in the ice-shelf cavity and 80-km coastal zone, and ${fmtInt(
           remoteOpenOceanStreamlineCount
@@ -8053,10 +8053,10 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
     ? isChineseLocale
       ? `基于 2025 年 8 月模式场预计算 ${fmtInt(
           oceanStreamlineCount
-        )} 条海洋流线，覆盖四个垂向层（表层、上层、中层、下层）。`
+        )} 条海洋流线，种子点位于当地水深的 3–18 %、18–40 %、40–70 % 和 70–95 % 四个深度带（表层、上层、中层、下层）。`
       : `Precomputed ${fmtInt(
           oceanStreamlineCount
-        )} ocean streamlines from August 2025 model fields across four vertical layers (surface, upper, mid, lower).`
+        )} ocean streamlines from August 2025 model fields, seeded in four depth bands at 3–18, 18–40, 40–70 and 70–95 % of the local water depth (surface, upper, mid, lower).`
     : isChineseLocale
     ? `${fmtInt(oceanStreamlineCount)} 条流线${
         oceanCurrentLayerCount > 1 ? `，覆盖 ${fmtInt(oceanCurrentLayerCount)} 个深度层` : ""

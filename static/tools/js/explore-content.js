@@ -319,7 +319,7 @@ const EN = {
     oceanCurrents: {
       title: "Ocean currents",
       body: [
-        "Lines follow the currents, from near the surface down to deep water, as computed by an ocean model. Colour combines the water's temperature and saltiness; the legend below shows the scale. Around Antarctica the currents reach into the cavities under the ice shelves.",
+        "Lines follow the currents, from near the surface down to deep water, as computed by an ocean model. Each starts in one of four depth bands set by the depth of the water there (3–18 %, 18–40 %, 40–70 % or 70–95 % of the way down) and then follows the flow. Colour combines the water's temperature and saltiness; the legend below shows the scale. Around Antarctica the currents reach into the cavities under the ice shelves.",
       ],
       sources: [
         { text: "Antarctica: WAOM2 ocean model, annual mean (Dias et al., 2023)", url: SOURCES.waom },
@@ -552,7 +552,7 @@ const ZH = {
     oceanCurrents: {
       title: "洋流",
       body: [
-        "这些线追踪海洋模式计算出的洋流，从近海面一直到深层海水。颜色综合了海水的温度和咸度，刻度见下方图例。在南极周围，洋流会深入冰架下方的空腔。",
+        "这些线追踪海洋模式计算出的洋流，从近海面一直到深层海水。每条线都从按当地水深划分的四个深度带之一出发（水深的 3–18 %、18–40 %、40–70 % 或 70–95 % 处），然后随水流运动。颜色综合了海水的温度和咸度，刻度见下方图例。在南极周围，洋流会深入冰架下方的空腔。",
       ],
       sources: [
         { text: "南极：WAOM2 海洋模式，年平均（Dias 等，2023）", url: SOURCES.waom },
