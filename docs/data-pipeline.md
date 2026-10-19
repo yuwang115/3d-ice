@@ -95,8 +95,9 @@ python scripts/prepare_ismip6_projection.py \
 ```
 
 The regridded volume change of every model matches its published `ivol` (Seroussi & Pelle
-2024) once the ice density and ISMIP6's map-scale factor are applied. The ratio is 1.05-1.07,
-which is 1/ρ<sub>ice</sub> times an area factor of 1.02-1.04 over the regions that lose ice.
+2024) once the ice density and ISMIP6's map-scale factor are applied. The ratio is 1.05-1.07:
+1/ρ<sub>ice</sub> divided by an area factor of 1.02-1.04, the ratio of true to nominal cell area
+over the regions that lose ice.
 
 The thinning is scaled because the models start from their own 2015 ice. On the ice shelves
 it is 26 % thinner to 18 % thicker than BedMachine, cell by cell (10th to 90th percentile).

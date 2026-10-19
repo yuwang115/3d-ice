@@ -26,7 +26,8 @@ const SOLVER_MAX_CELL_M = 28000;
  * from the polar radius on a sphere of radius `earthRadiusMeters`; against the WGS84
  * ellipsoid that leaves a sub-percent residual, far inside the several-percent spread the
  * mantle-density choice already imposes on these statistics. Ignoring the correction
- * entirely would instead bias cell areas by roughly -3 % at the pole to +8 % at 60 deg.
+ * entirely would instead understate cell areas by about 5 % at the pole and overstate them
+ * by about 9 % at 60 deg.
  */
 export function polarStereographicCellAreaM2({
   xMeters,

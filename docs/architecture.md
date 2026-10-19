@@ -96,7 +96,7 @@ bibliography.
 **Boundaries.** The modules in the table's lower half have no DOM or scene dependencies
 and run unchanged under Node's test runner, which is how they are unit-tested.
 `explorer-app.js` is the orchestration layer that owns the DOM and the Three.js scene; it is
-still large (about 10,000 lines), and moving further domain logic out of it into tested
+still large (about 12,000 lines), and moving further domain logic out of it into tested
 modules is ongoing work. Both locale pages load the same runtime and stylesheet: they
 differ only in markup text and page metadata, and every string the runtime displays is
 looked up through `t()`. `explore-guide.js` is the public edition's only DOM module

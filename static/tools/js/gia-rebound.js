@@ -65,8 +65,8 @@
  * by <0.1 % (RMS 1.6 m on a 1026 m peak). Local (Airy) isostasy has no intrinsic length
  * scale, so it is always solved pointwise at native resolution instead.
  *
- * Areas are integrated with the polar-stereographic point scale factor, which varies the
- * true area of a nominally constant grid cell by roughly -3 % to +8 % across Antarctica.
+ * Areas are integrated with the polar-stereographic point scale factor: a nominally equal
+ * grid cell covers about 5.7 % more ground at the pole than its dx dy, and 8 % less at 60 S.
  *
  * References
  * ----------
