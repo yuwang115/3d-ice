@@ -78,6 +78,9 @@ Corrections from a pre-announcement audit of 0.3.0.
 - The home pages describe the Southern Ocean preview as annual-mean circulation, not
   "ever-changing", and the Greenland one as currents on the shelf and offshore, not in deep
   fjords, which the 6 km Copernicus grid does not resolve.
+- The ocean legend, the public explainer and the Data Snapshot say what the streamlines'
+  four depth bands are: where they were seeded, at 3–18 %, 18–40 %, 40–70 % and 70–95 % of
+  the local water depth.
 
 ### Changed
 
