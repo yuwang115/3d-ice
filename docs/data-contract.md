@@ -163,17 +163,17 @@ and `resampling` (the method and the reason). Coverage counts, display hints
 (`visualization`) and product-specific processing notes (`hybridization`,
 `channel_filter`, `inference_note`) sit alongside.
 
-The explorer's metadata panel shows these records, and each data layer links back to its
-source product.
+The research edition's Data Snapshot summarises these records and links the source products
+of the datasets in view; the public edition's layer explainers cite them.
 
 ## Packages the runtime does not load
 
 The combined Antarctic ocean-current package lists its inputs in
 `sampling.component_datasets`: `..._cavity_margin80km` and `..._remote_open_ocean`. They
 are kept so that `combine_antarctica_ocean_current_datasets.py` can rebuild the combined
-package without repeating the streamline integration. Two further Antarctic streamline
-packages, `..._yr5_annual` and `..._cavity_margin50km`, are alternative seeding
-configurations. None of these four is loaded by the explorer.
+package without repeating the streamline integration. Neither is loaded by the explorer.
+The phone-sized `..._combined_light` package, which the explorer does load on small
+screens, is merged from lighter components that are not committed.
 
 ## Adding a package
 
