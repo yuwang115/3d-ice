@@ -925,6 +925,39 @@ test("deriveReboundedIceSurfaces re-floats a shelf and grounds it on a rising be
   assert.equal(shallow.bottom[0], -100, "a rising bed grounds the shelf");
 });
 
+// Version 0.3.1 re-floated only ice that was floating to begin with, so thinned marine ice
+// stayed pinned to a deep bed far below the sea surface.
+test("deriveReboundedIceSurfaces lifts thinning grounded marine ice off its bed once it floats", () => {
+  // Bed -2500 m with 700 m of equilibrium uplift, half-way through: bed -2150 m, 1500 m of ice.
+  const { surface, bottom } = deriveReboundedIceSurfaces({
+    cellCount: 1,
+    reboundedBedHeights: Float32Array.from([-2150]),
+    thickness: Float32Array.from([3000]),
+    mask: Uint8Array.from([MASK_GROUNDED_ICE]),
+    iceValid: Uint8Array.from([1]),
+    fraction: 0.5,
+  });
+  const draft = -(ICE_DENSITY_KG_M3 * 1500) / SEAWATER_DENSITY_KG_M3;
+  assert.ok(Math.abs(bottom[0] - draft) < 1e-3, `base ${bottom[0]}`);
+  assert.ok(Math.abs(surface[0] - (draft + 1500)) < 1e-3, `surface ${surface[0]}`);
+});
+
+test("deriveReboundedIceSurfaces keeps the ice over a subglacial lake on its lake", () => {
+  const args = {
+    cellCount: 2,
+    reboundedBedHeights: Float32Array.from([-1000, -1000]),
+    thickness: Float32Array.from([3700, 3700]),
+    mask: Uint8Array.from([MASK_SUBGLACIAL_LAKE, MASK_GROUNDED_ICE]),
+    iceValid: Uint8Array.from([1, 1]),
+    fraction: 0,
+  };
+  const withLake = deriveReboundedIceSurfaces({ ...args, lakeDepths: Float32Array.from([400, 400]) });
+  assert.equal(withLake.bottom[0], -600, "the ice floats on 400 m of lake water");
+  assert.equal(withLake.surface[0], 3100);
+  assert.equal(withLake.bottom[1], -1000, "lake depths apply only to lake cells");
+  assert.equal(deriveReboundedIceSurfaces(args).bottom[0], -1000, "without lake depths the ice rests on the bed");
+});
+
 test("deriveReboundedIceSurfaces marks ice-free cells as no-data", () => {
   const { surface, bottom } = deriveReboundedIceSurfaces({
     cellCount: 1,

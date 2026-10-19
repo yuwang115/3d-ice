@@ -388,6 +388,8 @@
           sourceSubglacialHydrology: "Subglacial Hydrology",
           sourceOceanCirculation: "Ocean Circulation",
           sourceMeltDrivers: "Melt Drivers",
+          // Suffixes bring their own spacing, which differs between the locales.
+          iceShelfCellCount: " ({count} ice-shelf cells)",
           sourceIsostaticResponse: "Isostatic Response",
           sourceIceProjection: "Ice-sheet Projection",
           iceProjectionSection: "Ice-sheet projection",
@@ -838,6 +840,7 @@
           sourceSubglacialHydrology: "冰下水文",
           sourceOceanCirculation: "海洋环流",
           sourceMeltDrivers: "融化驱动",
+          iceShelfCellCount: "（{count} 个冰架格点）",
           sourceIsostaticResponse: "地壳均衡响应",
           sourceIceProjection: "冰盖未来预估",
           iceProjectionSection: "冰盖未来预估",

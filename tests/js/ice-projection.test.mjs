@@ -9,17 +9,20 @@ import {
   collectIceTriangles,
   decodeIceProjection,
   DEFAULT_DENSITY_RATIO,
+  domainCellAreasKm2,
   flotationGeometryInto,
   heightfieldNormalsInto,
   ICE_PROJECTION_GEOMETRY_TYPE,
   locateYear,
   rephaseInto,
+  restingBedInto,
   sampleDomainInto,
   sampleSeries,
   thicknessChangeColor,
   thicknessChangeRampColor,
   thicknessChangeScaleT,
 } from "../../static/tools/js/ice-projection.js";
+import { polarStereographicCellAreaM2 } from "../../static/tools/js/gia-grid.js";
 
 const RATIO = 917 / 1028;
 
@@ -188,6 +191,59 @@ test("flotationGeometryInto grounds heavy ice, floats light ice, and collapses i
   assert.equal(base[2], 200);
   assert.equal(surface[3], 0);
   assert.equal(base[3], 0);
+});
+
+// Version 0.3.1 rebuilt the ice on BedMachine's bed, which over Lake Vostok is the lake
+// floor: switching the projection on dropped the ice surface there by 246 m (median) with
+// no change shown.
+test("restingBedInto raises the bed by the lake water beneath the ice over a subglacial lake", () => {
+  const projection = decodeIceProjection(...Object.values(syntheticPackage()));
+  // A 300 m deep lake beneath grid cell 6, the domain's second vertex.
+  const lakeDepthByCell = new Float32Array(12);
+  lakeDepthByCell[6] = 300;
+  lakeDepthByCell[9] = Number.NaN;
+  const resting = restingBedInto(projection, lakeDepthByCell, new Float32Array(5));
+  assert.deepEqual([...resting], [-500, -200, 100, 200, -800]);
+  assert.deepEqual([...restingBedInto(projection, null, new Float32Array(5))], [...projection.bed]);
+});
+
+test("ice over a subglacial lake keeps its surface when rebuilt from its resting level", () => {
+  const projection = decodeIceProjection(...Object.values(syntheticPackage()));
+  const lakeDepthByCell = new Float32Array(12);
+  lakeDepthByCell[6] = 300;
+  const resting = restingBedInto(projection, lakeDepthByCell, new Float32Array(5));
+  const thickness = Float32Array.of(1000, 3000, 0, 800, 100);
+  const surface = new Float32Array(5);
+  const base = new Float32Array(5);
+  const grounded = new Uint8Array(5);
+  flotationGeometryInto(resting, thickness, RATIO, surface, base, grounded);
+  assert.equal(grounded[1], 1);
+  assert.equal(base[1], -200, "the ice rests on the lake, 300 m above the lake floor");
+  assert.equal(surface[1], 2800);
+});
+
+// The readout's grounded area summed nominal 100 km2 cells: 12.0 million km2 for Antarctica
+// against 12.3 million once the map scale factor is applied.
+test("domainCellAreasKm2 gives each domain cell its scale-corrected area", () => {
+  const projection = decodeIceProjection(...Object.values(syntheticPackage()));
+  const areas = domainCellAreasKm2(projection, -71);
+  assert.equal(areas.length, 5);
+  const { nx, cellIndex, grid } = projection;
+  for (let v = 0; v < 5; v += 1) {
+    const col = cellIndex[v] % nx;
+    const row = (cellIndex[v] - col) / nx;
+    const expected =
+      polarStereographicCellAreaM2({
+        xMeters: grid.x0_m + col * grid.dx_m,
+        yMeters: grid.y0_m + row * grid.dy_m,
+        dxMeters: grid.dx_m,
+        dyMeters: grid.dy_m,
+        standardParallelDegrees: -71,
+      }) / 1e6;
+    assert.ok(Math.abs(areas[v] - expected) < 1e-9, `vertex ${v}`);
+  }
+  // Near the pole a nominal 100 km2 cell covers about 5.7 % more ground.
+  assert.ok(areas[0] > 105.6 && areas[0] < 105.7, `got ${areas[0]}`);
 });
 
 test("buildDomainTriangles keeps only triangles whose corners are all domain cells", () => {

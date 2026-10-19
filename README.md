@@ -175,7 +175,7 @@ replace the host's own home page. yuwang.blog builds its `/tools/3d-ice/` page t
 | `static/tools/js/explorer-app.js`, `static/tools/css/explorer.css` | The explorer runtime and styles that every explorer page loads. |
 | `static/tools/js/editions.js` | What each edition offers: datasets, layers and runtime behaviours. |
 | `static/tools/js/explore-guide.js`, `explore-content.js`, `explore-tour.js`, `static/tools/css/explore.css` | The public edition's guided tour and layer explainers: interface, copy, camera and tour logic, and styles. |
-| `static/tools/js/` (other modules) | Data-package decoder, polar projections, vertical scale, layer statistics, isostatic-rebound solver, and place and feature search. |
+| `static/tools/js/` (other modules) | Data-package decoder, polar projections, vertical scale, layer statistics, overlay cell rules, isostatic-rebound solver, and place and feature search. |
 | `static/tools/*-worker.js` | Web Workers for overlay geometry and the rebound solve. |
 | `static/js/3d-ice-locale.js` | English and Chinese interface strings. |
 | `static/tools/data/` | Prepared data packages (`.bin` + `.meta.json`) and feature catalogues. |

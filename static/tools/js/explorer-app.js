@@ -26,6 +26,7 @@ const [
   { easeInOutCubic, flightDurationMs, framePose, interpolatePose, orbitPose },
   { BASE_HORIZONTAL_VERTICAL_SCALE_RATIO, formatVerticalExaggeration },
   { summariseMasked },
+  { isInOpenWater },
 ] = await Promise.all([
   import(assetUrl("js/polar-features.js")),
   import(assetUrl("js/polar-refined-basins.js")),
@@ -35,6 +36,7 @@ const [
   import(assetUrl("js/explore-tour.js")),
   import(assetUrl("js/vertical-scale.js")),
   import(assetUrl("js/layer-stats.js")),
+  import(assetUrl("js/overlay-cells.js")),
 ]);
 const editionProfile = getEditionProfile(document.documentElement.dataset.edition);
 // An edition without the basin layer leaves basins out of place search as well.
@@ -2326,6 +2328,8 @@ const OCEAN_CURRENT_MAIN_THREAD_FALLBACK_SEGMENT_LIMIT = 250000;
 const OCEAN_CURRENT_MAIN_THREAD_FALLBACK_BIN_BYTES_LIMIT = 16 * 1024 * 1024;
 const VELOCITY_SURFACE_OPACITY = 0.82;
 const OCEAN_CURRENT_BED_CLEARANCE_M = 20;
+// Only a sliver of water beneath an ice shelf, where the shelf's boundary current runs.
+const OCEAN_CURRENT_ICE_CLEARANCE_M = 5;
 const EFFECTIVE_PRESSURE_REFERENCE_PA = 5_000_000;
 const CHANNEL_DISCHARGE_MIN = 1e-3;
 const CHANNEL_DISCHARGE_MAX = 100;
@@ -3059,6 +3063,25 @@ function updateOceanCurrentLegend() {
   }
 
   ctx.putImageData(image, 0, 0);
+}
+
+/**
+ * Depth of the lake water between the bed and today's ice base in each cell, which is
+ * non-zero only over Lake Vostok (BedMachine mask 4), where BedMachine's bed is the lake
+ * floor. Computed once per terrain context.
+ */
+function getSubglacialLakeDepths(context) {
+  if (!context.subglacialLakeDepths) {
+    const { cellCount, mask, bedHeights, bedValid, iceBottomHeights, iceBottomValid } = context;
+    const depths = new Float32Array(cellCount);
+    for (let i = 0; i < cellCount; i += 1) {
+      if (mask[i] === 4 && bedValid[i] && iceBottomValid[i]) {
+        depths[i] = Math.max(0, iceBottomHeights[i] - bedHeights[i]);
+      }
+    }
+    context.subglacialLakeDepths = depths;
+  }
+  return context.subglacialLakeDepths;
 }
 
 function isIceCoveredMask(maskValue) {
@@ -4767,26 +4790,9 @@ function buildOceanCurrentMesh(context, oceanMeta, oceanBuffer) {
     const row1Nearest = Math.min(context.ny - 1, Math.max(0, Math.round(row1)));
     const idx0 = row0Nearest * context.nx + col0Nearest;
     const idx1 = row1Nearest * context.nx + col1Nearest;
-    const mask0 = Number(context.mask[idx0]);
-    const mask1 = Number(context.mask[idx1]);
-    const validOceanMask0 = mask0 === 0 || mask0 === 3;
-    const validOceanMask1 = mask1 === 0 || mask1 === 3;
-    if (!validOceanMask0 || !validOceanMask1) {
-      finalizeStreamlineIfNeeded(i, buffer);
-      continue;
-    }
-
     const bedHeight0 = sampleGridHeightNearest(context, col0, row0, "bed");
     const bedHeight1 = sampleGridHeightNearest(context, col1, row1, "bed");
-    if (!Number.isFinite(bedHeight0) || !Number.isFinite(bedHeight1)) {
-      finalizeStreamlineIfNeeded(i, buffer);
-      continue;
-    }
-    if (-bedHeight0 < depth0 + OCEAN_CURRENT_BED_CLEARANCE_M) {
-      finalizeStreamlineIfNeeded(i, buffer);
-      continue;
-    }
-    if (-bedHeight1 < depth1 + OCEAN_CURRENT_BED_CLEARANCE_M) {
+    if (!oceanPointInOpenWater(context, idx0, depth0, bedHeight0) || !oceanPointInOpenWater(context, idx1, depth1, bedHeight1)) {
       finalizeStreamlineIfNeeded(i, buffer);
       continue;
     }
@@ -5712,6 +5718,18 @@ function gridToSceneXZ(context, col, row) {
   const x = ((col - halfX) * context.meta.grid.dx_m) / context.baseConfig.horizontalMetersPerUnit;
   const z = ((row - halfY) * Math.abs(context.meta.grid.dy_m)) / context.baseConfig.horizontalMetersPerUnit;
   return { x, z };
+}
+
+/** The geometry worker's open-water rule for a streamline end, for the main-thread fallback. */
+function oceanPointInOpenWater(context, index, depth, bedHeight) {
+  return isInOpenWater(
+    Number(context.mask[index]),
+    depth,
+    bedHeight,
+    context.iceBottomHeights[index],
+    OCEAN_CURRENT_BED_CLEARANCE_M,
+    OCEAN_CURRENT_ICE_CLEARANCE_M
+  );
 }
 
 function sampleGridHeightNearest(context, col, row, layerKey) {
@@ -8170,7 +8188,11 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
     sourceLines.push(renderSourceLine(t("explorer.meta.sourceOceanCirculation"), dataset.sources.oceanCurrents, oceanSuffix));
   }
   if (capabilities.rise && dataset.sources.rise) {
-    sourceLines.push(renderSourceLine(t("explorer.meta.sourceMeltDrivers"), dataset.sources.rise, " (15,269 ice-shelf cells)"));
+    const iceShelfCellCount = Number(riseCoverage?.iceshelf_cell_count);
+    const riseSuffix = Number.isFinite(iceShelfCellCount)
+      ? t("explorer.meta.iceShelfCellCount", { count: fmtInt(iceShelfCellCount) })
+      : "";
+    sourceLines.push(renderSourceLine(t("explorer.meta.sourceMeltDrivers"), dataset.sources.rise, riseSuffix));
   }
   if (capabilities.isostaticRebound && dataset.sources.isostaticResponse) {
     sourceLines.push(renderSourceLine(t("explorer.meta.sourceIsostaticResponse"), dataset.sources.isostaticResponse));
@@ -8614,6 +8636,7 @@ function applyReboundGeometry({ recomputeNormals = true } = {}) {
       iceValid,
       fraction,
       seaLevelMeters,
+      lakeDepths: getSubglacialLakeDepths(context),
       surfaceOut: context.reboundScratchSurface || new Float32Array(cellCount),
       bottomOut: context.reboundScratchBottom || new Float32Array(cellCount),
     });
@@ -9341,10 +9364,9 @@ function updateIceProjectionReadout() {
         high: formatSignedFixed(sampleIceProjectionSeries(series.seaLevelMax), 2),
       }),
     ]);
-    const cellKm2 = iceProjectionScene.cellAreaKm2;
     rows.push([
       t("explorer.projection.readoutGroundedMap"),
-      areaText(iceProjectionScene.groundedCellCount * cellKm2, iceProjectionScene.baselineGroundedCellCount * cellKm2),
+      areaText(iceProjectionScene.groundedAreaKm2, iceProjectionScene.baselineGroundedAreaKm2),
     ]);
   } else {
     const fromSeries = (values) => areaText(sampleIceProjectionSeries(values), values[0]);
@@ -9547,12 +9569,14 @@ function buildIceProjectionScene(context, scenarioKey, projection, module) {
   const baseline = new Float32Array(count);
   module.blendThicknessInto(projection, projection.firstYear, baseline);
   const horizontal = context.baseConfig.horizontalMetersPerUnit;
+  const restingBed = module.restingBedInto(projection, getSubglacialLakeDepths(context), new Float32Array(count));
+  const cellAreasKm2 = module.domainCellAreasKm2(projection, getReboundStandardParallel(context.dataset.regionKey));
   // Grounded ice of the first frame, for the readout's change in grounded area.
   const scratch = new Float32Array(count);
   const baselineGrounded = new Uint8Array(count);
-  module.flotationGeometryInto(projection.bed, baseline, projection.densityRatio, scratch, new Float32Array(count), baselineGrounded);
-  let baselineGroundedCellCount = 0;
-  for (let v = 0; v < count; v += 1) baselineGroundedCellCount += baselineGrounded[v];
+  module.flotationGeometryInto(restingBed, baseline, projection.densityRatio, scratch, new Float32Array(count), baselineGrounded);
+  let baselineGroundedAreaKm2 = 0;
+  for (let v = 0; v < count; v += 1) if (baselineGrounded[v]) baselineGroundedAreaKm2 += cellAreasKm2[v];
   return {
     context,
     scenarioKey,
@@ -9575,9 +9599,10 @@ function buildIceProjectionScene(context, scenarioKey, projection, module) {
     indexDirty: true,
     boundsReady: false,
     iceVertexCount: 0,
-    groundedCellCount: baselineGroundedCellCount,
-    baselineGroundedCellCount,
-    cellAreaKm2: Math.abs(projection.grid.dx_m * projection.grid.dy_m) / 1e6,
+    restingBed,
+    cellAreasKm2,
+    groundedAreaKm2: baselineGroundedAreaKm2,
+    baselineGroundedAreaKm2,
     triangleIndexCount: 0,
     dxUnits: Math.abs(context.meta.grid.dx_m) / horizontal,
     dzUnits: Math.abs(context.meta.grid.dy_m) / horizontal,
@@ -9602,9 +9627,9 @@ function rebuildIceProjectionIndex(sceneState) {
 function applyIceProjectionYear() {
   const sceneState = iceProjectionScene;
   if (!sceneState || !iceProjectionActive) return;
-  const { projection, module, luts, thickness, surface, base, grounded, ice, heights, baseline } = sceneState;
+  const { projection, module, luts, thickness, surface, base, grounded, ice, heights, baseline, restingBed } = sceneState;
   iceProjectionYear = module.blendThicknessInto(projection, iceProjectionYear, thickness).year;
-  module.flotationGeometryInto(projection.bed, thickness, projection.densityRatio, surface, base, grounded);
+  module.flotationGeometryInto(restingBed, thickness, projection.densityRatio, surface, base, grounded);
   module.blendSpeedChangeInto(projection, iceProjectionYear, sceneState.speedChange);
 
   const verticalMetersPerUnit = sceneState.context.baseConfig.verticalMetersPerUnit;
@@ -9642,9 +9667,11 @@ function applyIceProjectionYear() {
     }
   }
   sceneState.iceVertexCount = iceCount;
-  let groundedCount = 0;
-  for (let v = 0; v < projection.domainCount; v += 1) groundedCount += ice[v] & grounded[v];
-  sceneState.groundedCellCount = groundedCount;
+  let groundedAreaKm2 = 0;
+  for (let v = 0; v < projection.domainCount; v += 1) {
+    if (ice[v] & grounded[v]) groundedAreaKm2 += sceneState.cellAreasKm2[v];
+  }
+  sceneState.groundedAreaKm2 = groundedAreaKm2;
   if (sceneState.indexDirty) rebuildIceProjectionIndex(sceneState);
 
   for (let v = 0; v < projection.domainCount; v += 1) heights[v] = topPositions[3 * v + 1];
@@ -11226,6 +11253,7 @@ async function ensureOceanCurrentsLoaded({ trigger = "prefetch" } = {}) {
           mask: context.mask,
           bedHeights: context.bedHeights,
           bedValid: context.bedValid,
+          iceBaseHeights: context.iceBottomHeights,
           nx: context.nx,
           ny: context.ny,
           grid: context.meta.grid,
@@ -11533,6 +11561,7 @@ async function ensureHydrologyLoaded({ trigger = "prefetch" } = {}) {
         baseConfig: context.baseConfig,
         bedHeights: context.bedHeights,
         bedValid: context.bedValid,
+        mask: context.mask,
         effectivePressureLut,
         channelDischargeLut,
         meshStride: getHydrologyLayerMeshStride(context),

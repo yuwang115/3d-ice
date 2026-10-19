@@ -1,4 +1,5 @@
 import { parseField } from "./js/data-contract.js";
+import { isGroundedIceCell, isInOpenWater } from "./js/overlay-cells.js";
 
 const FLOWLINE_SURFACE_OFFSET_M = 18;
 const VELOCITY_VISUALIZATION_MAX = 3000;
@@ -14,6 +15,8 @@ const BASAL_FRICTION_SURFACE_OFFSET_M = 12;
 const EFFECTIVE_PRESSURE_SURFACE_OFFSET_M = 10;
 const SUBGLACIAL_CHANNEL_SURFACE_OFFSET_M = 14;
 const OCEAN_CURRENT_BED_CLEARANCE_M = 20;
+// Only a sliver of water beneath an ice shelf, where the shelf's boundary current runs.
+const OCEAN_CURRENT_ICE_CLEARANCE_M = 5;
 const OCEAN_CURRENT_ARROW_HEAD_RATIO = 0.4;
 const OCEAN_CURRENT_ARROW_HEAD_MIN_UNITS = 0.16;
 const OCEAN_CURRENT_ARROW_HEAD_MAX_UNITS = 1.0;
@@ -258,6 +261,7 @@ function buildOceanCurrentTask(id, payload) {
     mask,
     bedHeights,
     bedValid,
+    iceBaseHeights,
     nx,
     ny,
     grid,
@@ -298,6 +302,16 @@ function buildOceanCurrentTask(id, payload) {
   ) {
     throw new Error("Ocean-current package fields are misaligned.");
   }
+  // Both ends of a segment must lie in open water, clear of the bed and of today's ice base.
+  const inOpenWater = (index, depth, bedHeight) =>
+    isInOpenWater(
+      Number(mask[index]),
+      depth,
+      bedHeight,
+      iceBaseHeights ? iceBaseHeights[index] : Number.NaN,
+      OCEAN_CURRENT_BED_CLEARANCE_M,
+      OCEAN_CURRENT_ICE_CLEARANCE_M
+    );
 
   const bucketBoundaries = [];
   if (useLayerSplit) {
@@ -343,19 +357,9 @@ function buildOceanCurrentTask(id, payload) {
       const row1Nearest = Math.min(ny - 1, Math.max(0, Math.round(row1)));
       const idx0 = row0Nearest * nx + col0Nearest;
       const idx1 = row1Nearest * nx + col1Nearest;
-      const mask0 = Number(mask[idx0]);
-      const mask1 = Number(mask[idx1]);
-      const validOceanMask0 = mask0 === 0 || mask0 === 3;
-      const validOceanMask1 = mask1 === 0 || mask1 === 3;
       const bedHeight0 = sampleBedHeightNearest(nx, ny, bedHeights, bedValid, col0, row0);
       const bedHeight1 = sampleBedHeightNearest(nx, ny, bedHeights, bedValid, col1, row1);
-      keep =
-        validOceanMask0 &&
-        validOceanMask1 &&
-        Number.isFinite(bedHeight0) &&
-        Number.isFinite(bedHeight1) &&
-        -bedHeight0 >= depth0 + OCEAN_CURRENT_BED_CLEARANCE_M &&
-        -bedHeight1 >= depth1 + OCEAN_CURRENT_BED_CLEARANCE_M;
+      keep = inOpenWater(idx0, depth0, bedHeight0) && inOpenWater(idx1, depth1, bedHeight1);
     }
 
     if (keep) {
@@ -503,19 +507,9 @@ function buildOceanCurrentTask(id, payload) {
       const row1Nearest = Math.min(ny - 1, Math.max(0, Math.round(row1)));
       const idx0 = row0Nearest * nx + col0Nearest;
       const idx1 = row1Nearest * nx + col1Nearest;
-      const mask0 = Number(mask[idx0]);
-      const mask1 = Number(mask[idx1]);
-      const validOceanMask0 = mask0 === 0 || mask0 === 3;
-      const validOceanMask1 = mask1 === 0 || mask1 === 3;
       const bedHeight0 = sampleBedHeightNearest(nx, ny, bedHeights, bedValid, col0, row0);
       const bedHeight1 = sampleBedHeightNearest(nx, ny, bedHeights, bedValid, col1, row1);
-      keep =
-        validOceanMask0 &&
-        validOceanMask1 &&
-        Number.isFinite(bedHeight0) &&
-        Number.isFinite(bedHeight1) &&
-        -bedHeight0 >= depth0 + OCEAN_CURRENT_BED_CLEARANCE_M &&
-        -bedHeight1 >= depth1 + OCEAN_CURRENT_BED_CLEARANCE_M;
+      keep = inOpenWater(idx0, depth0, bedHeight0) && inOpenWater(idx1, depth1, bedHeight1);
       if (keep) {
         scenePoint0 = gridToSceneXZ(grid, nx, ny, baseConfig.horizontalMetersPerUnit, col0, row0);
         scenePoint1 = gridToSceneXZ(grid, nx, ny, baseConfig.horizontalMetersPerUnit, col1, row1);
@@ -821,6 +815,7 @@ function buildHydrologyTask(id, payload) {
     baseConfig,
     bedHeights,
     bedValid,
+    mask,
     effectivePressureLut,
     channelDischargeLut,
     meshStride,
@@ -870,7 +865,7 @@ function buildHydrologyTask(id, payload) {
     const raw = pressureInt[i];
     const pressure = raw === fillValue ? Number.NaN : raw * pressureScale + pressureOffset;
     effectivePressure[i] = pressure;
-    const hasPressure = bedValid[i] && Number.isFinite(pressure) && pressure > 0;
+    const hasPressure = bedValid[i] && isGroundedIceCell(mask[i]) && Number.isFinite(pressure) && pressure > 0;
     effectivePressureValid[i] = Number(hasPressure);
     effectivePressureHeights[i] = hasPressure
       ? bedHeights[i] + effectivePressureSurfaceOffsetMeters
@@ -922,6 +917,7 @@ function buildHydrologyTask(id, payload) {
     const idx0 = r0 * nx + c0;
     const idx1 = r1 * nx + c1;
     if (!bedValid[idx0] || !bedValid[idx1]) continue;
+    if (!isGroundedIceCell(mask[idx0]) || !isGroundedIceCell(mask[idx1])) continue;
 
     const h0 = bedHeights[idx0];
     const h1 = bedHeights[idx1];

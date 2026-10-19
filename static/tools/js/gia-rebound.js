@@ -886,8 +886,11 @@ export function applyReboundFraction({ cellCount, bedHeights, uplift, fraction, 
 /**
  * Ice geometry part-way through the scenario. Ice thins uniformly by `fraction` while
  * the bed relaxes by the same fraction, so the two advance together as one illustrative
- * deglaciation path. Grounded ice rides the rebounding bed; floating ice re-floats to
- * the sea-level datum and grounds where the rising bed overtakes its draft.
+ * deglaciation path. Ice rides the rebounding bed while it is heavy enough to stay
+ * grounded, and floats at the sea-level datum once its thinning column would float, so
+ * shelves re-float and thinned marine ice lifts off its bed; ice grounds wherever the
+ * rising bed overtakes its draft. Over a subglacial lake the ice rests on the lake, whose
+ * water (`lakeDepths`, per cell, on lake cells only) rides the bed.
  */
 export function deriveReboundedIceSurfaces({
   cellCount,
@@ -897,6 +900,7 @@ export function deriveReboundedIceSurfaces({
   iceValid,
   fraction,
   seaLevelMeters = 0,
+  lakeDepths = null,
   surfaceOut,
   bottomOut,
 }) {
@@ -911,13 +915,12 @@ export function deriveReboundedIceSurfaces({
       bottom[index] = Number.NaN;
       continue;
     }
-    const bed = reboundedBedHeights[index];
+    const lakeDepth =
+      lakeDepths && mask[index] === MASK_SUBGLACIAL_LAKE && lakeDepths[index] > 0 ? lakeDepths[index] : 0;
+    const restingLevel = reboundedBedHeights[index] + lakeDepth;
     const remainingThickness = Math.max(0, thickness[index]) * remaining;
-    let base = bed;
-    if (isFloatingIceMask(mask[index])) {
-      const flotationBase = datum - (ICE_DENSITY_KG_M3 * remainingThickness) / SEAWATER_DENSITY_KG_M3;
-      base = Math.max(bed, flotationBase);
-    }
+    const flotationBase = datum - (ICE_DENSITY_KG_M3 * remainingThickness) / SEAWATER_DENSITY_KG_M3;
+    const base = Math.max(restingLevel, flotationBase);
     bottom[index] = base;
     surface[index] = base + remainingThickness;
   }
