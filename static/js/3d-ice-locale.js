@@ -111,6 +111,10 @@
           enable3d: "Enable 3D",
           scrollPage: "Scroll Page",
         },
+        drawer: {
+          open: "Layers and places",
+          close: "Done",
+        },
         capture: {
           play: "Play",
           stop: "Stop",
@@ -577,6 +581,10 @@
             "<strong>3D 已启用：</strong>拖拽旋转，双指缩放。<br /><strong>轻触滚动</strong>返回页面滚动。",
           enable3d: "启用 3D",
           scrollPage: "滚动页面",
+        },
+        drawer: {
+          open: "图层与地点",
+          close: "完成",
         },
         capture: {
           play: "播放",

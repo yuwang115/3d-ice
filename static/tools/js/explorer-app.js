@@ -6782,6 +6782,16 @@ function setMobilePanelOffset(offsetPx) {
   const openThreshold = Math.max(8, mobilePanelClosedOffsetPx * 0.18);
   mobilePanelOpen = clampedOffset <= openThreshold;
   document.body.classList.toggle("mobile-panel-open", mobilePanelOpen);
+  syncMobilePanelButton();
+}
+
+/** Collapsed, the drawer's button names what the drawer holds and opens it; open, it closes it. */
+function syncMobilePanelButton() {
+  const button = controlsUI?.panelCloseButton;
+  if (!button) return;
+  const label = mobilePanelOpen ? t("explorer.drawer.close") : t("explorer.drawer.open");
+  if (button.textContent !== label) button.textContent = label;
+  button.setAttribute("aria-expanded", String(mobilePanelOpen));
 }
 
 function syncMobilePanelBounds({ preservePosition = true } = {}) {
@@ -6803,6 +6813,7 @@ function setMobilePanelOpen(open) {
   if (!mobileDrawerEnabled || !panelEl) {
     mobilePanelOpen = false;
     document.body.classList.remove("mobile-panel-open");
+    syncMobilePanelButton();
     return;
   }
   syncMobilePanelBounds({ preservePosition: true });
@@ -7518,7 +7529,7 @@ function bindUI() {
 
   if (controlsUI.panelCloseButton) {
     controlsUI.panelCloseButton.addEventListener("click", () => {
-      setMobilePanelOpen(false);
+      setMobilePanelOpen(!mobilePanelOpen);
     });
   }
 

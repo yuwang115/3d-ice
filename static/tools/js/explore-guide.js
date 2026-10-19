@@ -351,6 +351,13 @@ function createTour(api, content) {
   header.append(counter, headerButtons);
   const text = createElement("div", { className: "tour-card__live", attrs: { id: `${card.id}-text` } });
   text.append(heading, body);
+  // Text that runs on below the card's edge fades out there, so that the cut-off line reads
+  // as more to scroll rather than as the end of the stop.
+  const syncOverflowCue = () => {
+    text.classList.toggle("has-more", text.scrollHeight - text.clientHeight - text.scrollTop > 2);
+  };
+  text.addEventListener("scroll", syncOverflowCue, { passive: true });
+  if ("ResizeObserver" in window) new ResizeObserver(syncOverflowCue).observe(text);
   collapseButton.setAttribute("aria-controls", text.id);
   const actions = createElement("div", { className: "tour-card__actions" });
   actions.append(backButton, replayButton, nextButton, ...startButtons);
@@ -444,6 +451,8 @@ function createTour(api, content) {
     body.replaceChildren(...copy.body.map((paragraph) => createElement("p", { text: paragraph })));
     const sources = renderSources(copy.sources, ui.sources);
     if (sources) body.append(sources);
+    text.scrollTop = 0;
+    syncOverflowCue();
     announcer.textContent = `${counter.textContent}: ${copy.title}`;
     const last = index === TOUR_CHAPTERS.length - 1;
     const choosing = last && startButtons.length > 0;

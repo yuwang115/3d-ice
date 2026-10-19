@@ -618,6 +618,52 @@ class TestPublicEditionOnAPhone:
             context.close()
 
 
+    def test_the_collapsed_drawer_names_what_it_holds_and_opens_from_its_button(self, playwright_browser, explore_url):
+        # Collapsed, the drawer was a grey bar and a "Done" button that did nothing.
+        context = playwright_browser.new_context(
+            viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True, reduced_motion="reduce"
+        )
+        try:
+            page = context.new_page()
+            page.goto(explore_url, wait_until="domcontentloaded", timeout=30_000)
+            _wait_ready(page)
+            button = page.locator("#panelCloseButton")
+            assert not page.evaluate("document.body.classList.contains('mobile-panel-open')")
+            assert button.get_attribute("aria-expanded") == "false"
+            assert button.inner_text().strip() == "Layers and places"
+            button.tap()
+            page.wait_for_function("() => document.body.classList.contains('mobile-panel-open')", timeout=5_000)
+            assert button.get_attribute("aria-expanded") == "true"
+            assert button.inner_text().strip() == "Done"
+            button.tap()
+            page.wait_for_function("() => !document.body.classList.contains('mobile-panel-open')", timeout=5_000)
+            assert button.inner_text().strip() == "Layers and places"
+        finally:
+            context.close()
+
+    def test_tour_text_that_runs_on_fades_out_at_the_card_edge(self, playwright_browser, explore_url):
+        # On a phone most stops hold more text than the card shows, and it was cut mid-line.
+        context = playwright_browser.new_context(
+            viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True, reduced_motion="reduce"
+        )
+        try:
+            page = context.new_page()
+            page.goto(f"{explore_url}?tour=high-emissions", wait_until="domcontentloaded", timeout=30_000)
+            _wait_ready(page)
+            _wait_for_stop(page, "high-emissions")
+            text = page.locator("#tourCard .tour-card__live")
+            overflow = text.evaluate("(el) => el.scrollHeight - el.clientHeight")
+            assert overflow > 20, f"the stop should overflow a phone card (by {overflow} px)"
+            assert "has-more" in (text.get_attribute("class") or "")
+            assert text.evaluate("(el) => getComputedStyle(el).maskImage || getComputedStyle(el).webkitMaskImage") != "none"
+            text.evaluate("(el) => { el.scrollTop = el.scrollHeight; el.dispatchEvent(new Event('scroll')); }")
+            page.wait_for_function(
+                "() => !document.querySelector('#tourCard .tour-card__live').classList.contains('has-more')",
+                timeout=5_000,
+            )
+        finally:
+            context.close()
+
 class TestAssetBase:
     def test_a_cross_origin_asset_base_in_the_url_is_ignored(self, playwright_browser, explore_url):
         requests: list[str] = []
