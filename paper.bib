@@ -13,6 +13,14 @@
   doi     = {10.1038/s41561-019-0510-8}
 }
 
+@dataset{morlighem2026data,
+  author    = {Morlighem, M.},
+  title     = {{MEaSUREs BedMachine Antarctica} ({NSIDC-0756}, {Version 4})},
+  year      = {2026},
+  publisher = {{NASA National Snow and Ice Data Center Distributed Active Archive Center}},
+  doi       = {10.5067/POJQI54A45HX}
+}
+
 % ----- BedMachine Greenland -----
 @article{morlighem2017,
   author  = {Morlighem, M. and Williams, C. N. and Rignot, E. and An, L. and Arndt, J. E. and Bamber, J. L. and Catania, G. and Chauch\'e, N. and Dowdeswell, J. A. and Dorschel, B. and Fenty, I. and Hogan, K. and Howat, I. and Hubbard, A. and Jakobsson, M. and Jordan, T. M. and Kjeldsen, K. K. and Millan, R. and Mayer, L. and Mouginot, J. and No\"el, B. P. Y. and O'Cofaigh, C. and Palmer, S. and Rysgaard, S. and Seroussi, H. and Siegert, M. J. and Slabon, P. and Straneo, F. and van den Broeke, M. R. and Weinrebe, W. and Wood, M. and Zinglersen, K. B.},
@@ -23,6 +31,15 @@
   pages   = {11051--11061},
   year    = {2017},
   doi     = {10.1002/2017GL074954}
+}
+
+@dataset{morlighem2025data,
+  author    = {Morlighem, M. and Williams, C. and Rignot, E. and An, L. and Arndt, J. E. and Bamber, J. and Catania, G. and Chauch\'e, N. and Dowdeswell, J. A. and Dorschel, B. and Fenty, I. and Hogan, K. and Howat, I. and Hubbard, A. and Jakobsson, M. and Jordan, T. M. and Kjeldsen, K. K. and Millan, R. and Mayer, L. and Mouginot, J. and No\"el, B. and O'Cofaigh, C. and Palmer, S. J. and Rysgaard, S. and Seroussi, H. and Siegert, M. J. and Slabon, P. and Straneo, F. and van den Broeke, M. R. and Weinrebe, W. and Wood, M. and Zinglersen, K.},
+  title     = {{IceBridge BedMachine Greenland} ({IDBMG4}, {Version 6})},
+  year      = {2025},
+  publisher = {{NASA National Snow and Ice Data Center Distributed Active Archive Center}},
+  doi       = {10.5067/6B6B225B8V2D},
+  options   = {useprefix=true}
 }
 
 % ----- MEaSUREs Phase-Based Antarctica Ice Velocity -----
@@ -37,6 +54,14 @@
   doi     = {10.1029/2019GL083826}
 }
 
+@dataset{mouginot2019data,
+  author    = {Mouginot, J. and Rignot, E. and Scheuchl, B.},
+  title     = {{MEaSUREs Phase-Based Antarctica Ice Velocity Map} ({NSIDC-0754}, {Version 1})},
+  year      = {2019},
+  publisher = {{NASA National Snow and Ice Data Center Distributed Active Archive Center}},
+  doi       = {10.5067/PZ3NJ5RXRH10}
+}
+
 % ----- ITS_LIVE Ice Velocity -----
 @article{gardner2018,
   author  = {Gardner, A. S. and Moholdt, G. and Scambos, T. and Fahnstock, M. and Ligtenberg, S. and van den Broeke, M. and Nilsson, J.},
@@ -46,15 +71,20 @@
   number  = {2},
   pages   = {521--547},
   year    = {2018},
-  doi     = {10.5194/tc-12-521-2018}
+  doi     = {10.5194/tc-12-521-2018},
+  options = {useprefix=true}
 }
 
-@misc{gardner2024,
-  author = {Gardner, A. S. and Fahnestock, M. and Greene, C. A. and Kennedy, J. H. and Liukis, M. and L\'opez, L. A. and Scambos, T.},
-  title  = {{MEaSUREs ITS\_LIVE} Regional Glacier and Ice Sheet Surface Velocities, Version 2},
-  year   = {2024},
-  doi    = {10.5067/JQ6337239C96},
-  note   = {NASA NSIDC DAAC}
+% ITS_LIVE asks for "Velocity data generated using auto-RIFT (Gardner et al., 2018) and
+% provided by the NASA MEaSUREs ITS_LIVE project (Gardner et al., 20XX)". 3D ICE uses the
+% V02.1 summary mosaic (2014-2024) from the ITS_LIVE archive, which has no DOI of its own;
+% this is the archived Version 2 of the same product.
+@dataset{gardner2025,
+  author    = {Gardner, A. S. and Fahnestock, M. and Greene, C. A. and Kennedy, J. H. and Liukis, M. and L\'opez, L. A. and Scambos, T.},
+  title     = {{MEaSUREs ITS\_LIVE Regional Glacier and Ice Sheet Surface Velocities} ({NSIDC-0776}, {Version 2})},
+  year      = {2025},
+  publisher = {{NASA National Snow and Ice Data Center Distributed Active Archive Center}},
+  doi       = {10.5067/JQ6337239C96}
 }
 
 % ----- WAOM2 -----
@@ -89,6 +119,15 @@
   doi     = {10.5194/tc-19-6507-2025}
 }
 
+@dataset{galtonfenzi2025data,
+  author    = {Galton-Fenzi, B. K.},
+  title     = {Multi-model estimate of {Antarctic} ice-shelf basal melting and ocean drivers: data},
+  version   = {1},
+  year      = {2025},
+  publisher = {Australian Antarctic Data Centre},
+  doi       = {10.26179/q0rh-gt74}
+}
+
 % ----- GlaDS subglacial hydrology -----
 @article{werder2013,
   author  = {Werder, M. A. and Hewitt, I. J. and Schoof, C. G. and Flowers, G. E.},
@@ -100,12 +139,13 @@
   doi     = {10.1002/jgrf.20146}
 }
 
-@misc{ehrenfeucht2024,
-  author = {Ehrenfeucht, S.},
-  title  = {Data for: {Antarctic} wide subglacial hydrology modeling},
-  year   = {2024},
-  doi    = {10.5281/zenodo.12738170},
-  note   = {Zenodo}
+@dataset{ehrenfeucht2024,
+  author    = {Ehrenfeucht, S.},
+  title     = {Data for: {Antarctic} wide subglacial hydrology modeling},
+  version   = {1},
+  year      = {2024},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.12738170}
 }
 
 @article{ehrenfeucht2025,
@@ -130,6 +170,17 @@
   doi     = {10.1038/s41597-025-04672-y}
 }
 
+% Creators as in the UK Polar Data Centre record, which spells V. Damm "Damn". H. D. Pritchard
+% carries his initials from the article, so that APA groups the two citations.
+@dataset{pritchard2024data,
+  author    = {Pritchard, H. D. and Fretwell, P. and Fremand, A. and Bodart, J. and Kirkham, J. and Aitken, A. and Bamber, J. and Bell, R. and Bianchi, C. and Bingham, R. and Blankenship, D. and Casassa, G. and Catania, G. and Christianson, K. and Conway, H. and Corr, H. and Cui, X. and Damaske, D. and Damm, V. and Dorschel, B. and Drews, R. and Eagles, G. and Eisen, O. and Eisermann, H. and Ferraccioli, F. and Field, E. and Forsberg, R. and Franke, S. and Fujita, S. and Gim, Y. and Goel, V. and Gogineni, S. P. and Greenbaum, J. and Hills, B. and Hindmarsh, R. and Hoffman, A. and Holmlund, P. and Holschuh, N. and Holt, J. and Horlings, A. and Humbert, A. and Jacobel, R. and Jansen, D. and Jenkins, A. and Jokat, W. and Jordan, T. and King, E. and Kohler, J. and Krabill, W. and Langley, K. and Lee, J. and Leitchenkov, G. and Leuschen, C. and Luyendyk, B. and MacGregor, J. and MacKie, E. and Matsuoka, K. and Moholdt, G. and Morlighem, M. and Mouginot, J. and Nitsche, F. and Nogi, Y. and Nost, O. and Paden, J. and Pattyn, F. and Popov, S. and Kusk-Gillespie, M. and Rignot, E. and Rippin, D. and Rivera, A. and Roberts, J. and Ross, N. and Ruppel, A. and Schroeder, D. and Siegert, M. and Smith, A. and Steinhage, D. and Studinger, M. and Sun, B. and Tabacco, I. and Tinto, K. and Urbini, S. and Vaughan, D. and Welch, B. and Wilson, D. and Young, D. and Zirizzotti, A.},
+  title     = {{BEDMAP3} -- Ice thickness, bed and surface elevation for {Antarctica} -- gridding products},
+  version   = {1.0},
+  year      = {2024},
+  publisher = {{NERC EDS UK Polar Data Centre}},
+  doi       = {10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2}
+}
+
 @article{palmer2025,
   author  = {Palmer, S. and Kirkwood, C. and Luo, C. and Morlighem, M.},
   title   = {A quantile regression forest estimate of {Greenland}'s subglacial topography},
@@ -145,25 +196,27 @@
   author = {Jager, E. and Gladstone, R. and Zwinger, T. and Gillet-Chaulet, F. and Mouginot, J.},
   title  = {Insights from an ensemble inverse method to quantify basal friction uncertainties for ice-sheet models -- {Part 1}: {Greenland} ice sheet},
   year   = {2026},
-  doi    = {10.22541/essoar.177099472.28419248/v1},
-  note   = {ESS Open Archive preprint}
+  doi       = {10.22541/essoar.177099472.28419248/v1},
+  publisher = {ESS Open Archive},
+  type      = {Preprint}
 }
 
 @misc{jager2026antarctica,
   author = {Jager, E. and Gladstone, R. and Zwinger, T. and Wang, Y. and Zhao, C. and Uotila, P.},
   title  = {Insights from an ensemble inverse method to quantify basal friction uncertainties for ice-sheet models -- {Part 2}: {Antarctic} ice sheet},
   year   = {2026},
-  doi    = {10.22541/essoar.177099457.70593031/v1},
-  note   = {ESS Open Archive preprint}
+  doi       = {10.22541/essoar.177099457.70593031/v1},
+  publisher = {ESS Open Archive},
+  type      = {Preprint}
 }
-@misc{jager2026aisefi,
+@dataset{jager2026aisefi,
   author    = {Jager, E.},
   title     = {Antarctic Ice Sheet Ensemble Friction Inversion ({AISEFI}): Basal shear stress with uncertainties},
   year      = {2026},
   publisher = {Zenodo},
   doi       = {10.5281/zenodo.18508904}
 }
-@misc{jager2026grisefi,
+@dataset{jager2026grisefi,
   author    = {Jager, E.},
   title     = {Greenland Ice Sheet Ensemble Friction Inversion ({GrISEFI}): Basal shear stress with uncertainties},
   year      = {2026},
@@ -172,46 +225,50 @@
 }
 
 % ----- Drainage basins -----
-@misc{mouginot2017boundaries,
-  author = {Mouginot, J. and Scheuchl, B. and Rignot, E.},
-  title  = {{MEaSUREs} {Antarctic} Boundaries for {IPY} 2007--2009 from Satellite Radar, Version 2},
-  year   = {2017},
-  doi    = {10.5067/AXE4121732AD},
-  note   = {NASA NSIDC DAAC}
+@dataset{mouginot2017boundaries,
+  author    = {Mouginot, J. and Scheuchl, B. and Rignot, E.},
+  title     = {{MEaSUREs Antarctic Boundaries for IPY 2007--2009 from Satellite Radar} ({NSIDC-0709}, {Version 2})},
+  year      = {2017},
+  publisher = {{NASA National Snow and Ice Data Center Distributed Active Archive Center}},
+  doi       = {10.5067/AXE4121732AD}
 }
 
-@misc{mouginot2019basins,
-  author = {Mouginot, J. and Rignot, E.},
-  title  = {Glacier catchments/basins for the {Greenland} Ice Sheet},
-  year   = {2019},
-  doi    = {10.7280/D1WT11},
-  note   = {Dryad}
+@dataset{mouginot2019basins,
+  author    = {Mouginot, J. and Rignot, E.},
+  title     = {Glacier catchments/basins for the {Greenland} {Ice} {Sheet}},
+  version   = {1},
+  year      = {2019},
+  publisher = {Dryad},
+  doi       = {10.7280/D1WT11}
 }
 
 % ----- Place and station catalogues -----
-@misc{scar_gazetteer,
-  author = {{Scientific Committee on Antarctic Research}},
-  title  = {{SCAR} Composite Gazetteer of {Antarctica}},
-  year   = {2026},
-  url    = {https://placenames.aq/},
-  note   = {Snapshot taken 13 August 2026}
+@dataset{scar_gazetteer,
+  author  = {{Scientific Committee on Antarctic Research}},
+  title   = {{SCAR} Composite Gazetteer of {Antarctica}},
+  version = {snapshot of 13 August 2026},
+  year    = {2026},
+  url     = {https://placenames.aq/}
 }
 
-@misc{comnap2024,
-  author = {{Council of Managers of National Antarctic Programs}},
-  title  = {{COMNAP} {Antarctic} Facilities List},
-  year   = {2024},
-  url    = {https://www.comnap.aq/antarctic-facilities-information},
-  note   = {November 2024 edition}
+% COMNAP asks that use of the list be referenced as "COMNAP 2025".
+@dataset{comnap2025,
+  author  = {{Council of Managers of National Antarctic Programs}},
+  title   = {{COMNAP} {Antarctic} Facilities List},
+  version = {November 2024 edition},
+  year    = {2025},
+  url     = {https://www.comnap.aq/antarctic-facilities-information}
 }
 
 % ----- Copernicus Marine Arctic Ocean -----
-@misc{cmems2025,
-  author = {{Copernicus Marine Service}},
-  title  = {Arctic Ocean Physics Analysis and Forecast ({ARCTIC\_ANALYSISFORECAST\_PHY\_002\_001})},
-  year   = {2025},
-  doi    = {10.48670/moi-00001},
-  note   = {E.U. Copernicus Marine Service Information; accessed 8 March 2026}
+@dataset{cmems2025,
+  author    = {{Copernicus Marine Service}},
+  title     = {{Arctic Ocean Physics Analysis and Forecast} ({ARCTIC\_ANALYSISFORECAST\_PHY\_002\_001})},
+  version   = {202311},
+  year      = {2025},
+  publisher = {{E.U. Copernicus Marine Service Information}},
+  doi       = {10.48670/moi-00001},
+  urldate   = {2026-03-08}
 }
 
 % ----- Related visualization and GIS software -----
@@ -222,7 +279,8 @@
   volume  = {140},
   pages   = {105015},
   year    = {2021},
-  doi     = {10.1016/j.envsoft.2021.105015}
+  doi     = {10.1016/j.envsoft.2021.105015},
+  options = {useprefix=true}
 }
 @misc{moon2023qgreenland,
   author    = {Moon, Twila and Fisher, Matt and Stafford, Trey and Harden, Lynne},
@@ -230,23 +288,24 @@
   year      = {2023},
   publisher = {{National Snow and Ice Data Center}},
   doi       = {10.5281/zenodo.12823307},
-  note      = {QGIS data package for Greenland}
+  type      = {QGIS data package}
 }
 
 @misc{nasa_worldview,
   author = {{NASA Earth Science Data and Information System}},
   title  = {{NASA Worldview}},
   year   = {2026},
-  url    = {https://worldview.earthdata.nasa.gov/},
-  note   = {Interactive Earth observation imagery application; accessed 17 August 2026}
+  url     = {https://worldview.earthdata.nasa.gov/},
+  urldate = {2026-08-17}
 }
 
+% CesiumJS is released under the Apache License 2.0.
 @misc{cesiumjs,
-  author = {{Cesium GS, Inc. and CesiumJS contributors}},
-  title  = {{CesiumJS} -- Open-source JavaScript library for 3D globes and maps},
-  year   = {2026},
-  url    = {https://github.com/CesiumGS/cesium},
-  note   = {Apache License 2.0; accessed 17 August 2026}
+  author  = {{Cesium GS, Inc. and CesiumJS contributors}},
+  title   = {{CesiumJS} -- Open-source JavaScript library for 3D globes and maps},
+  year    = {2026},
+  url     = {https://github.com/CesiumGS/cesium},
+  urldate = {2026-08-17}
 }
 
 % ----- NumPy -----
@@ -257,43 +316,41 @@
   volume  = {585},
   pages   = {357--362},
   year    = {2020},
-  doi     = {10.1038/s41586-020-2649-2}
+  doi     = {10.1038/s41586-020-2649-2},
+  options = {useprefix=true}
 }
 
-% ----- Three.js -----
+% ----- Three.js (MIT License) -----
 @misc{threejs,
-  author       = {Cabello, Ricardo and {three.js contributors}},
-  title        = {three.js -- {JavaScript} {3D} library},
-  year         = {2024},
-  url          = {https://github.com/mrdoob/three.js},
-  note         = {MIT License}
+  author = {Cabello, Ricardo and {three.js contributors}},
+  title  = {three.js -- {JavaScript} {3D} library},
+  year   = {2024},
+  url    = {https://github.com/mrdoob/three.js}
 }
 
 % ----- Coverage of 3D ICE -----
-@misc{aapp2026,
-  author = {{Australian Antarctic Program Partnership}},
-  title  = {Zoom, rotate, peel: Visualising ice sheets at your fingertips},
-  year   = {2026},
-  url    = {https://aappartnership.org.au/zoom-rotate-peel-visualising-ice-sheets-at-your-fingertips/},
-  note   = {AAPP News, 31 March 2026}
+@online{aapp2026,
+  author       = {{Australian Antarctic Program Partnership}},
+  title        = {Zoom, rotate, peel: Visualising ice sheets at your fingertips},
+  date         = {2026-03-31},
+  organization = {AAPP News},
+  url          = {https://aappartnership.org.au/zoom-rotate-peel-visualising-ice-sheets-at-your-fingertips/}
 }
 
-@misc{spatialsource2026,
+@online{spatialsource2026,
   author = {{Spatial Source}},
   title  = {Ice sheet {3D} mapping tool invented in `spare time'},
-  year   = {2026},
-  url    = {https://www.spatialsource.com.au/ice-sheet-3d-mapping-tool-invented-in-spare-time/},
-  note   = {7 April 2026}
+  date   = {2026-04-07},
+  url    = {https://www.spatialsource.com.au/ice-sheet-3d-mapping-tool-invented-in-spare-time/}
 }
 
-% ----- 3D ICE software -----
+% ----- 3D ICE software (archival DOI to be added for the accepted release) -----
 @misc{wang2026software,
   author  = {Wang, Yu and Lin, Yucheng},
   title   = {{3D ICE}: An Interactive Browser-Based Cryosphere Explorer for {Antarctica} and {Greenland}},
   year    = {2026},
   version = {0.3.1},
-  url     = {https://github.com/yuwang115/3d-ice/releases/tag/v0.3.1},
-  note    = {Software release; archival DOI to be added for the accepted release}
+  url     = {https://github.com/yuwang115/3d-ice/releases/tag/v0.3.1}
 }
 
 % ----- Rignot et al. (2011) Antarctic ice flow -----
@@ -320,7 +377,7 @@
 
 @article{lingle1985,
   author  = {Lingle, C. S. and Clark, J. A.},
-  title   = {A numerical model of interactions between a marine ice sheet and the solid earth: Application to a West {Antarctic} ice stream},
+  title   = {A numerical model of interactions between a marine ice sheet and the solid earth: Application to a {West Antarctic} ice stream},
   journal = {Journal of Geophysical Research: Oceans},
   volume  = {90},
   pages   = {1100--1114},
@@ -369,13 +426,14 @@
 }
 
 @article{gregory2019,
-  author  = {Gregory, J. M. and Griffies, S. M. and Hughes, C. W. and Lowe, J. A. and Church, J. A. and Fukimori, I. and Gomez, N. and Kopp, R. E. and Landerer, F. and Le Cozannet, G. and Ponte, R. M. and Stammer, D. and Tamisiea, M. E. and van de Wal, R. S. W.},
+  author  = {Gregory, J. M. and Griffies, S. M. and Hughes, C. W. and Lowe, J. A. and Church, J. A. and Fukumori, I. and Gomez, N. and Kopp, R. E. and Landerer, F. and Le Cozannet, G. and Ponte, R. M. and Stammer, D. and Tamisiea, M. E. and van de Wal, R. S. W.},
   title   = {Concepts and Terminology for Sea Level: Mean, Variability and Change, Both Local and Global},
   journal = {Surveys in Geophysics},
   volume  = {40},
   pages   = {1251--1289},
   year    = {2019},
-  doi     = {10.1007/s10712-019-09525-z}
+  doi     = {10.1007/s10712-019-09525-z},
+  options = {useprefix=true}
 }
 
 @book{turcotte2002,
@@ -398,12 +456,12 @@
   doi     = {10.1038/s41598-022-15440-y}
 }
 
-@misc{paxman2026data,
-  author = {Paxman, G. and Austermann, J. and Hollyday, A.},
-  title  = {Grid files of the total isostatic response to the complete unloading of the {Greenland} and {Antarctic} {Ice} {Sheets} (version 3)},
-  year   = {2026},
-  doi    = {10.18739/A22Z12R8C},
-  note   = {NSF Arctic Data Center}
+@dataset{paxman2026data,
+  author    = {Paxman, G. J. G. and Austermann, J. and Hollyday, A.},
+  title     = {Grid files of the total isostatic response to the complete unloading of the {Greenland} and {Antarctic} {Ice} {Sheets} (version 3)},
+  year      = {2026},
+  publisher = {NSF Arctic Data Center},
+  doi       = {10.18739/A22Z12R8C}
 }
 
 @article{swain2021,
@@ -438,16 +496,15 @@
   doi     = {10.1029/2024EF004561}
 }
 
-@misc{nowicki2024ismip6,
+@dataset{nowicki2024ismip6,
   author    = {Nowicki, S. and {ISMIP6 Team}},
   title     = {{ISMIP6} 23rd Century Projections},
   year      = {2024},
   publisher = {The Ghub},
-  doi       = {10.5281/zenodo.13135599},
-  note      = {Zenodo}
+  doi       = {10.5281/zenodo.13135599}
 }
 
-@misc{seroussi2024data,
+@dataset{seroussi2024data,
   author    = {Seroussi, H. and Pelle, T. and {ISMIP6 Team}},
   title     = {Dataset and scripts for the manuscript ``{Evolution} of the {Antarctic} Ice Sheet over the next three centuries from an {ISMIP6} model ensemble''},
   year      = {2024},
@@ -462,17 +519,20 @@
   volume  = {14},
   pages   = {2331--2368},
   year    = {2020},
-  doi     = {10.5194/tc-14-2331-2020}
+  doi     = {10.5194/tc-14-2331-2020},
+  options = {useprefix=true}
 }
 
-@article{barthel2020,
-  author  = {Barthel, A. and Agosta, C. and Little, C. M. and Hattermann, T. and Jourdain, N. C. and Goelzer, H. and Nowicki, S. and Seroussi, H. and Straneo, F. and Bracegirdle, T. J.},
-  title   = {{CMIP5} model selection for {ISMIP6} ice sheet model forcing: {Greenland} and {Antarctica}},
-  journal = {The Cryosphere},
-  volume  = {14},
-  pages   = {855--879},
-  year    = {2020},
-  doi     = {10.5194/tc-14-855-2020}
+@article{payne2021,
+  author  = {Payne, A. J. and Nowicki, S. and Abe-Ouchi, A. and Agosta, C. and Alexander, P. and Albrecht, T. and Asay-Davis, X. and Aschwanden, A. and Barthel, A. and Bracegirdle, T. J. and Calov, R. and Chambers, C. and Choi, Y. and Cullather, R. and Cuzzone, J. and Dumas, C. and Edwards, T. L. and Felikson, D. and Fettweis, X. and Galton-Fenzi, B. K. and Goelzer, H. and Gladstone, R. and Golledge, N. R. and Gregory, J. M. and Greve, R. and Hattermann, T. and Hoffman, M. J. and Humbert, A. and Huybrechts, P. and Jourdain, N. C. and Kleiner, T. and Kuipers Munneke, P. and Larour, E. and Le clec'h, S. and Lee, V. and Leguy, G. and Lipscomb, W. H. and Little, C. M. and Lowry, D. P. and Morlighem, M. and Nias, I. and Pattyn, F. and Pelle, T. and Price, S. F. and Quiquet, A. and Reese, R. and R\"uckamp, M. and Schlegel, N.-J. and Seroussi, H. and Shepherd, A. and Simon, E. and Slater, D. and Smith, R. S. and Straneo, F. and Sun, S. and Tarasov, L. and Trusel, L. D. and Van Breedam, J. and van de Wal, R. and van den Broeke, M. and Winkelmann, R. and Zhao, C. and Zhang, T. and Zwinger, T.},
+  title   = {Future sea level change under {Coupled Model Intercomparison Project} {Phase 5} and {Phase 6} scenarios from the {Greenland} and {Antarctic} ice sheets},
+  journal = {Geophysical Research Letters},
+  volume  = {48},
+  number  = {16},
+  pages   = {e2020GL091741},
+  year    = {2021},
+  doi     = {10.1029/2020GL091741},
+  options = {useprefix=true}
 }
 
 @article{jourdain2020,

@@ -49,7 +49,7 @@ vector products into compact binary packages with provenance metadata, which a
 static JavaScript application built with Three.js [@threejs] and WebGL renders
 without plugins or server-side computation, on desktop and mobile devices.
 
-![The 3D ICE explorer. (a) The interface, with Antarctic ice-surface speed [@mouginot2019] and surface-band WAOM2 ocean streamlines [@richter2022; @dias2023] over BedMachine Antarctica v4 [@morlighem2020]. (b) Greenland ice-surface speed from ITS_LIVE [@gardner2024] over BedMachine Greenland v6 [@morlighem2017]. (c) Antarctic ice in 2300 under high emissions (SSP5-8.5), the mean of eight ISMIP6 models [@seroussi2024], coloured by thickness change since 2015 (red: thinning), with flowlines coloured by speed, at the public edition's high-emission tour stop. Vertical scales are exaggerated.\label{fig:overview}](docs/images/explorer-overview.jpg)
+![The 3D ICE explorer. (a) The interface, with Antarctic ice-surface speed [@mouginot2019; @mouginot2019data] and WAOM2 ocean streamlines seeded in the top 3–18 % of the local water depth [@richter2022; @dias2023] over BedMachine Antarctica v4 [@morlighem2020; @morlighem2026data]. (b) Greenland ice-surface speed from the ITS_LIVE V02.1 summary mosaic (2014–2024), generated using auto-RIFT [@gardner2018] and provided by the NASA MEaSUREs ITS_LIVE project [@gardner2025], over BedMachine Greenland v6 [@morlighem2017; @morlighem2025data]. (c) Antarctic ice in 2300 under high emissions (SSP5-8.5), the mean of eight ISMIP6 models [@seroussi2024], coloured by thickness change since 2015 (red: thinning), with flowlines coloured by speed, at the public edition's high-emission tour stop. Vertical scales are exaggerated.\label{fig:overview}](docs/images/explorer-overview.jpg)
 
 # Statement of need
 
@@ -116,7 +116,7 @@ region and depth [@richter2022; @dias2023]. The projection layer plays the
 equal-weight mean of eight ISMIP6 Antarctica 2300 models, one per modelling
 group, under three UKESM1-0-LL scenarios: low emissions, high emissions, and
 high emissions with ice-shelf collapse
-[@seroussi2024; @nowicki2024ismip6; @nowicki2020; @barthel2020;
+[@seroussi2024; @nowicki2024ismip6; @nowicki2020; @payne2021;
 @jourdain2020]. Scripts beside the 8 TB archive on a supercomputer regrid each
 model conservatively. A packer applies the models' mean thickness change since
 2015 to today's BedMachine ice at 5-year keyframes, scaling thinning to
@@ -183,13 +183,15 @@ interpret in standard two-dimensional plots [@aapp2026;
 site recorded 578 active users and about 1,200 page views.
 
 3D ICE integrates representative products for bed geometry
-[@morlighem2020; @pritchard2025; @morlighem2017; @palmer2025], ice velocity
-[@mouginot2019; @gardner2018; @gardner2024], ocean circulation [@richter2022;
-@dias2023; @cmems2025], ice-shelf basal melting [@galtonfenzi2025], basal
-friction [@jager2026antarctica; @jager2026greenland; @jager2026aisefi;
+[@morlighem2020; @morlighem2026data; @pritchard2025; @pritchard2024data;
+@morlighem2017; @morlighem2025data; @palmer2025], ice velocity [@mouginot2019;
+@mouginot2019data; @gardner2018; @gardner2025], ocean circulation
+[@richter2022; @dias2023; @cmems2025], ice-shelf basal melting
+[@galtonfenzi2025; @galtonfenzi2025data], basal friction
+[@jager2026antarctica; @jager2026greenland; @jager2026aisefi;
 @jager2026grisefi], subglacial hydrology [@werder2013; @ehrenfeucht2025;
 @ehrenfeucht2024], drainage boundaries [@rignot2011; @mouginot2017boundaries;
-@mouginot2019basins], and polar places [@scar_gazetteer; @comnap2024].
+@mouginot2019basins], and polar places [@scar_gazetteer; @comnap2025].
 
 The repository supplies a specified data contract, a documented preparation
 pipeline, tagged releases with a changelog and a compatibility bundle
