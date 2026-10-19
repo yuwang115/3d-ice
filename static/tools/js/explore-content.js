@@ -26,7 +26,7 @@ const SOURCES = Object.freeze({
   bedMachineAntarctica: "https://doi.org/10.1038/s41561-019-0510-8",
   bedMachineGreenland: "https://doi.org/10.1002/2017GL074954",
   antarcticVelocity: "https://doi.org/10.1029/2019GL083826",
-  greenlandVelocity: "https://nsidc.org/data/NSIDC-0776/versions/2",
+  greenlandVelocity: "https://its-live.jpl.nasa.gov/",
   waom: "https://doi.org/10.3389/fmars.2023.1027704",
   iceShelfThinning: "https://doi.org/10.1126/science.aaa0940",
   arcticOcean: "https://doi.org/10.48670/moi-00001",
@@ -240,10 +240,8 @@ const EN = {
         "Even then, much of West Antarctica would stay under water, leaving a scatter of islands. The sea here is drawn at its level in that ice-free world, raised by the meltwater of both ice sheets.",
       ],
       sources: [
-        {
-          text: "Isostatic response: Paxman, Austermann & Hollyday (2022), grid files v3 (CC BY 4.0)",
-          url: SOURCES.isostaticResponse,
-        },
+        { text: "Isostatic response: Paxman, Austermann & Hollyday (2022)", url: SOURCES.isostaticResponse },
+        { text: "Grid files v3 (2026), CC BY 4.0", url: SOURCES.isostaticGrids },
       ],
     },
     greenland: {
@@ -255,7 +253,7 @@ const EN = {
       ],
       sources: [
         { text: "Ice and bedrock: BedMachine Greenland v6 (Morlighem et al., 2017)", url: SOURCES.bedMachineGreenland },
-        { text: "Ice velocity: ITS_LIVE velocity mosaic, version 2", url: SOURCES.greenlandVelocity },
+        { text: "Ice velocity: ITS_LIVE V02.1 velocity mosaic (2014–2024), NASA MEaSUREs ITS_LIVE project", url: SOURCES.greenlandVelocity },
         { text: "Ice loss since 1992: IMBIE (Otosaka et al., 2023)", url: SOURCES.massBalance },
       ],
     },
@@ -315,7 +313,7 @@ const EN = {
       ],
       sources: [
         { text: "Antarctica: MEaSUREs phase-based ice velocity (Mouginot et al., 2019)", url: SOURCES.antarcticVelocity },
-        { text: "Greenland: ITS_LIVE velocity mosaic, version 2", url: SOURCES.greenlandVelocity },
+        { text: "Greenland: ITS_LIVE V02.1 velocity mosaic (2014–2024), NASA MEaSUREs ITS_LIVE project", url: SOURCES.greenlandVelocity },
       ],
     },
     oceanCurrents: {
@@ -342,10 +340,8 @@ const EN = {
         "The slider blends between today (0%) and that final state (100%). It is not a timeline: the real rebound takes tens of thousands of years.",
       ],
       sources: [
-        {
-          text: "Paxman, Austermann & Hollyday (2022), grid files v3 (CC BY 4.0)",
-          url: SOURCES.isostaticResponse,
-        },
+        { text: "Paxman, Austermann & Hollyday (2022)", url: SOURCES.isostaticResponse },
+        { text: "Grid files v3 (2026), CC BY 4.0", url: SOURCES.isostaticGrids },
       ],
     },
     projection: {
@@ -481,10 +477,8 @@ const ZH = {
         "即便如此，西南极的大部分仍会留在水下，只剩下星罗棋布的岛屿。这里的海面画在那个无冰世界的海平面上，其中包含了两大冰盖的融水。",
       ],
       sources: [
-        {
-          text: "地壳均衡响应：Paxman、Austermann 与 Hollyday（2022），网格文件 v3（CC BY 4.0）",
-          url: SOURCES.isostaticResponse,
-        },
+        { text: "地壳均衡响应：Paxman、Austermann 与 Hollyday（2022）", url: SOURCES.isostaticResponse },
+        { text: "网格文件 v3（2026），CC BY 4.0", url: SOURCES.isostaticGrids },
       ],
     },
     greenland: {
@@ -496,7 +490,7 @@ const ZH = {
       ],
       sources: [
         { text: "冰层与基岩：BedMachine Greenland v6（Morlighem 等，2017）", url: SOURCES.bedMachineGreenland },
-        { text: "冰流速度：ITS_LIVE 速度镶嵌图，第 2 版", url: SOURCES.greenlandVelocity },
+        { text: "冰速：ITS_LIVE V02.1 速度镶嵌图（2014–2024 年），NASA MEaSUREs ITS_LIVE 项目", url: SOURCES.greenlandVelocity },
         { text: "1992 年以来的冰量损失：IMBIE（Otosaka 等，2023）", url: SOURCES.massBalance },
       ],
     },
@@ -552,7 +546,7 @@ const ZH = {
       ],
       sources: [
         { text: "南极：MEaSUREs 基于相位的冰流速度（Mouginot 等，2019）", url: SOURCES.antarcticVelocity },
-        { text: "格陵兰：ITS_LIVE 速度镶嵌图，第 2 版", url: SOURCES.greenlandVelocity },
+        { text: "格陵兰：ITS_LIVE V02.1 速度镶嵌图（2014–2024 年），NASA MEaSUREs ITS_LIVE 项目", url: SOURCES.greenlandVelocity },
       ],
     },
     oceanCurrents: {
@@ -577,10 +571,8 @@ const ZH = {
         "滑块在今天（0%）和最终状态（100%）之间过渡，并不代表时间进程：真实的回弹需要数万年。",
       ],
       sources: [
-        {
-          text: "Paxman、Austermann 与 Hollyday（2022），网格文件 v3（CC BY 4.0）",
-          url: SOURCES.isostaticResponse,
-        },
+        { text: "Paxman、Austermann 与 Hollyday（2022）", url: SOURCES.isostaticResponse },
+        { text: "网格文件 v3（2026），CC BY 4.0", url: SOURCES.isostaticGrids },
       ],
     },
     projection: {

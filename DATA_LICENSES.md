@@ -4,8 +4,7 @@ The [MIT License](LICENSE) covers the 3D ICE source code and the scripts that pr
 data packages. It does not cover the data packages in `static/tools/data/`, or images and
 videos made from them. Each package is a resampled, quantized derivative of a third-party
 dataset and remains under that dataset's licence and terms. Cite the original producers when
-you reuse the data; the references are in [paper.bib](paper.bib) and in each package's
-`.meta.json`.
+you reuse the data; the references are below and in [paper.bib](paper.bib).
 
 ## Openly licensed (CC BY 4.0)
 
@@ -25,10 +24,10 @@ you reuse the data; the references are in [paper.bib](paper.bib) and in each pac
 | Data | Packages |
 | --- | --- |
 | MEaSUREs BedMachine Antarctica, Version 4 ([doi:10.5067/POJQI54A45HX](https://doi.org/10.5067/POJQI54A45HX)) | `bedmachine_antarctica_v4_*` |
-| IceBridge BedMachine Greenland, Version 6 ([doi:10.5067/6B6B225B8V2D](https://doi.org/10.5067/6B6B225B8V2D)) | `bedmachine_greenland_v6_*` |
+| IceBridge BedMachine Greenland, Version 6 ([doi:10.5067/6B6B225B8V2D](https://doi.org/10.5067/6B6B225B8V2D)); Version 7 was released in October 2026 | `bedmachine_greenland_v6_*` |
 | MEaSUREs Phase-Based Antarctica Ice Velocity Map, Version 1 ([doi:10.5067/PZ3NJ5RXRH10](https://doi.org/10.5067/PZ3NJ5RXRH10)) | `antarctic_ice_velocity_phase_v01_*`, `bedmap3_antarctica_velocity_*` |
-| MEaSUREs Antarctic Boundaries, Version 2 ([doi:10.5067/AXE4121732AD](https://doi.org/10.5067/AXE4121732AD)) | `imbie_refined_basins_v2.json`, `antarctica_refined_basins_search.json` |
-| ITS_LIVE velocity mosaic V02.1 (NASA MEaSUREs ITS_LIVE; CC0 on the ITS_LIVE archive) | `greenland_ice_velocity_*` |
+| MEaSUREs Antarctic Boundaries, Version 2, refined basins ([doi:10.5067/AXE4121732AD](https://doi.org/10.5067/AXE4121732AD)) | `imbie_refined_basins_v2.json`, `antarctica_refined_basins_search.json` |
+| ITS_LIVE V02.1 summary velocity mosaic, 2014–2024 (CC0 on the [ITS_LIVE](https://its-live.jpl.nasa.gov/) archive). Credit: velocity data generated using auto-RIFT (Gardner et al., 2018, [doi:10.5194/tc-12-521-2018](https://doi.org/10.5194/tc-12-521-2018)) and provided by the NASA MEaSUREs ITS_LIVE project (Gardner et al., 2025, [doi:10.5067/JQ6337239C96](https://doi.org/10.5067/JQ6337239C96)) | `greenland_ice_velocity_*` |
 
 ## Other terms
 

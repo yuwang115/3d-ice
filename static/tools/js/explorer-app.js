@@ -27,6 +27,7 @@ const [
   { BASE_HORIZONTAL_VERTICAL_SCALE_RATIO, formatVerticalExaggeration },
   { summariseMasked },
   { isInOpenWater },
+  { escapeHtml, renderSourceLine },
 ] = await Promise.all([
   import(assetUrl("js/polar-features.js")),
   import(assetUrl("js/polar-refined-basins.js")),
@@ -37,6 +38,7 @@ const [
   import(assetUrl("js/vertical-scale.js")),
   import(assetUrl("js/layer-stats.js")),
   import(assetUrl("js/overlay-cells.js")),
+  import(assetUrl("js/source-links.js")),
 ]);
 const editionProfile = getEditionProfile(document.documentElement.dataset.edition);
 // An edition without the basin layer leaves basins out of place search as well.
@@ -188,30 +190,59 @@ const ALL_REGIONS = {
         text: "MEaSUREs Phase-Based Antarctica Ice Velocity Map, Version 1",
         url: "https://nsidc.org/data/NSIDC-0754/versions/1",
       },
-      basalFriction: {
-        text: "Jager et al. (2026) Insights from an ensemble inverse method to quantify basal friction uncertainties for ice-sheet models - Part 2: Antarctic ice sheet.",
-        url: "https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1",
-      },
-      rise: {
-        text: "Galton-Fenzi et al. (2025) Multi-model estimate of Antarctic ice-shelf basal melting and ocean drivers, V1",
-        url: "https://data.aad.gov.au/metadata/RISE",
-      },
+      // Each line credits the data set drawn and, where there is one, the article describing it.
+      basalFriction: [
+        {
+          text: "Jager (2026) Antarctic Ice Sheet Ensemble Friction Inversion (AISEFI): Basal shear stress with uncertainties, CC BY 4.0",
+          url: "https://doi.org/10.5281/zenodo.18508904",
+        },
+        "; ",
+        {
+          text: "Jager et al. (2026), preprint",
+          url: "https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1",
+        },
+      ],
+      rise: [
+        {
+          text: "Galton-Fenzi (2025) Multi-model estimate of Antarctic ice-shelf basal melting and ocean drivers: data, Ver. 1, CC BY 4.0",
+          url: "https://doi.org/10.26179/q0rh-gt74",
+        },
+        "; ",
+        {
+          text: "Galton-Fenzi et al. (2025), The Cryosphere",
+          url: "https://doi.org/10.5194/tc-19-6507-2025",
+        },
+      ],
       oceanCurrents: {
         text: "Whole Antarctic Ocean Model 2-km (WAOM2) simulated annual-mean ocean circulation, temperature and salinity (Boeira Dias et al., 2023), redistributed with the authors' permission",
         url: "https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full",
       },
       basins: {
-        text: "MEaSUREs Antarctic Boundaries for IPY 2007-2009 (Version 2, IMBIE refined basins)",
+        text: "MEaSUREs Antarctic Boundaries v2, refined basins (Mouginot et al., 2017)",
         url: "https://nsidc.org/data/NSIDC-0709/versions/2",
       },
-      hydrology: {
-        text: "Ehrenfeucht et al. (2025) Antarctic Wide Subglacial Hydrology Modeling",
-        url: "https://zenodo.org/records/12738170",
-      },
-      isostaticResponse: {
-        text: "Paxman, Austermann & Hollyday (2022) Total isostatic response to the complete unloading of the Greenland and Antarctic Ice Sheets; grid files v3 (2026), CC BY 4.0",
-        url: "https://doi.org/10.18739/A22Z12R8C",
-      },
+      hydrology: [
+        {
+          text: "Ehrenfeucht (2024) Data for: Antarctic wide subglacial hydrology modeling, CC BY 4.0",
+          url: "https://doi.org/10.5281/zenodo.12738170",
+        },
+        "; ",
+        {
+          text: "Ehrenfeucht et al. (2025), Geophysical Research Letters",
+          url: "https://doi.org/10.1029/2024GL111386",
+        },
+      ],
+      isostaticResponse: [
+        {
+          text: "Paxman, Austermann & Hollyday (2022) Total isostatic response to the complete unloading of the Greenland and Antarctic Ice Sheets",
+          url: "https://doi.org/10.1038/s41598-022-15440-y",
+        },
+        "; ",
+        {
+          text: "grid files v3 (2026), CC BY 4.0",
+          url: "https://doi.org/10.18739/A22Z12R8C",
+        },
+      ],
       iceProjection: {
         text: "ISMIP6 Antarctica 2300 projections, mean of eight ice sheet models (Seroussi et al. 2024; Nowicki & ISMIP6 Team 2024), CC BY 4.0",
         url: "https://doi.org/10.5281/zenodo.13135599",
@@ -361,23 +392,55 @@ const ALL_REGIONS = {
         text: "IceBridge BedMachine Greenland, Version 6",
         url: "https://nsidc.org/data/idbmg4/versions/6",
       },
-      velocity: {
-        text: "MEaSUREs ITS_LIVE Regional Glacier and Ice Sheet Surface Velocities, Version 2",
-        url: "https://nsidc.org/data/NSIDC-0776/versions/2",
-      },
-      basalFriction: {
-        text: "Jager et al. (2026) Insights from an ensemble inverse method to quantify basal friction uncertainties for ice-sheet models - Part 1: Greenland ice sheet",
-        url: "https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1",
-      },
+      // ITS_LIVE's requested credit; the V02.1 mosaic is served by the ITS_LIVE archive, and its
+      // archived product is NSIDC-0776 Version 2.
+      velocity: [
+        {
+          text: "ITS_LIVE V02.1 summary velocity mosaic (2014–2024)",
+          url: "https://its-live.jpl.nasa.gov/",
+        },
+        ": velocity data generated using auto-RIFT (",
+        {
+          text: "Gardner et al., 2018",
+          url: "https://doi.org/10.5194/tc-12-521-2018",
+        },
+        ") and provided by the NASA MEaSUREs ITS_LIVE project (",
+        {
+          text: "Gardner et al., 2025",
+          url: "https://nsidc.org/data/NSIDC-0776/versions/2",
+        },
+        ")",
+      ],
+      basalFriction: [
+        {
+          text: "Jager (2026) Greenland Ice Sheet Ensemble Friction Inversion (GrISEFI): Basal shear stress with uncertainties, CC BY 4.0",
+          url: "https://doi.org/10.5281/zenodo.18508850",
+        },
+        "; ",
+        {
+          text: "Jager et al. (2026), preprint",
+          url: "https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1",
+        },
+      ],
       oceanCurrents: {
         text: "Generated using E.U. Copernicus Marine Service Information: Arctic Ocean Physics Analysis and Forecast (monthly mean ocean velocity, temperature and salinity)",
         url: "https://doi.org/10.48670/moi-00001",
       },
-      basins: "Greenland Basins PS v1.4.2 catchment boundaries",
-      isostaticResponse: {
-        text: "Paxman, Austermann & Hollyday (2022) Total isostatic response to the complete unloading of the Greenland and Antarctic Ice Sheets; grid files v3 (2026), CC BY 4.0",
-        url: "https://doi.org/10.18739/A22Z12R8C",
+      basins: {
+        text: "Mouginot & Rignot (2019) Glacier catchments/basins for the Greenland Ice Sheet, CC BY 4.0",
+        url: "https://doi.org/10.7280/D1WT11",
       },
+      isostaticResponse: [
+        {
+          text: "Paxman, Austermann & Hollyday (2022) Total isostatic response to the complete unloading of the Greenland and Antarctic Ice Sheets",
+          url: "https://doi.org/10.1038/s41598-022-15440-y",
+        },
+        "; ",
+        {
+          text: "grid files v3 (2026), CC BY 4.0",
+          url: "https://doi.org/10.18739/A22Z12R8C",
+        },
+      ],
     },
     reboundTeModelLabel: "Steffen et al. 2018",
     datasets: {
@@ -6382,28 +6445,6 @@ function formatCoord(value, digits = 2) {
   return text.replace(/\.?0+$/, "");
 }
 
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-function renderSourceValue(source) {
-  if (!source) return "";
-  if (typeof source === "string") return escapeHtml(source);
-  const text = escapeHtml(source.text || "");
-  const url = escapeHtml(source.url || "");
-  if (!url) return text;
-  return `<a class="meta-link" href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
-}
-
-function renderSourceLine(label, source, suffix = "") {
-  return `<li class="meta-compact"><strong>${escapeHtml(label)}:</strong> ${renderSourceValue(source)}${suffix}</li>`;
-}
-
 function renderMetaSection(sectionId, title, items, options = {}) {
   if (!items.length) return "";
   const defaultOpen = Boolean(options.defaultOpen);
@@ -8164,7 +8205,7 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
     : [`<li><strong>${t("explorer.meta.status")}:</strong> ${t("explorer.meta.notYetAdded", { region: region.label })}</li>`];
 
   const sourceLines = [renderSourceLine(t("explorer.meta.sourceBedIceGeometry"), dataset.sources.geometry)];
-  if (dataset.regionKey === "antarctica" && dataset.sources.basins) {
+  if (capabilities.refinedBasins && dataset.sources.basins) {
     sourceLines.push(renderSourceLine(t("explorer.meta.sourceBasinBoundaries"), dataset.sources.basins));
   }
   if (capabilities.velocity && dataset.sources.velocity) {

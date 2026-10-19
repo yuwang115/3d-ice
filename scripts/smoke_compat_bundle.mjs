@@ -33,6 +33,7 @@ const requiredEntries = [
   "tools/js/vertical-scale.js",
   "tools/js/layer-stats.js",
   "tools/js/overlay-cells.js",
+  "tools/js/source-links.js",
   "tools/js/explore-content.js",
   "tools/js/explore-guide.js",
   "tools/js/explorer-app.js",

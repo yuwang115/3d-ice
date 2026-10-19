@@ -40,7 +40,7 @@ by 250 m, and hybridising a bed product with another product's surface and mask.
 | `prepare_bedmachine_greenland.py` | BedMachine Greenland v6 | `bedmachine_greenland_v6_{3km,1km}` |
 | `prepare_qrf_greenland.py` | QRF Greenland subglacial topography (2025), with BedMachine Greenland v6 surface and mask | `greenland_qrf_2025_{3km,1km}` |
 | `prepare_antarctica_velocity.py` | MEaSUREs phase-based Antarctic ice velocity v1 | `antarctic_ice_velocity_phase_v01_{480,741}` |
-| `prepare_greenland_velocity.py` | ITS_LIVE v2 velocity mosaic | `greenland_ice_velocity_{3km,1km}` |
+| `prepare_greenland_velocity.py` | ITS_LIVE V02.1 summary velocity mosaic (2014–2024) | `greenland_ice_velocity_{3km,1km}` |
 | `prepare_basal_friction.py` | Basal-friction inversions (`taub`) | `antarctica_basal_friction_*`, `greenland_basal_friction_*` |
 | `prepare_subglacial_hydrology.py` | GlaDS Antarctic subglacial hydrology | `antarctica_subglacial_hydrology_{480,741}` |
 | `prepare_bedmap3_antarctica_overlays.py` | The velocity, basal-friction and hydrology packages above | `bedmap3_antarctica_{velocity,basal_friction,subglacial_hydrology}_{10km,4km}` |
@@ -52,7 +52,7 @@ by 250 m, and hybridising a bed product with another product's surface and mask.
 | `regrid_ismip6_2300_run.py`, `combine_ismip6_2300_mean.py` | ISMIP6 Antarctica 2300 model output (run next to the 2D archive on an HPC system) | per-run 10 km fields and the 8-model mean change per experiment |
 | `prepare_ismip6_projection.py` | the 8-model mean change, BedMachine v4 Balanced, the published scalars | `ismip6_2300_mean8_ae{05,10,14}_480` |
 | `prepare_polar_features.py` | Research-station and place-name catalogues | `*_research_stations.json`, `*_geographic_names.json` |
-| `prepare_refined_basin_search.mjs` | IMBIE refined Antarctic basins; the Greenland basins above | `*_refined_basins_search.json` |
+| `prepare_refined_basin_search.mjs` | MEaSUREs Antarctic Boundaries v2 refined basins; the Greenland basins above | `*_refined_basins_search.json` |
 
 The `480`/`10km` and `741`/`4km` suffixes are the Antarctic Balanced (667 × 667 cells at
 10 km) and HD (1667 × 1667 at 4 km) grids; Greenland uses 3 km (511 × 918) and 1 km
@@ -60,8 +60,11 @@ The `480`/`10km` and `741`/`4km` suffixes are the Antarctic Balanced (667 × 667
 drawn on, so overlay and terrain cells correspond one to one in the browser.
 
 Source products are large and several require registration to download, so they are not
-in the repository. The prepared packages are, and each package's metadata names the source
-file, product version and reference it was built from.
+in the repository. The prepared packages are. Each package's metadata names the product
+version and what the package was built from (a source file or dataset, or the packages it
+combines); some also carry a reference, source URL or licence. The citation and licence of
+every source product are in [DATA_LICENSES.md](../DATA_LICENSES.md) and the JOSS paper's
+bibliography.
 
 ## Stage 2: static runtime
 
@@ -81,6 +84,7 @@ file, product version and reference it was built from.
 | `static/tools/js/vertical-scale.js` | The scene's base vertical scale and the true vertical exaggeration the slider label shows |
 | `static/tools/js/layer-stats.js` | Statistics of a field over the cells a layer draws, for the Data Snapshot |
 | `static/tools/js/overlay-cells.js` | Which cells an overlay may be drawn on: subglacial water beneath grounded ice, ocean streamlines in open water clear of the bed and the ice-shelf base |
+| `static/tools/js/source-links.js` | The Data Snapshot's source lines, each crediting a data set and, where there is one, its article |
 | `static/tools/antarctica-geometry-worker.js` | Module worker that builds velocity, basal-friction, hydrology and ocean-current geometry off the main thread |
 | `static/tools/gia-rebound-worker.js` | Module worker for the idealised isostatic-rebound solve |
 | `static/tools/js/gia-rebound.js`, `gia-grid.js`, `fft2d.js` | Published-response summary, flexural and Airy isostasy solver, grid utilities and 2-D FFT |
@@ -194,7 +198,7 @@ current Chrome, Edge, Firefox and Safari (Chrome and Edge 89+, Firefox 114+, Saf
 | Place search, label styling, refined-basin validation | node:test | `tests/js/polar-features.test.mjs` | JavaScript unit tests |
 | Edition profiles, polar projections against every catalogue position, tour framing and flights, and copy parity across locales | node:test | `tests/js/editions.test.mjs`, `polar-projection.test.mjs`, `explore-tour.test.mjs`, `explore-content.test.mjs` | JavaScript unit tests |
 | Every localisation key used at runtime resolves in both locales | node:test | `tests/js/locale-coverage.test.mjs` | JavaScript unit tests |
-| True vertical exaggeration in labels and copy; Data Snapshot statistics over the drawn cells; the cells each overlay may be drawn on | node:test | `tests/js/vertical-scale.test.mjs`, `tests/js/layer-stats.test.mjs`, `tests/js/overlay-cells.test.mjs` | JavaScript unit tests |
+| True vertical exaggeration in labels and copy; Data Snapshot statistics over the drawn cells; the cells each overlay may be drawn on; source lines | node:test | `tests/js/vertical-scale.test.mjs`, `tests/js/layer-stats.test.mjs`, `tests/js/overlay-cells.test.mjs`, `tests/js/source-links.test.mjs` | JavaScript unit tests |
 | Ocean-streamline orientation (ROMS components to EPSG:3031 x/y; the circumpolar current flows east in the packages) and subglacial channel filtering | pytest | `tests/test_ocean_current_orientation.py`, `tests/test_prepare_subglacial_hydrology.py` | Python unit and integration tests |
 | Metadata schema of every package; `CITATION.cff` and `codemeta.json` | pytest, cffconvert | `tests/test_metadata_schema.py` | Validate .meta.json files |
 | The distributable bundle contains every runtime file | Node | `scripts/smoke_compat_bundle.mjs` | Compatibility bundle smoke test |

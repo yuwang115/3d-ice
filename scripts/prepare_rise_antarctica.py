@@ -325,9 +325,13 @@ def create_preview_index(
     step_y = float(y_axis[1] - y_axis[0])
     return {
         "title": "RISE Antarctica 2D Preview",
-        "dataset_title": "Realistic ice-shelf/ocean state estimates (RISE) of basal melting and drivers: data",
+        "dataset_title": "Multi-model estimate of Antarctic ice-shelf basal melting and ocean drivers: data",
         "dataset_source": "Australian Antarctic Data Centre (RISE multi-model mean, Version 1)",
-        "citation": "Galton-Fenzi, B.K. (2025) Realistic ice-shelf/ocean state estimates (RISE) of basal melting and drivers: data.",
+        # The Australian Antarctic Data Centre's requested citation.
+        "citation": (
+            "Galton-Fenzi, B.K. (2025) Multi-model estimate of Antarctic ice-shelf basal melting and ocean "
+            "drivers: data, Ver. 1, Australian Antarctic Data Centre - doi:10.26179/q0rh-gt74"
+        ),
         "license": "CC BY 4.0",
         "source_file": input_path.name,
         "projection": "EPSG:3031 polar stereographic",
@@ -355,8 +359,9 @@ def create_preview_index(
             "counts": describe_mask(mask_display),
         },
         "variables": variable_meta,
-        "source_url": "https://data.aad.gov.au/metadata/RISE",
-        "paper_url": "https://doi.org/10.5194/egusphere-2024-4047",
+        "source_url": "https://doi.org/10.26179/q0rh-gt74",
+        # Galton-Fenzi et al. (2025), The Cryosphere 19, 6507-6525.
+        "paper_url": "https://doi.org/10.5194/tc-19-6507-2025",
         "output_directory": str(output_dir),
     }
 
