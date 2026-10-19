@@ -269,7 +269,13 @@ def update_basal_friction_metadata(meta: dict[str, Any], arrays: dict[str, np.nd
         "valid_fraction": float(finite.size / values.size),
     }
     field = next(field for field in meta["fields"] if field["name"] == "basal_friction")
-    field["stats_mpa"] = {"min": float(np.min(finite)), "max": float(np.max(finite)), "mean": float(np.mean(finite))}
+    # Means accumulate in float64: numpy versions sum float32 arrays in different orders, so a
+    # float32 mean is not reproducible across the Python versions CI runs.
+    field["stats_mpa"] = {
+        "min": float(np.min(finite)),
+        "max": float(np.max(finite)),
+        "mean": float(np.mean(finite, dtype=np.float64)),
+    }
     field["quantiles_mpa"] = finite_quantiles(finite, (0.5, 0.9, 0.95, 0.99, 0.995))
 
 
@@ -305,7 +311,7 @@ def update_hydrology_metadata(meta: dict[str, Any], arrays: dict[str, np.ndarray
     fields["channel_discharge"]["stats_m3_per_s"] = {
         "min": float(np.min(discharge)),
         "max": float(np.max(discharge)),
-        "mean": float(np.mean(discharge)),
+        "mean": float(np.mean(discharge, dtype=np.float64)),  # float64: see update_basal_friction_metadata
     }
     fields["channel_discharge"]["quantiles_m3_per_s"] = finite_quantiles(discharge, (0.5, 0.9, 0.95, 0.99))
 
