@@ -627,13 +627,13 @@ class TestPublicEditionOnAPhone:
             page = context.new_page()
             page.goto(explore_url, wait_until="domcontentloaded", timeout=30_000)
             _wait_ready(page)
+            # The button's name says what it does, so it carries no aria-expanded as well.
             button = page.locator("#panelCloseButton")
             assert not page.evaluate("document.body.classList.contains('mobile-panel-open')")
-            assert button.get_attribute("aria-expanded") == "false"
+            assert button.get_attribute("aria-expanded") is None
             assert button.inner_text().strip() == "Layers and places"
             button.tap()
             page.wait_for_function("() => document.body.classList.contains('mobile-panel-open')", timeout=5_000)
-            assert button.get_attribute("aria-expanded") == "true"
             assert button.inner_text().strip() == "Done"
             button.tap()
             page.wait_for_function("() => !document.body.classList.contains('mobile-panel-open')", timeout=5_000)

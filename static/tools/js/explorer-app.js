@@ -6782,13 +6782,15 @@ function setMobilePanelOffset(offsetPx) {
   syncMobilePanelButton();
 }
 
-/** Collapsed, the drawer's button names what the drawer holds and opens it; open, it closes it. */
+/**
+ * Collapsed, the drawer's button names what the drawer holds and opens it; open, it reads
+ * "Done" and closes it. Its name says what it does, so it carries no aria-expanded as well.
+ */
 function syncMobilePanelButton() {
   const button = controlsUI?.panelCloseButton;
   if (!button) return;
   const label = mobilePanelOpen ? t("explorer.drawer.close") : t("explorer.drawer.open");
   if (button.textContent !== label) button.textContent = label;
-  button.setAttribute("aria-expanded", String(mobilePanelOpen));
 }
 
 function syncMobilePanelBounds({ preservePosition = true } = {}) {
