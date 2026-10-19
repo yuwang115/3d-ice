@@ -1213,6 +1213,31 @@ def read_masked_array(dataset: netCDF4.Variable, key: Any) -> np.ndarray:
     return out
 
 
+def grid_to_projected_components(
+    u_xi: np.ndarray,
+    v_eta: np.ndarray,
+    angle_rad: np.ndarray,
+    x_m: np.ndarray,
+    y_m: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Turn ROMS grid-aligned velocity components into EPSG:3031 x/y components.
+
+    ROMS `angle` runs from the XI axis to east, so rotating (u_xi, v_eta) by it gives
+    east/north components; rotating those by minus the EPSG:3031 longitude,
+    atan2(x, y), gives x/y components. The net rotation is angle - longitude, which on
+    WAOM2's EPSG:3031-aligned grid is zero to within 0.11 deg. Rotating by angle alone,
+    as version 0.3.0 did, turned every traced vector by the local longitude.
+    Fields broadcast over leading axes, so (levels, ny, nx) volumes take (ny, nx) grids.
+    """
+    relative = np.asarray(angle_rad, dtype=np.float64) - np.arctan2(
+        np.asarray(x_m, dtype=np.float64), np.asarray(y_m, dtype=np.float64)
+    )
+    dtype = np.result_type(u_xi, v_eta, np.float32)  # float32 volumes stay float32; integers become floats
+    cos_rel = np.cos(relative).astype(dtype, copy=False)
+    sin_rel = np.sin(relative).astype(dtype, copy=False)
+    return u_xi * cos_rel - v_eta * sin_rel, u_xi * sin_rel + v_eta * cos_rel
+
+
 def gather_rho_to_u(field: np.ndarray, row_idx: np.ndarray, u_col_idx: np.ndarray) -> np.ndarray:
     return 0.5 * (field[np.ix_(row_idx, u_col_idx)] + field[np.ix_(row_idx, u_col_idx + 1)])
 
@@ -1847,9 +1872,6 @@ def main() -> None:
         u_native_volume = np.full((level_count, ny_s, needed_u_cols.size), np.nan, dtype=np.float32)
         v_native_volume = np.full((level_count, needed_v_rows.size, nx_s), np.nan, dtype=np.float32)
 
-        cos_angle = np.cos(angle).astype(np.float32)
-        sin_angle = np.sin(angle).astype(np.float32)
-
         for level in range(level_count):
             temp_slice = read_masked_array(
                 ds.variables["temp"], (0, level, slice(None, None, args.sample_stride), slice(None, None, args.sample_stride))
@@ -1906,10 +1928,10 @@ def main() -> None:
         )
         v_volume = 0.5 * (v_lower + v_upper)
 
-        u_rot = u_volume * cos_angle[None, ...] - v_volume * sin_angle[None, ...]
-        v_rot = u_volume * sin_angle[None, ...] + v_volume * cos_angle[None, ...]
-        u_volume = u_rot.astype(np.float32)
-        v_volume = v_rot.astype(np.float32)
+        # The streamlines step in EPSG:3031 x/y, so the components must be x/y, not east/north.
+        u_xy, v_xy = grid_to_projected_components(u_volume, v_volume, angle, x_grid, y_grid)
+        u_volume = u_xy.astype(np.float32)
+        v_volume = v_xy.astype(np.float32)
 
         rng = np.random.default_rng(int(args.random_seed))
         water_column_thickness = bottom_depth - top_depth
