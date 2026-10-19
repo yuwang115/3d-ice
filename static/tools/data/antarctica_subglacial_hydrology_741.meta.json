@@ -14,8 +14,8 @@
   "quantization": {
     "int16_fill_value": -32768,
     "effective_pressure_unit": "Pa",
-    "effective_pressure_scale_pa_per_int16": 1000,
-    "effective_pressure_offset_pa": 0
+    "effective_pressure_scale_pa_per_int16": 1000.0,
+    "effective_pressure_offset_pa": 0.0
   },
   "channel_filter": {
     "min_discharge_m3_per_s": 0.001,
@@ -26,8 +26,8 @@
     "cell_count": 2778889,
     "effective_pressure_valid_fraction": 0.26844757023400356,
     "channel_segment_count_raw": 5929081,
-    "channel_segment_count_after_filter": 20923,
-    "channel_segment_count_unique": 17238
+    "channel_segment_count_after_filter": 42176,
+    "channel_segment_count_unique": 29793
   },
   "fields": [
     {
@@ -36,65 +36,65 @@
       "byte_offset": 0,
       "byte_length": 5557778,
       "unit": "Pa",
-      "scale": 1000,
-      "offset": 0,
+      "scale": 1000.0,
+      "offset": 0.0,
       "fill_value": -32768,
       "stats_pa": {
         "min": 45.99897766113281,
-        "max": 17424298,
+        "max": 17424298.0,
         "mean": 1666481.9448144536
       },
       "quantiles_pa": {
-        "median": 1383000,
-        "q90": 2939000,
-        "q95": 3694000,
-        "q99": 5457000
+        "median": 1382929.875,
+        "q90": 2939015.5,
+        "q95": 3693872.0,
+        "q99": 5456948.150000005
       }
     },
     {
       "name": "channel_col1",
       "dtype": "uint16",
       "byte_offset": 5557778,
-      "byte_length": 34476,
+      "byte_length": 59586,
       "unit": "grid_col"
     },
     {
       "name": "channel_row1",
       "dtype": "uint16",
-      "byte_offset": 5592254,
-      "byte_length": 34476,
+      "byte_offset": 5617364,
+      "byte_length": 59586,
       "unit": "grid_row"
     },
     {
       "name": "channel_col2",
       "dtype": "uint16",
-      "byte_offset": 5626730,
-      "byte_length": 34476,
+      "byte_offset": 5676950,
+      "byte_length": 59586,
       "unit": "grid_col"
     },
     {
       "name": "channel_row2",
       "dtype": "uint16",
-      "byte_offset": 5661206,
-      "byte_length": 34476,
+      "byte_offset": 5736536,
+      "byte_length": 59586,
       "unit": "grid_row"
     },
     {
       "name": "channel_discharge",
       "dtype": "float32",
-      "byte_offset": 5695682,
-      "byte_length": 68952,
+      "byte_offset": 5796122,
+      "byte_length": 119172,
       "unit": "m3/s",
       "stats_m3_per_s": {
         "min": 0.0010012377751991153,
         "max": 205.6685333251953,
-        "mean": 2.5255823135375977
+        "mean": 2.8188953399658203
       },
       "quantiles_m3_per_s": {
-        "median": 0.5074551701545715,
-        "q90": 3.6108031749725344,
-        "q95": 8.327338886260982,
-        "q99": 48.4396373748782
+        "median": 0.5623972415924072,
+        "q90": 4.13785285949707,
+        "q95": 9.58618164062493,
+        "q99": 54.49211502075193
       }
     }
   ]

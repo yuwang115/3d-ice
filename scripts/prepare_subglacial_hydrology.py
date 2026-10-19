@@ -67,8 +67,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--min-channel-discharge",
         type=float,
-        default=1e-5,
-        help="Minimum channel_discharge (m3/s) to keep before edge aggregation.",
+        default=1e-3,
+        help="Minimum channel_discharge magnitude (m3/s) to keep before edge aggregation.",
     )
     return parser.parse_args()
 
@@ -136,6 +136,12 @@ def reduce_channel_edges(
     discharge: np.ndarray,
     min_discharge: float,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, int]:
+    """Snap channel edges to grid-cell pairs and keep the largest discharge per pair.
+
+    GlaDS discharge is signed relative to each mesh edge's orientation, so the threshold
+    and the reduction use its magnitude; filtering on the signed value dropped every
+    channel whose edge happened to point upstream.
+    """
     col1 = np.rint((x1 - x0) / dx).astype(np.int64)
     row1 = np.rint((y1 - y0) / dy).astype(np.int64)
     col2 = np.rint((x2 - x0) / dx).astype(np.int64)
@@ -151,8 +157,9 @@ def reduce_channel_edges(
         & (row2 >= 0)
         & (row2 < ny)
     )
-    finite = np.isfinite(discharge)
-    nonzero = discharge >= min_discharge
+    magnitude = np.abs(discharge)
+    finite = np.isfinite(magnitude)
+    nonzero = magnitude >= min_discharge
     same_cell = (col1 == col2) & (row1 == row2)
 
     keep = in_bounds & finite & nonzero & (~same_cell)
@@ -169,7 +176,7 @@ def reduce_channel_edges(
 
     idx1 = row1[keep] * nx + col1[keep]
     idx2 = row2[keep] * nx + col2[keep]
-    discharge_kept = discharge[keep]
+    discharge_kept = magnitude[keep]
 
     a = np.minimum(idx1, idx2).astype(np.int64)
     b = np.maximum(idx1, idx2).astype(np.int64)
