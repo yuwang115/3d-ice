@@ -925,7 +925,7 @@ test("deriveReboundedIceSurfaces re-floats a shelf and grounds it on a rising be
   assert.equal(shallow.bottom[0], -100, "a rising bed grounds the shelf");
 });
 
-// Version 0.3.1 re-floated only ice that was floating to begin with, so thinned marine ice
+// Version 0.3.0 re-floated only ice that was floating to begin with, so thinned marine ice
 // stayed pinned to a deep bed far below the sea surface.
 test("deriveReboundedIceSurfaces lifts thinning grounded marine ice off its bed once it floats", () => {
   // Bed -2500 m with 700 m of equilibrium uplift, half-way through: bed -2150 m, 1500 m of ice.

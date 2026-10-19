@@ -193,7 +193,7 @@ test("flotationGeometryInto grounds heavy ice, floats light ice, and collapses i
   assert.equal(base[3], 0);
 });
 
-// Version 0.3.1 rebuilt the ice on BedMachine's bed, which over Lake Vostok is the lake
+// Version 0.3.0 rebuilt the ice on BedMachine's bed, which over Lake Vostok is the lake
 // floor: switching the projection on dropped the ice surface there by 246 m (median) with
 // no change shown.
 test("restingBedInto raises the bed by the lake water beneath the ice over a subglacial lake", () => {

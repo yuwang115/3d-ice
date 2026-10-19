@@ -60,7 +60,7 @@ Corrections from a pre-announcement audit of 0.3.0.
 - No ocean streamline runs inside an ice shelf: segment ends in a cavity must lie below
   today's ice base as well as above the bed. About 2,000 of 59,000 sub-shelf segments did not.
 - The ice over Lake Vostok stays on its lake. BedMachine's bed there is the lake floor, so
-  switching the projection on dropped the ice surface by 254 m (median; up to 837 m) with no
+  switching the projection on dropped the ice surface by 246 m (median; up to 837 m) with no
   change shown, and the rebound scenario did the same.
 - During a partial rebound, grounded marine ice that has thinned enough to float lifts off
   its bed, as floating ice already did, instead of staying pinned far below the sea surface.
