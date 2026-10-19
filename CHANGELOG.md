@@ -55,7 +55,8 @@ Corrections from a pre-announcement audit of 0.3.0.
   cropped close-up.
 - Subglacial hydrology is drawn only beneath grounded ice. Effective pressure was also drawn
   on 522 floating and 359 ice-free cells of the 10 km grid, on the sea floor beneath the
-  shelves and on bare rock, and some channel ribbons ran off the grounded ice.
+  shelves and on bare rock, and channel ribbons ran on past the grounding line; a channel now
+  ends half-way between its last grounded cell and the next, where the grounded ice ends.
 - No ocean streamline runs inside an ice shelf: segment ends in a cavity must lie below
   today's ice base as well as above the bed. About 2,000 of 59,000 sub-shelf segments did not.
 - The ice over Lake Vostok stays on its lake. BedMachine's bed there is the lake floor, so

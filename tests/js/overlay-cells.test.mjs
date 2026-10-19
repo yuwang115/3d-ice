@@ -1,7 +1,7 @@
 /**
- * Which cells an overlay may be drawn on. In version 0.3.1 the subglacial-hydrology overlay
- * was also drawn on 522 floating and 359 ice-free cells of the 10 km grid (on the sea floor
- * beneath the shelves, and on bare rock), and 2.5 % of the sub-shelf ocean streamline
+ * Which cells an overlay may be drawn on. Version 0.3.0 also drew the subglacial-hydrology
+ * overlay on 522 floating and 359 ice-free cells of the 10 km grid (on the sea floor beneath
+ * the shelves, and on bare rock), and about 2,000 of the 59,000 sub-shelf ocean streamline
  * segments ran inside the ice shelves, because neither filter looked past the bed.
  */
 
@@ -9,6 +9,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  groundedChannelSpan,
   isGroundedIceCell,
   isInOpenWater,
   MASK_FLOATING_ICE,
@@ -34,6 +35,16 @@ test("subglacial water belongs under grounded ice, including the ice over Lake V
   assert.equal(isGroundedIceCell(MASK_FLOATING_ICE), false, "beneath a shelf lies the ocean");
   assert.equal(isGroundedIceCell(MASK_ICE_FREE_LAND), false);
   assert.equal(isGroundedIceCell(MASK_OCEAN), false);
+});
+
+test("a channel is drawn as far as the grounded ice reaches", () => {
+  assert.deepEqual(groundedChannelSpan(MASK_GROUNDED_ICE, MASK_SUBGLACIAL_LAKE), [0, 1]);
+  // An outlet edge runs from the last grounded cell to a floating one: it stops half-way,
+  // where the grounding line lies, rather than one cell short of it or on the sea floor.
+  assert.deepEqual(groundedChannelSpan(MASK_GROUNDED_ICE, MASK_FLOATING_ICE), [0, 0.5]);
+  assert.deepEqual(groundedChannelSpan(MASK_ICE_FREE_LAND, MASK_GROUNDED_ICE), [0.5, 1]);
+  assert.equal(groundedChannelSpan(MASK_FLOATING_ICE, MASK_OCEAN), null);
+  assert.equal(groundedChannelSpan(MASK_ICE_FREE_LAND, MASK_FLOATING_ICE), null);
 });
 
 test("open-ocean water must clear the bed", () => {

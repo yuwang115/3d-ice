@@ -26,7 +26,7 @@ const [
   { easeInOutCubic, flightDurationMs, framePose, interpolatePose, orbitPose },
   { BASE_HORIZONTAL_VERTICAL_SCALE_RATIO, formatVerticalExaggeration },
   { summariseMasked },
-  { isInOpenWater },
+  { isInOpenWater, OCEAN_STREAMLINE_BED_CLEARANCE_M, OCEAN_STREAMLINE_ICE_CLEARANCE_M },
   { escapeHtml, renderSourceLine },
 ] = await Promise.all([
   import(assetUrl("js/polar-features.js")),
@@ -2390,9 +2390,6 @@ const OCEAN_CURRENT_BLOCKING_OVERLAY_ENABLED = true;
 const OCEAN_CURRENT_MAIN_THREAD_FALLBACK_SEGMENT_LIMIT = 250000;
 const OCEAN_CURRENT_MAIN_THREAD_FALLBACK_BIN_BYTES_LIMIT = 16 * 1024 * 1024;
 const VELOCITY_SURFACE_OPACITY = 0.82;
-const OCEAN_CURRENT_BED_CLEARANCE_M = 20;
-// Only a sliver of water beneath an ice shelf, where the shelf's boundary current runs.
-const OCEAN_CURRENT_ICE_CLEARANCE_M = 5;
 const EFFECTIVE_PRESSURE_REFERENCE_PA = 5_000_000;
 const CHANNEL_DISCHARGE_MIN = 1e-3;
 const CHANNEL_DISCHARGE_MAX = 100;
@@ -5790,8 +5787,8 @@ function oceanPointInOpenWater(context, index, depth, bedHeight) {
     depth,
     bedHeight,
     context.iceBottomHeights[index],
-    OCEAN_CURRENT_BED_CLEARANCE_M,
-    OCEAN_CURRENT_ICE_CLEARANCE_M
+    OCEAN_STREAMLINE_BED_CLEARANCE_M,
+    OCEAN_STREAMLINE_ICE_CLEARANCE_M
   );
 }
 
