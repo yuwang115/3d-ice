@@ -253,7 +253,7 @@ const EN = {
       ],
       sources: [
         { text: "Ice and bedrock: BedMachine Greenland v6 (Morlighem et al., 2017)", url: SOURCES.bedMachineGreenland },
-        { text: "Ice velocity: ITS_LIVE V02.1 velocity mosaic (2014–2024), NASA MEaSUREs ITS_LIVE project", url: SOURCES.greenlandVelocity },
+        { text: "Ice velocity: ITS_LIVE V02.1 velocity mosaic (2014–2024), generated using auto-RIFT (Gardner et al., 2018) and provided by the NASA MEaSUREs ITS_LIVE project (Gardner et al., 2025)", url: SOURCES.greenlandVelocity },
         { text: "Ice loss since 1992: IMBIE (Otosaka et al., 2023)", url: SOURCES.massBalance },
       ],
     },
@@ -313,7 +313,7 @@ const EN = {
       ],
       sources: [
         { text: "Antarctica: MEaSUREs phase-based ice velocity (Mouginot et al., 2019)", url: SOURCES.antarcticVelocity },
-        { text: "Greenland: ITS_LIVE V02.1 velocity mosaic (2014–2024), NASA MEaSUREs ITS_LIVE project", url: SOURCES.greenlandVelocity },
+        { text: "Greenland: ITS_LIVE V02.1 velocity mosaic (2014–2024), generated using auto-RIFT (Gardner et al., 2018) and provided by the NASA MEaSUREs ITS_LIVE project (Gardner et al., 2025)", url: SOURCES.greenlandVelocity },
       ],
     },
     oceanCurrents: {
@@ -490,7 +490,7 @@ const ZH = {
       ],
       sources: [
         { text: "冰层与基岩：BedMachine Greenland v6（Morlighem 等，2017）", url: SOURCES.bedMachineGreenland },
-        { text: "冰速：ITS_LIVE V02.1 速度镶嵌图（2014–2024 年），NASA MEaSUREs ITS_LIVE 项目", url: SOURCES.greenlandVelocity },
+        { text: "冰速：ITS_LIVE V02.1 速度镶嵌图（2014–2024 年），由 auto-RIFT 生成（Gardner 等，2018），NASA MEaSUREs ITS_LIVE 项目提供（Gardner 等，2025）", url: SOURCES.greenlandVelocity },
         { text: "1992 年以来的冰量损失：IMBIE（Otosaka 等，2023）", url: SOURCES.massBalance },
       ],
     },
@@ -546,7 +546,7 @@ const ZH = {
       ],
       sources: [
         { text: "南极：MEaSUREs 基于相位的冰速（Mouginot 等，2019）", url: SOURCES.antarcticVelocity },
-        { text: "格陵兰：ITS_LIVE V02.1 速度镶嵌图（2014–2024 年），NASA MEaSUREs ITS_LIVE 项目", url: SOURCES.greenlandVelocity },
+        { text: "格陵兰：ITS_LIVE V02.1 速度镶嵌图（2014–2024 年），由 auto-RIFT 生成（Gardner 等，2018），NASA MEaSUREs ITS_LIVE 项目提供（Gardner 等，2025）", url: SOURCES.greenlandVelocity },
       ],
     },
     oceanCurrents: {

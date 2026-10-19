@@ -94,6 +94,14 @@ def test_the_explorer_credits_the_greenland_basins():
 def test_the_data_snapshot_lists_basin_boundaries_for_both_ice_sheets():
     source = RUNTIME.read_text(encoding="utf-8")
     assert 'dataset.regionKey === "antarctica" && dataset.sources.basins' not in source
+    assert "if (capabilities.refinedBasins && dataset.sources.basins) {" in source
+    # Both ice sheets offer the basin layer, and each registry entry credits its basins.
+    registry = source[source.index("const ALL_REGIONS") : source.index("// Phones, small windows")]
+    for region in ("antarctica", "greenland"):
+        block = registry[registry.index(f"  {region}: {{") :]
+        capabilities = block[block.index("capabilities: {") : block.index("}", block.index("capabilities: {"))]
+        assert "refinedBasins: true" in capabilities, region
+        assert "      basins: {" in block[: block.index("datasets: {")], region
 
 
 def test_rise_is_credited_with_its_data_citation_and_article():

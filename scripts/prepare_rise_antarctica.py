@@ -493,7 +493,7 @@ def write_target_package(
         "product_version": "v1",
         "source_file": input_path.name,
         "source_dataset": "Australian Antarctic Data Centre RISE multi-model mean",
-        "source_url": "https://data.aad.gov.au/metadata/RISE",
+        "source_url": "https://doi.org/10.26179/q0rh-gt74",
         "license": "CC BY 4.0",
         "resampled_to": target.label,
         "grid": {
