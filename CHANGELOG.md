@@ -53,8 +53,53 @@ Corrections from a pre-announcement audit of 0.3.0.
   and the bedrock below sea level under the ice is buried by ice rather than water.
 - On phones and other narrow screens, both editions open on the whole ice sheet instead of a
   cropped close-up.
+- Subglacial hydrology is drawn only beneath grounded ice. Effective pressure was also drawn
+  on 522 floating and 359 ice-free cells of the 10 km grid, on the sea floor beneath the
+  shelves and on bare rock, and some channel ribbons ran off the grounded ice.
+- No ocean streamline runs inside an ice shelf: segment ends in a cavity must lie below
+  today's ice base as well as above the bed. About 2,000 of 59,000 sub-shelf segments did not.
+- The ice over Lake Vostok stays on its lake. BedMachine's bed there is the lake floor, so
+  switching the projection on dropped the ice surface by 254 m (median; up to 837 m) with no
+  change shown, and the rebound scenario did the same.
+- During a partial rebound, grounded marine ice that has thinned enough to float lifts off
+  its bed, as floating ice already did, instead of staying pinned far below the sea surface.
+- The projection's "Grounded ice on the map" readout uses scale-corrected cell areas, 12.28
+  rather than 12.01 million km² for Antarctica in 2015, as the rebound statistics do.
+- The RISE source line counts the ice-shelf cells of the package in view (95,490 at 4 km),
+  rather than always 15,269.
+- The Chinese Data Snapshot is in Chinese: grid spacing, projection, ranges, medians, counts
+  and years. Its coordinates name their axes and projection, for example
+  "x = 977 km, y = 783 km (EPSG:3031)", in both languages.
+- Chinese terminology: 地壳均衡 throughout, 格陵兰冰盖 rather than 冰原, 冰层不透明度 for the
+  ice-opacity slider, and 冰流 kept for ice streams, with the flow of ice now 冰的流动 and its
+  speed 冰速.
+- The projection readout and chart say "Sea-level change from Antarctica", as the tour card
+  does, since the value can be negative.
+- The home pages describe the Southern Ocean preview as annual-mean circulation, not
+  "ever-changing", and the Greenland one as currents on the shelf and offshore, not in deep
+  fjords, which the 6 km Copernicus grid does not resolve.
 
 ### Changed
+
+- Data credits. A Data Snapshot line can credit a data set and its article together. The
+  explorer and the home pages now link the AISEFI and GrISEFI basal shear stress data sets
+  (CC BY 4.0) under their titles, the RISE data (Australian Antarctic Data Centre) and the
+  GlaDS data beside their articles, the Paxman et al. (2022) article and the grid files v3
+  each under its own label, and the Greenland basins (Mouginot & Rignot, 2019), which the
+  explorer did not credit before. The Antarctic basins are named as the MEaSUREs Antarctic
+  Boundaries v2 refined basins, not "IMBIE", and the Greenland velocity as the ITS_LIVE V02.1
+  summary mosaic (2014–2024), with the credit ITS_LIVE asks for.
+- The JOSS paper cites the BedMachine Antarctica v4, BedMachine Greenland v6, NSIDC-0754,
+  Bedmap3 and RISE data sets beside their articles, Payne et al. (2021) for the CMIP6 forcing,
+  and renders every reference correctly in the journal's style (preprints marked, name
+  particles in front, data sets with their publishers).
+- On phones, the collapsed control drawer's button says what the drawer holds ("Layers and
+  places") and opens it; it reads "Done" only while the drawer is open. Tour text that runs on
+  below the card's edge fades out there.
+- The README describes Bedmap3's overlays as nearest-cell copies of the BedMachine-aligned
+  packages and gives the map scale factor's effect correctly (a nominal cell covers about
+  5.7 % more ground at the pole and 8 % less at 60°S). It notes that BedMachine Greenland v7
+  was released in October 2026; 3D ICE still uses v6. The stale v0.1 README PDF was removed.
 
 - Phones, small windows and Save-Data connections load a light Antarctic ocean package (12 MB
   rather than 62 MB), and there the research edition no longer fetches the ocean package in
