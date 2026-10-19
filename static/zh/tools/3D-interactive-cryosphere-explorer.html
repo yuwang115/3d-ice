@@ -241,7 +241,7 @@
           <input id="exaggeration" type="range" min="0.5" max="8" step="0.1" value="4" />
         </div>
         <div class="control">
-          <label for="iceOpacity">冰层透明度 <span id="iceOpacityValue" class="mono">0.65</span></label>
+          <label for="iceOpacity">冰层不透明度 <span id="iceOpacityValue" class="mono">0.65</span></label>
           <input id="iceOpacity" type="range" min="0" max="1" step="0.01" value="0.65" />
         </div>
         <section id="polarFeatureSection" class="view-control-subsection" aria-labelledby="polarFeatureHeading">
@@ -290,7 +290,7 @@
         <label id="showThermalDrivingRow" class="toggle"><input id="showThermalDriving" type="checkbox" /> 显示冰架底部热驱动</label>
         <label class="toggle"><input id="showSea" type="checkbox" /> 显示海平面 (0 m)</label>
         <div class="toggle-divider" aria-hidden="true"></div>
-        <label class="toggle"><input id="animateFlow" type="checkbox" checked /> 显示冰流与海流流光</label>
+        <label class="toggle"><input id="animateFlow" type="checkbox" checked /> 显示冰与海水流动的流光</label>
         <label class="toggle"><input id="wireframe" type="checkbox" /> 线框模式</label>
         <button id="resetView" type="button">视角重置</button>
         <button id="fullscreenToggle" type="button">进入全屏</button>
@@ -326,7 +326,7 @@
           </div>
           <div class="toggle-divider" aria-hidden="true"></div>
         </div>
-        <label class="toggle"><input id="showIsostaticRebound" type="checkbox" /> 显示无冰状态下的地壳回弹</label>
+        <label class="toggle"><input id="showIsostaticRebound" type="checkbox" /> 显示无冰状态下的地壳均衡回弹</label>
         <div id="isostaticReboundControls" class="toggle-group" hidden>
           <div class="control">
             <label for="reboundProgress">冰消与回弹进度 <span id="reboundProgressValue" class="mono">100%</span></label>
@@ -338,7 +338,7 @@
             <select id="reboundModel">
               <option value="paxman2022" selected>已发表：Paxman 等（2022）</option>
               <option value="flexural">理想化：区域挠曲（ELRA）</option>
-              <option value="local">理想化：局地（Airy）地壳平衡</option>
+              <option value="local">理想化：局地（Airy）地壳均衡</option>
             </select>
             <div id="reboundModelNote" class="legend-note"></div>
           </div>

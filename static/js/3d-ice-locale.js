@@ -242,7 +242,7 @@
           shortAe10: "SSP1-2.6",
           shortAe05: "SSP5-8.5",
           shortAe14: "+ shelf collapse",
-          readoutSeaLevel: "Sea-level rise from Antarctica",
+          readoutSeaLevel: "Sea-level change from Antarctica",
           readoutRange: "Range of the models",
           readoutGroundedMap: "Grounded ice on the map",
           readoutGrounded: "Grounded ice",
@@ -251,7 +251,7 @@
           rangeValue: "{low} to {high} m",
           areaValue: "{value} million km\u00b2 ({change})",
           chartLabel:
-            "Sea-level rise from Antarctica from {first} to {last} for each scenario; the band is the range of the models",
+            "Sea-level change from Antarctica from {first} to {last} for each scenario; the band is the range of the models",
           noteChange:
             "Red ice is thinner than in {first}, blue ice thicker. Grounded ice rests on the bed and floating ice sits at flotation. The flowlines follow the projected ice and turn brighter and faster where it speeds up.",
           noteType:
@@ -390,6 +390,15 @@
           sourceMeltDrivers: "Melt Drivers",
           // Suffixes bring their own spacing, which differs between the locales.
           iceShelfCellCount: " ({count} ice-shelf cells)",
+          streamlineCountSuffix: " ({count} 3D streamlines)",
+          gridSpacingSuffix: " ({spacing} km grid)",
+          valueRange: "{min} to {max}",
+          quantileMedian: "median",
+          notApplicable: "n/a",
+          polarStereographic: "{epsg} polar stereographic",
+          polarStereographicGeneric: "Polar stereographic",
+          atGridPosition: "{value} m at x = {x} km, y = {y} km ({epsg})",
+          yearsValue: "{value} yr",
           sourceIsostaticResponse: "Isostatic Response",
           sourceIceProjection: "Ice-sheet Projection",
           iceProjectionSection: "Ice-sheet projection",
@@ -678,7 +687,7 @@
           modelNoteFlexural:
             "理想化：流体软流圈之上的薄弹性板，D = 1e25 N m，挠曲特征长度 {lengthScale} km。岩石圈强度使响应向外扩展，因而峰值抬升更低；原冰缘之外，冰载荷曾抬起的前缘隆起会轻微沉降。",
           modelNoteLocal:
-            "理想化：逐列应用 Airy 地壳平衡，不考虑岩石圈强度。这给出峰值抬升的上界，且其短波细节超出固体地球实际能够支撑的程度。",
+            "理想化：逐列应用 Airy 地壳均衡，不考虑岩石圈强度。这给出峰值抬升的上界，且其短波细节超出固体地球实际能够支撑的程度。",
           seaLevelNoteZero:
             "海面保持在当前基准。融化这些冰本身会使全球平均海平面上升约 {sle} m，此设置有意将其排除，以便单独解读基岩的运动。",
           seaLevelNoteRaised:
@@ -700,7 +709,7 @@
           shortAe10: "SSP1-2.6",
           shortAe05: "SSP5-8.5",
           shortAe14: "+冰架崩解",
-          readoutSeaLevel: "南极对海平面上升的贡献",
+          readoutSeaLevel: "南极造成的海平面变化",
           readoutRange: "各模型的范围",
           readoutGroundedMap: "地图上的接地冰",
           readoutGrounded: "接地冰",
@@ -708,9 +717,9 @@
           seaLevelValue: "{value} m",
           rangeValue: "{low} 至 {high} m",
           areaValue: "{value} 百万 km\u00b2（{change}）",
-          chartLabel: "{first}-{last} 年各情景下南极对海平面上升的贡献；阴影为各模型的范围",
+          chartLabel: "{first}-{last} 年各情景下南极造成的海平面变化；阴影为各模型的范围",
           noteChange:
-            "红色表示冰比 {first} 年更薄，蓝色表示更厚。接地冰坐落在基岩上，漂浮冰处于静力漂浮状态。流线随预估的冰面移动，冰流加快处更亮、流得更快。",
+            "红色表示冰比 {first} 年更薄，蓝色表示更厚。接地冰坐落在基岩上，漂浮冰处于静力漂浮状态。流线随预估的冰面移动，在冰加速的地方更亮、流得更快。",
           noteType: "白色为接地冰，蓝色为漂浮冰，二者都由基岩上的漂浮条件推得。流线随预估的冰面移动。",
           legendNote:
             "相对 {first} 年的冰厚变化，采用对称对数刻度，在 \u00b110 m 以内为线性。冰已消失之处显露出裸露的基岩或开阔的海面。",
@@ -734,7 +743,7 @@
           reboundModelLabel: "固体地球响应",
           reboundModelPublished: "已发表：Paxman 等（2022），网格第 3 版",
           reboundModelFlexural: "理想化区域挠曲（弹性板 + 流体软流圈）",
-          reboundModelLocal: "理想化局地（Airy）地壳平衡",
+          reboundModelLocal: "理想化局地（Airy）地壳均衡",
           reboundElasticThickness: "弹性厚度",
           reboundPublishedEarthModelValue: "{teModel}，横向变化；密度取值：冰 917、海水 1028、地幔 3330 kg/m3",
           reboundSeaSurface: "无冰海面",
@@ -841,6 +850,15 @@
           sourceOceanCirculation: "海洋环流",
           sourceMeltDrivers: "融化驱动",
           iceShelfCellCount: "（{count} 个冰架格点）",
+          streamlineCountSuffix: "（{count} 条三维流线）",
+          gridSpacingSuffix: "（{spacing} km 网格）",
+          valueRange: "{min} 至 {max}",
+          quantileMedian: "中位数",
+          notApplicable: "无",
+          polarStereographic: "{epsg} 极地立体投影",
+          polarStereographicGeneric: "极地立体投影",
+          atGridPosition: "{value} m，位于 x = {x} km、y = {y} km（{epsg}）",
+          yearsValue: "{value} 年",
           sourceIsostaticResponse: "地壳均衡响应",
           sourceIceProjection: "冰盖未来预估",
           iceProjectionSection: "冰盖未来预估",

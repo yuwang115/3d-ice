@@ -430,7 +430,7 @@ const ZH = {
       ],
       sources: [
         {
-          text: "冰流速度：MEaSUREs 基于相位的南极冰流速度图（Mouginot 等，2019）",
+          text: "冰速：MEaSUREs 基于相位的南极冰速图（Mouginot 等，2019）",
           url: SOURCES.antarcticVelocity,
         },
       ],
@@ -540,12 +540,12 @@ const ZH = {
       ],
     },
     iceFlow: {
-      title: "冰流",
+      title: "冰的流动",
       body: [
         "每条线沿着卫星测得的冰面运动方向延伸。颜色表示速度：内陆每年只有几米，最快的冰川每年可达数公里。流动的光点显示冰前进的方向。",
       ],
       sources: [
-        { text: "南极：MEaSUREs 基于相位的冰流速度（Mouginot 等，2019）", url: SOURCES.antarcticVelocity },
+        { text: "南极：MEaSUREs 基于相位的冰速（Mouginot 等，2019）", url: SOURCES.antarcticVelocity },
         { text: "格陵兰：ITS_LIVE V02.1 速度镶嵌图（2014–2024 年），NASA MEaSUREs ITS_LIVE 项目", url: SOURCES.greenlandVelocity },
       ],
     },

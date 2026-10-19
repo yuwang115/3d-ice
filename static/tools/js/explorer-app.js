@@ -7995,14 +7995,14 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   const quantileEntry = (label, value, formatter, suffix = "") =>
     Number.isFinite(Number(value)) ? `${label} ${formatter(Number(value))}${suffix}` : "";
   const quantileSummary = (entries) => entries.filter(Boolean).join("; ");
+  const medianLabel = t("explorer.meta.quantileMedian");
+  const rangeText = (min, max, unit = "") => `${t("explorer.meta.valueRange", { min, max })}${unit}`;
   const availableOnDemandText = t("explorer.meta.availableOnDemand");
-  const notApplicableText = "n/a";
-  const projectionLabel =
-    dataset.regionKey === "greenland"
-      ? "EPSG:3413 polar stereographic"
-      : dataset.regionKey === "antarctica"
-      ? "EPSG:3031 polar stereographic"
-      : "Polar stereographic";
+  const notApplicableText = t("explorer.meta.notApplicable");
+  const epsgCode = getRegionEpsgCode(dataset.regionKey);
+  const projectionLabel = epsgCode
+    ? t("explorer.meta.polarStereographic", { epsg: epsgCode })
+    : t("explorer.meta.polarStereographicGeneric");
   const oceanCurrentReferenceText = oceanCurrentReference
     ? isChineseLocale
       ? `${oceanCurrentReference} 模式场`
@@ -8014,10 +8014,10 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   const qrfHybridSummary = meta.hybridization
     ? isChineseLocale
       ? `QRF 床面用于 ${
-          Number.isFinite(qrfCoverageFraction) ? fmtShort(qrfCoverageFraction * 100, 1) : "n/a"
+          Number.isFinite(qrfCoverageFraction) ? fmtShort(qrfCoverageFraction * 100, 1) : notApplicableText
         }% 的接地冰；冰面和掩膜采用 BedMachine Greenland v6，浮冰、非冰区和 QRF 空缺区保留其床面和厚度。`
       : `QRF bed for ${
-          Number.isFinite(qrfCoverageFraction) ? fmtShort(qrfCoverageFraction * 100, 1) : "n/a"
+          Number.isFinite(qrfCoverageFraction) ? fmtShort(qrfCoverageFraction * 100, 1) : notApplicableText
         }% of grounded ice; BedMachine Greenland v6 supplies surface and mask, with its bed and thickness retained over floating ice, non-ice, and QRF gaps.`
     : "";
   const oceanCurrentSummary = !oceanCurrentMeta
@@ -8055,12 +8055,13 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
       } (${fmtInt(oceanCurrentSegmentCount)} segments), plotted from the ${oceanCurrentReferenceText}.`;
 
   const geometryItems = [
-    `<li><strong>${t("explorer.meta.preset")}:</strong> ${region.label} ${dataset.label} (${stepKm.toFixed(
-      stepKm >= 10 ? 0 : 1
-    )} km grid)</li>`,
+    `<li><strong>${t("explorer.meta.preset")}:</strong> ${region.label} ${dataset.label}${t(
+      "explorer.meta.gridSpacingSuffix",
+      { spacing: stepKm.toFixed(stepKm >= 10 ? 0 : 1) }
+    )}</li>`,
     `<li><strong>${t("explorer.meta.grid")}:</strong> ${fmtInt(grid.nx)} x ${fmtInt(grid.ny)}</li>`,
     `<li><strong>${t("explorer.meta.projection")}:</strong> ${projectionLabel}</li>`,
-    `<li><strong>${t("explorer.meta.bedElevation")}:</strong> ${fmtInt(bedStats.min)} to ${fmtInt(bedStats.max)} m</li>`,
+    `<li><strong>${t("explorer.meta.bedElevation")}:</strong> ${rangeText(fmtInt(bedStats.min), fmtInt(bedStats.max), " m")}</li>`,
     `<li><strong>${t("explorer.meta.maxIceThickness")}:</strong> ${fmtInt(thickStats.max)} m</li>`,
     `<li><strong>${t("explorer.meta.meanIceThickness")}:</strong> ${
       Number.isFinite(meanIceThickness) ? `${fmtInt(meanIceThickness)} m` : notApplicableText
@@ -8075,12 +8076,12 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   const velocityItems = capabilities.velocity
     ? [
         `<li><strong>${t("explorer.meta.surfaceSpeedRange")}:</strong> ${
-          speedStats ? `${fmtInt(speedStats.min)} to ${fmtInt(speedStats.max)} m/yr` : availableOnDemandText
+          speedStats ? rangeText(fmtInt(speedStats.min), fmtInt(speedStats.max), " m/yr") : availableOnDemandText
         }</li>`,
         `<li><strong>${t("explorer.meta.speedQuantiles")}:</strong> ${
           quantileSummary([
             quantileEntry(
-              "median",
+              medianLabel,
               speedQuantiles?.median,
               fmtInt,
               " m/yr"
@@ -8098,12 +8099,12 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
         `<li><strong>${t("explorer.meta.invertedFriction")}:</strong> ${t("explorer.meta.invertedFrictionSummary")}</li>`,
         `<li><strong>${t("explorer.meta.frictionRange")}:</strong> ${
           basalFrictionStats
-            ? `${fmtShort(basalFrictionStats.min, 3)} to ${fmtShort(basalFrictionStats.max, 2)} MPa`
+            ? rangeText(fmtShort(basalFrictionStats.min, 3), fmtShort(basalFrictionStats.max, 2), " MPa")
             : notApplicableText
         }</li>`,
         `<li><strong>${t("explorer.meta.frictionQuantiles")}:</strong> ${
           quantileSummary([
-            quantileEntry("median", basalFrictionQuantiles?.median, (value) => fmtShort(value, 3), " MPa"),
+            quantileEntry(medianLabel, basalFrictionQuantiles?.median, (value) => fmtShort(value, 3), " MPa"),
             quantileEntry("P90", basalFrictionQuantiles?.q90, (value) => fmtShort(value, 3), " MPa"),
             quantileEntry("P95", basalFrictionQuantiles?.q95, (value) => fmtShort(value, 3), " MPa"),
             quantileEntry("P99", basalFrictionQuantiles?.q99, (value) => fmtShort(value, 3), " MPa"),
@@ -8115,33 +8116,33 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   const riseItems = capabilities.rise
     ? [
         `<li><strong>${t("explorer.meta.basalMeltRate")}:</strong> ${
-          riseBasalStats ? `${fmtShort(riseBasalStats.min, 3)} to ${fmtShort(riseBasalStats.max, 3)} m/yr` : availableOnDemandText
+          riseBasalStats ? rangeText(fmtShort(riseBasalStats.min, 3), fmtShort(riseBasalStats.max, 3), " m/yr") : availableOnDemandText
         }</li>`,
         `<li><strong>${t("explorer.meta.meltQuantiles")}:</strong> ${
           quantileSummary([
-            quantileEntry("median", riseBasalQuantiles?.median, (value) => fmtShort(value, 3), " m/yr"),
+            quantileEntry(medianLabel, riseBasalQuantiles?.median, (value) => fmtShort(value, 3), " m/yr"),
             quantileEntry("P90", riseBasalQuantiles?.q90, (value) => fmtShort(value, 3), " m/yr"),
             quantileEntry("P95", riseBasalQuantiles?.q95, (value) => fmtShort(value, 3), " m/yr"),
             quantileEntry("P99", riseBasalQuantiles?.q99, (value) => fmtShort(value, 3), " m/yr"),
           ]) || availableOnDemandText
         }</li>`,
         `<li><strong>${t("explorer.meta.thermalDriving")}:</strong> ${
-          riseThermalStats ? `${fmtShort(riseThermalStats.min, 3)} to ${fmtShort(riseThermalStats.max, 3)} °C` : availableOnDemandText
+          riseThermalStats ? rangeText(fmtShort(riseThermalStats.min, 3), fmtShort(riseThermalStats.max, 3), " °C") : availableOnDemandText
         }</li>`,
         `<li><strong>${t("explorer.meta.thermalQuantiles")}:</strong> ${
           quantileSummary([
-            quantileEntry("median", riseThermalQuantiles?.median, (value) => fmtShort(value, 3), " °C"),
+            quantileEntry(medianLabel, riseThermalQuantiles?.median, (value) => fmtShort(value, 3), " °C"),
             quantileEntry("P90", riseThermalQuantiles?.q90, (value) => fmtShort(value, 3), " °C"),
             quantileEntry("P95", riseThermalQuantiles?.q95, (value) => fmtShort(value, 3), " °C"),
             quantileEntry("P99", riseThermalQuantiles?.q99, (value) => fmtShort(value, 3), " °C"),
           ]) || availableOnDemandText
         }</li>`,
         `<li><strong>${t("explorer.meta.iceDraft")}:</strong> ${
-          riseDraftStats ? `${fmtShort(riseDraftStats.min, 0)} to ${fmtShort(riseDraftStats.max, 0)} m` : availableOnDemandText
+          riseDraftStats ? rangeText(fmtShort(riseDraftStats.min, 0), fmtShort(riseDraftStats.max, 0), " m") : availableOnDemandText
         }</li>`,
         `<li><strong>${t("explorer.meta.draftQuantiles")}:</strong> ${
           quantileSummary([
-            quantileEntry("median", riseDraftQuantiles?.median, (value) => fmtShort(value, 0), " m"),
+            quantileEntry(medianLabel, riseDraftQuantiles?.median, (value) => fmtShort(value, 0), " m"),
             quantileEntry("P90", riseDraftQuantiles?.q90, (value) => fmtShort(value, 0), " m"),
             quantileEntry("P95", riseDraftQuantiles?.q95, (value) => fmtShort(value, 0), " m"),
             quantileEntry("P99", riseDraftQuantiles?.q99, (value) => fmtShort(value, 0), " m"),
@@ -8155,11 +8156,11 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
         `<li><strong>${t("explorer.meta.oceanStreamlines")}:</strong> ${oceanCurrentSummary}</li>`,
         `<li><strong>${t("explorer.meta.depthSpan")}:</strong> ${
           Number.isFinite(oceanCurrentDepthMin) && Number.isFinite(oceanCurrentDepthMax)
-            ? `${fmtShort(oceanCurrentDepthMin, 0)} to ${fmtShort(oceanCurrentDepthMax, 0)} m`
+            ? rangeText(fmtShort(oceanCurrentDepthMin, 0), fmtShort(oceanCurrentDepthMax, 0), " m")
             : notApplicableText
         }</li>`,
         `<li><strong>${t("explorer.meta.horizontalSpeed")}:</strong> ${
-          oceanCurrentSpeedStats ? `${fmtShort(oceanCurrentSpeedStats.min)} to ${fmtShort(oceanCurrentSpeedStats.max)} m/s` : notApplicableText
+          oceanCurrentSpeedStats ? rangeText(fmtShort(oceanCurrentSpeedStats.min), fmtShort(oceanCurrentSpeedStats.max), " m/s") : notApplicableText
         }</li>`,
         `<li><strong>${t("explorer.meta.waterMassColor")}:</strong> ${
           oceanCurrentThetaStats && oceanCurrentSalinityStats
@@ -8177,22 +8178,22 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   const hydrologyItems = capabilities.hydrology
     ? [
         `<li><strong>${t("explorer.meta.effectivePressureRange")}:</strong> ${
-          pressureStats ? `${fmtMpa(pressureStats.min)} to ${fmtMpa(pressureStats.max)} MPa` : notApplicableText
+          pressureStats ? rangeText(fmtMpa(pressureStats.min), fmtMpa(pressureStats.max), " MPa") : notApplicableText
         }</li>`,
         `<li><strong>${t("explorer.meta.pressureQuantiles")}:</strong> ${
           quantileSummary([
-            quantileEntry("median", pressureQuantiles?.median, fmtMpa, " MPa"),
+            quantileEntry(medianLabel, pressureQuantiles?.median, fmtMpa, " MPa"),
             quantileEntry("P90", pressureQuantiles?.q90, fmtMpa, " MPa"),
             quantileEntry("P95", pressureQuantiles?.q95, fmtMpa, " MPa"),
             quantileEntry("P99", pressureQuantiles?.q99, fmtMpa, " MPa"),
           ]) || notApplicableText
         }</li>`,
         `<li><strong>${t("explorer.meta.channelDischargeRange")}:</strong> ${
-          channelStats ? `${fmtQ(channelStats.min)} to ${fmtQ(channelStats.max)} m³/s` : notApplicableText
+          channelStats ? rangeText(fmtQ(channelStats.min), fmtQ(channelStats.max), " m³/s") : notApplicableText
         }</li>`,
         `<li><strong>${t("explorer.meta.dischargeQuantiles")}:</strong> ${
           quantileSummary([
-            quantileEntry("median", channelQuantiles?.median, fmtQ, " m³/s"),
+            quantileEntry(medianLabel, channelQuantiles?.median, fmtQ, " m³/s"),
             quantileEntry("P90", channelQuantiles?.q90, fmtQ, " m³/s"),
             quantileEntry("P95", channelQuantiles?.q95, fmtQ, " m³/s"),
             quantileEntry("P99", channelQuantiles?.q99, fmtQ, " m³/s"),
@@ -8224,7 +8225,7 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
       oceanCurrentCoverage?.streamlines_by_seed_depth ||
       oceanCurrentCoverage?.segments_by_seed_depth ||
       oceanCurrentCoverage?.counts_by_depth
-        ? ` (${fmtInt(oceanStreamlineCount)} 3D streamlines)`
+        ? t("explorer.meta.streamlineCountSuffix", { count: fmtInt(oceanStreamlineCount) })
         : "";
     sourceLines.push(renderSourceLine(t("explorer.meta.sourceOceanCirculation"), dataset.sources.oceanCurrents, oceanSuffix));
   }
@@ -8283,17 +8284,17 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
               ]),
           `<li class="meta-compact"><strong>${t("explorer.meta.reboundProgressLabel")}:</strong> ${Math.round(
             getReboundFraction() * 100
-          )}%; <strong>${t("explorer.meta.reboundRelaxation")}:</strong> ${fmtInt(
-            reboundStats.relaxationTimeYears
-          )} yr; <strong>${t("explorer.meta.reboundSeaLevelLabel")}:</strong> +${fmtInt(
+          )}%; <strong>${t("explorer.meta.reboundRelaxation")}:</strong> ${t("explorer.meta.yearsValue", {
+            value: fmtInt(reboundStats.relaxationTimeYears),
+          })}; <strong>${t("explorer.meta.reboundSeaLevelLabel")}:</strong> +${fmtInt(
             reboundStats.seaLevelMeters
           )} m</li>`,
-          `<li><strong>${t("explorer.meta.reboundMaxUplift")}:</strong> ${fmtInt(
-            reboundStats.maxUpliftMeters
-          )} m at ${formatCoord(reboundStats.maxUpliftXMeters / 1000, 0)}, ${formatCoord(
-            reboundStats.maxUpliftYMeters / 1000,
-            0
-          )} km</li>`,
+          `<li><strong>${t("explorer.meta.reboundMaxUplift")}:</strong> ${formatGridPosition(
+            fmtInt(reboundStats.maxUpliftMeters),
+            reboundStats.maxUpliftXMeters,
+            reboundStats.maxUpliftYMeters,
+            dataset.regionKey
+          )}</li>`,
           `<li><strong>${t("explorer.meta.reboundMeanGroundedUplift")}:</strong> ${fmtInt(
             reboundStats.meanGroundedUpliftMeters
           )} m</li>`,
@@ -8397,7 +8398,7 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
     const fieldParts = [
       `${region.label}`,
       `${dataset.label}`,
-      `${t("explorer.meta.fieldStatsBed")}: ${Math.round(bedStats.min)} m to ${Math.round(bedStats.max)} m`,
+      `${t("explorer.meta.fieldStatsBed")}: ${rangeText(`${Math.round(bedStats.min)} m`, `${Math.round(bedStats.max)} m`)}`,
       `${t("explorer.meta.fieldStatsIceMax")}: ${Math.round(thickStats.max)} m`,
       `${t("explorer.meta.fieldStatsVelocityMax")}: ${
         !capabilities.velocity ? notApplicableText : speedStats ? `${Math.round(speedStats.max)} m/yr` : availableOnDemandText
@@ -8871,8 +8872,19 @@ function isCurrentReboundContext(context) {
   return context === currentCoreContext && context.generation === loadGeneration;
 }
 
-function reboundCoordinates(xMeters, yMeters) {
-  return `${formatCoord(xMeters / 1000, 0)}, ${formatCoord(yMeters / 1000, 0)} km`;
+/** EPSG code of a region's polar stereographic grid. */
+function getRegionEpsgCode(regionKey) {
+  return regionKey === "greenland" ? "EPSG:3413" : regionKey === "antarctica" ? "EPSG:3031" : "";
+}
+
+/** A value in metres and the grid position where it occurs, with the axes named. */
+function formatGridPosition(valueText, xMeters, yMeters, regionKey) {
+  return t("explorer.meta.atGridPosition", {
+    value: valueText,
+    x: formatCoord(xMeters / 1000, 0),
+    y: formatCoord(yMeters / 1000, 0),
+    epsg: getRegionEpsgCode(regionKey),
+  });
 }
 
 /** Metadata-panel entries naming the published Earth model and its sea surface. */
@@ -8914,13 +8926,18 @@ function publishedReboundModelItems(stats, dataset, { fmtInt, fmtShort }) {
 function publishedReboundFigureItems(stats, dataset, { fmtInt, fmtShort, fmtArea, fmtMillions }) {
   const { iceUnloading, postLgm, waterLoading } = stats.components || {};
   return [
-    `<li><strong>${t("explorer.meta.reboundMaxUplift")}:</strong> ${fmtInt(stats.maxUpliftMeters)} m at ${reboundCoordinates(
+    `<li><strong>${t("explorer.meta.reboundMaxUplift")}:</strong> ${formatGridPosition(
+      fmtInt(stats.maxUpliftMeters),
       stats.maxUpliftXMeters,
-      stats.maxUpliftYMeters
+      stats.maxUpliftYMeters,
+      dataset.regionKey
     )}</li>`,
-    `<li><strong>${t("explorer.meta.reboundMaxTopographyChange")}:</strong> ${fmtInt(
-      stats.maxTopographyChangeMeters
-    )} m at ${reboundCoordinates(stats.maxTopographyChangeXMeters, stats.maxTopographyChangeYMeters)}</li>`,
+    `<li><strong>${t("explorer.meta.reboundMaxTopographyChange")}:</strong> ${formatGridPosition(
+      fmtInt(stats.maxTopographyChangeMeters),
+      stats.maxTopographyChangeXMeters,
+      stats.maxTopographyChangeYMeters,
+      dataset.regionKey
+    )}</li>`,
     `<li><strong>${t("explorer.meta.reboundMeanGroundedUplift")}:</strong> ${fmtInt(stats.meanGroundedUpliftMeters)} m</li>`,
     `<li><strong>${t("explorer.meta.reboundMeanTopographyChange")}:</strong> ${fmtInt(
       stats.meanGroundedTopographyChangeMeters
@@ -9300,7 +9317,7 @@ function updateIceProjectionAvailability() {
 }
 
 function formatSignedFixed(value, digits) {
-  if (!Number.isFinite(value)) return "n/a";
+  if (!Number.isFinite(value)) return t("explorer.meta.notApplicable");
   const text = Math.abs(value).toLocaleString(numberLocale, {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
@@ -10210,7 +10227,7 @@ function buildIceProjectionMetaItems() {
   const fmt = (value, digits) =>
     Number.isFinite(Number(value))
       ? Number(value).toLocaleString(numberLocale, { minimumFractionDigits: digits, maximumFractionDigits: digits })
-      : "n/a";
+      : t("explorer.meta.notApplicable");
   const item = (label, value, compact = false) =>
     `<li${compact ? ' class="meta-compact"' : ""}><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</li>`;
   const period = { first: projection.firstYear, last: projection.lastYear };
@@ -10270,7 +10287,7 @@ function buildIceProjectionMetaItems() {
       t("explorer.meta.iceProjectionKeyframesMeanValue", {
         ...period,
         count: projection.frameCount,
-        interval: meta.keyframes?.interval_years ?? "n/a",
+        interval: meta.keyframes?.interval_years ?? t("explorer.meta.notApplicable"),
         cells: Math.round(projection.domainCount).toLocaleString(numberLocale),
       }),
       true
