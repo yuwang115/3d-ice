@@ -1,4 +1,11 @@
 import { parseField } from "./js/data-contract.js";
+import {
+  groundedChannelSpan,
+  isGroundedIceCell,
+  isInOpenWater,
+  OCEAN_STREAMLINE_BED_CLEARANCE_M,
+  OCEAN_STREAMLINE_ICE_CLEARANCE_M,
+} from "./js/overlay-cells.js";
 
 const FLOWLINE_SURFACE_OFFSET_M = 18;
 const VELOCITY_VISUALIZATION_MAX = 3000;
@@ -13,7 +20,6 @@ const CHANNEL_STRIP_WIDTH_M_MAX = 5000;
 const BASAL_FRICTION_SURFACE_OFFSET_M = 12;
 const EFFECTIVE_PRESSURE_SURFACE_OFFSET_M = 10;
 const SUBGLACIAL_CHANNEL_SURFACE_OFFSET_M = 14;
-const OCEAN_CURRENT_BED_CLEARANCE_M = 20;
 const OCEAN_CURRENT_ARROW_HEAD_RATIO = 0.4;
 const OCEAN_CURRENT_ARROW_HEAD_MIN_UNITS = 0.16;
 const OCEAN_CURRENT_ARROW_HEAD_MAX_UNITS = 1.0;
@@ -258,6 +264,7 @@ function buildOceanCurrentTask(id, payload) {
     mask,
     bedHeights,
     bedValid,
+    iceBaseHeights,
     nx,
     ny,
     grid,
@@ -298,6 +305,16 @@ function buildOceanCurrentTask(id, payload) {
   ) {
     throw new Error("Ocean-current package fields are misaligned.");
   }
+  // Both ends of a segment must lie in open water, clear of the bed and of today's ice base.
+  const inOpenWater = (index, depth, bedHeight) =>
+    isInOpenWater(
+      Number(mask[index]),
+      depth,
+      bedHeight,
+      iceBaseHeights ? iceBaseHeights[index] : Number.NaN,
+      OCEAN_STREAMLINE_BED_CLEARANCE_M,
+      OCEAN_STREAMLINE_ICE_CLEARANCE_M
+    );
 
   const bucketBoundaries = [];
   if (useLayerSplit) {
@@ -343,19 +360,9 @@ function buildOceanCurrentTask(id, payload) {
       const row1Nearest = Math.min(ny - 1, Math.max(0, Math.round(row1)));
       const idx0 = row0Nearest * nx + col0Nearest;
       const idx1 = row1Nearest * nx + col1Nearest;
-      const mask0 = Number(mask[idx0]);
-      const mask1 = Number(mask[idx1]);
-      const validOceanMask0 = mask0 === 0 || mask0 === 3;
-      const validOceanMask1 = mask1 === 0 || mask1 === 3;
       const bedHeight0 = sampleBedHeightNearest(nx, ny, bedHeights, bedValid, col0, row0);
       const bedHeight1 = sampleBedHeightNearest(nx, ny, bedHeights, bedValid, col1, row1);
-      keep =
-        validOceanMask0 &&
-        validOceanMask1 &&
-        Number.isFinite(bedHeight0) &&
-        Number.isFinite(bedHeight1) &&
-        -bedHeight0 >= depth0 + OCEAN_CURRENT_BED_CLEARANCE_M &&
-        -bedHeight1 >= depth1 + OCEAN_CURRENT_BED_CLEARANCE_M;
+      keep = inOpenWater(idx0, depth0, bedHeight0) && inOpenWater(idx1, depth1, bedHeight1);
     }
 
     if (keep) {
@@ -503,19 +510,9 @@ function buildOceanCurrentTask(id, payload) {
       const row1Nearest = Math.min(ny - 1, Math.max(0, Math.round(row1)));
       const idx0 = row0Nearest * nx + col0Nearest;
       const idx1 = row1Nearest * nx + col1Nearest;
-      const mask0 = Number(mask[idx0]);
-      const mask1 = Number(mask[idx1]);
-      const validOceanMask0 = mask0 === 0 || mask0 === 3;
-      const validOceanMask1 = mask1 === 0 || mask1 === 3;
       const bedHeight0 = sampleBedHeightNearest(nx, ny, bedHeights, bedValid, col0, row0);
       const bedHeight1 = sampleBedHeightNearest(nx, ny, bedHeights, bedValid, col1, row1);
-      keep =
-        validOceanMask0 &&
-        validOceanMask1 &&
-        Number.isFinite(bedHeight0) &&
-        Number.isFinite(bedHeight1) &&
-        -bedHeight0 >= depth0 + OCEAN_CURRENT_BED_CLEARANCE_M &&
-        -bedHeight1 >= depth1 + OCEAN_CURRENT_BED_CLEARANCE_M;
+      keep = inOpenWater(idx0, depth0, bedHeight0) && inOpenWater(idx1, depth1, bedHeight1);
       if (keep) {
         scenePoint0 = gridToSceneXZ(grid, nx, ny, baseConfig.horizontalMetersPerUnit, col0, row0);
         scenePoint1 = gridToSceneXZ(grid, nx, ny, baseConfig.horizontalMetersPerUnit, col1, row1);
@@ -821,6 +818,7 @@ function buildHydrologyTask(id, payload) {
     baseConfig,
     bedHeights,
     bedValid,
+    mask,
     effectivePressureLut,
     channelDischargeLut,
     meshStride,
@@ -870,7 +868,7 @@ function buildHydrologyTask(id, payload) {
     const raw = pressureInt[i];
     const pressure = raw === fillValue ? Number.NaN : raw * pressureScale + pressureOffset;
     effectivePressure[i] = pressure;
-    const hasPressure = bedValid[i] && Number.isFinite(pressure) && pressure > 0;
+    const hasPressure = bedValid[i] && isGroundedIceCell(mask[i]) && Number.isFinite(pressure) && pressure > 0;
     effectivePressureValid[i] = Number(hasPressure);
     effectivePressureHeights[i] = hasPressure
       ? bedHeights[i] + effectivePressureSurfaceOffsetMeters
@@ -922,6 +920,8 @@ function buildHydrologyTask(id, payload) {
     const idx0 = r0 * nx + c0;
     const idx1 = r1 * nx + c1;
     if (!bedValid[idx0] || !bedValid[idx1]) continue;
+    const span = groundedChannelSpan(mask[idx0], mask[idx1]);
+    if (!span) continue;
 
     const h0 = bedHeights[idx0];
     const h1 = bedHeights[idx1];
@@ -930,12 +930,20 @@ function buildHydrologyTask(id, payload) {
     const discharge = channelDischarge[i];
     if (!Number.isFinite(discharge) || discharge <= 0) continue;
 
-    const x0 = ((c0 - halfX) * baseConfig.dxMeters) / baseConfig.horizontalMetersPerUnit;
-    const z0 = ((r0 - halfY) * absDy) / baseConfig.horizontalMetersPerUnit;
-    const y0 = (h0 + subglacialChannelSurfaceOffsetMeters) / baseConfig.verticalMetersPerUnit;
-    const x1 = ((c1 - halfX) * baseConfig.dxMeters) / baseConfig.horizontalMetersPerUnit;
-    const z1 = ((r1 - halfY) * absDy) / baseConfig.horizontalMetersPerUnit;
-    const y1 = (h1 + subglacialChannelSurfaceOffsetMeters) / baseConfig.verticalMetersPerUnit;
+    // A channel leaving the grounded ice ends half-way to the next cell, at the height of its
+    // grounded end, rather than dropping to the sea floor beneath a shelf.
+    const xa = ((c0 - halfX) * baseConfig.dxMeters) / baseConfig.horizontalMetersPerUnit;
+    const za = ((r0 - halfY) * absDy) / baseConfig.horizontalMetersPerUnit;
+    const xb = ((c1 - halfX) * baseConfig.dxMeters) / baseConfig.horizontalMetersPerUnit;
+    const zb = ((r1 - halfY) * absDy) / baseConfig.horizontalMetersPerUnit;
+    const startHeight = span[0] === 0 ? h0 : h1;
+    const endHeight = span[1] === 1 ? h1 : h0;
+    const x0 = lerp(xa, xb, span[0]);
+    const z0 = lerp(za, zb, span[0]);
+    const y0 = (startHeight + subglacialChannelSurfaceOffsetMeters) / baseConfig.verticalMetersPerUnit;
+    const x1 = lerp(xa, xb, span[1]);
+    const z1 = lerp(za, zb, span[1]);
+    const y1 = (endHeight + subglacialChannelSurfaceOffsetMeters) / baseConfig.verticalMetersPerUnit;
 
     const color = subglacialChannelColor(discharge, channelDischargeLut);
     const directionX = x1 - x0;

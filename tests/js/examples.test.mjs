@@ -23,7 +23,7 @@ test("the Antarctic worked example reproduces the documented published-response 
   near(stats.meanGroundedUpliftMeters, 587.2, 0.05, "mean grounded uplift (m)");
   near(stats.emergentAreaKm2, 2941863, 1, "emergent area (km²)");
   near(stats.marineUnderIceAfterAreaKm2, 4351870, 1, "bed still below the ice-free sea under the present ice (km²)");
-  near(stats.sleMeters, 56.53, 0.005, "sea-level equivalent (m)");
+  near(stats.sleMeters, 58.05, 0.005, "sea-level equivalent (m)");
   near(stats.eustaticSeaLevelRiseMeters, 65.3, 1e-9, "eustatic rise carried by the grids (m)");
   near(stats.components.postLgm.max, 68.3, 0.05, "post-LGM term, as in Table 1 of the paper (m)");
 });
@@ -45,7 +45,7 @@ test("the idealised regional-flexure example still reproduces its figures", () =
   near(stats.meanGroundedUpliftMeters, 553.9, 0.05, "mean grounded uplift (m)");
   near(stats.emergentAreaKm2, 3191759, 1, "emergent area (km²)");
   near(stats.marineUnderIceAfterAreaKm2, 4109375, 1, "bed still below the datum under the present ice (km²)");
-  near(stats.sleMeters, 56.53, 0.005, "sea-level equivalent (m)");
+  near(stats.sleMeters, 58.05, 0.005, "sea-level equivalent (m)");
 });
 
 test("local Airy isostasy bounds the flexural peak uplift from above", () => {

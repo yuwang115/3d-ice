@@ -14,8 +14,8 @@
   "quantization": {
     "int16_fill_value": -32768,
     "effective_pressure_unit": "Pa",
-    "effective_pressure_scale_pa_per_int16": 1000,
-    "effective_pressure_offset_pa": 0
+    "effective_pressure_scale_pa_per_int16": 1000.0,
+    "effective_pressure_offset_pa": 0.0
   },
   "channel_filter": {
     "min_discharge_m3_per_s": 0.001,
@@ -26,8 +26,8 @@
     "cell_count": 444889,
     "effective_pressure_valid_fraction": 0.2683613215880815,
     "channel_segment_count_raw": 5929081,
-    "channel_segment_count_after_filter": 5898,
-    "channel_segment_count_unique": 5898
+    "channel_segment_count_after_filter": 9068,
+    "channel_segment_count_unique": 9068
   },
   "fields": [
     {
@@ -55,46 +55,46 @@
       "name": "channel_col1",
       "dtype": "uint16",
       "byte_offset": 889778,
-      "byte_length": 11796,
+      "byte_length": 18136,
       "unit": "grid_col"
     },
     {
       "name": "channel_row1",
       "dtype": "uint16",
-      "byte_offset": 901574,
-      "byte_length": 11796,
+      "byte_offset": 907914,
+      "byte_length": 18136,
       "unit": "grid_row"
     },
     {
       "name": "channel_col2",
       "dtype": "uint16",
-      "byte_offset": 913370,
-      "byte_length": 11796,
+      "byte_offset": 926050,
+      "byte_length": 18136,
       "unit": "grid_col"
     },
     {
       "name": "channel_row2",
       "dtype": "uint16",
-      "byte_offset": 925166,
-      "byte_length": 11796,
+      "byte_offset": 944186,
+      "byte_length": 18136,
       "unit": "grid_row"
     },
     {
       "name": "channel_discharge",
       "dtype": "float32",
-      "byte_offset": 936962,
-      "byte_length": 23592,
+      "byte_offset": 962322,
+      "byte_length": 36272,
       "unit": "m3/s",
       "stats_m3_per_s": {
-        "min": 0.0010028238175436854,
+        "min": 0.0010065214009955525,
         "max": 206.3415069580078,
-        "mean": 3.1420297622680664
+        "mean": 3.563074183407727
       },
       "quantiles_m3_per_s": {
-        "median": 0.6113614141941071,
-        "q90": 4.633228540420535,
-        "q95": 11.17921113967895,
-        "q99": 56.07316822052002
+        "median": 0.72098708152771,
+        "q90": 5.465288782119753,
+        "q95": 12.512240934371924,
+        "q99": 62.87733299255369
       }
     }
   ],

@@ -212,12 +212,14 @@ class TestEntries:
         research_only = {card.attrs["data-demo-slot"] for card in cards if card.attrs["data-editions"] == "research"}
         assert research_only == {"antarctica-basin-boundary", "antarctica-subglacial-features"}
 
-    def test_the_newest_update_introduces_the_public_edition(self, locale):
+    def test_the_newest_updates_introduce_the_projections_then_the_public_edition(self, locale):
         updates = parse(locale).find("section", id="latest-updates")
-        first = updates.find("article", cls="explorer-update-card")
-        assert first.attrs.get("aria-labelledby") == "public-edition-update-title"
-        assert first.find("time", cls="explorer-update-date").attrs.get("datetime") == "2026-09-30"
-        assert TOUR in [a.attrs["href"] for a in first.find_all("a")]
+        newest, previous = updates.find_all("article", cls="explorer-update-card")[:2]
+        assert newest.attrs.get("aria-labelledby") == "projection-update-title"
+        assert newest.find("time", cls="explorer-update-date").attrs.get("datetime") == "2026-10-06"
+        assert previous.attrs.get("aria-labelledby") == "public-edition-update-title"
+        assert previous.find("time", cls="explorer-update-date").attrs.get("datetime") == "2026-09-30"
+        assert TOUR in [a.attrs["href"] for a in previous.find_all("a")]
 
 
 @pytest.mark.integration

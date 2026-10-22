@@ -18,6 +18,7 @@ import {
   getEditionProfile,
   getStandInSpec,
   resolveEditionKey,
+  withLightPackages,
 } from "../../static/tools/js/editions.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -58,6 +59,8 @@ function makeRegions() {
           riseBinUrl: "data/rise_480.bin",
           oceanCurrentsMetaUrl: "data/waom.meta.json",
           oceanCurrentsBinUrl: "data/waom.bin",
+          oceanCurrentsLightMetaUrl: "data/waom_light.meta.json",
+          oceanCurrentsLightBinUrl: "data/waom_light.bin",
           hydrologyMetaUrl: "data/hydro_480.meta.json",
           hydrologyBinUrl: "data/hydro_480.bin",
         },
@@ -234,4 +237,32 @@ test("profiles are frozen so a page cannot reconfigure its edition at run time",
       profile.guide = !profile.guide;
     }, TypeError);
   }
+});
+
+test("light packages replace a dataset's ocean package where it has one, and nothing else", () => {
+  const regions = makeRegions();
+  const light = withLightPackages(regions);
+  const balanced = light.antarctica.datasets.balanced;
+  assert.equal(balanced.oceanCurrentsMetaUrl, "data/waom_light.meta.json");
+  assert.equal(balanced.oceanCurrentsBinUrl, "data/waom_light.bin");
+  assert.equal(balanced.oceanCurrentsLightMetaUrl, undefined);
+  assert.equal(balanced.velocityBinUrl, "data/vel_480.bin");
+  assert.deepEqual(light.greenland, regions.greenland);
+  // The input registry is left untouched.
+  assert.equal(regions.antarctica.datasets.balanced.oceanCurrentsMetaUrl, "data/waom.meta.json");
+});
+
+test("switching the ocean layer off drops its light package too", () => {
+  const regions = makeRegions();
+  const profile = { ...getEditionProfile(EDITION_KEYS.public), disabledCapabilities: ["oceanCurrents"] };
+  const balanced = applyEditionToRegions(regions, profile).antarctica.datasets.balanced;
+  assert.equal(balanced.oceanCurrentsLightMetaUrl, undefined);
+  assert.equal(balanced.oceanCurrentsLightBinUrl, undefined);
+});
+
+test("every Antarctic dataset in the runtime offers the light ocean package", () => {
+  const lightRefs = RUNTIME_SOURCE.match(/oceanCurrentsLightMetaUrl: assetUrl\("data\/antarctica_ocean_currents_waom2_yr5_annual_combined_light\.meta\.json/g) || [];
+  const fullRefs = RUNTIME_SOURCE.match(/oceanCurrentsMetaUrl: assetUrl\("data\/antarctica_ocean_currents_waom2_[a-z0-9_]+\.meta\.json/g) || [];
+  assert.ok(fullRefs.length >= 4);
+  assert.equal(lightRefs.length, fullRefs.length);
 });

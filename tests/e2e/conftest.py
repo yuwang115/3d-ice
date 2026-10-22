@@ -18,7 +18,11 @@ def playwright_browser():
     from playwright.sync_api import sync_playwright
 
     runtime = sync_playwright().start()
-    browser = runtime.chromium.launch(headless=True)
+    # Keep test page loads out of the site's Google Analytics, whose figures the JOSS paper quotes.
+    browser = runtime.chromium.launch(
+        headless=True,
+        args=["--host-resolver-rules=MAP www.googletagmanager.com ~NOTFOUND, MAP www.google-analytics.com ~NOTFOUND"],
+    )
     try:
         yield browser
     finally:

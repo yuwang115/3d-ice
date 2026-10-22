@@ -18,7 +18,7 @@
     "min_trace_speed_mps": 0.001,
     "flowline_step_cells": 1.2,
     "flowline_max_steps": 150,
-    "target_streamline_count": 4000,
+    "target_streamline_count": 1850,
     "min_streamline_segments": 5,
     "random_seed": 115,
     "source_grid_dx_m": 2000.0,
@@ -147,17 +147,17 @@
       }
     ]
   },
-  "streamline_count": 4000,
-  "segment_count": 251406,
+  "streamline_count": 1850,
+  "segment_count": 245409,
   "coverage": {
-    "x_min_m": -2598882.25,
-    "x_max_m": 2930105.0,
-    "y_min_m": -2342407.25,
-    "y_max_m": 2585385.0,
-    "depth_min_m": 21.541767120361328,
-    "depth_max_m": 4030.404296875,
-    "seed_depth_min_m": 21.562637329101562,
-    "seed_depth_max_m": 3535.656908194022,
+    "x_min_m": -2682895.0,
+    "x_max_m": 2851521.75,
+    "y_min_m": -2321288.5,
+    "y_max_m": 2499250.5,
+    "depth_min_m": 21.505863189697266,
+    "depth_max_m": 3554.20703125,
+    "seed_depth_min_m": 21.607223510742188,
+    "seed_depth_max_m": 3424.0969908216202,
     "valid_seed_sector_counts_8": [
       249569,
       228366,
@@ -169,58 +169,58 @@
       236831
     ],
     "retained_seed_sector_counts_8": [
-      381,
-      351,
-      466,
-      1063,
-      318,
-      421,
-      647,
-      353
+      174,
+      158,
+      210,
+      495,
+      153,
+      197,
+      297,
+      166
     ],
     "segments_by_seed_bucket": {
-      "cavity_margin_80km_surface": 64313,
-      "cavity_margin_80km_upper": 67708,
-      "cavity_margin_80km_mid": 66415,
-      "cavity_margin_80km_lower": 52970
+      "cavity_margin_80km_surface": 63112,
+      "cavity_margin_80km_upper": 65442,
+      "cavity_margin_80km_mid": 66266,
+      "cavity_margin_80km_lower": 50589
     },
     "streamlines_by_seed_bucket": {
-      "cavity_margin_80km_surface": 1001,
-      "cavity_margin_80km_upper": 1001,
-      "cavity_margin_80km_mid": 1000,
-      "cavity_margin_80km_lower": 998
+      "cavity_margin_80km_surface": 462,
+      "cavity_margin_80km_upper": 462,
+      "cavity_margin_80km_mid": 463,
+      "cavity_margin_80km_lower": 463
     },
     "seed_depth_stats_by_bucket": {
       "cavity_margin_80km_surface": {
-        "min_m": 21.562637329101562,
-        "max_m": 1191.7340087890625,
-        "mean_m": 199.2657470703125
+        "min_m": 21.607223510742188,
+        "max_m": 1182.3175048828125,
+        "mean_m": 201.5814666748047
       },
       "cavity_margin_80km_upper": {
-        "min_m": 22.310319900512695,
-        "max_m": 1642.73486328125,
-        "mean_m": 333.8378601074219
+        "min_m": 24.79593276977539,
+        "max_m": 1205.360595703125,
+        "mean_m": 328.5216064453125
       },
       "cavity_margin_80km_mid": {
-        "min_m": 59.638980865478516,
-        "max_m": 2843.526123046875,
-        "mean_m": 512.1124877929688
+        "min_m": 57.753868103027344,
+        "max_m": 2276.330322265625,
+        "mean_m": 486.7404479980469
       },
       "cavity_margin_80km_lower": {
-        "min_m": 136.1495819091797,
-        "max_m": 3535.656982421875,
-        "mean_m": 725.3289184570312
+        "min_m": 133.28897094726562,
+        "max_m": 3424.096923828125,
+        "mean_m": 694.6804809570312
       }
     }
   },
   "visualization": {
     "temperature_range_c": [
-      -2.085024106502533,
-      0.2219327837228775
+      -2.1477635741233825,
+      0.1970525011420249
     ],
     "salinity_range_psu": [
-      34.21879577636719,
-      34.69428253173828
+      34.216400146484375,
+      34.6851921081543
     ]
   },
   "fields": [
@@ -228,93 +228,93 @@
       "name": "x0_ps_m",
       "dtype": "float32",
       "byte_offset": 0,
-      "byte_length": 1005624
+      "byte_length": 981636
     },
     {
       "name": "y0_ps_m",
       "dtype": "float32",
-      "byte_offset": 1005624,
-      "byte_length": 1005624
+      "byte_offset": 981636,
+      "byte_length": 981636
     },
     {
       "name": "depth0_m",
       "dtype": "float32",
-      "byte_offset": 2011248,
-      "byte_length": 1005624
+      "byte_offset": 1963272,
+      "byte_length": 981636
     },
     {
       "name": "x1_ps_m",
       "dtype": "float32",
-      "byte_offset": 3016872,
-      "byte_length": 1005624
+      "byte_offset": 2944908,
+      "byte_length": 981636
     },
     {
       "name": "y1_ps_m",
       "dtype": "float32",
-      "byte_offset": 4022496,
-      "byte_length": 1005624
+      "byte_offset": 3926544,
+      "byte_length": 981636
     },
     {
       "name": "depth1_m",
       "dtype": "float32",
-      "byte_offset": 5028120,
-      "byte_length": 1005624
+      "byte_offset": 4908180,
+      "byte_length": 981636
     },
     {
       "name": "theta0_c",
       "dtype": "float32",
-      "byte_offset": 6033744,
-      "byte_length": 1005624
+      "byte_offset": 5889816,
+      "byte_length": 981636
     },
     {
       "name": "sal0_psu",
       "dtype": "float32",
-      "byte_offset": 7039368,
-      "byte_length": 1005624
+      "byte_offset": 6871452,
+      "byte_length": 981636
     },
     {
       "name": "theta1_c",
       "dtype": "float32",
-      "byte_offset": 8044992,
-      "byte_length": 1005624
+      "byte_offset": 7853088,
+      "byte_length": 981636
     },
     {
       "name": "sal1_psu",
       "dtype": "float32",
-      "byte_offset": 9050616,
-      "byte_length": 1005624
+      "byte_offset": 8834724,
+      "byte_length": 981636
     },
     {
       "name": "terminal_flag",
       "dtype": "uint8",
-      "byte_offset": 10056240,
-      "byte_length": 251406
+      "byte_offset": 9816360,
+      "byte_length": 245409
     },
     {
       "name": "speed_mps",
       "unit": "m/s",
       "stats": {
-        "min": 0.0010001775808632374,
-        "max": 0.3747031092643738,
-        "mean": 0.0277072936296463
+        "min": 0.0010689132614061236,
+        "max": 0.30955278873443604,
+        "mean": 0.02797589637339115
       }
     },
     {
       "name": "theta_c_summary",
       "unit": "degC",
       "stats": {
-        "min": -2.604487657546997,
-        "max": 1.914504885673523,
-        "mean": -1.1898127794265747
+        "min": -2.5993876457214355,
+        "max": 1.0248079299926758,
+        "mean": -1.2682348489761353
       }
     },
     {
       "name": "sal_psu_summary",
       "unit": "psu",
       "stats": {
-        "min": 33.868194580078125,
-        "max": 34.7632942199707,
-        "mean": 34.52454376220703
+        "min": 33.883296966552734,
+        "max": 34.756568908691406,
+        "mean": 34.498138427734375
       }
     }
   ]

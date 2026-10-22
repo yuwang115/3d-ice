@@ -90,5 +90,17 @@ def isostatic_response_module():
 
 
 @pytest.fixture(scope="session")
+def subglacial_hydrology_module():
+    pytest.importorskip("netCDF4", reason="netCDF4 not installed")
+    return _load_script_module("prepare_subglacial_hydrology.py")
+
+
+@pytest.fixture(scope="session")
+def antarctica_ocean_currents_module():
+    pytest.importorskip("netCDF4", reason="netCDF4 not installed")
+    return _load_script_module("prepare_antarctica_ocean_currents.py")
+
+
+@pytest.fixture(scope="session")
 def data_dir() -> Path:
     return DATA_DIR

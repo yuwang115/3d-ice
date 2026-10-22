@@ -21,9 +21,13 @@ const [
   { createPolarFeaturesController },
   { fetchRefinedBasinJson },
   { decodeFieldToFloat32, parseField },
-  { applyEditionToRegions, getEditionProfile, getStandInSpec },
+  { applyEditionToRegions, getEditionProfile, getStandInSpec, withLightPackages },
   { projectLatLon },
   { easeInOutCubic, flightDurationMs, framePose, interpolatePose, orbitPose },
+  { BASE_HORIZONTAL_VERTICAL_SCALE_RATIO, formatVerticalExaggeration },
+  { summariseMasked },
+  { isInOpenWater, OCEAN_STREAMLINE_BED_CLEARANCE_M, OCEAN_STREAMLINE_ICE_CLEARANCE_M },
+  { escapeHtml, renderSourceLine },
 ] = await Promise.all([
   import(assetUrl("js/polar-features.js")),
   import(assetUrl("js/polar-refined-basins.js")),
@@ -31,6 +35,10 @@ const [
   import(assetUrl("js/editions.js")),
   import(assetUrl("js/polar-projection.js")),
   import(assetUrl("js/explore-tour.js")),
+  import(assetUrl("js/vertical-scale.js")),
+  import(assetUrl("js/layer-stats.js")),
+  import(assetUrl("js/overlay-cells.js")),
+  import(assetUrl("js/source-links.js")),
 ]);
 const editionProfile = getEditionProfile(document.documentElement.dataset.edition);
 // An edition without the basin layer leaves basins out of place search as well.
@@ -182,30 +190,59 @@ const ALL_REGIONS = {
         text: "MEaSUREs Phase-Based Antarctica Ice Velocity Map, Version 1",
         url: "https://nsidc.org/data/NSIDC-0754/versions/1",
       },
-      basalFriction: {
-        text: "Jager et al. (2026) Insights from an ensemble inverse method to quantify basal friction uncertainties for ice-sheet models - Part 2: Antarctic ice sheet.",
-        url: "https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1",
-      },
-      rise: {
-        text: "Galton-Fenzi et al. (2025) Multi-model estimate of Antarctic ice-shelf basal melting and ocean drivers, V1",
-        url: "https://data.aad.gov.au/metadata/RISE",
-      },
+      // Each line credits the data set drawn and, where there is one, the article describing it.
+      basalFriction: [
+        {
+          text: "Jager (2026) Antarctic Ice Sheet Ensemble Friction Inversion (AISEFI): Basal shear stress with uncertainties, CC BY 4.0",
+          url: "https://doi.org/10.5281/zenodo.18508904",
+        },
+        "; ",
+        {
+          text: "Jager et al. (2026), preprint",
+          url: "https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1",
+        },
+      ],
+      rise: [
+        {
+          text: "Galton-Fenzi (2025) Multi-model estimate of Antarctic ice-shelf basal melting and ocean drivers: data, Ver. 1, CC BY 4.0",
+          url: "https://doi.org/10.26179/q0rh-gt74",
+        },
+        "; ",
+        {
+          text: "Galton-Fenzi et al. (2025), The Cryosphere",
+          url: "https://doi.org/10.5194/tc-19-6507-2025",
+        },
+      ],
       oceanCurrents: {
-        text: "Whole Antarctica Ocean Model 2-km (WAOM2) simulated annual-mean ocean circulation, temperature and salinity",
+        text: "Whole Antarctic Ocean Model 2-km (WAOM2) simulated annual-mean ocean circulation, temperature and salinity (Boeira Dias et al., 2023), redistributed with the authors' permission",
         url: "https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full",
       },
       basins: {
-        text: "MEaSUREs Antarctic Boundaries for IPY 2007-2009 (Version 2, IMBIE refined basins)",
+        text: "MEaSUREs Antarctic Boundaries v2, refined basins (Mouginot et al., 2017)",
         url: "https://nsidc.org/data/NSIDC-0709/versions/2",
       },
-      hydrology: {
-        text: "Ehrenfeucht et al. (2025) Antarctic Wide Subglacial Hydrology Modeling",
-        url: "https://zenodo.org/records/12738170",
-      },
-      isostaticResponse: {
-        text: "Paxman, Austermann & Hollyday (2022) Total isostatic response to the complete unloading of the Greenland and Antarctic Ice Sheets; grid files v3 (2026), CC BY 4.0",
-        url: "https://doi.org/10.18739/A22Z12R8C",
-      },
+      hydrology: [
+        {
+          text: "Ehrenfeucht (2024) Data for: Antarctic wide subglacial hydrology modeling, CC BY 4.0",
+          url: "https://doi.org/10.5281/zenodo.12738170",
+        },
+        "; ",
+        {
+          text: "Ehrenfeucht et al. (2025), Geophysical Research Letters",
+          url: "https://doi.org/10.1029/2024GL111386",
+        },
+      ],
+      isostaticResponse: [
+        {
+          text: "Paxman, Austermann & Hollyday (2022) Total isostatic response to the complete unloading of the Greenland and Antarctic Ice Sheets",
+          url: "https://doi.org/10.1038/s41598-022-15440-y",
+        },
+        "; ",
+        {
+          text: "grid files v3 (2026), CC BY 4.0",
+          url: "https://doi.org/10.18739/A22Z12R8C",
+        },
+      ],
       iceProjection: {
         text: "ISMIP6 Antarctica 2300 projections, mean of eight ice sheet models (Seroussi et al. 2024; Nowicki & ISMIP6 Team 2024), CC BY 4.0",
         url: "https://doi.org/10.5281/zenodo.13135599",
@@ -228,10 +265,12 @@ const ALL_REGIONS = {
         basalFrictionBinUrl: assetUrl("data/antarctica_basal_friction_480.bin?v=20260314-taub-v1"),
         riseMetaUrl: assetUrl("data/rise_antarctica_480.meta.json"),
         riseBinUrl: assetUrl("data/rise_antarctica_480.bin"),
-        oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20260312-waom2-combined-v3"),
-        oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20260312-waom2-combined-v3"),
-        hydrologyMetaUrl: assetUrl("data/antarctica_subglacial_hydrology_480.meta.json"),
-        hydrologyBinUrl: assetUrl("data/antarctica_subglacial_hydrology_480.bin"),
+        oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20261018-waom2-xy-v4"),
+        oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20261018-waom2-xy-v4"),
+        oceanCurrentsLightMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.meta.json?v=20261018-waom2-xy-v4"),
+        oceanCurrentsLightBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.bin?v=20261018-waom2-xy-v4"),
+        hydrologyMetaUrl: assetUrl("data/antarctica_subglacial_hydrology_480.meta.json?v=20261018-channels-v2"),
+        hydrologyBinUrl: assetUrl("data/antarctica_subglacial_hydrology_480.bin?v=20261018-channels-v2"),
         // The projection packages are resampled onto exactly this grid.
         capabilities: { iceProjection: true },
       },
@@ -249,10 +288,12 @@ const ALL_REGIONS = {
         basalFrictionBinUrl: assetUrl("data/antarctica_basal_friction_741.bin?v=20260314-taub-v1"),
         riseMetaUrl: assetUrl("data/rise_antarctica_741.meta.json"),
         riseBinUrl: assetUrl("data/rise_antarctica_741.bin"),
-        oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20260312-waom2-combined-v3"),
-        oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20260312-waom2-combined-v3"),
-        hydrologyMetaUrl: assetUrl("data/antarctica_subglacial_hydrology_741.meta.json"),
-        hydrologyBinUrl: assetUrl("data/antarctica_subglacial_hydrology_741.bin"),
+        oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20261018-waom2-xy-v4"),
+        oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20261018-waom2-xy-v4"),
+        oceanCurrentsLightMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.meta.json?v=20261018-waom2-xy-v4"),
+        oceanCurrentsLightBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.bin?v=20261018-waom2-xy-v4"),
+        hydrologyMetaUrl: assetUrl("data/antarctica_subglacial_hydrology_741.meta.json?v=20261018-channels-v2"),
+        hydrologyBinUrl: assetUrl("data/antarctica_subglacial_hydrology_741.bin?v=20261018-channels-v2"),
       },
       bedmap3: {
         id: "bedmap3",
@@ -266,10 +307,12 @@ const ALL_REGIONS = {
         velocityBinUrl: assetUrl("data/bedmap3_antarctica_velocity_10km.bin"),
         basalFrictionMetaUrl: assetUrl("data/bedmap3_antarctica_basal_friction_10km.meta.json"),
         basalFrictionBinUrl: assetUrl("data/bedmap3_antarctica_basal_friction_10km.bin"),
-        oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20260312-waom2-combined-v3"),
-        oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20260312-waom2-combined-v3"),
-        hydrologyMetaUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_10km.meta.json"),
-        hydrologyBinUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_10km.bin"),
+        oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20261018-waom2-xy-v4"),
+        oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20261018-waom2-xy-v4"),
+        oceanCurrentsLightMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.meta.json?v=20261018-waom2-xy-v4"),
+        oceanCurrentsLightBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.bin?v=20261018-waom2-xy-v4"),
+        hydrologyMetaUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_10km.meta.json?v=20261018-channels-v2"),
+        hydrologyBinUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_10km.bin?v=20261018-channels-v2"),
         capabilities: {
           velocity: true,
           basalFriction: true,
@@ -299,10 +342,12 @@ const ALL_REGIONS = {
         velocityBinUrl: assetUrl("data/bedmap3_antarctica_velocity_4km.bin"),
         basalFrictionMetaUrl: assetUrl("data/bedmap3_antarctica_basal_friction_4km.meta.json"),
         basalFrictionBinUrl: assetUrl("data/bedmap3_antarctica_basal_friction_4km.bin"),
-        oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20260312-waom2-combined-v3"),
-        oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20260312-waom2-combined-v3"),
-        hydrologyMetaUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_4km.meta.json"),
-        hydrologyBinUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_4km.bin"),
+        oceanCurrentsMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.meta.json?v=20261018-waom2-xy-v4"),
+        oceanCurrentsBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_cavity80km_remote_open_ocean.bin?v=20261018-waom2-xy-v4"),
+        oceanCurrentsLightMetaUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.meta.json?v=20261018-waom2-xy-v4"),
+        oceanCurrentsLightBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.bin?v=20261018-waom2-xy-v4"),
+        hydrologyMetaUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_4km.meta.json?v=20261018-channels-v2"),
+        hydrologyBinUrl: assetUrl("data/bedmap3_antarctica_subglacial_hydrology_4km.bin?v=20261018-channels-v2"),
         capabilities: {
           velocity: true,
           basalFriction: true,
@@ -347,23 +392,55 @@ const ALL_REGIONS = {
         text: "IceBridge BedMachine Greenland, Version 6",
         url: "https://nsidc.org/data/idbmg4/versions/6",
       },
-      velocity: {
-        text: "MEaSUREs ITS_LIVE Regional Glacier and Ice Sheet Surface Velocities, Version 2",
-        url: "https://nsidc.org/data/NSIDC-0776/versions/2",
-      },
-      basalFriction: {
-        text: "Jager et al. (2026) Insights from an ensemble inverse method to quantify basal friction uncertainties for ice-sheet models - Part 1: Greenland ice sheet",
-        url: "https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1",
-      },
+      // ITS_LIVE's requested credit; the V02.1 mosaic is served by the ITS_LIVE archive, and its
+      // archived product is NSIDC-0776 Version 2.
+      velocity: [
+        {
+          text: "ITS_LIVE V02.1 summary velocity mosaic (2014–2024)",
+          url: "https://its-live.jpl.nasa.gov/",
+        },
+        ": velocity data generated using auto-RIFT (",
+        {
+          text: "Gardner et al., 2018",
+          url: "https://doi.org/10.5194/tc-12-521-2018",
+        },
+        ") and provided by the NASA MEaSUREs ITS_LIVE project (",
+        {
+          text: "Gardner et al., 2025",
+          url: "https://nsidc.org/data/NSIDC-0776/versions/2",
+        },
+        ")",
+      ],
+      basalFriction: [
+        {
+          text: "Jager (2026) Greenland Ice Sheet Ensemble Friction Inversion (GrISEFI): Basal shear stress with uncertainties, CC BY 4.0",
+          url: "https://doi.org/10.5281/zenodo.18508850",
+        },
+        "; ",
+        {
+          text: "Jager et al. (2026), preprint",
+          url: "https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1",
+        },
+      ],
       oceanCurrents: {
-        text: "Copernicus Marine Arctic Ocean Physics Analysis and Forecast (monthly mean ocean velocity, temperature, and salinity)",
-        url: "https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description",
+        text: "Generated using E.U. Copernicus Marine Service Information: Arctic Ocean Physics Analysis and Forecast (monthly mean ocean velocity, temperature and salinity)",
+        url: "https://doi.org/10.48670/moi-00001",
       },
-      basins: "Greenland Basins PS v1.4.2 catchment boundaries",
-      isostaticResponse: {
-        text: "Paxman, Austermann & Hollyday (2022) Total isostatic response to the complete unloading of the Greenland and Antarctic Ice Sheets; grid files v3 (2026), CC BY 4.0",
-        url: "https://doi.org/10.18739/A22Z12R8C",
+      basins: {
+        text: "Mouginot & Rignot (2019) Glacier catchments/basins for the Greenland Ice Sheet, CC BY 4.0",
+        url: "https://doi.org/10.7280/D1WT11",
       },
+      isostaticResponse: [
+        {
+          text: "Paxman, Austermann & Hollyday (2022) Total isostatic response to the complete unloading of the Greenland and Antarctic Ice Sheets",
+          url: "https://doi.org/10.1038/s41598-022-15440-y",
+        },
+        "; ",
+        {
+          text: "grid files v3 (2026), CC BY 4.0",
+          url: "https://doi.org/10.18739/A22Z12R8C",
+        },
+      ],
     },
     reboundTeModelLabel: "Steffen et al. 2018",
     datasets: {
@@ -452,7 +529,15 @@ const ALL_REGIONS = {
   },
 };
 
-const REGIONS = applyEditionToRegions(ALL_REGIONS, editionProfile);
+// Phones, small windows and Save-Data connections get the light version of a package where
+// one exists: 12 MB of Antarctic ocean streamlines rather than 62 MB.
+const prefersLightPackages =
+  Boolean(navigator.connection?.saveData) ||
+  Boolean(window.matchMedia?.("(max-width: 900px), (max-height: 500px)")?.matches);
+const REGIONS = applyEditionToRegions(
+  prefersLightPackages ? withLightPackages(ALL_REGIONS) : ALL_REGIONS,
+  editionProfile
+);
 
 Object.entries(REGIONS).forEach(([regionKey, region]) => {
   const localizedRegion = getLocalizedRegionInfo(regionKey);
@@ -884,8 +969,11 @@ const controlsUI = {
   oceanLegendSaltyLabel: resolveControl("oceanLegendSaltyLabel"),
   effectivePressureLegendSection: resolveControl("effectivePressureLegendSection"),
   effectivePressureLegendBar: resolveControl("effectivePressureLegendBar"),
+  effectivePressureLegendLabels: resolveControl("effectivePressureLegendLabels"),
+  effectivePressureLegendNote: resolveControl("effectivePressureLegendNote"),
   channelLegendSection: resolveControl("channelLegendSection"),
   channelLegendBar: resolveControl("channelLegendBar"),
+  channelLegendLabels: resolveControl("channelLegendLabels"),
   capturePanel: resolveControl("capturePanel"),
   captureHideButton: resolveControl("captureHideButton"),
   capturePlayButton: resolveControl("capturePlayButton"),
@@ -1043,7 +1131,9 @@ let viewerResizeObserver = null;
 let viewerResizeAnimationFrame = 0;
 let viewerResizeStabilizeTimer = null;
 let lastRenderFrameTimeMs = 0;
-let pendingViewResetOnLoad = false;
+// A portrait or narrow viewer opens on the fixed pose, then frames the ice sheet once the
+// first terrain has loaded (see getDefaultCameraPose), unless a preset sets the camera.
+let pendingViewResetOnLoad = !isShowcaseMode && !isPreviewMode && !initialExplorerPreset?.camera && viewerIsNarrow();
 let geometryWorker = null;
 let geometryWorkerRequestSeq = 0;
 let flowlineRaycaster = null;
@@ -1429,6 +1519,14 @@ function updateLegendVisibility() {
   if (controlsUI.channelLegendSection) {
     controlsUI.channelLegendSection.hidden = !(hydrologyAvailable && controlsUI.showSubglacialChannels.checked);
   }
+  // Tick labels can only be laid out while their section is visible (a hidden one has no
+  // width), so lay these out again whenever their sections may just have been shown.
+  if (controlsUI.effectivePressureLegendSection && !controlsUI.effectivePressureLegendSection.hidden) {
+    scheduleTickLegendLayout(controlsUI.effectivePressureLegendLabels);
+  }
+  if (controlsUI.channelLegendSection && !controlsUI.channelLegendSection.hidden) {
+    scheduleTickLegendLayout(controlsUI.channelLegendLabels);
+  }
   if (controlsUI.projectionLegendSection) {
     controlsUI.projectionLegendSection.hidden = !(isIceProjectionActive() && getIceProjectionColorMode() === "change");
   }
@@ -1504,7 +1602,7 @@ function applyExplorerPresetControls(preset) {
   if (controlsUI.exaggeration) {
     const exaggeration = Number.isFinite(preset.exaggeration) ? preset.exaggeration : Number(controlsUI.exaggeration.value);
     controlsUI.exaggeration.value = String(exaggeration);
-    controlsUI.exaggerationValue.textContent = `${exaggeration.toFixed(1).replace(/\.0$/, "")}x`;
+    controlsUI.exaggerationValue.textContent = formatVerticalExaggeration(exaggeration);
   }
 
   if (controlsUI.iceOpacity) {
@@ -1559,9 +1657,29 @@ const DEFAULT_CAMERA_POSES = {
   },
 };
 
+/**
+ * The opening view framed as a disc, as the tour frames its stops. The fixed poses above
+ * suit a landscape viewer; on a portrait or narrow one they crop the ice sheet to a close-up.
+ */
+const DEFAULT_LOOK_AT = {
+  antarctica: { lat: -90, lon: 0, fitKm: 5600, azimuthDeg: 0, elevationDeg: 55 },
+  greenland: { lat: 71, lon: -41, fitKm: 2900, azimuthDeg: 0, elevationDeg: 55 },
+};
+
+function viewerIsNarrow() {
+  const width = viewerEl?.clientWidth || window.innerWidth;
+  const height = viewerEl?.clientHeight || window.innerHeight;
+  return width < 700 || width < height;
+}
+
 function getDefaultCameraPose(regionKey = currentRegionKey) {
   if (isShowcaseMode) {
     return initialExplorerPreset?.camera || SHOWCASE_PRESETS["home-hero"].camera;
+  }
+  // The framing needs the region's terrain, so it applies once that has loaded.
+  if (viewerIsNarrow() && currentCoreContext?.dataset?.regionKey === regionKey && DEFAULT_LOOK_AT[regionKey]) {
+    const framed = getLookAtPose(DEFAULT_LOOK_AT[regionKey]);
+    if (framed) return framed;
   }
   return DEFAULT_CAMERA_POSES[regionKey] || DEFAULT_CAMERA_POSES.antarctica;
 }
@@ -2218,7 +2336,6 @@ function lerpColor(from, to, t) {
 const BED_ELEVATION_MIN = -7000;
 const BED_ELEVATION_MAX = 3500;
 const TARGET_WORLD_EXTENT_UNITS = 128;
-const BASE_HORIZONTAL_VERTICAL_SCALE_RATIO = 52000 / 3800;
 const FLOWLINE_PICK_MOVE_THRESHOLD_PX = 7;
 const FLOWLINE_PROFILE_SAMPLE_TARGET = 88;
 const FLOWLINE_HIGHLIGHT_SAMPLE_TARGET = 144;
@@ -2273,7 +2390,6 @@ const OCEAN_CURRENT_BLOCKING_OVERLAY_ENABLED = true;
 const OCEAN_CURRENT_MAIN_THREAD_FALLBACK_SEGMENT_LIMIT = 250000;
 const OCEAN_CURRENT_MAIN_THREAD_FALLBACK_BIN_BYTES_LIMIT = 16 * 1024 * 1024;
 const VELOCITY_SURFACE_OPACITY = 0.82;
-const OCEAN_CURRENT_BED_CLEARANCE_M = 20;
 const EFFECTIVE_PRESSURE_REFERENCE_PA = 5_000_000;
 const CHANNEL_DISCHARGE_MIN = 1e-3;
 const CHANNEL_DISCHARGE_MAX = 100;
@@ -2665,7 +2781,7 @@ function formatVelocityTick(value) {
 }
 
 function formatBasalFrictionTick(value) {
-  if (value === 0) return "0 Mpa";
+  if (value === 0) return "0 MPa";
   if (Math.abs(value) < 0.1) return formatCoord(value, 2);
   if (Math.abs(value) < 1) {
     const roundedToTenth = Number(value.toFixed(1));
@@ -2876,11 +2992,37 @@ function updateThermalDrivingLegend() {
   `;
 }
 
+const EFFECTIVE_PRESSURE_LEGEND_TICKS_PA = [0, 1e6, 2e6, 3e6, 4e6, EFFECTIVE_PRESSURE_REFERENCE_PA];
+const CHANNEL_LEGEND_TICKS_M3_PER_S = [1e-3, 1e-2, 1e-1, 1, 10, CHANNEL_DISCHARGE_MAX];
+
+function formatEffectivePressureTick(pressurePa) {
+  if (pressurePa === 0) return "0 MPa";
+  const megapascals = formatCoord(pressurePa / 1e6, 0);
+  // Colours saturate at the reference pressure, which some cells exceed.
+  return pressurePa >= EFFECTIVE_PRESSURE_REFERENCE_PA ? `≥${megapascals}` : megapascals;
+}
+
+function formatChannelDischargeTick(discharge) {
+  if (discharge === CHANNEL_DISCHARGE_MIN) return "0.001 m³/s";
+  if (discharge >= CHANNEL_DISCHARGE_MAX) return `≥${formatCoord(discharge, 0)}`;
+  return discharge < 1 ? String(discharge) : formatCoord(discharge, 0);
+}
+
 function updateEffectivePressureLegend() {
   updateContinuousLegend(controlsUI.effectivePressureLegendBar, (t) => {
     const pressure = t * EFFECTIVE_PRESSURE_REFERENCE_PA;
     return effectivePressureColor(pressure);
   });
+  // Labels sit at their values on the linear bar, not evenly spaced.
+  renderTickLegendLabels(
+    controlsUI.effectivePressureLegendLabels,
+    EFFECTIVE_PRESSURE_LEGEND_TICKS_PA,
+    (pressure) => pressure / EFFECTIVE_PRESSURE_REFERENCE_PA,
+    formatEffectivePressureTick
+  );
+  if (controlsUI.effectivePressureLegendNote) {
+    controlsUI.effectivePressureLegendNote.textContent = t("explorer.legends.effectivePressureNote");
+  }
 }
 
 function updateChannelLegend() {
@@ -2888,6 +3030,13 @@ function updateChannelLegend() {
     const discharge = CHANNEL_DISCHARGE_MIN * (CHANNEL_DISCHARGE_MAX / CHANNEL_DISCHARGE_MIN) ** clamp01(t);
     return subglacialChannelColor(discharge);
   });
+  // Labels sit at their values on the logarithmic bar, not evenly spaced.
+  renderTickLegendLabels(
+    controlsUI.channelLegendLabels,
+    CHANNEL_LEGEND_TICKS_M3_PER_S,
+    channelDischargeNormalized,
+    formatChannelDischargeTick
+  );
 }
 
 function getOceanCurrentVisualizationRanges(oceanMeta) {
@@ -2903,7 +3052,7 @@ function getOceanCurrentVisualizationRanges(oceanMeta) {
 }
 
 function formatOceanLegendValue(value, unit, digits = 1) {
-  if (!Number.isFinite(value)) return `n/a ${unit}`;
+  if (!Number.isFinite(value)) return `${t("explorer.meta.notApplicable")} ${unit}`;
   return `${Number(value).toLocaleString(numberLocale, {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
@@ -2974,6 +3123,25 @@ function updateOceanCurrentLegend() {
   }
 
   ctx.putImageData(image, 0, 0);
+}
+
+/**
+ * Depth of the lake water between the bed and today's ice base in each cell, which is
+ * non-zero only over Lake Vostok (BedMachine mask 4), where BedMachine's bed is the lake
+ * floor. Computed once per terrain context.
+ */
+function getSubglacialLakeDepths(context) {
+  if (!context.subglacialLakeDepths) {
+    const { cellCount, mask, bedHeights, bedValid, iceBottomHeights, iceBottomValid } = context;
+    const depths = new Float32Array(cellCount);
+    for (let i = 0; i < cellCount; i += 1) {
+      if (mask[i] === 4 && bedValid[i] && iceBottomValid[i]) {
+        depths[i] = Math.max(0, iceBottomHeights[i] - bedHeights[i]);
+      }
+    }
+    context.subglacialLakeDepths = depths;
+  }
+  return context.subglacialLakeDepths;
 }
 
 function isIceCoveredMask(maskValue) {
@@ -4682,26 +4850,9 @@ function buildOceanCurrentMesh(context, oceanMeta, oceanBuffer) {
     const row1Nearest = Math.min(context.ny - 1, Math.max(0, Math.round(row1)));
     const idx0 = row0Nearest * context.nx + col0Nearest;
     const idx1 = row1Nearest * context.nx + col1Nearest;
-    const mask0 = Number(context.mask[idx0]);
-    const mask1 = Number(context.mask[idx1]);
-    const validOceanMask0 = mask0 === 0 || mask0 === 3;
-    const validOceanMask1 = mask1 === 0 || mask1 === 3;
-    if (!validOceanMask0 || !validOceanMask1) {
-      finalizeStreamlineIfNeeded(i, buffer);
-      continue;
-    }
-
     const bedHeight0 = sampleGridHeightNearest(context, col0, row0, "bed");
     const bedHeight1 = sampleGridHeightNearest(context, col1, row1, "bed");
-    if (!Number.isFinite(bedHeight0) || !Number.isFinite(bedHeight1)) {
-      finalizeStreamlineIfNeeded(i, buffer);
-      continue;
-    }
-    if (-bedHeight0 < depth0 + OCEAN_CURRENT_BED_CLEARANCE_M) {
-      finalizeStreamlineIfNeeded(i, buffer);
-      continue;
-    }
-    if (-bedHeight1 < depth1 + OCEAN_CURRENT_BED_CLEARANCE_M) {
+    if (!oceanPointInOpenWater(context, idx0, depth0, bedHeight0) || !oceanPointInOpenWater(context, idx1, depth1, bedHeight1)) {
       finalizeStreamlineIfNeeded(i, buffer);
       continue;
     }
@@ -5629,6 +5780,18 @@ function gridToSceneXZ(context, col, row) {
   return { x, z };
 }
 
+/** The geometry worker's open-water rule for a streamline end, for the main-thread fallback. */
+function oceanPointInOpenWater(context, index, depth, bedHeight) {
+  return isInOpenWater(
+    Number(context.mask[index]),
+    depth,
+    bedHeight,
+    context.iceBottomHeights[index],
+    OCEAN_STREAMLINE_BED_CLEARANCE_M,
+    OCEAN_STREAMLINE_ICE_CLEARANCE_M
+  );
+}
+
 function sampleGridHeightNearest(context, col, row, layerKey) {
   const c = Math.round(col);
   const r = Math.round(row);
@@ -6279,28 +6442,6 @@ function formatCoord(value, digits = 2) {
   return text.replace(/\.?0+$/, "");
 }
 
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-function renderSourceValue(source) {
-  if (!source) return "";
-  if (typeof source === "string") return escapeHtml(source);
-  const text = escapeHtml(source.text || "");
-  const url = escapeHtml(source.url || "");
-  if (!url) return text;
-  return `<a class="meta-link" href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
-}
-
-function renderSourceLine(label, source, suffix = "") {
-  return `<li class="meta-compact"><strong>${escapeHtml(label)}:</strong> ${renderSourceValue(source)}${suffix}</li>`;
-}
-
 function renderMetaSection(sectionId, title, items, options = {}) {
   if (!items.length) return "";
   const defaultOpen = Boolean(options.defaultOpen);
@@ -6638,6 +6779,18 @@ function setMobilePanelOffset(offsetPx) {
   const openThreshold = Math.max(8, mobilePanelClosedOffsetPx * 0.18);
   mobilePanelOpen = clampedOffset <= openThreshold;
   document.body.classList.toggle("mobile-panel-open", mobilePanelOpen);
+  syncMobilePanelButton();
+}
+
+/**
+ * Collapsed, the drawer's button names what the drawer holds and opens it; open, it reads
+ * "Done" and closes it. Its name says what it does, so it carries no aria-expanded as well.
+ */
+function syncMobilePanelButton() {
+  const button = controlsUI?.panelCloseButton;
+  if (!button) return;
+  const label = mobilePanelOpen ? t("explorer.drawer.close") : t("explorer.drawer.open");
+  if (button.textContent !== label) button.textContent = label;
 }
 
 function syncMobilePanelBounds({ preservePosition = true } = {}) {
@@ -6659,6 +6812,7 @@ function setMobilePanelOpen(open) {
   if (!mobileDrawerEnabled || !panelEl) {
     mobilePanelOpen = false;
     document.body.classList.remove("mobile-panel-open");
+    syncMobilePanelButton();
     return;
   }
   syncMobilePanelBounds({ preservePosition: true });
@@ -6838,6 +6992,8 @@ function refreshResponsiveLayout() {
   scheduleTickLegendLayout(controlsUI?.velocityLegendLabels);
   scheduleTickLegendLayout(controlsUI?.basalFrictionLegendLabels, { minGapPx: 8 });
   scheduleTickLegendLayout(controlsUI?.basalMeltLegendLabels);
+  scheduleTickLegendLayout(controlsUI?.effectivePressureLegendLabels);
+  scheduleTickLegendLayout(controlsUI?.channelLegendLabels);
   if (shouldUseShowcaseMobileLinkout() && interactionGateActive) {
     setInteractionGateActive(false);
   }
@@ -7372,7 +7528,7 @@ function bindUI() {
 
   if (controlsUI.panelCloseButton) {
     controlsUI.panelCloseButton.addEventListener("click", () => {
-      setMobilePanelOpen(false);
+      setMobilePanelOpen(!mobilePanelOpen);
     });
   }
 
@@ -7414,7 +7570,7 @@ function bindUI() {
 
   controlsUI.exaggeration.addEventListener("input", () => {
     const value = Number(controlsUI.exaggeration.value);
-    controlsUI.exaggerationValue.textContent = `${value.toFixed(1)}x`;
+    controlsUI.exaggerationValue.textContent = formatVerticalExaggeration(value);
   if (bedMesh) bedMesh.scale.y = value;
   if (iceMesh) iceMesh.scale.y = value;
   if (iceBottomMesh) iceBottomMesh.scale.y = value;
@@ -7752,6 +7908,25 @@ function bindUI() {
   updateFullscreenControls();
 }
 
+/**
+ * Thickness and ice-speed statistics over ice-covered cells, computed once per load and
+ * cached on the context. Either is null until its arrays are available.
+ */
+function summariseCurrentIceStatistics() {
+  const context = currentCoreContext;
+  if (!context?.thickness || !context?.iceValid) return { thickness: null, speed: null };
+  if (context.iceThicknessStats === undefined) {
+    context.iceThicknessStats = summariseMasked(context.thickness, context.iceValid, { quantiles: false });
+  }
+  const velocityMatchesContext =
+    velocityField?.velocitySpeed && velocityField.velocityValid && velocityField.iceValid === context.iceValid;
+  if (context.iceSpeedStats === undefined && velocityMatchesContext) {
+    const { velocitySpeed, velocityValid } = velocityField;
+    context.iceSpeedStats = summariseMasked(velocitySpeed, (index) => context.iceValid[index] && velocityValid[index]);
+  }
+  return { thickness: context.iceThicknessStats, speed: context.iceSpeedStats ?? null };
+}
+
 function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hydrologyMeta, oceanCurrentMeta, velocityMedianSpeed) {
   const region = getRegionConfig(dataset.regionKey);
   const capabilities = dataset.capabilities || region.capabilities;
@@ -7759,8 +7934,13 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   const bedStats = meta.fields.find((f) => f.name === "bed").stats_m;
   const thickStats = meta.fields.find((f) => f.name === "thickness").stats_m;
   const speedField = velocityMeta?.fields?.find((f) => f.name === "speed");
-  const speedStats = speedField?.stats_m_per_year;
-  const speedQuantiles = speedField?.quantiles_m_per_year;
+  // Package statistics cover every grid cell, ocean included; the snapshot reports the ice.
+  const iceStats = summariseCurrentIceStatistics();
+  const meanIceThickness = iceStats.thickness ? iceStats.thickness.mean : thickStats.mean;
+  // The package's own speed statistics include open ocean at 0, so none are shown until the
+  // velocity layer has been built and the ice-only ones computed.
+  const speedStats = iceStats.speed;
+  const speedQuantiles = iceStats.speed?.quantiles;
   const basalFrictionField = basalFrictionMeta?.fields?.find((f) => f.name === "basal_friction");
   const basalFrictionStats = basalFrictionField?.stats_mpa;
   const basalFrictionQuantiles = basalFrictionField?.quantiles_mpa;
@@ -7825,14 +8005,14 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   const quantileEntry = (label, value, formatter, suffix = "") =>
     Number.isFinite(Number(value)) ? `${label} ${formatter(Number(value))}${suffix}` : "";
   const quantileSummary = (entries) => entries.filter(Boolean).join("; ");
+  const medianLabel = t("explorer.meta.quantileMedian");
+  const rangeText = (min, max, unit = "") => `${t("explorer.meta.valueRange", { min, max })}${unit}`;
   const availableOnDemandText = t("explorer.meta.availableOnDemand");
-  const notApplicableText = "n/a";
-  const projectionLabel =
-    dataset.regionKey === "greenland"
-      ? "EPSG:3413 polar stereographic"
-      : dataset.regionKey === "antarctica"
-      ? "EPSG:3031 polar stereographic"
-      : "Polar stereographic";
+  const notApplicableText = t("explorer.meta.notApplicable");
+  const epsgCode = getRegionEpsgCode(dataset.regionKey);
+  const projectionLabel = epsgCode
+    ? t("explorer.meta.polarStereographic", { epsg: epsgCode })
+    : t("explorer.meta.polarStereographicGeneric");
   const oceanCurrentReferenceText = oceanCurrentReference
     ? isChineseLocale
       ? `${oceanCurrentReference} 模式场`
@@ -7844,10 +8024,10 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   const qrfHybridSummary = meta.hybridization
     ? isChineseLocale
       ? `QRF 床面用于 ${
-          Number.isFinite(qrfCoverageFraction) ? fmtShort(qrfCoverageFraction * 100, 1) : "n/a"
+          Number.isFinite(qrfCoverageFraction) ? fmtShort(qrfCoverageFraction * 100, 1) : notApplicableText
         }% 的接地冰；冰面和掩膜采用 BedMachine Greenland v6，浮冰、非冰区和 QRF 空缺区保留其床面和厚度。`
       : `QRF bed for ${
-          Number.isFinite(qrfCoverageFraction) ? fmtShort(qrfCoverageFraction * 100, 1) : "n/a"
+          Number.isFinite(qrfCoverageFraction) ? fmtShort(qrfCoverageFraction * 100, 1) : notApplicableText
         }% of grounded ice; BedMachine Greenland v6 supplies surface and mask, with its bed and thickness retained over floating ice, non-ice, and QRF gaps.`
     : "";
   const oceanCurrentSummary = !oceanCurrentMeta
@@ -7858,12 +8038,12 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
     ? isChineseLocale
       ? `基于年平均模式场预计算 ${fmtInt(
           oceanStreamlineCount
-        )} 条海洋流线，覆盖四个垂向层（表层、上层、中层、下层），其中 ${fmtInt(
+        )} 条海洋流线，种子点位于当地水深的 3–18 %、18–40 %、40–70 % 和 70–95 % 四个深度带（表层、上层、中层、下层），其中 ${fmtInt(
           cavityMargin80kmStreamlineCount
         )} 条位于冰架腔体及 80 km 沿岸带，${fmtInt(remoteOpenOceanStreamlineCount)} 条位于外海。`
       : `Precomputed ${fmtInt(
           oceanStreamlineCount
-        )} ocean streamlines from annual mean model fields across four vertical layers (surface, upper, mid, lower), including ${fmtInt(
+        )} ocean streamlines from annual mean model fields, seeded in four depth bands at 3–18, 18–40, 40–70 and 70–95 % of the local water depth (surface, upper, mid, lower), including ${fmtInt(
           cavityMargin80kmStreamlineCount
         )} in the ice-shelf cavity and 80-km coastal zone, and ${fmtInt(
           remoteOpenOceanStreamlineCount
@@ -7872,10 +8052,10 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
     ? isChineseLocale
       ? `基于 2025 年 8 月模式场预计算 ${fmtInt(
           oceanStreamlineCount
-        )} 条海洋流线，覆盖四个垂向层（表层、上层、中层、下层）。`
+        )} 条海洋流线，种子点位于当地水深的 3–18 %、18–40 %、40–70 % 和 70–95 % 四个深度带（表层、上层、中层、下层）。`
       : `Precomputed ${fmtInt(
           oceanStreamlineCount
-        )} ocean streamlines from August 2025 model fields across four vertical layers (surface, upper, mid, lower).`
+        )} ocean streamlines from August 2025 model fields, seeded in four depth bands at 3–18, 18–40, 40–70 and 70–95 % of the local water depth (surface, upper, mid, lower).`
     : isChineseLocale
     ? `${fmtInt(oceanStreamlineCount)} 条流线${
         oceanCurrentLayerCount > 1 ? `，覆盖 ${fmtInt(oceanCurrentLayerCount)} 个深度层` : ""
@@ -7885,15 +8065,16 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
       } (${fmtInt(oceanCurrentSegmentCount)} segments), plotted from the ${oceanCurrentReferenceText}.`;
 
   const geometryItems = [
-    `<li><strong>${t("explorer.meta.preset")}:</strong> ${region.label} ${dataset.label} (${stepKm.toFixed(
-      stepKm >= 10 ? 0 : 1
-    )} km grid)</li>`,
+    `<li><strong>${t("explorer.meta.preset")}:</strong> ${region.label} ${dataset.label}${t(
+      "explorer.meta.gridSpacingSuffix",
+      { spacing: stepKm.toFixed(stepKm >= 10 ? 0 : 1) }
+    )}</li>`,
     `<li><strong>${t("explorer.meta.grid")}:</strong> ${fmtInt(grid.nx)} x ${fmtInt(grid.ny)}</li>`,
     `<li><strong>${t("explorer.meta.projection")}:</strong> ${projectionLabel}</li>`,
-    `<li><strong>${t("explorer.meta.bedElevation")}:</strong> ${fmtInt(bedStats.min)} to ${fmtInt(bedStats.max)} m</li>`,
+    `<li><strong>${t("explorer.meta.bedElevation")}:</strong> ${rangeText(fmtInt(bedStats.min), fmtInt(bedStats.max), " m")}</li>`,
     `<li><strong>${t("explorer.meta.maxIceThickness")}:</strong> ${fmtInt(thickStats.max)} m</li>`,
     `<li><strong>${t("explorer.meta.meanIceThickness")}:</strong> ${
-      Number.isFinite(thickStats.mean) ? `${fmtInt(thickStats.mean)} m` : notApplicableText
+      Number.isFinite(meanIceThickness) ? `${fmtInt(meanIceThickness)} m` : notApplicableText
     }</li>`,
     ...(qrfHybridSummary
       ? [
@@ -7905,13 +8086,13 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   const velocityItems = capabilities.velocity
     ? [
         `<li><strong>${t("explorer.meta.surfaceSpeedRange")}:</strong> ${
-          speedStats ? `${fmtInt(speedStats.min)} to ${fmtInt(speedStats.max)} m/yr` : notApplicableText
+          speedStats ? rangeText(fmtInt(speedStats.min), fmtInt(speedStats.max), " m/yr") : availableOnDemandText
         }</li>`,
         `<li><strong>${t("explorer.meta.speedQuantiles")}:</strong> ${
           quantileSummary([
             quantileEntry(
-              "median",
-              Number.isFinite(Number(speedQuantiles?.median)) ? speedQuantiles.median : velocityMedianSpeed,
+              medianLabel,
+              speedQuantiles?.median,
               fmtInt,
               " m/yr"
             ),
@@ -7928,12 +8109,12 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
         `<li><strong>${t("explorer.meta.invertedFriction")}:</strong> ${t("explorer.meta.invertedFrictionSummary")}</li>`,
         `<li><strong>${t("explorer.meta.frictionRange")}:</strong> ${
           basalFrictionStats
-            ? `${fmtShort(basalFrictionStats.min, 3)} to ${fmtShort(basalFrictionStats.max, 2)} MPa`
+            ? rangeText(fmtShort(basalFrictionStats.min, 3), fmtShort(basalFrictionStats.max, 2), " MPa")
             : notApplicableText
         }</li>`,
         `<li><strong>${t("explorer.meta.frictionQuantiles")}:</strong> ${
           quantileSummary([
-            quantileEntry("median", basalFrictionQuantiles?.median, (value) => fmtShort(value, 3), " MPa"),
+            quantileEntry(medianLabel, basalFrictionQuantiles?.median, (value) => fmtShort(value, 3), " MPa"),
             quantileEntry("P90", basalFrictionQuantiles?.q90, (value) => fmtShort(value, 3), " MPa"),
             quantileEntry("P95", basalFrictionQuantiles?.q95, (value) => fmtShort(value, 3), " MPa"),
             quantileEntry("P99", basalFrictionQuantiles?.q99, (value) => fmtShort(value, 3), " MPa"),
@@ -7945,33 +8126,33 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   const riseItems = capabilities.rise
     ? [
         `<li><strong>${t("explorer.meta.basalMeltRate")}:</strong> ${
-          riseBasalStats ? `${fmtShort(riseBasalStats.min, 3)} to ${fmtShort(riseBasalStats.max, 3)} m/yr` : availableOnDemandText
+          riseBasalStats ? rangeText(fmtShort(riseBasalStats.min, 3), fmtShort(riseBasalStats.max, 3), " m/yr") : availableOnDemandText
         }</li>`,
         `<li><strong>${t("explorer.meta.meltQuantiles")}:</strong> ${
           quantileSummary([
-            quantileEntry("median", riseBasalQuantiles?.median, (value) => fmtShort(value, 3), " m/yr"),
+            quantileEntry(medianLabel, riseBasalQuantiles?.median, (value) => fmtShort(value, 3), " m/yr"),
             quantileEntry("P90", riseBasalQuantiles?.q90, (value) => fmtShort(value, 3), " m/yr"),
             quantileEntry("P95", riseBasalQuantiles?.q95, (value) => fmtShort(value, 3), " m/yr"),
             quantileEntry("P99", riseBasalQuantiles?.q99, (value) => fmtShort(value, 3), " m/yr"),
           ]) || availableOnDemandText
         }</li>`,
         `<li><strong>${t("explorer.meta.thermalDriving")}:</strong> ${
-          riseThermalStats ? `${fmtShort(riseThermalStats.min, 3)} to ${fmtShort(riseThermalStats.max, 3)} °C` : availableOnDemandText
+          riseThermalStats ? rangeText(fmtShort(riseThermalStats.min, 3), fmtShort(riseThermalStats.max, 3), " °C") : availableOnDemandText
         }</li>`,
         `<li><strong>${t("explorer.meta.thermalQuantiles")}:</strong> ${
           quantileSummary([
-            quantileEntry("median", riseThermalQuantiles?.median, (value) => fmtShort(value, 3), " °C"),
+            quantileEntry(medianLabel, riseThermalQuantiles?.median, (value) => fmtShort(value, 3), " °C"),
             quantileEntry("P90", riseThermalQuantiles?.q90, (value) => fmtShort(value, 3), " °C"),
             quantileEntry("P95", riseThermalQuantiles?.q95, (value) => fmtShort(value, 3), " °C"),
             quantileEntry("P99", riseThermalQuantiles?.q99, (value) => fmtShort(value, 3), " °C"),
           ]) || availableOnDemandText
         }</li>`,
         `<li><strong>${t("explorer.meta.iceDraft")}:</strong> ${
-          riseDraftStats ? `${fmtShort(riseDraftStats.min, 0)} to ${fmtShort(riseDraftStats.max, 0)} m` : availableOnDemandText
+          riseDraftStats ? rangeText(fmtShort(riseDraftStats.min, 0), fmtShort(riseDraftStats.max, 0), " m") : availableOnDemandText
         }</li>`,
         `<li><strong>${t("explorer.meta.draftQuantiles")}:</strong> ${
           quantileSummary([
-            quantileEntry("median", riseDraftQuantiles?.median, (value) => fmtShort(value, 0), " m"),
+            quantileEntry(medianLabel, riseDraftQuantiles?.median, (value) => fmtShort(value, 0), " m"),
             quantileEntry("P90", riseDraftQuantiles?.q90, (value) => fmtShort(value, 0), " m"),
             quantileEntry("P95", riseDraftQuantiles?.q95, (value) => fmtShort(value, 0), " m"),
             quantileEntry("P99", riseDraftQuantiles?.q99, (value) => fmtShort(value, 0), " m"),
@@ -7985,11 +8166,11 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
         `<li><strong>${t("explorer.meta.oceanStreamlines")}:</strong> ${oceanCurrentSummary}</li>`,
         `<li><strong>${t("explorer.meta.depthSpan")}:</strong> ${
           Number.isFinite(oceanCurrentDepthMin) && Number.isFinite(oceanCurrentDepthMax)
-            ? `${fmtShort(oceanCurrentDepthMin, 0)} to ${fmtShort(oceanCurrentDepthMax, 0)} m`
+            ? rangeText(fmtShort(oceanCurrentDepthMin, 0), fmtShort(oceanCurrentDepthMax, 0), " m")
             : notApplicableText
         }</li>`,
         `<li><strong>${t("explorer.meta.horizontalSpeed")}:</strong> ${
-          oceanCurrentSpeedStats ? `${fmtShort(oceanCurrentSpeedStats.min)} to ${fmtShort(oceanCurrentSpeedStats.max)} m/s` : notApplicableText
+          oceanCurrentSpeedStats ? rangeText(fmtShort(oceanCurrentSpeedStats.min), fmtShort(oceanCurrentSpeedStats.max), " m/s") : notApplicableText
         }</li>`,
         `<li><strong>${t("explorer.meta.waterMassColor")}:</strong> ${
           oceanCurrentThetaStats && oceanCurrentSalinityStats
@@ -8007,25 +8188,25 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   const hydrologyItems = capabilities.hydrology
     ? [
         `<li><strong>${t("explorer.meta.effectivePressureRange")}:</strong> ${
-          pressureStats ? `${fmtMpa(pressureStats.min)} to ${fmtMpa(pressureStats.max)} MPa` : notApplicableText
+          pressureStats ? rangeText(fmtMpa(pressureStats.min), fmtMpa(pressureStats.max), " MPa") : notApplicableText
         }</li>`,
         `<li><strong>${t("explorer.meta.pressureQuantiles")}:</strong> ${
           quantileSummary([
-            quantileEntry("median", pressureQuantiles?.median, fmtMpa, " MPa"),
+            quantileEntry(medianLabel, pressureQuantiles?.median, fmtMpa, " MPa"),
             quantileEntry("P90", pressureQuantiles?.q90, fmtMpa, " MPa"),
             quantileEntry("P95", pressureQuantiles?.q95, fmtMpa, " MPa"),
             quantileEntry("P99", pressureQuantiles?.q99, fmtMpa, " MPa"),
           ]) || notApplicableText
         }</li>`,
         `<li><strong>${t("explorer.meta.channelDischargeRange")}:</strong> ${
-          channelStats ? `${fmtQ(channelStats.min)} to ${fmtQ(channelStats.max)} m3/s` : notApplicableText
+          channelStats ? rangeText(fmtQ(channelStats.min), fmtQ(channelStats.max), " m³/s") : notApplicableText
         }</li>`,
         `<li><strong>${t("explorer.meta.dischargeQuantiles")}:</strong> ${
           quantileSummary([
-            quantileEntry("median", channelQuantiles?.median, fmtQ, " m3/s"),
-            quantileEntry("P90", channelQuantiles?.q90, fmtQ, " m3/s"),
-            quantileEntry("P95", channelQuantiles?.q95, fmtQ, " m3/s"),
-            quantileEntry("P99", channelQuantiles?.q99, fmtQ, " m3/s"),
+            quantileEntry(medianLabel, channelQuantiles?.median, fmtQ, " m³/s"),
+            quantileEntry("P90", channelQuantiles?.q90, fmtQ, " m³/s"),
+            quantileEntry("P95", channelQuantiles?.q95, fmtQ, " m³/s"),
+            quantileEntry("P99", channelQuantiles?.q99, fmtQ, " m³/s"),
           ]) || notApplicableText
         }</li>`,
         `<li><strong>${t("explorer.meta.renderedChannels")}:</strong> ${
@@ -8035,7 +8216,7 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
     : [`<li><strong>${t("explorer.meta.status")}:</strong> ${t("explorer.meta.notYetAdded", { region: region.label })}</li>`];
 
   const sourceLines = [renderSourceLine(t("explorer.meta.sourceBedIceGeometry"), dataset.sources.geometry)];
-  if (dataset.regionKey === "antarctica" && dataset.sources.basins) {
+  if (capabilities.refinedBasins && dataset.sources.basins) {
     sourceLines.push(renderSourceLine(t("explorer.meta.sourceBasinBoundaries"), dataset.sources.basins));
   }
   if (capabilities.velocity && dataset.sources.velocity) {
@@ -8054,12 +8235,16 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
       oceanCurrentCoverage?.streamlines_by_seed_depth ||
       oceanCurrentCoverage?.segments_by_seed_depth ||
       oceanCurrentCoverage?.counts_by_depth
-        ? ` (${fmtInt(oceanStreamlineCount)} 3D streamlines)`
+        ? t("explorer.meta.streamlineCountSuffix", { count: fmtInt(oceanStreamlineCount) })
         : "";
     sourceLines.push(renderSourceLine(t("explorer.meta.sourceOceanCirculation"), dataset.sources.oceanCurrents, oceanSuffix));
   }
   if (capabilities.rise && dataset.sources.rise) {
-    sourceLines.push(renderSourceLine(t("explorer.meta.sourceMeltDrivers"), dataset.sources.rise, " (15,269 ice-shelf cells)"));
+    const iceShelfCellCount = Number(riseCoverage?.iceshelf_cell_count);
+    const riseSuffix = Number.isFinite(iceShelfCellCount)
+      ? t("explorer.meta.iceShelfCellCount", { count: fmtInt(iceShelfCellCount) })
+      : "";
+    sourceLines.push(renderSourceLine(t("explorer.meta.sourceMeltDrivers"), dataset.sources.rise, riseSuffix));
   }
   if (capabilities.isostaticRebound && dataset.sources.isostaticResponse) {
     sourceLines.push(renderSourceLine(t("explorer.meta.sourceIsostaticResponse"), dataset.sources.isostaticResponse));
@@ -8109,17 +8294,17 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
               ]),
           `<li class="meta-compact"><strong>${t("explorer.meta.reboundProgressLabel")}:</strong> ${Math.round(
             getReboundFraction() * 100
-          )}%; <strong>${t("explorer.meta.reboundRelaxation")}:</strong> ${fmtInt(
-            reboundStats.relaxationTimeYears
-          )} yr; <strong>${t("explorer.meta.reboundSeaLevelLabel")}:</strong> +${fmtInt(
+          )}%; <strong>${t("explorer.meta.reboundRelaxation")}:</strong> ${t("explorer.meta.yearsValue", {
+            value: fmtInt(reboundStats.relaxationTimeYears),
+          })}; <strong>${t("explorer.meta.reboundSeaLevelLabel")}:</strong> +${fmtInt(
             reboundStats.seaLevelMeters
           )} m</li>`,
-          `<li><strong>${t("explorer.meta.reboundMaxUplift")}:</strong> ${fmtInt(
-            reboundStats.maxUpliftMeters
-          )} m at ${formatCoord(reboundStats.maxUpliftXMeters / 1000, 0)}, ${formatCoord(
-            reboundStats.maxUpliftYMeters / 1000,
-            0
-          )} km</li>`,
+          `<li><strong>${t("explorer.meta.reboundMaxUplift")}:</strong> ${formatGridPosition(
+            fmtInt(reboundStats.maxUpliftMeters),
+            reboundStats.maxUpliftXMeters,
+            reboundStats.maxUpliftYMeters,
+            dataset.regionKey
+          )}</li>`,
           `<li><strong>${t("explorer.meta.reboundMeanGroundedUplift")}:</strong> ${fmtInt(
             reboundStats.meanGroundedUpliftMeters
           )} m</li>`,
@@ -8223,10 +8408,10 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
     const fieldParts = [
       `${region.label}`,
       `${dataset.label}`,
-      `${t("explorer.meta.fieldStatsBed")}: ${Math.round(bedStats.min)} m to ${Math.round(bedStats.max)} m`,
+      `${t("explorer.meta.fieldStatsBed")}: ${rangeText(`${Math.round(bedStats.min)} m`, `${Math.round(bedStats.max)} m`)}`,
       `${t("explorer.meta.fieldStatsIceMax")}: ${Math.round(thickStats.max)} m`,
       `${t("explorer.meta.fieldStatsVelocityMax")}: ${
-        capabilities.velocity && speedStats ? `${Math.round(speedStats.max)} m/yr` : notApplicableText
+        !capabilities.velocity ? notApplicableText : speedStats ? `${Math.round(speedStats.max)} m/yr` : availableOnDemandText
       }`,
     ];
     if (capabilities.oceanCurrents && oceanStreamlineCount > 0) {
@@ -8503,6 +8688,7 @@ function applyReboundGeometry({ recomputeNormals = true } = {}) {
       iceValid,
       fraction,
       seaLevelMeters,
+      lakeDepths: getSubglacialLakeDepths(context),
       surfaceOut: context.reboundScratchSurface || new Float32Array(cellCount),
       bottomOut: context.reboundScratchBottom || new Float32Array(cellCount),
     });
@@ -8696,8 +8882,19 @@ function isCurrentReboundContext(context) {
   return context === currentCoreContext && context.generation === loadGeneration;
 }
 
-function reboundCoordinates(xMeters, yMeters) {
-  return `${formatCoord(xMeters / 1000, 0)}, ${formatCoord(yMeters / 1000, 0)} km`;
+/** EPSG code of a region's polar stereographic grid. */
+function getRegionEpsgCode(regionKey) {
+  return regionKey === "greenland" ? "EPSG:3413" : regionKey === "antarctica" ? "EPSG:3031" : "";
+}
+
+/** A value in metres and the grid position where it occurs, with the axes named. */
+function formatGridPosition(valueText, xMeters, yMeters, regionKey) {
+  return t("explorer.meta.atGridPosition", {
+    value: valueText,
+    x: formatCoord(xMeters / 1000, 0),
+    y: formatCoord(yMeters / 1000, 0),
+    epsg: getRegionEpsgCode(regionKey),
+  });
 }
 
 /** Metadata-panel entries naming the published Earth model and its sea surface. */
@@ -8739,13 +8936,18 @@ function publishedReboundModelItems(stats, dataset, { fmtInt, fmtShort }) {
 function publishedReboundFigureItems(stats, dataset, { fmtInt, fmtShort, fmtArea, fmtMillions }) {
   const { iceUnloading, postLgm, waterLoading } = stats.components || {};
   return [
-    `<li><strong>${t("explorer.meta.reboundMaxUplift")}:</strong> ${fmtInt(stats.maxUpliftMeters)} m at ${reboundCoordinates(
+    `<li><strong>${t("explorer.meta.reboundMaxUplift")}:</strong> ${formatGridPosition(
+      fmtInt(stats.maxUpliftMeters),
       stats.maxUpliftXMeters,
-      stats.maxUpliftYMeters
+      stats.maxUpliftYMeters,
+      dataset.regionKey
     )}</li>`,
-    `<li><strong>${t("explorer.meta.reboundMaxTopographyChange")}:</strong> ${fmtInt(
-      stats.maxTopographyChangeMeters
-    )} m at ${reboundCoordinates(stats.maxTopographyChangeXMeters, stats.maxTopographyChangeYMeters)}</li>`,
+    `<li><strong>${t("explorer.meta.reboundMaxTopographyChange")}:</strong> ${formatGridPosition(
+      fmtInt(stats.maxTopographyChangeMeters),
+      stats.maxTopographyChangeXMeters,
+      stats.maxTopographyChangeYMeters,
+      dataset.regionKey
+    )}</li>`,
     `<li><strong>${t("explorer.meta.reboundMeanGroundedUplift")}:</strong> ${fmtInt(stats.meanGroundedUpliftMeters)} m</li>`,
     `<li><strong>${t("explorer.meta.reboundMeanTopographyChange")}:</strong> ${fmtInt(
       stats.meanGroundedTopographyChangeMeters
@@ -9125,7 +9327,7 @@ function updateIceProjectionAvailability() {
 }
 
 function formatSignedFixed(value, digits) {
-  if (!Number.isFinite(value)) return "n/a";
+  if (!Number.isFinite(value)) return t("explorer.meta.notApplicable");
   const text = Math.abs(value).toLocaleString(numberLocale, {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
@@ -9230,10 +9432,9 @@ function updateIceProjectionReadout() {
         high: formatSignedFixed(sampleIceProjectionSeries(series.seaLevelMax), 2),
       }),
     ]);
-    const cellKm2 = iceProjectionScene.cellAreaKm2;
     rows.push([
       t("explorer.projection.readoutGroundedMap"),
-      areaText(iceProjectionScene.groundedCellCount * cellKm2, iceProjectionScene.baselineGroundedCellCount * cellKm2),
+      areaText(iceProjectionScene.groundedAreaKm2, iceProjectionScene.baselineGroundedAreaKm2),
     ]);
   } else {
     const fromSeries = (values) => areaText(sampleIceProjectionSeries(values), values[0]);
@@ -9436,12 +9637,14 @@ function buildIceProjectionScene(context, scenarioKey, projection, module) {
   const baseline = new Float32Array(count);
   module.blendThicknessInto(projection, projection.firstYear, baseline);
   const horizontal = context.baseConfig.horizontalMetersPerUnit;
+  const restingBed = module.restingBedInto(projection, getSubglacialLakeDepths(context), new Float32Array(count));
+  const cellAreasKm2 = module.domainCellAreasKm2(projection, getReboundStandardParallel(context.dataset.regionKey));
   // Grounded ice of the first frame, for the readout's change in grounded area.
   const scratch = new Float32Array(count);
   const baselineGrounded = new Uint8Array(count);
-  module.flotationGeometryInto(projection.bed, baseline, projection.densityRatio, scratch, new Float32Array(count), baselineGrounded);
-  let baselineGroundedCellCount = 0;
-  for (let v = 0; v < count; v += 1) baselineGroundedCellCount += baselineGrounded[v];
+  module.flotationGeometryInto(restingBed, baseline, projection.densityRatio, scratch, new Float32Array(count), baselineGrounded);
+  let baselineGroundedAreaKm2 = 0;
+  for (let v = 0; v < count; v += 1) if (baselineGrounded[v]) baselineGroundedAreaKm2 += cellAreasKm2[v];
   return {
     context,
     scenarioKey,
@@ -9464,9 +9667,10 @@ function buildIceProjectionScene(context, scenarioKey, projection, module) {
     indexDirty: true,
     boundsReady: false,
     iceVertexCount: 0,
-    groundedCellCount: baselineGroundedCellCount,
-    baselineGroundedCellCount,
-    cellAreaKm2: Math.abs(projection.grid.dx_m * projection.grid.dy_m) / 1e6,
+    restingBed,
+    cellAreasKm2,
+    groundedAreaKm2: baselineGroundedAreaKm2,
+    baselineGroundedAreaKm2,
     triangleIndexCount: 0,
     dxUnits: Math.abs(context.meta.grid.dx_m) / horizontal,
     dzUnits: Math.abs(context.meta.grid.dy_m) / horizontal,
@@ -9491,9 +9695,9 @@ function rebuildIceProjectionIndex(sceneState) {
 function applyIceProjectionYear() {
   const sceneState = iceProjectionScene;
   if (!sceneState || !iceProjectionActive) return;
-  const { projection, module, luts, thickness, surface, base, grounded, ice, heights, baseline } = sceneState;
+  const { projection, module, luts, thickness, surface, base, grounded, ice, heights, baseline, restingBed } = sceneState;
   iceProjectionYear = module.blendThicknessInto(projection, iceProjectionYear, thickness).year;
-  module.flotationGeometryInto(projection.bed, thickness, projection.densityRatio, surface, base, grounded);
+  module.flotationGeometryInto(restingBed, thickness, projection.densityRatio, surface, base, grounded);
   module.blendSpeedChangeInto(projection, iceProjectionYear, sceneState.speedChange);
 
   const verticalMetersPerUnit = sceneState.context.baseConfig.verticalMetersPerUnit;
@@ -9531,9 +9735,11 @@ function applyIceProjectionYear() {
     }
   }
   sceneState.iceVertexCount = iceCount;
-  let groundedCount = 0;
-  for (let v = 0; v < projection.domainCount; v += 1) groundedCount += ice[v] & grounded[v];
-  sceneState.groundedCellCount = groundedCount;
+  let groundedAreaKm2 = 0;
+  for (let v = 0; v < projection.domainCount; v += 1) {
+    if (ice[v] & grounded[v]) groundedAreaKm2 += sceneState.cellAreasKm2[v];
+  }
+  sceneState.groundedAreaKm2 = groundedAreaKm2;
   if (sceneState.indexDirty) rebuildIceProjectionIndex(sceneState);
 
   for (let v = 0; v < projection.domainCount; v += 1) heights[v] = topPositions[3 * v + 1];
@@ -10031,7 +10237,7 @@ function buildIceProjectionMetaItems() {
   const fmt = (value, digits) =>
     Number.isFinite(Number(value))
       ? Number(value).toLocaleString(numberLocale, { minimumFractionDigits: digits, maximumFractionDigits: digits })
-      : "n/a";
+      : t("explorer.meta.notApplicable");
   const item = (label, value, compact = false) =>
     `<li${compact ? ' class="meta-compact"' : ""}><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</li>`;
   const period = { first: projection.firstYear, last: projection.lastYear };
@@ -10091,7 +10297,7 @@ function buildIceProjectionMetaItems() {
       t("explorer.meta.iceProjectionKeyframesMeanValue", {
         ...period,
         count: projection.frameCount,
-        interval: meta.keyframes?.interval_years ?? "n/a",
+        interval: meta.keyframes?.interval_years ?? t("explorer.meta.notApplicable"),
         cells: Math.round(projection.domainCount).toLocaleString(numberLocale),
       }),
       true
@@ -11115,6 +11321,7 @@ async function ensureOceanCurrentsLoaded({ trigger = "prefetch" } = {}) {
           mask: context.mask,
           bedHeights: context.bedHeights,
           bedValid: context.bedValid,
+          iceBaseHeights: context.iceBottomHeights,
           nx: context.nx,
           ny: context.ny,
           grid: context.meta.grid,
@@ -11422,6 +11629,7 @@ async function ensureHydrologyLoaded({ trigger = "prefetch" } = {}) {
         baseConfig: context.baseConfig,
         bedHeights: context.bedHeights,
         bedValid: context.bedValid,
+        mask: context.mask,
         effectivePressureLut,
         channelDischargeLut,
         meshStride: getHydrologyLayerMeshStride(context),
@@ -11571,7 +11779,11 @@ function startBackgroundWarmup() {
     oceanCurrents: ensureOceanCurrentsLoaded,
   };
   (async () => {
-    for (const [position, layer] of editionProfile.backgroundWarmup.entries()) {
+    // On light devices the ocean package waits until its layer is switched on.
+    const warmupLayers = editionProfile.backgroundWarmup.filter(
+      (layer) => !(prefersLightPackages && layer === "oceanCurrents")
+    );
+    for (const [position, layer] of warmupLayers.entries()) {
       if (!context || context !== currentCoreContext || context.generation !== loadGeneration) return;
       if (position > 0) await nextAnimationFrame();
       await loaders[layer]({ trigger: "warmup" });

@@ -4,6 +4,123 @@ All notable changes to 3D ICE are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.1] — Unreleased
+
+Corrections from a pre-announcement audit of 0.3.0.
+
+### Fixed
+
+- The Antarctic ocean streamlines now follow the modelled currents. Version 0.3.0 rotated
+  WAOM2's native velocity components by the ROMS grid angle, which on WAOM2's
+  EPSG:3031-aligned grid equals the longitude, and then stepped the streamlines with those
+  east/north components as if they were x/y: every traced vector was turned by the local
+  longitude, so the Antarctic Circumpolar Current ran westward in the Pacific sector. The
+  packer now rotates by the grid angle minus the longitude, the identity on WAOM2's grid. The
+  combined package and its two components were rebuilt within the same segment budget (8,150
+  longer streamlines, 1.5 million segments), and a test checks that the circumpolar current
+  flows east in every well-sampled sector. The two unused seeding variants (`..._yr5_annual`
+  and `..._cavity_margin50km`) were removed rather than rebuilt. The home page's Southern
+  Ocean preview and Figure 1(a) of the paper were re-rendered.
+- The vertical exaggeration labels show the true factor. Terrain is drawn 13.7 times taller
+  than horizontal distances before the slider multiplies it, so the public edition's default
+  is 66× and the research edition's 55×, and the tour no longer says the heights are
+  stretched "about five times" or that 1× shows true proportions.
+- The subglacial channel layer keeps channels whatever their direction. GlaDS discharge is
+  signed by the orientation of each mesh edge, and the packer kept only positive values, which
+  dropped 35–42 % of the channel network. It now filters and reduces on the magnitude, and the
+  hydrology packages and their Bedmap3 copies were rebuilt: 9,068 channel edges at 10 km and
+  29,793 at 4 km, from 5,898 and 17,238. The default minimum discharge now matches the
+  packages (0.001 m³/s).
+- Sea-level equivalents are converted at freshwater density, as Gregory et al. (2019) define
+  them: 58.1 m for Antarctica on BedMachine v4 and 7.46 m for Greenland, instead of 56.5 m and
+  7.26 m at seawater density. The research edition's notes now compare them with 57.9 ± 0.9 m
+  for BedMachine Antarctica v1 (Morlighem et al. 2020) and 7.42 ± 0.05 m of ice above
+  flotation for BedMachine Greenland v3 (Morlighem et al. 2017), rather than attributing the
+  first to version 4 and calling the second a total-volume figure.
+- The idealised regional-flexure note had the forebulge backwards: when the ice is removed,
+  the bulge it had raised beyond the margin subsides.
+- The Data Snapshot's mean ice thickness and ice-speed statistics cover ice-covered cells only.
+  Antarctica reads 1,940 m and a median speed of 7 m/yr rather than 590 m and 0 m/yr, and
+  Greenland's maximum speed is its fastest ice rather than a fjord pixel. Until the velocity
+  layer has been built, the speed statistics read "Available on demand".
+- The effective-pressure and channel-discharge legends place their labels at their values,
+  mark the saturated top of each scale with ≥, and say that over-pressurised bed (N < 0) is
+  not drawn. Unit labels read MPa and m³/s.
+- Public copy. Antarctica's ice covers about 14 million km² (areas are now corrected for the
+  map's scale factor), the ice resting on land is on average more than 2 km thick, most rather
+  than almost all of West Antarctica rests on bed below sea level, nearly two-thirds of the
+  grounded ice moves less than 10 m a year, the full rebound takes tens of thousands of years,
+  and the bedrock below sea level under the ice is buried by ice rather than water.
+- On phones and other narrow screens, both editions open on the whole ice sheet instead of a
+  cropped close-up.
+- Subglacial hydrology is drawn only beneath grounded ice. Effective pressure was also drawn
+  on 522 floating and 359 ice-free cells of the 10 km grid, on the sea floor beneath the
+  shelves and on bare rock, and channel ribbons ran on past the grounding line; a channel now
+  ends half-way between its last grounded cell and the next, where the grounded ice ends.
+- No ocean streamline runs inside an ice shelf: segment ends in a cavity must lie below
+  today's ice base as well as above the bed. About 2,000 of 59,000 sub-shelf segments did not.
+- The ice over Lake Vostok stays on its lake. BedMachine's bed there is the lake floor, so
+  switching the projection on dropped the ice surface by 246 m (median; up to 837 m) with no
+  change shown, and the rebound scenario did the same.
+- During a partial rebound, grounded marine ice that has thinned enough to float lifts off
+  its bed, as floating ice already did, instead of staying pinned far below the sea surface.
+- The projection's "Grounded ice on the map" readout uses scale-corrected cell areas, 12.28
+  rather than 12.01 million km² for Antarctica in 2015, as the rebound statistics do.
+- The RISE source line counts the ice-shelf cells of the package in view (95,490 at 4 km),
+  rather than always 15,269.
+- The Chinese Data Snapshot is in Chinese: grid spacing, projection, ranges, medians, counts
+  and years. Its coordinates name their axes and projection, for example
+  "x = 977 km, y = 783 km (EPSG:3031)", in both languages.
+- Chinese terminology: 地壳均衡 throughout, 格陵兰冰盖 rather than 冰原, 冰层不透明度 for the
+  ice-opacity slider, and 冰流 kept for ice streams, with the flow of ice now 冰的流动 and its
+  speed 冰速.
+- The projection readout and chart say "Sea-level change from Antarctica", as the tour card
+  does, since the value can be negative.
+- The home pages describe the Southern Ocean preview as annual-mean circulation, not
+  "ever-changing", and the Greenland one as currents on the shelf and offshore, not in deep
+  fjords, which the 6 km Copernicus grid does not resolve.
+- The ocean legend, the public explainer and the Data Snapshot say what the streamlines'
+  four depth bands are: where they were seeded, at 3–18 %, 18–40 %, 40–70 % and 70–95 % of
+  the local water depth.
+
+### Changed
+
+- Data credits. A Data Snapshot line can credit a data set and its article together. The
+  explorer and the home pages now link the AISEFI and GrISEFI basal shear stress data sets
+  (CC BY 4.0) under their titles, the RISE data (Australian Antarctic Data Centre) and the
+  GlaDS data beside their articles, the Paxman et al. (2022) article and the grid files v3
+  each under its own label, and the Greenland basins (Mouginot & Rignot, 2019), which the
+  explorer did not credit before. The Antarctic basins are named as the MEaSUREs Antarctic
+  Boundaries v2 refined basins, not "IMBIE", and the Greenland velocity as the ITS_LIVE V02.1
+  summary mosaic (2014–2024), with the credit ITS_LIVE asks for.
+- The JOSS paper cites the BedMachine Antarctica v4, BedMachine Greenland v6, NSIDC-0754,
+  Bedmap3 and RISE data sets beside their articles, Payne et al. (2021) for the CMIP6 forcing,
+  and renders every reference correctly in the journal's style (preprints marked, name
+  particles in front, data sets with their publishers).
+- On phones, the collapsed control drawer's button says what the drawer holds ("Layers and
+  places") and opens it; it reads "Done" only while the drawer is open. Tour text that runs on
+  below the card's edge fades out there.
+- The README describes Bedmap3's overlays as nearest-cell copies of the BedMachine-aligned
+  packages and gives the map scale factor's effect correctly (a nominal cell covers about
+  5.7 % more ground at the pole and 8 % less at 60°S). It notes that BedMachine Greenland v7
+  was released in October 2026; 3D ICE still uses v6. The stale v0.1 README PDF was removed.
+
+- Phones, small windows and Save-Data connections load a light Antarctic ocean package (12 MB
+  rather than 62 MB), and there the research edition no longer fetches the ocean package in
+  the background.
+- `DATA_LICENSES.md` lists the licence or terms of every data package and colour table (the
+  cmocean maps under the MIT License, GMT's relief table under the LGPL). The MIT License covers
+  the code and scripts only, as the README and the home pages' footers now say. The Copernicus
+  Marine credit ("Generated using E.U. Copernicus Marine Service Information") and product
+  DOI, COMNAP's educational and non-commercial term, and the permission under which the WAOM2
+  streamlines are redistributed are stated where the data are credited; the paper's
+  acknowledgements carry the Copernicus Marine sentence.
+- The home pages present the 2300 projections in both edition cards, the comparison table,
+  the structured data and a dated update, and describe the subglacial layer as modelled. The
+  link-preview image is a clean capture without interface overlays, and the Chinese public
+  page has a Chinese social description.
+- The E2E suite blocks Google Analytics, so test runs no longer count as visits.
+
 ## [0.3.0] — 2026-10-06
 
 ### Added
@@ -206,6 +323,7 @@ hydrology, WAOM2 and Copernicus ocean streamlines, RISE ice-shelf basal melt and
 driving, and drainage-basin boundaries, together with the preparation scripts and the
 compatibility-bundle release workflow.
 
+[0.3.1]: https://github.com/yuwang115/3d-ice/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/yuwang115/3d-ice/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/yuwang115/3d-ice/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/yuwang115/3d-ice/releases/tag/v0.1.2

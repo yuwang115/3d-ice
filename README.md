@@ -100,9 +100,9 @@ stops and all the public edition's words, in English and Chinese, are in
 | --- | --- |
 | Fully interactive 3D viewing | Rotate, zoom, and inspect Antarctica and Greenland as if handling a physical model. |
 | Layered cryosphere exploration | Combine bed topography, surface velocity, basin boundaries, basal friction, subglacial hydrology, and ocean streamlines in one scene. |
-| Antarctica-specific overlays | Explore WAOM2 ocean circulation, IMBIE-refined basins, subglacial channels, and RISE basal melt plus thermal-driving fields. |
-| Greenland-specific overlays | Explore ITS_LIVE velocity mosaics, Greenland basin boundaries, basal friction fields, and clipped Arctic ocean circulation around Greenland. |
-| Research-friendly workflow | The runtime exposes direct links back to the source datasets, so the visual layer stays connected to the original scientific products. |
+| Antarctica-specific overlays | Explore WAOM2 ocean circulation, the refined drainage basins of MEaSUREs Antarctic Boundaries v2, subglacial channels, and RISE basal melt plus thermal-driving fields. |
+| Greenland-specific overlays | Explore the ITS_LIVE V02.1 velocity mosaic, Greenland basin boundaries, basal friction fields, and clipped Arctic ocean circulation around Greenland. |
+| Research-friendly workflow | The research edition's Data Snapshot links the source products of the datasets in view, and the public edition's explainers cite them, so the visual layer stays connected to the original scientific products. |
 | Cross-platform delivery | Balanced presets support mobile touchscreens, while HD options target larger desktop displays. |
 | Flexible deployment | The runtime auto-detects project-path prefixes, so it works both at a site root and under GitHub Pages project paths such as `/3d-ice/tools/...`. |
 
@@ -175,7 +175,7 @@ replace the host's own home page. yuwang.blog builds its `/tools/3d-ice/` page t
 | `static/tools/js/explorer-app.js`, `static/tools/css/explorer.css` | The explorer runtime and styles that every explorer page loads. |
 | `static/tools/js/editions.js` | What each edition offers: datasets, layers and runtime behaviours. |
 | `static/tools/js/explore-guide.js`, `explore-content.js`, `explore-tour.js`, `static/tools/css/explore.css` | The public edition's guided tour and layer explainers: interface, copy, camera and tour logic, and styles. |
-| `static/tools/js/` (other modules) | Data-package decoder, polar projections, isostatic-rebound solver, and place and feature search. |
+| `static/tools/js/` (other modules) | Data-package decoder, polar projections, vertical scale, layer statistics, overlay cell rules, source links, isostatic-rebound solver, and place and feature search. |
 | `static/tools/*-worker.js` | Web Workers for overlay geometry and the rebound solve. |
 | `static/js/3d-ice-locale.js` | English and Chinese interface strings. |
 | `static/tools/data/` | Prepared data packages (`.bin` + `.meta.json`) and feature catalogues. |
@@ -191,12 +191,12 @@ replace the host's own home page. yuwang.blog builds its `/tools/3d-ice/` page t
 
 | Region | Layers in the experience | Representative source products |
 | --- | --- | --- |
-| Antarctica | Bed topography, surface elevation, thickness, mask, refined basins, velocity, basal friction, subglacial hydrology, ocean streamlines, basal melt, thermal driving, isostatic rebound, ice-sheet projections to 2300 | [BedMachine Antarctica v4](https://nsidc.org/data/NSIDC-0756/versions/4), [Bedmap3 v1.0](https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2) (CC BY 4.0), [MEaSUREs Antarctic Boundaries v2](https://nsidc.org/data/NSIDC-0709/versions/2), [MEaSUREs Phase-Based Antarctica Velocity v1](https://nsidc.org/data/NSIDC-0754/versions/1), [Antarctic basal friction inversions](https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1), [GlaDS Antarctic subglacial hydrology](https://zenodo.org/records/12738170), [WAOM2](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full), [RISE](https://data.aad.gov.au/metadata/RISE), [Paxman et al. (2022) isostatic response, grids v3](https://doi.org/10.18739/A22Z12R8C) (CC BY 4.0), [ISMIP6 Antarctica 2300 projections](https://doi.org/10.5281/zenodo.13135599) (CC BY 4.0; [Seroussi et al. 2024](https://doi.org/10.1029/2024EF004561)) |
-| Greenland | Bed topography, surface elevation, thickness, mask, basin boundaries, velocity, basal friction, ocean streamlines, isostatic rebound | [BedMachine Greenland v6](https://nsidc.org/data/idbmg4/versions/6), [QRF Greenland subglacial topography (2025)](https://doi.org/10.1017/jog.2025.10071), [MEaSUREs ITS_LIVE v2](https://nsidc.org/data/NSIDC-0776/versions/2), [Greenland basal friction ensemble inversion reference](https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1), [Copernicus Marine Arctic Ocean Physics](https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description), [Paxman et al. (2022) isostatic response, grids v3](https://doi.org/10.18739/A22Z12R8C) (CC BY 4.0) |
+| Antarctica | Bed topography, surface elevation, thickness, mask, refined basins, velocity, basal friction, subglacial hydrology, ocean streamlines, basal melt, thermal driving, isostatic rebound, ice-sheet projections to 2300 | [BedMachine Antarctica v4](https://nsidc.org/data/NSIDC-0756/versions/4), [Bedmap3 v1.0](https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2) (CC BY 4.0), [MEaSUREs Antarctic Boundaries v2, refined basins](https://nsidc.org/data/NSIDC-0709/versions/2), [MEaSUREs Phase-Based Antarctica Velocity v1](https://nsidc.org/data/NSIDC-0754/versions/1), [AISEFI basal shear stress](https://doi.org/10.5281/zenodo.18508904) (CC BY 4.0; method: [Jager et al. 2026, preprint](https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1)), [GlaDS Antarctic subglacial hydrology](https://doi.org/10.5281/zenodo.12738170) (CC BY 4.0; [Ehrenfeucht et al. 2025](https://doi.org/10.1029/2024GL111386)), [WAOM2](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full), [RISE data](https://doi.org/10.26179/q0rh-gt74) (CC BY 4.0; [Galton-Fenzi et al. 2025](https://doi.org/10.5194/tc-19-6507-2025)), [Paxman et al. (2022)](https://doi.org/10.1038/s41598-022-15440-y) isostatic response, [grid files v3](https://doi.org/10.18739/A22Z12R8C) (CC BY 4.0), [ISMIP6 Antarctica 2300 projections](https://doi.org/10.5281/zenodo.13135599) (CC BY 4.0; [Seroussi et al. 2024](https://doi.org/10.1029/2024EF004561)) |
+| Greenland | Bed topography, surface elevation, thickness, mask, basin boundaries, velocity, basal friction, ocean streamlines, isostatic rebound | [BedMachine Greenland v6](https://nsidc.org/data/idbmg4/versions/6) (v7 was released in October 2026), [QRF Greenland subglacial topography (2025)](https://doi.org/10.1017/jog.2025.10071), [ITS_LIVE V02.1 summary velocity mosaic, 2014–2024](https://its-live.jpl.nasa.gov/) (velocity data generated using auto-RIFT and provided by the NASA MEaSUREs ITS_LIVE project; archived as [NSIDC-0776 v2](https://nsidc.org/data/NSIDC-0776/versions/2)), [Greenland basins](https://doi.org/10.7280/D1WT11) (Mouginot & Rignot 2019, CC BY 4.0), [GrISEFI basal shear stress](https://doi.org/10.5281/zenodo.18508850) (CC BY 4.0; method: [Jager et al. 2026, preprint](https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1)), [Copernicus Marine Arctic Ocean Physics](https://doi.org/10.48670/moi-00001) (generated using E.U. Copernicus Marine Service Information), [Paxman et al. (2022)](https://doi.org/10.1038/s41598-022-15440-y) isostatic response, [grid files v3](https://doi.org/10.18739/A22Z12R8C) (CC BY 4.0) |
 
-Bedmap3 is available as a 10 km Balanced or 4 km HD Antarctica terrain alternative. Both modes support velocity, flowlines, basal friction, effective pressure, subglacial channels, refined basins, and WAOM2 ocean streamlines. The gridded velocity, basal-friction, and hydrology layers are regenerated on Bedmap3's native grid; the projected WAOM2 streamlines are clipped against the active terrain at runtime. RISE basal melt and thermal-driving fields remain exclusive to BedMachine v4.
+Bedmap3 is available as a 10 km Balanced or 4 km HD Antarctica terrain alternative. Both modes support velocity, flowlines, basal friction, effective pressure, subglacial channels, refined basins, and WAOM2 ocean streamlines. Its velocity, basal-friction and hydrology layers are nearest-cell copies of the BedMachine-aligned 10 km and 4 km packages, moved onto Bedmap3's grid, whose origin is offset by 250 m (subglacial-channel endpoints are reprojected); the projected WAOM2 streamlines are clipped against the active terrain at runtime. RISE basal melt and thermal-driving fields remain exclusive to BedMachine v4.
 
-Greenland QRF subglacial topography (2025) is available as 3 km Balanced and 1 km HD terrain alternatives. The 300 m QRF GeoTIFF is sampled at pixel centres. The package replaces bed elevation only for grounded ice where the QRF prediction is valid, keeps BedMachine Greenland v6 surface elevation and mask, derives internally consistent thickness from those two fields, and falls back to BedMachine values over QRF gaps, ocean, and floating ice. Velocity, flowlines, basal friction, basins, and ocean streamlines reuse their existing BedMachine-aligned grids. The upstream data repository does not state a standalone data licence; confirm redistribution terms with the authors before publishing derived assets.
+Greenland QRF subglacial topography (2025) is available as 3 km Balanced and 1 km HD terrain alternatives. The 300 m QRF GeoTIFF is sampled at pixel centres. The package replaces bed elevation only for grounded ice where the QRF prediction is valid, keeps BedMachine Greenland v6 surface elevation and mask, derives internally consistent thickness from those two fields, and falls back to BedMachine values over QRF gaps, ocean, and floating ice. Velocity, flowlines, basal friction, basins, and ocean streamlines reuse their existing BedMachine-aligned grids. The upstream data repository does not state a standalone data licence; see [DATA_LICENSES.md](DATA_LICENSES.md).
 
 ### Ice-sheet projections (ISMIP6, to 2300)
 
@@ -298,7 +298,8 @@ registration; against a native-resolution solve this moves the peak uplift by un
 The water load is evaluated against each coarse cell's sub-cell bathymetry rather than its
 mean bed, which removes a Jensen bias worth roughly 3 m RMS of uplift and half a percent
 of the emergent-area figure. Areas are integrated with the polar-stereographic point scale
-factor, which varies true cell area by about −3 % to +8 % across Antarctica. The test suite
+factor: a nominally equal grid cell covers about 5.7 % more ground at the pole and about 8 %
+less at 60°S. The test suite
 checks the solver against the analytic point-load Kelvin-function solution: it agrees to
 within 10⁻⁴ of the peak beyond half a flexural length, and to about 0.1 % under the load
 itself, where the solve grid's Nyquist limit cuts off the kernel. Local isostasy reproduces
@@ -466,8 +467,8 @@ software release. The repository also includes a machine-readable
   author  = {Wang, Yu and Lin, Yucheng},
   title   = {{3D ICE}: An Interactive Browser-Based Cryosphere Explorer for Antarctica and Greenland},
   year    = {2026},
-  version = {0.3.0},
-  url     = {https://github.com/yuwang115/3d-ice/releases/tag/v0.3.0}
+  version = {0.3.1},
+  url     = {https://github.com/yuwang115/3d-ice/releases/tag/v0.3.1}
 }
 ```
 
@@ -479,7 +480,10 @@ This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+The code is licensed under the [MIT License](LICENSE). The data packages in `static/tools/data/` are
+not: each stays under its source dataset's licence and terms, listed in
+[DATA_LICENSES.md](DATA_LICENSES.md). The WAOM2 ocean streamlines are redistributed with the
+written permission of F. Boeira Dias.
 
 ## Project Scope
 

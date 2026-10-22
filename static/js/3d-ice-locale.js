@@ -111,6 +111,10 @@
           enable3d: "Enable 3D",
           scrollPage: "Scroll Page",
         },
+        drawer: {
+          open: "Layers and places",
+          close: "Done",
+        },
         capture: {
           play: "Play",
           stop: "Stop",
@@ -218,7 +222,7 @@
           modelNotePublishedQrf:
             "The published grid was computed for the BedMachine Greenland v6 ice load; the QRF bed changes the flexural response by about 10 m RMS, well inside the model spread.",
           modelNoteFlexural:
-            "Idealised: a thin elastic plate on a fluid asthenosphere, D = 1e25 N m, flexural length scale {lengthScale} km. Lithospheric strength spreads the load, lowering peak uplift and raising a slight forebulge beyond the former margin.",
+            "Idealised: a thin elastic plate on a fluid asthenosphere, D = 1e25 N m, flexural length scale {lengthScale} km. Lithospheric strength spreads the response, lowering peak uplift; beyond the former margin, the forebulge that the ice had raised subsides slightly.",
           modelNoteLocal:
             "Idealised: Airy isostasy applied column by column, with no lithospheric strength. This is the upper bound on peak uplift and shows more short-wavelength detail than the solid Earth can actually support.",
           seaLevelNoteZero:
@@ -242,7 +246,7 @@
           shortAe10: "SSP1-2.6",
           shortAe05: "SSP5-8.5",
           shortAe14: "+ shelf collapse",
-          readoutSeaLevel: "Sea-level rise from Antarctica",
+          readoutSeaLevel: "Sea-level change from Antarctica",
           readoutRange: "Range of the models",
           readoutGroundedMap: "Grounded ice on the map",
           readoutGrounded: "Grounded ice",
@@ -251,7 +255,7 @@
           rangeValue: "{low} to {high} m",
           areaValue: "{value} million km\u00b2 ({change})",
           chartLabel:
-            "Sea-level rise from Antarctica from {first} to {last} for each scenario; the band is the range of the models",
+            "Sea-level change from Antarctica from {first} to {last} for each scenario; the band is the range of the models",
           noteChange:
             "Red ice is thinner than in {first}, blue ice thicker. Grounded ice rests on the bed and floating ice sits at flotation. The flowlines follow the projected ice and turn brighter and faster where it speeds up.",
           noteType:
@@ -266,6 +270,8 @@
           cold: "Cold",
           fresh: "Fresh",
           salty: "Salty",
+          effectivePressureNote:
+            "Over-pressurised bed, where water pressure exceeds the ice overburden (N < 0), is not drawn.",
         },
         meta: {
           reboundMillionKm2: "{value} million km\u00b2",
@@ -310,9 +316,9 @@
           reboundVolumeAboveFlotation: "Volume above flotation",
           reboundSle: "Sea-level equivalent",
           reboundSlePublishedAntarctica:
-            "above flotation; cf. the 57.9 m published for BedMachine Antarctica v4. The residual is a dataset-version and ocean-area convention difference, not a grid-resolution effect: the 10 km and 4 km packages agree to 0.01%, while Bedmap3 gives 57.1 m on the same grids.",
+            "above flotation, converted at freshwater density as Gregory et al. (2019) define sea-level equivalent; cf. 57.9 ± 0.9 m published for BedMachine Antarctica v1 (Morlighem et al., 2020). The 10 km and 4 km packages agree to 0.01%, and Bedmap3 gives 58.6 m on the same grids.",
           reboundSlePublishedGreenland:
-            "above flotation; the commonly quoted 7.4 m is a total-ice-volume figure, which this grid reproduces to within 0.3%.",
+            "above flotation, converted at freshwater density as Gregory et al. (2019) define sea-level equivalent; cf. 7.42 ± 0.05 m published for BedMachine Greenland v3 (Morlighem et al., 2017).",
           reboundSolveGrid: "Flexure solve grid",
           reboundConvergence: "Picard convergence",
           reboundAssumptions: "Assumptions",
@@ -386,6 +392,17 @@
           sourceSubglacialHydrology: "Subglacial Hydrology",
           sourceOceanCirculation: "Ocean Circulation",
           sourceMeltDrivers: "Melt Drivers",
+          // Suffixes bring their own spacing, which differs between the locales.
+          iceShelfCellCount: " ({count} ice-shelf cells)",
+          streamlineCountSuffix: " ({count} 3D streamlines)",
+          gridSpacingSuffix: " ({spacing} km grid)",
+          valueRange: "{min} to {max}",
+          quantileMedian: "median",
+          notApplicable: "n/a",
+          polarStereographic: "{epsg} polar stereographic",
+          polarStereographicGeneric: "Polar stereographic",
+          atGridPosition: "{value} m at x = {x} km, y = {y} km ({epsg})",
+          yearsValue: "{value} yr",
           sourceIsostaticResponse: "Isostatic Response",
           sourceIceProjection: "Ice-sheet Projection",
           iceProjectionSection: "Ice-sheet projection",
@@ -565,6 +582,10 @@
           enable3d: "启用 3D",
           scrollPage: "滚动页面",
         },
+        drawer: {
+          open: "图层与地点",
+          close: "完成",
+        },
         capture: {
           play: "播放",
           stop: "停止",
@@ -672,9 +693,9 @@
           modelNotePublishedQrf:
             "已发表网格按 BedMachine Greenland v6 的冰载荷计算；QRF 基岩使挠曲响应改变约 10 m（均方根），远小于模型离散度。",
           modelNoteFlexural:
-            "理想化：流变软流圈之上的薄弹性板，D = 1e25 N m，挠曲特征长度 {lengthScale} km。岩石圈强度将载荷向外分摊，因而峰值抬升更低，并在原冰缘之外形成轻微的前缘隆起。",
+            "理想化：流体软流圈之上的薄弹性板，D = 1e25 N m，挠曲特征长度 {lengthScale} km。岩石圈强度使响应向外扩展，因而峰值抬升更低；原冰缘之外，冰载荷曾抬起的前缘隆起会轻微沉降。",
           modelNoteLocal:
-            "理想化：逐列应用 Airy 地壳平衡，不考虑岩石圈强度。这给出峰值抬升的上界，且其短波细节超出固体地球实际能够支撑的程度。",
+            "理想化：逐列应用 Airy 地壳均衡，不考虑岩石圈强度。这给出峰值抬升的上界，且其短波细节超出固体地球实际能够支撑的程度。",
           seaLevelNoteZero:
             "海面保持在当前基准。融化这些冰本身会使全球平均海平面上升约 {sle} m，此设置有意将其排除，以便单独解读基岩的运动。",
           seaLevelNoteRaised:
@@ -696,7 +717,7 @@
           shortAe10: "SSP1-2.6",
           shortAe05: "SSP5-8.5",
           shortAe14: "+冰架崩解",
-          readoutSeaLevel: "南极对海平面上升的贡献",
+          readoutSeaLevel: "南极造成的海平面变化",
           readoutRange: "各模型的范围",
           readoutGroundedMap: "地图上的接地冰",
           readoutGrounded: "接地冰",
@@ -704,9 +725,9 @@
           seaLevelValue: "{value} m",
           rangeValue: "{low} 至 {high} m",
           areaValue: "{value} 百万 km\u00b2（{change}）",
-          chartLabel: "{first}-{last} 年各情景下南极对海平面上升的贡献；阴影为各模型的范围",
+          chartLabel: "{first}-{last} 年各情景下南极造成的海平面变化；阴影为各模型的范围",
           noteChange:
-            "红色表示冰比 {first} 年更薄，蓝色表示更厚。接地冰坐落在基岩上，漂浮冰处于静力漂浮状态。流线随预估的冰面移动，冰流加快处更亮、流得更快。",
+            "红色表示冰比 {first} 年更薄，蓝色表示更厚。接地冰坐落在基岩上，漂浮冰处于静力漂浮状态。流线随预估的冰面移动，在冰加速的地方更亮、流得更快。",
           noteType: "白色为接地冰，蓝色为漂浮冰，二者都由基岩上的漂浮条件推得。流线随预估的冰面移动。",
           legendNote:
             "相对 {first} 年的冰厚变化，采用对称对数刻度，在 \u00b110 m 以内为线性。冰已消失之处显露出裸露的基岩或开阔的海面。",
@@ -718,6 +739,7 @@
           cold: "冷",
           fresh: "淡",
           salty: "咸",
+          effectivePressureNote: "水压超过冰体上覆压力的过压区域（N < 0）不予显示。",
         },
         meta: {
           reboundMillionKm2: "{value} \u767e\u4e07 km\u00b2",
@@ -728,8 +750,8 @@
           isostaticReboundSection: "地壳回弹（模拟）",
           reboundModelLabel: "固体地球响应",
           reboundModelPublished: "已发表：Paxman 等（2022），网格第 3 版",
-          reboundModelFlexural: "理想化区域挠曲（弹性板 + 流变软流圈）",
-          reboundModelLocal: "理想化局地（Airy）地壳平衡",
+          reboundModelFlexural: "理想化区域挠曲（弹性板 + 流体软流圈）",
+          reboundModelLocal: "理想化局地（Airy）地壳均衡",
           reboundElasticThickness: "弹性厚度",
           reboundPublishedEarthModelValue: "{teModel}，横向变化；密度取值：冰 917、海水 1028、地幔 3330 kg/m3",
           reboundSeaSurface: "无冰海面",
@@ -762,9 +784,9 @@
           reboundVolumeAboveFlotation: "漂浮阈值以上体积",
           reboundSle: "等效海平面",
           reboundSlePublishedAntarctica:
-            "为漂浮阈值以上的部分；可对比 BedMachine Antarctica v4 发表的 57.9 m。二者的差异来自数据集版本与海洋面积约定，而非网格分辨率：10 km 与 4 km 数据包的结果相差不到 0.01%，而 Bedmap3 在相同网格上给出 57.1 m。",
+            "为漂浮阈值以上的部分，按淡水密度换算（即 Gregory 等 2019 对海平面当量的定义）；可对比 Morlighem 等（2020）对 BedMachine Antarctica v1 发表的 57.9 ± 0.9 m。10 km 与 4 km 数据包的结果相差不到 0.01%，Bedmap3 在相同网格上给出 58.6 m。",
           reboundSlePublishedGreenland:
-            "为漂浮阈值以上的部分；常被引用的 7.4 m 是冰体总体积对应的数值，本网格可将其复现至 0.3% 以内。",
+            "为漂浮阈值以上的部分，按淡水密度换算（即 Gregory 等 2019 对海平面当量的定义）；可对比 Morlighem 等（2017）对 BedMachine Greenland v3 发表的 7.42 ± 0.05 m。",
           reboundSolveGrid: "挠曲求解网格",
           reboundConvergence: "Picard 收敛情况",
           reboundAssumptions: "假设",
@@ -835,6 +857,16 @@
           sourceSubglacialHydrology: "冰下水文",
           sourceOceanCirculation: "海洋环流",
           sourceMeltDrivers: "融化驱动",
+          iceShelfCellCount: "（{count} 个冰架格点）",
+          streamlineCountSuffix: "（{count} 条三维流线）",
+          gridSpacingSuffix: "（{spacing} km 网格）",
+          valueRange: "{min} 至 {max}",
+          quantileMedian: "中位数",
+          notApplicable: "无",
+          polarStereographic: "{epsg} 极地立体投影",
+          polarStereographicGeneric: "极地立体投影",
+          atGridPosition: "{value} m，位于 x = {x} km、y = {y} km（{epsg}）",
+          yearsValue: "{value} 年",
           sourceIsostaticResponse: "地壳均衡响应",
           sourceIceProjection: "冰盖未来预估",
           iceProjectionSection: "冰盖未来预估",

@@ -65,8 +65,8 @@
  * by <0.1 % (RMS 1.6 m on a 1026 m peak). Local (Airy) isostasy has no intrinsic length
  * scale, so it is always solved pointwise at native resolution instead.
  *
- * Areas are integrated with the polar-stereographic point scale factor, which varies the
- * true area of a nominally constant grid cell by roughly -3 % to +8 % across Antarctica.
+ * Areas are integrated with the polar-stereographic point scale factor: a nominally equal
+ * grid cell covers about 5.7 % more ground at the pole than its dx dy, and 8 % less at 60 S.
  *
  * References
  * ----------
@@ -101,7 +101,10 @@ import {
 /** BedMachine's own hydrostatic constants, so the flotation algebra closes on its geometry. */
 export const ICE_DENSITY_KG_M3 = 917;
 export const SEAWATER_DENSITY_KG_M3 = 1027;
-/** Subglacial lake water (Lake Vostok), which is fresh rather than marine. */
+/**
+ * Fresh water: subglacial lake water (Lake Vostok), and the density Gregory et al. (2019)
+ * use to define sea-level equivalent (362.5 Gt of ice per mm over GLOBAL_OCEAN_AREA_M2).
+ */
 export const FRESHWATER_DENSITY_KG_M3 = 1000;
 export const MANTLE_DENSITY_KG_M3 = 3300;
 export const GRAVITY_M_PER_S2 = 9.81;
@@ -575,9 +578,11 @@ function accumulateReboundTotals({
     validBedAreaKm2: toKm2(validArea),
     iceVolumeKm3: iceVolumeM3 / 1e9,
     volumeAboveFlotationKm3: volumeAboveFlotationM3 / 1e9,
+    // Gregory et al. (2019): sea-level equivalent is mass over freshwater density times the
+    // ocean area. Morlighem et al. (2017, 2020) quote 7.42 m and 57.9 m the same way.
     sleMeters:
       (volumeAboveFlotationM3 * ICE_DENSITY_KG_M3) /
-      (SEAWATER_DENSITY_KG_M3 * GLOBAL_OCEAN_AREA_M2),
+      (FRESHWATER_DENSITY_KG_M3 * GLOBAL_OCEAN_AREA_M2),
   };
 }
 
@@ -881,8 +886,11 @@ export function applyReboundFraction({ cellCount, bedHeights, uplift, fraction, 
 /**
  * Ice geometry part-way through the scenario. Ice thins uniformly by `fraction` while
  * the bed relaxes by the same fraction, so the two advance together as one illustrative
- * deglaciation path. Grounded ice rides the rebounding bed; floating ice re-floats to
- * the sea-level datum and grounds where the rising bed overtakes its draft.
+ * deglaciation path. Ice rides the rebounding bed while it is heavy enough to stay
+ * grounded, and floats at the sea-level datum once its thinning column would float, so
+ * shelves re-float and thinned marine ice lifts off its bed; ice grounds wherever the
+ * rising bed overtakes its draft. Over a subglacial lake the ice rests on the lake, whose
+ * water (`lakeDepths`, per cell, on lake cells only) rides the bed.
  */
 export function deriveReboundedIceSurfaces({
   cellCount,
@@ -892,6 +900,7 @@ export function deriveReboundedIceSurfaces({
   iceValid,
   fraction,
   seaLevelMeters = 0,
+  lakeDepths = null,
   surfaceOut,
   bottomOut,
 }) {
@@ -906,13 +915,12 @@ export function deriveReboundedIceSurfaces({
       bottom[index] = Number.NaN;
       continue;
     }
-    const bed = reboundedBedHeights[index];
+    const lakeDepth =
+      lakeDepths && mask[index] === MASK_SUBGLACIAL_LAKE && lakeDepths[index] > 0 ? lakeDepths[index] : 0;
+    const restingLevel = reboundedBedHeights[index] + lakeDepth;
     const remainingThickness = Math.max(0, thickness[index]) * remaining;
-    let base = bed;
-    if (isFloatingIceMask(mask[index])) {
-      const flotationBase = datum - (ICE_DENSITY_KG_M3 * remainingThickness) / SEAWATER_DENSITY_KG_M3;
-      base = Math.max(bed, flotationBase);
-    }
+    const flotationBase = datum - (ICE_DENSITY_KG_M3 * remainingThickness) / SEAWATER_DENSITY_KG_M3;
+    const base = Math.max(restingLevel, flotationBase);
     bottom[index] = base;
     surface[index] = base + remainingThickness;
   }

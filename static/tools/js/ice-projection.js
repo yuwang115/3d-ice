@@ -20,6 +20,7 @@
  */
 
 import { getFieldDefinition, parseField, resolveInt16Quantization } from "./data-contract.js";
+import { polarStereographicCellAreaM2 } from "./gia-grid.js";
 
 export const ICE_PROJECTION_GEOMETRY_TYPE = "sparse_grid_time_series";
 export const DEFAULT_DENSITY_RATIO = 917 / 1028;
@@ -278,6 +279,44 @@ export function rephaseInto(offsets, oldRates, newRates, timeTimesBaseRate) {
     const next = offsets[i] + timeTimesBaseRate * (oldRates[i] - newRates[i]);
     offsets[i] = next - Math.floor(next);
   }
+}
+
+/**
+ * The level grounded ice rests on in each domain cell: the bed, raised over subglacial
+ * lakes by `lakeDepthByCell` (per grid cell, the lake water between the floor and today's
+ * ice base; zero, NaN or absent elsewhere). Rebuilding the ice from this level keeps the
+ * ice over Lake Vostok on its lake instead of dropping it onto the lake floor.
+ */
+export function restingBedInto(projection, lakeDepthByCell, out) {
+  const { bed, cellIndex, domainCount } = projection;
+  for (let v = 0; v < domainCount; v += 1) {
+    const depth = lakeDepthByCell ? lakeDepthByCell[cellIndex[v]] : 0;
+    out[v] = depth > 0 ? bed[v] + depth : bed[v];
+  }
+  return out;
+}
+
+/**
+ * Area (km²) each domain cell covers on the ground. The grid's nominal dx·dy differs by
+ * the polar stereographic scale factor: for EPSG:3031 a cell covers about 5.7 % more
+ * ground near the pole and about 8 % less at 60°S.
+ */
+export function domainCellAreasKm2(projection, standardParallelDegrees) {
+  const { nx, cellIndex, domainCount, grid } = projection;
+  const areas = new Float64Array(domainCount);
+  for (let v = 0; v < domainCount; v += 1) {
+    const col = cellIndex[v] % nx;
+    const row = (cellIndex[v] - col) / nx;
+    const areaM2 = polarStereographicCellAreaM2({
+      xMeters: grid.x0_m + col * grid.dx_m,
+      yMeters: grid.y0_m + row * grid.dy_m,
+      dxMeters: grid.dx_m,
+      dyMeters: grid.dy_m,
+      standardParallelDegrees,
+    });
+    areas[v] = areaM2 / 1e6;
+  }
+  return areas;
 }
 
 /**

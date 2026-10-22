@@ -295,6 +295,12 @@
   overflow-y: auto;
 }
 
+/* More text below the card's edge: fade the last lines out, as a cue to scroll. */
+.tour-card__live.has-more {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 2.5rem), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 2.5rem), transparent);
+}
+
 .tour-card__footer {
   flex: none;
 }

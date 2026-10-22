@@ -212,7 +212,8 @@ def prepare_target(
 
     projection = decode_attr(ds.attrs.get("projection"), "")
     title = decode_attr(ds.attrs.get("title"), "ITS_LIVE Greenland velocity")
-    source_url = decode_attr(ds.attrs.get("url"), "")
+    # The file's url attribute says http://, which the ITS_LIVE bucket refuses.
+    source_url = decode_attr(ds.attrs.get("url"), "").replace("http://its-live-data.", "https://its-live-data.", 1)
     date_created = decode_attr(ds.attrs.get("date_created"), "")
 
     meta = {

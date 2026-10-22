@@ -42,6 +42,7 @@ import {
   REBOUND_MODELS,
   REBOUND_RELAXATION_TIME_YEARS,
   SEAWATER_DENSITY_KG_M3,
+  GLOBAL_OCEAN_AREA_M2,
   solveIsostaticRebound,
   summarisePublishedResponse,
 } from "../../static/tools/js/gia-rebound.js";
@@ -683,6 +684,11 @@ test("statistics account for emergence, ice volume and sea-level equivalent", ()
     Math.abs(stats.volumeAboveFlotationKm3 / stats.iceVolumeKm3 - aboveFlotation / 2500) < 1e-6
   );
   assert.ok(stats.sleMeters > 0 && stats.sleMeters < stats.iceVolumeKm3);
+  // Sea-level equivalent as Gregory et al. (2019) define it: the mass above flotation over
+  // freshwater density times the ocean area (362.5 Gt per mm), not over seawater density.
+  const gregorySle =
+    (stats.volumeAboveFlotationKm3 * 1e9 * ICE_DENSITY_KG_M3) / (FRESHWATER_DENSITY_KG_M3 * GLOBAL_OCEAN_AREA_M2);
+  assert.ok(Math.abs(stats.sleMeters - gregorySle) <= 1e-12 * gregorySle, `${stats.sleMeters} vs ${gregorySle}`);
   assert.ok(stats.maxUpliftRow >= 0 && stats.maxUpliftColumn >= 0);
   // The rebounded bed is everywhere above the datum, so the deepest ice-covered point is
   // too. This statistic is scoped to the present ice footprint, not the whole domain.
@@ -917,6 +923,39 @@ test("deriveReboundedIceSurfaces re-floats a shelf and grounds it on a rising be
     fraction: 0,
   });
   assert.equal(shallow.bottom[0], -100, "a rising bed grounds the shelf");
+});
+
+// Version 0.3.0 re-floated only ice that was floating to begin with, so thinned marine ice
+// stayed pinned to a deep bed far below the sea surface.
+test("deriveReboundedIceSurfaces lifts thinning grounded marine ice off its bed once it floats", () => {
+  // Bed -2500 m with 700 m of equilibrium uplift, half-way through: bed -2150 m, 1500 m of ice.
+  const { surface, bottom } = deriveReboundedIceSurfaces({
+    cellCount: 1,
+    reboundedBedHeights: Float32Array.from([-2150]),
+    thickness: Float32Array.from([3000]),
+    mask: Uint8Array.from([MASK_GROUNDED_ICE]),
+    iceValid: Uint8Array.from([1]),
+    fraction: 0.5,
+  });
+  const draft = -(ICE_DENSITY_KG_M3 * 1500) / SEAWATER_DENSITY_KG_M3;
+  assert.ok(Math.abs(bottom[0] - draft) < 1e-3, `base ${bottom[0]}`);
+  assert.ok(Math.abs(surface[0] - (draft + 1500)) < 1e-3, `surface ${surface[0]}`);
+});
+
+test("deriveReboundedIceSurfaces keeps the ice over a subglacial lake on its lake", () => {
+  const args = {
+    cellCount: 2,
+    reboundedBedHeights: Float32Array.from([-1000, -1000]),
+    thickness: Float32Array.from([3700, 3700]),
+    mask: Uint8Array.from([MASK_SUBGLACIAL_LAKE, MASK_GROUNDED_ICE]),
+    iceValid: Uint8Array.from([1, 1]),
+    fraction: 0,
+  };
+  const withLake = deriveReboundedIceSurfaces({ ...args, lakeDepths: Float32Array.from([400, 400]) });
+  assert.equal(withLake.bottom[0], -600, "the ice floats on 400 m of lake water");
+  assert.equal(withLake.surface[0], 3100);
+  assert.equal(withLake.bottom[1], -1000, "lake depths apply only to lake cells");
+  assert.equal(deriveReboundedIceSurfaces(args).bottom[0], -1000, "without lake depths the ice rests on the bed");
 });
 
 test("deriveReboundedIceSurfaces marks ice-free cells as no-data", () => {

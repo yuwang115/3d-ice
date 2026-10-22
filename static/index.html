@@ -15,11 +15,14 @@
     <meta property="og:url" content="https://3d-ice.com/" />
     <meta property="og:title" content="3D ICE: Interactive Cryosphere Explorer" />
     <meta property="og:description" content="Explore Antarctica and Greenland in 3D. Take the guided tour in the public edition, or open the research edition for every dataset, resolution and layer." />
-    <meta property="og:image" content="https://3d-ice.com/tools/featured.png" />
+    <meta property="og:image" content="https://3d-ice.com/tools/3d-ice-share.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="627" />
+    <meta property="og:image:alt" content="The Antarctic ice sheet and the sea floor around it in 3D ICE, with heights exaggerated" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:locale:alternate" content="zh_CN" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://3d-ice.com/tools/featured.png" />
+    <meta name="twitter:image" content="https://3d-ice.com/tools/3d-ice-share.jpg" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
@@ -72,13 +75,13 @@
         "operatingSystem": "Any",
         "browserRequirements": "Requires a modern WebGL-enabled browser.",
         "inLanguage": "en-US",
-        "image": "https://3d-ice.com/tools/featured.png",
-        "thumbnailUrl": "https://3d-ice.com/tools/featured.png",
+        "image": "https://3d-ice.com/tools/3d-ice-share.jpg",
+        "thumbnailUrl": "https://3d-ice.com/tools/3d-ice-share.jpg",
         "featureList": [
           "Public edition with a nine-stop guided tour and plain-language layer explainers",
           "Research edition with every dataset, resolution and layer",
           "Antarctica and Greenland in one interactive 3D environment",
-          "Direct links to every source dataset"
+          "A source list linking every dataset, and a data snapshot linking the datasets in view"
         ],
         "author": { "@type": "Person", "name": "Yu Wang", "url": "https://yuwang.blog/" },
         "publisher": { "@type": "Organization", "name": "Yu Wang", "url": "https://3d-ice.com/" },
@@ -120,7 +123,7 @@
             "name": "What data can I explore in 3D ICE?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Bed topography, ice thickness and flow, ocean circulation, sea level and the ice-free isostatic rebound for Antarctica and Greenland, and in the research edition also basal friction and, for Antarctica, subglacial hydrology and ice-shelf basal melt. Every layer comes from a published dataset, model or preprint."
+              "text": "Bed topography, ice thickness and flow, ocean circulation, sea level and the ice-free isostatic rebound for Antarctica and Greenland, projections of the Antarctic ice sheet to 2300 from eight ISMIP6 models, and in the research edition also basal friction and, for Antarctica, subglacial hydrology and ice-shelf basal melt. Every layer comes from a published dataset, model or preprint."
             }
           },
           {
@@ -229,7 +232,7 @@
                 <ul class="explorer-edition-points" role="list">
                   <li>A nine-stop guided tour, from the ice continent to the land hidden beneath it, the Southern Ocean, Antarctica's future and Greenland</li>
                   <li>A plain-language note beside every layer, citing the data it draws on</li>
-                  <li>Ice flow, ocean currents, sea level, and the land that rises once the ice is gone</li>
+                  <li>Ice flow, ocean currents, sea level, Antarctica's future to 2300, and the land that rises once the ice is gone</li>
                   <li>Made for phones, tablets, classrooms and outreach stands</li>
                 </ul>
                 <p class="explorer-edition-meta">About six minutes · English and <span lang="zh-CN">中文</span></p>
@@ -246,6 +249,7 @@
                   <li>Bed topography from BedMachine and Bedmap3 in Antarctica, and from BedMachine and QRF in Greenland, each at two resolutions</li>
                   <li>Ice velocity, basal friction and ocean currents in four depth bands, for both ice sheets</li>
                   <li>In Antarctica, subglacial effective pressure and channels and, on the BedMachine terrain, ice-shelf basal melt and thermal driving</li>
+                  <li>Antarctica's future to 2300 under three ISMIP6 scenarios: the mean of eight ice-sheet models, with their sea-level range</li>
                   <li>The ice-free rebound from the published Paxman et al. (2022) response, with idealised ELRA and Airy models for comparison</li>
                   <li>A data snapshot that links the datasets in view to their sources, and an along-flow profile of the ice surface, ice base and bed for any flowline you click</li>
                 </ul>
@@ -293,6 +297,11 @@
                       <th scope="row">Basal friction, subglacial water and ice-shelf melt</th>
                       <td>No</td>
                       <td>Yes; subglacial water and ice-shelf melt in Antarctica only</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Antarctica's future (ISMIP6, to 2300)</th>
+                      <td>Three scenarios, coloured by thickness change</td>
+                      <td>The same, or coloured by grounded and floating ice, with method and models in the data snapshot</td>
                     </tr>
                     <tr>
                       <th scope="row">Ice-free rebound</th>
@@ -382,7 +391,7 @@
               <article class="explorer-video-card" data-demo-slot="antarctica-subglacial-features" data-editions="research">
                 <div class="explorer-video-copy">
                   <h3>Subglacial features</h3>
-                  <p>Reveal the hidden world. Map effective pressure and subglacial channels beneath miles of ice.</p>
+                  <p>Reveal the hidden world: modelled effective pressure and subglacial channels beneath kilometres of ice.</p>
                   <ul class="explorer-edition-tags" role="list" aria-label="Available in">
                     <li><span class="explorer-edition-tag explorer-edition-tag--research">Research edition</span></li>
                   </ul>
@@ -403,8 +412,8 @@
                 <div class="explorer-video-copy">
                   <h3>Ocean circulations</h3>
                   <p>
-                    Dive into the ever-changing circulation of the Southern Ocean and reveal its critical
-                    interactions with Antarctic ice shelves.
+                    Dive into the annual-mean circulation of the Southern Ocean, from the open sea into the
+                    cavities beneath the Antarctic ice shelves.
                   </p>
                   <ul class="explorer-edition-tags" role="list" aria-label="Available in">
                     <li><span class="explorer-edition-tag explorer-edition-tag--public">Public edition</span></li>
@@ -467,8 +476,8 @@
                 <div class="explorer-video-copy">
                   <h3>Ocean circulations</h3>
                   <p>
-                    Examine how surrounding ocean currents interact with Greenland’s deep fjords, providing
-                    crucial context for the behavior and retreat of marine-terminating glaciers.
+                    Examine the ocean currents on Greenland’s continental shelf and offshore that carry heat
+                    towards its marine-terminating glaciers.
                   </p>
                   <ul class="explorer-edition-tags" role="list" aria-label="Available in">
                     <li><span class="explorer-edition-tag explorer-edition-tag--public">Public edition</span></li>
@@ -498,6 +507,31 @@
               <p>Follow the newest ways to explore polar data, with each release dated so you can quickly see what changed.</p>
             </div>
             <ol class="explorer-update-list">
+              <li>
+                <article class="explorer-update-card" aria-labelledby="projection-update-title">
+                  <div class="explorer-update-meta">
+                    <time class="explorer-update-date" datetime="2026-10-06">October 6, 2026</time>
+                    <span class="explorer-update-badge">Both editions</span>
+                  </div>
+                  <div class="explorer-update-body">
+                    <h3 id="projection-update-title">See Antarctica's ice to 2300</h3>
+                    <p>
+                      A year slider plays the Antarctic ice sheet from 2015 to 2300 under low emissions, high
+                      emissions, and high emissions with ice-shelf collapse. Each map is the mean change of
+                      eight ISMIP6 ice-sheet models (Seroussi et al., 2024), applied to today's ice, with the
+                      models' contribution to sea level and its range.
+                    </p>
+                    <ul class="explorer-update-highlights">
+                      <li><strong>Scenarios:</strong> UKESM1-0-LL climate forcing under SSP1-2.6 and SSP5-8.5, and SSP5-8.5 with ice shelves that break up as their surfaces melt.</li>
+                      <li><strong>Flowlines:</strong> The ice-flow lines ride on the projected surface and speed up where the models' glaciers do.</li>
+                      <li><strong>Tour:</strong> A new stop plays the high-emission future in fifteen seconds.</li>
+                    </ul>
+                    <div class="explorer-actions">
+                      <a class="explorer-button explorer-button--primary" href="./tools/3D-interactive-cryosphere-explorer.html">Open the research edition</a>
+                    </div>
+                  </div>
+                </article>
+              </li>
               <li>
                 <article class="explorer-update-card" aria-labelledby="public-edition-update-title">
                   <div class="explorer-update-meta">
@@ -599,7 +633,7 @@
                 <p>
                   Switch between Antarctica and Greenland in one environment, with the same controls and
                   the same core layers for each: land, ice, ocean and the rebound once the ice is gone.
-                  Subglacial water and ice-shelf melt are for Antarctica only.
+                  Subglacial water, ice-shelf melt and the projections to 2300 are for Antarctica only.
                 </p>
               </article>
               <article class="explorer-feature-card">
@@ -619,8 +653,9 @@
               <p>
                 Every layer comes from a published dataset, model or preprint. The research edition’s data
                 snapshot links the datasets in view to their sources, and the public edition’s layer
-                explainers cite the data they draw on. 3D ICE itself is open source under the MIT License:
-                the code, and the scripts that prepare the data packages, are on <a href="https://github.com/yuwang115/3d-ice" target="_blank" rel="noopener">GitHub</a>.
+                explainers cite the data they draw on. The code of 3D ICE, and the scripts that prepare the
+                data packages, are open source under the MIT License on <a href="https://github.com/yuwang115/3d-ice" target="_blank" rel="noopener">GitHub</a>; the data
+                themselves stay under their producers’ licences and terms, listed in <a href="https://github.com/yuwang115/3d-ice/blob/main/DATA_LICENSES.md" target="_blank" rel="noopener">DATA_LICENSES.md</a>.
               </p>
             </div>
             <div class="explorer-source-columns">
@@ -631,14 +666,18 @@
                   <li><a href="https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2" target="_blank" rel="noopener">Bedmap3 Antarctica, Version 1.0</a></li>
                   <li><a href="https://nsidc.org/data/NSIDC-0709/versions/2" target="_blank" rel="noopener">MEaSUREs Antarctic Boundaries for IPY 2007-2009 from Satellite Radar, Version 2</a></li>
                   <li><a href="https://nsidc.org/data/NSIDC-0754/versions/1" target="_blank" rel="noopener">MEaSUREs Phase-Based Antarctica Ice Velocity Map, Version 1</a></li>
-                  <li><a href="https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1" target="_blank" rel="noopener">Antarctic Ice-Sheet Basal Friction from Elmer/Ice Inversions</a></li>
-                  <li><a href="https://zenodo.org/records/12738170" target="_blank" rel="noopener">GlaDS Simulated Antarctic Wide Subglacial Hydrology</a></li>
+                  <li><a href="https://doi.org/10.5281/zenodo.18508904" target="_blank" rel="noopener">Antarctic Ice Sheet Ensemble Friction Inversion (AISEFI): Basal Shear Stress with Uncertainties (Jager, 2026)</a></li>
+                  <li><a href="https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1" target="_blank" rel="noopener">Insights from an Ensemble Inverse Method to Quantify Basal Friction Uncertainties for Ice-Sheet Models, Part 2: Antarctic Ice Sheet (Jager et al., 2026, preprint)</a></li>
+                  <li><a href="https://doi.org/10.5281/zenodo.12738170" target="_blank" rel="noopener">Data for: Antarctic Wide Subglacial Hydrology Modeling (Ehrenfeucht, 2024)</a></li>
+                  <li><a href="https://doi.org/10.1029/2024GL111386" target="_blank" rel="noopener">Antarctic Wide Subglacial Hydrology Modeling (Ehrenfeucht et al., 2025)</a></li>
                   <li><a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full" target="_blank" rel="noopener">WAOM2 Annual-Mean Antarctic Ocean Circulation Fields</a></li>
-                  <li><a href="https://data.aad.gov.au/metadata/RISE" target="_blank" rel="noopener">Multi-Model Estimate of Antarctic Ice-Shelf Basal Melting and Ocean Drivers</a></li>
-                  <li><a href="https://doi.org/10.18739/A22Z12R8C" target="_blank" rel="noopener">Total Isostatic Response to the Complete Unloading of the Greenland and Antarctic Ice Sheets (Paxman, Austermann &amp; Hollyday, 2022)</a></li>
+                  <li><a href="https://doi.org/10.26179/q0rh-gt74" target="_blank" rel="noopener">Multi-Model Estimate of Antarctic Ice-Shelf Basal Melting and Ocean Drivers: Data (Galton-Fenzi, 2025)</a></li>
+                  <li><a href="https://doi.org/10.5194/tc-19-6507-2025" target="_blank" rel="noopener">Multi-Model Estimate of Antarctic Ice-Shelf Basal Mass Budget and Ocean Drivers (Galton-Fenzi et al., 2025)</a></li>
+                  <li><a href="https://doi.org/10.18739/A22Z12R8C" target="_blank" rel="noopener">Grid Files of the Total Isostatic Response to the Complete Unloading of the Greenland and Antarctic Ice Sheets, Version 3 (Paxman, Austermann &amp; Hollyday, 2026)</a></li>
+                  <li><a href="https://doi.org/10.1038/s41598-022-15440-y" target="_blank" rel="noopener">Total Isostatic Response to the Complete Unloading of the Greenland and Antarctic Ice Sheets (Paxman, Austermann &amp; Hollyday, 2022)</a></li>
                   <li><a href="https://doi.org/10.5281/zenodo.13135599" target="_blank" rel="noopener">ISMIP6 23rd Century Projections, Antarctica to 2300 (Nowicki &amp; ISMIP6 Team, 2024; Seroussi et al., 2024)</a></li>
                   <li><a href="https://doi.org/10.3189/S0260305500013586" target="_blank" rel="noopener">A Comparison of Different Ways of Dealing with Isostasy: Examples from Modelling the Antarctic Ice Sheet during the Last Glacial Cycle (Le Meur &amp; Huybrechts, 1996)</a></li>
-                  <li><a href="https://www.comnap.aq/antarctic-facilities-information" target="_blank" rel="noopener">COMNAP Antarctic Facilities List</a></li>
+                  <li><a href="https://www.comnap.aq/antarctic-facilities-information" target="_blank" rel="noopener">COMNAP Antarctic Facilities List (COMNAP 2025; educational and non-commercial use)</a></li>
                   <li><a href="https://placenames.aq/information" target="_blank" rel="noopener">SCAR Composite Gazetteer of Antarctica</a></li>
                   <li><a href="https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-physical-labels/" target="_blank" rel="noopener">Natural Earth Physical Labels</a></li>
                 </ul>
@@ -649,10 +688,14 @@
                   <li><a href="https://nsidc.org/data/idbmg4/versions/6" target="_blank" rel="noopener">IceBridge BedMachine Greenland, Version 6</a></li>
                   <li><a href="https://doi.org/10.1017/jog.2025.10071" target="_blank" rel="noopener">QRF Greenland Subglacial Topography (2025)</a></li>
                   <li><a href="https://doi.org/10.7280/D1WT11" target="_blank" rel="noopener">Glacier Catchments/Basins for the Greenland Ice Sheet (Mouginot &amp; Rignot, 2019)</a></li>
-                  <li><a href="https://nsidc.org/data/NSIDC-0776/versions/2" target="_blank" rel="noopener">MEaSUREs ITS_LIVE Regional Glacier and Ice Sheet Surface Velocities, Version 2</a></li>
-                  <li><a href="https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1" target="_blank" rel="noopener">Greenland Basal Friction Ensemble Inversion Reference</a></li>
-                  <li><a href="https://data.marine.copernicus.eu/product/ARCTIC_ANALYSISFORECAST_PHY_002_001/description" target="_blank" rel="noopener">Copernicus Marine Arctic Ocean Physics Analysis and Forecast</a></li>
-                  <li><a href="https://doi.org/10.18739/A22Z12R8C" target="_blank" rel="noopener">Total Isostatic Response to the Complete Unloading of the Greenland and Antarctic Ice Sheets (Paxman, Austermann &amp; Hollyday, 2022)</a></li>
+                  <li><a href="https://its-live.jpl.nasa.gov/" target="_blank" rel="noopener">ITS_LIVE V02.1 Summary Velocity Mosaic, 2014–2024 (NASA MEaSUREs ITS_LIVE)</a></li>
+                  <li><a href="https://nsidc.org/data/NSIDC-0776/versions/2" target="_blank" rel="noopener">MEaSUREs ITS_LIVE Regional Glacier and Ice Sheet Surface Velocities, Version 2 (Gardner et al., 2025)</a></li>
+                  <li><a href="https://doi.org/10.5194/tc-12-521-2018" target="_blank" rel="noopener">auto-RIFT: Increased West Antarctic and Unchanged East Antarctic Ice Discharge over the Last 7 Years (Gardner et al., 2018)</a></li>
+                  <li><a href="https://doi.org/10.5281/zenodo.18508850" target="_blank" rel="noopener">Greenland Ice Sheet Ensemble Friction Inversion (GrISEFI): Basal Shear Stress with Uncertainties (Jager, 2026)</a></li>
+                  <li><a href="https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1" target="_blank" rel="noopener">Insights from an Ensemble Inverse Method to Quantify Basal Friction Uncertainties for Ice-Sheet Models, Part 1: Greenland Ice Sheet (Jager et al., 2026, preprint)</a></li>
+                  <li><a href="https://doi.org/10.48670/moi-00001" target="_blank" rel="noopener">Arctic Ocean Physics Analysis and Forecast, generated using E.U. Copernicus Marine Service Information</a></li>
+                  <li><a href="https://doi.org/10.18739/A22Z12R8C" target="_blank" rel="noopener">Grid Files of the Total Isostatic Response to the Complete Unloading of the Greenland and Antarctic Ice Sheets, Version 3 (Paxman, Austermann &amp; Hollyday, 2026)</a></li>
+                  <li><a href="https://doi.org/10.1038/s41598-022-15440-y" target="_blank" rel="noopener">Total Isostatic Response to the Complete Unloading of the Greenland and Antarctic Ice Sheets (Paxman, Austermann &amp; Hollyday, 2022)</a></li>
                   <li><a href="https://doi.org/10.3189/S0260305500013586" target="_blank" rel="noopener">A Comparison of Different Ways of Dealing with Isostasy: Examples from Modelling the Antarctic Ice Sheet during the Last Glacial Cycle (Le Meur &amp; Huybrechts, 1996)</a></li>
                   <li><a href="https://www.interact-gis.org/" target="_blank" rel="noopener">INTERACT Research-Station Directory</a></li>
                   <li><a href="https://kort.nunagis.gl/refserver/rest/services/PlacenamesRegister/PlacenamesRegisterSearch/MapServer/1" target="_blank" rel="noopener">Greenland Place Names Register (NunaGIS)</a></li>
@@ -779,8 +822,9 @@
         </div>
       </div>
       <p class="explorer-footer-note">
-        © 2026 Yu Wang. Licensed under the
-        <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer">MIT License</a>.
+        © 2026 Yu Wang. Code under the
+        <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer">MIT License</a>;
+        data © their producers, under their own licences (<a href="#source-data">Source data</a>).
         <a href="https://github.com/yuwang115/3d-ice" target="_blank" rel="noopener">Source code on GitHub</a>.
       </p>
     </footer>

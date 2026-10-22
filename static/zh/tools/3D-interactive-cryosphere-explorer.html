@@ -39,14 +39,17 @@
   />
   <meta property="og:locale" content="zh_CN" />
   <meta property="og:locale:alternate" content="en_US" />
-  <meta property="og:image" content="https://3d-ice.com/tools/3d-ice-logo.jpg" />
+  <meta property="og:image" content="https://3d-ice.com/tools/3d-ice-share.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="627" />
+  <meta property="og:image:alt" content="3D ICE 中的南极冰盖及其周边海底（高度经过夸大）" />
   <meta property="twitter:card" content="summary_large_image" />
   <meta property="twitter:title" content="3D ICE：冰冻圈交互探索平台" />
   <meta
     property="twitter:description"
     content="面向南极洲与格陵兰的交互式 3D 冰冻圈探索平台。可直接启动完整 3D ICE 运行时，或返回介绍页查看背景、数据集与功能导览。"
   />
-  <meta property="twitter:image" content="https://3d-ice.com/tools/3d-ice-logo.jpg" />
+  <meta property="twitter:image" content="https://3d-ice.com/tools/3d-ice-share.jpg" />
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -177,7 +180,7 @@
     <aside class="panel">
       <div class="panel-header">
         <div class="panel-grab" aria-hidden="true"></div>
-        <button id="panelCloseButton" class="panel-close-btn" type="button">完成</button>
+        <button id="panelCloseButton" class="panel-close-btn" type="button">图层与地点</button>
       </div>
       <div class="panel-brand">
         <img
@@ -234,11 +237,11 @@
           </select>
         </div>
         <div class="control">
-          <label for="exaggeration">高程缩放 <span id="exaggerationValue" class="mono">4.0x</span></label>
+          <label for="exaggeration">高程缩放 <span id="exaggerationValue" class="mono">55×</span></label>
           <input id="exaggeration" type="range" min="0.5" max="8" step="0.1" value="4" />
         </div>
         <div class="control">
-          <label for="iceOpacity">冰层透明度 <span id="iceOpacityValue" class="mono">0.65</span></label>
+          <label for="iceOpacity">冰层不透明度 <span id="iceOpacityValue" class="mono">0.65</span></label>
           <input id="iceOpacity" type="range" min="0" max="1" step="0.01" value="0.65" />
         </div>
         <section id="polarFeatureSection" class="view-control-subsection" aria-labelledby="polarFeatureHeading">
@@ -287,7 +290,7 @@
         <label id="showThermalDrivingRow" class="toggle"><input id="showThermalDriving" type="checkbox" /> 显示冰架底部热驱动</label>
         <label class="toggle"><input id="showSea" type="checkbox" /> 显示海平面 (0 m)</label>
         <div class="toggle-divider" aria-hidden="true"></div>
-        <label class="toggle"><input id="animateFlow" type="checkbox" checked /> 显示冰流与海流流光</label>
+        <label class="toggle"><input id="animateFlow" type="checkbox" checked /> 显示冰与海水流动的流光</label>
         <label class="toggle"><input id="wireframe" type="checkbox" /> 线框模式</label>
         <button id="resetView" type="button">视角重置</button>
         <button id="fullscreenToggle" type="button">进入全屏</button>
@@ -323,7 +326,7 @@
           </div>
           <div class="toggle-divider" aria-hidden="true"></div>
         </div>
-        <label class="toggle"><input id="showIsostaticRebound" type="checkbox" /> 显示无冰状态下的地壳回弹</label>
+        <label class="toggle"><input id="showIsostaticRebound" type="checkbox" /> 显示无冰状态下的地壳均衡回弹</label>
         <div id="isostaticReboundControls" class="toggle-group" hidden>
           <div class="control">
             <label for="reboundProgress">冰消与回弹进度 <span id="reboundProgressValue" class="mono">100%</span></label>
@@ -335,7 +338,7 @@
             <select id="reboundModel">
               <option value="paxman2022" selected>已发表：Paxman 等（2022）</option>
               <option value="flexural">理想化：区域挠曲（ELRA）</option>
-              <option value="local">理想化：局地（Airy）地壳平衡</option>
+              <option value="local">理想化：局地（Airy）地壳均衡</option>
             </select>
             <div id="reboundModelNote" class="legend-note"></div>
           </div>
@@ -384,7 +387,7 @@
         <h2 class="section-title">基底摩擦配色</h2>
         <div id="basalFrictionLegendBar" class="legend" aria-hidden="true"></div>
         <div id="basalFrictionLegendLabels" class="legend-labels">
-          <span>0 Mpa</span>
+          <span>0 MPa</span>
           <span>0.02</span>
           <span>0.04</span>
           <span>0.08</span>
@@ -428,28 +431,33 @@
           <span id="oceanLegendFreshLabel"><strong>淡</strong>30.0 PSU</span>
           <span id="oceanLegendSaltyLabel"><strong>咸</strong>35.0 PSU</span>
         </div>
-        <div class="ocean-legend-note" hidden></div>
+        <div class="ocean-legend-note">流线分别从当地水深的 3–18 %、18–40 %、40–70 % 和 70–95 % 四个深度带出发（表层、上层、中层、下层），然后随水流运动。</div>
       </section>
 
       <section id="effectivePressureLegendSection" class="section">
         <h2 class="section-title">有效压力配色</h2>
         <div id="effectivePressureLegendBar" class="legend" aria-hidden="true"></div>
-        <div class="legend-labels">
+        <div id="effectivePressureLegendLabels" class="legend-labels">
           <span>0 MPa</span>
           <span>1</span>
+          <span>2</span>
           <span>3</span>
-          <span>5</span>
+          <span>4</span>
+          <span>≥5</span>
         </div>
+        <div id="effectivePressureLegendNote" class="legend-note"></div>
       </section>
 
       <section id="channelLegendSection" class="section">
         <h2 class="section-title">通道流量配色</h2>
         <div id="channelLegendBar" class="legend" aria-hidden="true"></div>
-        <div class="legend-labels">
-          <span>0.001 m3/s</span>
+        <div id="channelLegendLabels" class="legend-labels">
+          <span>0.001 m³/s</span>
           <span>0.01</span>
+          <span>0.1</span>
           <span>1</span>
-          <span>100</span>
+          <span>10</span>
+          <span>≥100</span>
         </div>
       </section>
 
