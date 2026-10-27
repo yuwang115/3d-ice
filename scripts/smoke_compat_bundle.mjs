@@ -88,6 +88,8 @@ const requiredEntries = [
   // What the home page loads, and the home pages themselves for hosts that build a copy.
   "js/3d-ice-locale.js",
   "js/3d-ice-home.js",
+  // The analytics script the explorer pages load; it counts nothing off 3d-ice.com.
+  "js/3d-ice-analytics.js",
   "css/3d-ice-home.css",
   "css/3d-ice-type.css",
   "fonts/playfair-display-latin.woff2",

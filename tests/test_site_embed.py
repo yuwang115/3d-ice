@@ -33,6 +33,9 @@ PUBLIC_PAGES = {
 # come too: yuwang.blog declares the same variable fonts at single weights, which draws
 # other weights than 3d-ice.com does.
 HOME_ASSETS = {"/css/3d-ice-type.css", "/css/3d-ice-home.css", "/js/3d-ice-locale.js", "/js/3d-ice-home.js"}
+# 3d-ice.com's own analytics. yuwang.blog's copy of the home page keeps that site's analytics
+# and does not load it; on any host but 3d-ice.com it would load no tracker anyway.
+SITE_ONLY_ASSETS = {"/js/3d-ice-analytics.js"}
 # Site furniture every host has its own copy of.
 HOST_FURNITURE = re.compile(r"^/(favicon[^/]*|apple-touch-icon[^/]*)$")
 TYPE_CSS = STATIC_DIR / "css" / "3d-ice-type.css"
@@ -121,8 +124,9 @@ class TestHomePageEmbedContract:
             for node in doc.find_all("link")
             if node.attrs.get("rel") == "stylesheet" and node.attrs.get("href", "").startswith("/")
         }
-        assert loaded == HOME_ASSETS, "a new home-page asset must be added to the bundle and to yuwang.blog's layout"
-        assert all(in_bundle(path) for path in HOME_ASSETS)
+        assert loaded - SITE_ONLY_ASSETS == HOME_ASSETS, "a new home-page asset must be added to the bundle and to yuwang.blog's layout"
+        assert SITE_ONLY_ASSETS <= loaded
+        assert all(in_bundle(path) for path in HOME_ASSETS | SITE_ONLY_ASSETS)
 
     def test_scripts_outside_the_head_are_external(self, locale):
         body = parse(locale).find("body")
