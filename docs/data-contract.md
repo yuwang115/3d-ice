@@ -16,13 +16,14 @@ script produced a package: the metadata is the whole interface.
 ## Package families
 
 - **Gridded packages** (terrain, ice velocity, basal friction, subglacial hydrology, RISE,
-  isostatic response) carry a `grid` block, and their gridded fields hold one value per
-  grid cell.
+  isostatic response, surface elevation change rate) carry a `grid` block, and their gridded
+  fields hold one value per grid cell.
 - **Streamline packages** (ocean currents) set `"geometry_type": "streamlines_3d"` and have
   no grid; their fields hold one value per streamline segment.
-- **Sparse time-series packages** (ice-sheet projections) set
-  `"geometry_type": "sparse_grid_time_series"`. They carry a `grid`, but only a mask covers
-  it; their other fields hold one value per domain cell, or per domain cell and keyframe.
+- **Sparse time-series packages** (ice-sheet projections, observed surface elevation change)
+  set `"geometry_type": "sparse_grid_time_series"`. They carry a `grid`, but only a mask covers
+  it; their other fields hold one value per domain cell, or per domain cell and keyframe. The
+  observed record adds `"time_series_kind": "observed_surface_change"`, which names its fields.
 
 ## Grid
 
@@ -89,6 +90,8 @@ what the codes can represent, so no package clips.
 | Subglacial hydrology | `effective_pressure` | 1000 Pa |
 | RISE | `zice`; `ismr`; `tstar_zice` | 1 m; 0.001 m/yr; 0.0001 °C |
 | Isostatic response | `topography_change`, `solid_surface_change`, `standard_deviation` | 0.1 m |
+| Surface elevation change rate | `dhdt`, `dhdt_uncertainty` | 0.001 m/yr |
+| Observed surface elevation change | `surface_change`, `final_uncertainty` | 0.01 m |
 
 `float32` fields are stored unquantized and mark missing values with `NaN`. Categorical
 `uint8` fields carry their class codes in `flags`, which are authoritative for each
@@ -145,6 +148,24 @@ and maximum of the models' published sea-level contribution. `experiment`, `mode
 keep and the sea level their geometry implies. Rule 3 above does not apply to this family; the
 contract test checks instead that the mask, bed and frame sizes agree with `domain` and
 `frames`.
+
+**Observed surface elevation change.** CPOM's Antarctic record from multi-mission radar
+altimetry (product version 1.0, CC BY 4.0), resampled from its own 5 km EPSG:3031 grid by
+an area-weighted mean onto the cells it covers by at least half, on explorer ice only.
+`cpom_antarctica_dhdt_{480,741}` are gridded: `dhdt` and `dhdt_uncertainty` are the
+1995–2026 linear trend and its 1σ uncertainty, and `basin_id` (`uint8`) the IMBIE drainage
+basin (1–18) under each node. `cpom_antarctica_dh_480` is a sparse time series whose
+fields are, in this order, `surface_change` (`int16`, m, frame-major like the projections'
+`thickness`), `final_uncertainty` (`int16`, m, one value per domain cell: the 1σ uncertainty
+of the last epoch, because CPOM's per-epoch uncertainty is zero for most cells before 2002)
+and `domain_mask`. Its frames are the 140-day epochs at their centre years, with their
+windows in `frames.start_years` and `frames.end_years`; the change is CPOM's, relative to its
+1995 reference level, and the first epoch is not zero. `series` carries CPOM's cumulative
+mass change and its uncertainty (Gt) for the ice sheet and the IMBIE regions at every epoch,
+which the explorer quotes; `pole_hole` the radii of the extrapolated polar caps (81.5°S and
+88°S) and the first year with CryoSat-2 data south of 81.5°S; `source_files` the name, SHA-256,
+`tracking_id` and creation date of each CPOM file. Field-level `scale`, `offset` and
+`fill_value` define the quantization.
 
 **Streamlines.** Each segment stores its end points as `x0_ps_m`, `y0_ps_m`, `depth0_m`
 and `x1_ps_m`, `y1_ps_m`, `depth1_m` (projected metres and depth in metres), the potential
