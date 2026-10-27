@@ -7,8 +7,11 @@
  * - the rate map, `cpom_antarctica_dhdt_*`, a gridded overlay of the 1995-2026 trend and
  *   its uncertainty on the Balanced and HD terrain grids;
  * - the record, `cpom_antarctica_dh_480`, the cumulative change at every 140-day epoch on
- *   the 10 km grid, with CPOM's own ice-sheet and regional mass-change series, which the
- *   explorer quotes instead of summing the resampled grid.
+ *   the 10 km grid, with CPOM's own mass-change series of the ice sheet, its regions and its
+ *   18 IMBIE drainage basins, which the explorer quotes instead of summing the resampled grid.
+ *
+ * A basin, or a region's basins, can be picked from the rate map's `basin_id`: the drape
+ * outlines it and a chart plots its mass change.
  *
  * Both are drawn as a colour on today's ice surface, on the explorer's thickness-change
  * ramp with a scale of their own. A change smaller than twice its uncertainty, and the
@@ -47,6 +50,14 @@ export const FADE_SIGMA = 2;
 export const FADED_COLOUR_SHARE = 0.25;
 export const REGION_KEYS = Object.freeze(["AIS", "WAIS", "EAIS", "APIS"]);
 export const GT_PER_MM_SLE = 362.5;
+/** The chart's subject when nothing is picked: the whole ice sheet. */
+export const WHOLE_SHEET = "AIS";
+const BASIN_KEY_PREFIX = "basin:";
+/** IMBIE's drainage basins, as CPOM's basin_id names them, in the order their segments follow the coast. */
+export const BASIN_COASTLINE_ORDER = Object.freeze([
+  "A-Ap", "Ap-B", "B-C", "C-Cp", "Cp-D", "D-Dp", "Dp-E", "E-Ep", "Ep-F",
+  "F-G", "G-H", "H-Hp", "Hp-I", "I-Ipp", "Ipp-J", "J-Jpp", "Jpp-K", "K-A",
+]);
 
 function int16AsFloat(meta, buffer, name) {
   const field = getFieldDefinition(meta, name);
@@ -123,20 +134,58 @@ function increasing(values) {
   return values.length > 0;
 }
 
+function readOneSeries(entry, frameCount, key) {
+  const massChange = Float64Array.from(entry.mass_change_gt || []);
+  const uncertainty = Float64Array.from(entry.uncertainty_gt || []);
+  if (massChange.length !== frameCount || uncertainty.length !== frameCount) {
+    throw new Error(`Surface-change series ${key} does not have one value per epoch.`);
+  }
+  return { massChange, uncertainty };
+}
+
 function readRegionSeries(meta, frameCount) {
   const regions = meta?.series?.regions || {};
   const out = {};
   for (const key of REGION_KEYS) {
-    const region = regions[key];
-    if (!region) continue;
-    const massChange = Float64Array.from(region.mass_change_gt || []);
-    const uncertainty = Float64Array.from(region.uncertainty_gt || []);
-    if (massChange.length !== frameCount || uncertainty.length !== frameCount) {
-      throw new Error(`Surface-change series ${key} does not have one value per epoch.`);
-    }
-    out[key] = { massChange, uncertainty };
+    if (regions[key]) out[key] = readOneSeries(regions[key], frameCount, key);
   }
   return out;
+}
+
+/** CPOM's basins with their series, in coastline order (an unknown code goes last). */
+function readBasinSeries(meta, frameCount) {
+  const basins = meta?.series?.basins || {};
+  const rank = (code) => {
+    const index = BASIN_COASTLINE_ORDER.indexOf(code);
+    return index < 0 ? BASIN_COASTLINE_ORDER.length : index;
+  };
+  return Object.entries(basins)
+    .map(([id, entry]) => {
+      const basinId = Number(id);
+      if (!Number.isInteger(basinId) || basinId < 1 || basinId > 255) {
+        throw new Error(`Surface-change basin id ${id} is not a basin_id value.`);
+      }
+      if (!REGION_KEYS.includes(entry.region) || entry.region === WHOLE_SHEET || !entry.code) {
+        throw new Error(`Surface-change basin ${id} has no code or IMBIE region.`);
+      }
+      return { id: basinId, code: String(entry.code), region: entry.region, ...readOneSeries(entry, frameCount, id) };
+    })
+    .sort((a, b) => rank(a.code) - rank(b.code) || a.id - b.id);
+}
+
+/**
+ * The mass-change series of a record's metadata: the epochs, the ice sheet's and regions'
+ * series, and the basins'. The rate map's views read it from the record's metadata alone.
+ */
+export function decodeSurfaceChangeSeries(meta) {
+  const years = Float64Array.from(meta?.series?.years || meta?.frames?.years || []);
+  if (!increasing(years)) throw new Error("Surface-change series epochs must be strictly increasing.");
+  return {
+    years,
+    regions: readRegionSeries(meta, years.length),
+    basins: readBasinSeries(meta, years.length),
+    gtPerMm: Number(meta?.series?.gt_per_mm_sle) > 0 ? Number(meta.series.gt_per_mm_sle) : GT_PER_MM_SLE,
+  };
 }
 
 /**
@@ -184,6 +233,7 @@ export function decodeSurfaceChangeRecord(meta, buffer) {
     startYears: Float64Array.from(meta.frames?.start_years || []),
     endYears: Float64Array.from(meta.frames?.end_years || []),
     regions: readRegionSeries(meta, years.length),
+    basins: readBasinSeries(meta, years.length),
     gtPerMm: Number(meta.series?.gt_per_mm_sle) > 0 ? Number(meta.series.gt_per_mm_sle) : GT_PER_MM_SLE,
     poleHole: readPoleHole(meta),
     scale: scaleFromMeta(meta, "cumulative"),
@@ -251,14 +301,142 @@ function interpolate(years, values, year) {
 export function regionalChangeAt(record, year) {
   const out = {};
   for (const [key, series] of Object.entries(record.regions)) {
-    const massChangeGt = interpolate(record.years, series.massChange, year);
-    out[key] = {
-      massChangeGt,
-      uncertaintyGt: interpolate(record.years, series.uncertainty, year),
-      seaLevelMm: -massChangeGt / record.gtPerMm,
-    };
+    out[key] = seriesChangeAt(record, series, year);
   }
   return out;
+}
+
+/** One series' mass change at `year`: Gt, its 1-sigma uncertainty, and the sea-level equivalent (mm). */
+export function seriesChangeAt(seriesSet, series, year) {
+  const massChangeGt = interpolate(seriesSet.years, series.massChange, year);
+  return {
+    massChangeGt,
+    uncertaintyGt: interpolate(seriesSet.years, series.uncertainty, year),
+    seaLevelMm: -massChangeGt / seriesSet.gtPerMm,
+  };
+}
+
+/** The key that selects a basin; regions and the whole sheet are selected by their own keys. */
+export function basinKey(id) {
+  return `${BASIN_KEY_PREFIX}${id}`;
+}
+
+/**
+ * What a selection key names: the whole sheet ("AIS"), a region ("WAIS", "EAIS", "APIS"), or
+ * one basin ("basin:<id>"); with its series and, for a basin, its code and region. Null for a
+ * key the series do not have.
+ */
+export function resolveSubject(seriesSet, key) {
+  if (typeof key === "string" && key.startsWith(BASIN_KEY_PREFIX)) {
+    const id = Number(key.slice(BASIN_KEY_PREFIX.length));
+    const basin = seriesSet?.basins?.find((entry) => entry.id === id);
+    return basin ? { key, kind: "basin", ...basin } : null;
+  }
+  const series = seriesSet?.regions?.[key];
+  if (!series) return null;
+  return { key, kind: key === WHOLE_SHEET ? "sheet" : "region", region: key, ...series };
+}
+
+/** Basin ids a selection outlines: none for the whole sheet, a region's basins, or one basin. */
+export function selectionBasinIds(seriesSet, key) {
+  const subject = resolveSubject(seriesSet, key);
+  if (!subject || subject.kind === "sheet") return null;
+  if (subject.kind === "basin") return new Set([subject.id]);
+  return new Set(seriesSet.basins.filter((basin) => basin.region === subject.region).map((basin) => basin.id));
+}
+
+/** 1 for the grid cells in the selected basins, 0 elsewhere. */
+export function selectionMask(basinIds, selected) {
+  const mask = new Uint8Array(basinIds.length);
+  if (!selected?.size) return mask;
+  for (let cell = 0; cell < basinIds.length; cell += 1) {
+    if (selected.has(basinIds[cell])) mask[cell] = 1;
+  }
+  return mask;
+}
+
+/**
+ * The basin under a point of the drape, from its texture coordinate (u along the grid's
+ * columns, v along its rows, 0-1 from the first cell centre to the last): that of the
+ * nearest of the four cells around the point that has one, or 0.
+ */
+export function basinAtUv(basinIds, nx, ny, u, v) {
+  if (!Number.isFinite(u) || !Number.isFinite(v) || nx < 1 || ny < 1) return 0;
+  const col = Math.min(1, Math.max(0, u)) * (nx - 1);
+  const row = Math.min(1, Math.max(0, v)) * (ny - 1);
+  const corners = [];
+  for (const c of new Set([Math.floor(col), Math.ceil(col)])) {
+    for (const r of new Set([Math.floor(row), Math.ceil(row)])) {
+      corners.push({ cell: r * nx + c, distance: Math.hypot(c - col, r - row) });
+    }
+  }
+  corners.sort((a, b) => a.distance - b.distance);
+  for (const { cell } of corners) {
+    if (basinIds[cell] > 0) return basinIds[cell];
+  }
+  return 0;
+}
+
+// Round numbers an axis may end on, per power of ten.
+const NICE_AXIS_STEPS = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+// Closest an axis label may sit to the zero label, in viewBox units (labels are 7.5 tall).
+const MIN_TICK_GAP = 9;
+
+function niceCeiling(value) {
+  if (!(value > 0)) return 0;
+  const magnitude = 10 ** Math.floor(Math.log10(value));
+  const step = NICE_AXIS_STEPS.find((candidate) => candidate * magnitude >= value - 1e-9 * magnitude);
+  return step * magnitude;
+}
+
+/**
+ * Geometry of a mass-change chart in an SVG box { left, right, top, bottom }: the line, the
+ * 1-sigma band, the axis range and its ticks. An axis side with less than 4 % of the span is
+ * dropped, so a series that barely leaves zero gets no tick for it; a short side keeps its
+ * extent but loses its label when that would crowd the zero label.
+ */
+export function massChangeChartGeometry(years, massChange, uncertainty, box) {
+  const first = years[0];
+  const last = years[years.length - 1];
+  let low = 0;
+  let high = 0;
+  for (let i = 0; i < years.length; i += 1) {
+    const sigma = Number.isFinite(uncertainty[i]) ? uncertainty[i] : 0;
+    if (!Number.isFinite(massChange[i])) continue;
+    low = Math.min(low, massChange[i] - sigma);
+    high = Math.max(high, massChange[i] + sigma);
+  }
+  const span = high - low;
+  if (high < 0.04 * span) high = 0;
+  if (-low < 0.04 * span) low = 0;
+  const yMax = niceCeiling(high);
+  const yMin = low < 0 ? -niceCeiling(-low) : 0;
+  const range = yMax - yMin || 1;
+  const xOf = (year) => box.left + ((year - first) / Math.max(1e-9, last - first)) * (box.right - box.left);
+  const yOf = (value) => {
+    const clamped = Math.min(yMax, Math.max(yMin, value));
+    return box.bottom - ((clamped - yMin) / range) * (box.bottom - box.top);
+  };
+  const point = (year, value) => `${xOf(year).toFixed(1)},${yOf(value).toFixed(1)}`;
+  const finite = [];
+  for (let i = 0; i < years.length; i += 1) {
+    if (Number.isFinite(massChange[i])) finite.push(i);
+  }
+  const line = finite.map((i, n) => `${n ? "L" : "M"}${point(years[i], massChange[i])}`).join("");
+  const sigmaAt = (i) => (Number.isFinite(uncertainty[i]) ? uncertainty[i] : 0);
+  const upper = finite.map((i) => point(years[i], massChange[i] + sigmaAt(i)));
+  const lower = finite.map((i) => point(years[i], massChange[i] - sigmaAt(i))).reverse();
+  const band = finite.length ? `M${upper.join("L")}L${lower.join("L")}Z` : "";
+  const yTicks = [...new Set([yMin, 0, yMax])]
+    .filter((value) => value === 0 || Math.abs(yOf(value) - yOf(0)) >= MIN_TICK_GAP)
+    .sort((a, b) => a - b);
+  // The ends are labelled with their calendar year; the decades between, if clear of them.
+  const xTicks = [{ at: first, label: Math.floor(first) }];
+  for (let decade = Math.ceil(first / 10) * 10; decade < last; decade += 10) {
+    if (decade - first >= 4 && last - decade >= 4) xTicks.push({ at: decade, label: decade });
+  }
+  xTicks.push({ at: last, label: Math.floor(last) });
+  return { first, last, yMin, yMax, yTicks, xTicks, line, band, xOf, yOf };
 }
 
 /** Position (0-1) of a change on the scale's ramp; 0.5 is no change. */

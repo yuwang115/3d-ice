@@ -303,6 +303,16 @@
               </div>
             </div>
             <div id="surfaceChangeReadout" class="projection-readout" aria-live="polite"></div>
+            <div id="surfaceChangeBasinControl" class="surface-change-basins" hidden>
+              <div class="control">
+                <label for="surfaceChangeBasin">流域</label>
+                <select id="surfaceChangeBasin">
+                  <option value="AIS" selected>整个冰盖</option>
+                </select>
+              </div>
+              <svg id="surfaceChangeChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="质量变化随时间的变化"></svg>
+              <div id="surfaceChangeChartNote" class="legend-note"></div>
+            </div>
             <label class="toggle toggle--sub"><input id="surfaceChangeFade" type="checkbox" checked /> 淡化 2σ 以内的变化</label>
             <div id="surfaceChangeNote" class="legend-note"></div>
           </div>

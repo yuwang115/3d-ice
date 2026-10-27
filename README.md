@@ -245,7 +245,9 @@ uncertainty are faded, a fade that can be switched off, and the polar cap that C
 extrapolates always is: south of 81.5°S until CryoSat-2 data arrive in late 2010, and south
 of 88°S throughout. The readout quotes
 CPOM's own mass change for the ice sheet and the IMBIE regions, not sums over the resampled
-grid. The layer is exclusive with the projection, the rebound and the velocity colour. The
+grid. Clicking the ice, or the basin list, picks one of CPOM's 18 IMBIE drainage basins
+(numbered as in CPOM's `basin_id`) or a region: the map outlines it, and a chart plots its mass change since
+1995 with its 1σ band, in both views. The layer is exclusive with the projection, the rebound and the velocity colour. The
 packer (`scripts/prepare_cpom_land_ice.py`) and the browser module
 (`static/tools/js/surface-change.js`) are tested in `tests/test_prepare_cpom_land_ice.py`,
 `tests/js/surface-change.test.mjs` and `tests/e2e/test_surface_change.py`.

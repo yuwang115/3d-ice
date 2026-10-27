@@ -18,6 +18,9 @@ All notable changes to 3D ICE are recorded here. The format follows
   - *Rate, 1995–2026* shows the linear trend on the Balanced and HD datasets.
   - Changes within twice their uncertainty are faded, and the fade can be switched off. The
     polar cap that CPOM extrapolates is always faded.
+  - A basin chart: clicking the ice, or the basin list, picks one of CPOM's 18 IMBIE drainage
+    basins or a region. The map outlines it, and a chart plots its mass change since 1995 with
+    its 1σ band; the readout and the Data Snapshot add its total.
   - `scripts/prepare_cpom_land_ice.py` writes the three packages (`cpom_antarctica_dhdt_480`,
     `_741`, `cpom_antarctica_dh_480`); the public edition does not offer the layer yet.
 - A cookieless GoatCounter count (yuwang.goatcounter.com) beside Google Analytics, as an

@@ -319,6 +319,16 @@
               </div>
             </div>
             <div id="surfaceChangeReadout" class="projection-readout" aria-live="polite"></div>
+            <div id="surfaceChangeBasinControl" class="surface-change-basins" hidden>
+              <div class="control">
+                <label for="surfaceChangeBasin">Basin</label>
+                <select id="surfaceChangeBasin">
+                  <option value="AIS" selected>Whole ice sheet</option>
+                </select>
+              </div>
+              <svg id="surfaceChangeChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="Mass change against time"></svg>
+              <div id="surfaceChangeChartNote" class="legend-note"></div>
+            </div>
             <label class="toggle toggle--sub"><input id="surfaceChangeFade" type="checkbox" checked /> Fade changes within 2σ</label>
             <div id="surfaceChangeNote" class="legend-note"></div>
           </div>

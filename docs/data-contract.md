@@ -154,15 +154,18 @@ altimetry (product version 1.0, CC BY 4.0), resampled from its own 5 km EPSG:303
 an area-weighted mean onto the cells it covers by at least half, on explorer ice only.
 `cpom_antarctica_dhdt_{480,741}` are gridded: `dhdt` and `dhdt_uncertainty` are the
 1995–2026 linear trend and its 1σ uncertainty, and `basin_id` (`uint8`) the IMBIE drainage
-basin (1–18) under each node. `cpom_antarctica_dh_480` is a sparse time series whose
+basin (1–18, numbered and cited as in CPOM's `basin_id`) under each node, named in the field's `flags` as CPOM names
+it ("West G-H"). `cpom_antarctica_dh_480` is a sparse time series whose
 fields are, in this order, `surface_change` (`int16`, m, frame-major like the projections'
 `thickness`), `final_uncertainty` (`int16`, m, one value per domain cell: the 1σ uncertainty
 of the last epoch, because CPOM's per-epoch uncertainty is zero for most cells before 2002)
 and `domain_mask`. Its frames are the 140-day epochs at their centre years, with their
 windows in `frames.start_years` and `frames.end_years`; the change is CPOM's, relative to its
 1995 reference level, and the first epoch is not zero. `series` carries CPOM's cumulative
-mass change and its uncertainty (Gt) for the ice sheet and the IMBIE regions at every epoch,
-which the explorer quotes; `pole_hole` the radii of the extrapolated polar caps (81.5°S and
+mass change and its uncertainty (Gt) at every epoch, which the explorer quotes: under
+`regions` for the ice sheet and the IMBIE regions, and under `basins`, keyed by `basin_id`,
+for the 18 basins with their `code` and `region`; `validation.basin_sum_residual_gt` records
+how closely each region's series is the sum of its basins'; `pole_hole` the radii of the extrapolated polar caps (81.5°S and
 88°S) and the first year with CryoSat-2 data south of 81.5°S; `source_files` the name, SHA-256,
 `tracking_id` and creation date of each CPOM file. Field-level `scale`, `offset` and
 `fill_value` define the quantization.

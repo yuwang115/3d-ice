@@ -4,15 +4,18 @@ The committed packages are loaded as they are: the record is 20 MB, served from 
 expected readout is computed from the record's own metadata, so a rebuild with a newer CPOM
 epoch does not break these tests. Playback is driven with `window.advanceTime`, because a
 headless browser may not schedule animation frames on its own. Controls are located by `#id`,
-so the Chinese page needs no other locators.
+so the Chinese page needs no other locators. Besides uncaught exceptions, the tests fail on
+the layer's own console errors and on shader compile errors, which three.js only logs.
 """
 
 from __future__ import annotations
 
+import io
 import json
 from pathlib import Path
 
 import pytest
+from PIL import Image
 
 pytestmark = pytest.mark.e2e
 
@@ -32,14 +35,30 @@ def _signed(value: float, step: float) -> str:
     return ("+" if rounded > 0 else "−") + text
 
 
+def _mass_text(mass: float, sigma: float) -> str:
+    """The readout's "−1,890 ± 320 Gt": tens of gigatonnes once the uncertainty reaches them."""
+    step = 10 if sigma >= 10 else 1
+    return f"{_signed(mass, step)} ± {max(1, round(sigma / step)) * step:,} Gt"
+
+
 def _expected_ais_readout() -> tuple[str, str]:
     """CPOM's ice-sheet mass change and its sea-level equivalent at the last epoch."""
     ais = RECORD_META["series"]["regions"]["AIS"]
     mass, sigma = ais["mass_change_gt"][-1], ais["uncertainty_gt"][-1]
-    step = 10 if sigma >= 10 else 1
-    mass_text = f"{_signed(mass, step)} ± {max(1, round(sigma / step)) * step:,} Gt"
     sea_level = -mass / RECORD_META["series"]["gt_per_mm_sle"]
-    return mass_text, f"{_signed(sea_level, 0.1)} mm"
+    return _mass_text(mass, sigma), f"{_signed(sea_level, 0.1)} mm"
+
+
+AMUNDSEN = "basin:9"  # CPOM's "West G-H": Pine Island, Thwaites and Smith
+
+
+def _basin_mass_text(basin_id: str, epoch: int = -1) -> str:
+    basin = RECORD_META["series"]["basins"][basin_id]
+    return _mass_text(basin["mass_change_gt"][epoch], basin["uncertainty_gt"][epoch])
+
+
+# Console errors that mean this layer failed: its own, and a shader that does not compile.
+LAYER_CONSOLE_ERRORS = ("Surface-change", "Shader Error", "THREE.WebGLProgram")
 
 
 def _open(playwright_browser, url, routes=()):
@@ -49,6 +68,12 @@ def _open(playwright_browser, url, routes=()):
     page = context.new_page()
     errors = []
     page.on("pageerror", lambda error: errors.append(str(error)))
+
+    def on_console(message):
+        if message.type == "error" and any(marker in message.text for marker in LAYER_CONSOLE_ERRORS):
+            errors.append(message.text)
+
+    page.on("console", on_console)
     page.goto(url, wait_until="domcontentloaded", timeout=30_000)
     page.wait_for_function(
         "() => window.render_game_to_text && JSON.parse(window.render_game_to_text()).ready",
@@ -91,6 +116,60 @@ def _show_layer(page, view: str) -> dict:
 def _readout(page) -> str:
     # The readout keeps each value on one line with no-break spaces.
     return page.locator("#surfaceChangeReadout").inner_text().replace("\xa0", " ")
+
+
+def _show_basins(page, view: str) -> dict:
+    """The layer in `view`, once its basin list is in."""
+    _show_layer(page, view)
+    page.wait_for_function(
+        "() => JSON.parse(window.render_game_to_text()).surfaceChange.basinCount === 18",
+        timeout=LAYER_TIMEOUT_MS,
+    )
+    return _state(page)["surfaceChange"]
+
+
+def _wait_for_selection(page, key: str | None = None) -> dict:
+    """The selection `key` (any basin if None), outlined on the drape unless it is the whole sheet."""
+    match = f"s.selection === '{key}'" if key else "s.selection.startsWith('basin:')"
+    page.wait_for_function(
+        f"""() => {{
+            const s = JSON.parse(window.render_game_to_text()).surfaceChange;
+            return {match} && (s.selection === 'AIS' ? s.selectedCells === 0 : s.selectedCells > 0);
+        }}""",
+        timeout=LAYER_TIMEOUT_MS,
+    )
+    return _state(page)["surfaceChange"]
+
+
+def _chart_title(page) -> str:
+    # An SVG <text> has no inner text for Playwright; its text content is the label.
+    return page.locator("#surfaceChangeChart .label--series").text_content()
+
+
+def _canvas_centre(page) -> tuple[float, float]:
+    box = page.locator("#viewer canvas").bounding_box()
+    return box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+
+
+def _pixels_at(page, x: float, y: float, size: int = 5) -> list[tuple[int, int, int]]:
+    """The rendered colours of a small square around a point, after drawing a fresh frame."""
+    page.evaluate("window.advanceTime(32)")
+    page.wait_for_timeout(300)
+    png = page.screenshot(clip={"x": x - size // 2, "y": y - size // 2, "width": size, "height": size})
+    return list(Image.open(io.BytesIO(png)).convert("RGB").getdata())
+
+
+def _mean_difference(a, b) -> float:
+    return sum(abs(p - q) for pa, pb in zip(a, b) for p, q in zip(pa, pb)) / (3 * len(a))
+
+
+def _hold_until_requested(page, held: list, timeout_ms: int = 30_000) -> None:
+    """Wait until a held route has caught its request."""
+    for _ in range(timeout_ms // 100):
+        if held:
+            return
+        page.wait_for_timeout(100)
+    raise AssertionError("the request was never made")
 
 
 def test_the_record_shows_cpoms_totals_at_the_last_epoch(page):
@@ -188,6 +267,136 @@ def test_the_slider_and_playback_move_through_the_epochs(page):
     assert errors == []
 
 
+def test_a_basin_from_the_list_is_outlined_charted_and_read_out(page):
+    page, errors = page
+    _show_basins(page, "cumulative")
+    assert not page.locator("#surfaceChangeBasinControl").is_hidden()
+    # The whole sheet, then each region and its basins: 1 + 3 + 18 entries.
+    assert page.locator("#surfaceChangeBasin option").count() == 22
+    assert page.locator("#surfaceChangeBasin optgroup").evaluate_all("(groups) => groups.map((g) => g.label)") == [
+        "West Antarctica",
+        "East Antarctica",
+        "Antarctic Peninsula",
+    ]
+    assert _chart_title(page) == "Antarctic Ice Sheet"
+    assert _state(page)["surfaceChange"]["chartShown"]
+
+    page.locator("#surfaceChangeBasin").select_option(AMUNDSEN)
+    state = _wait_for_selection(page, AMUNDSEN)
+    assert state["selectedCells"] > 1000
+    assert _chart_title(page) == "Basin G-H, West Antarctica"
+    readout = _readout(page)
+    assert "Basin G-H, West Antarctica" in readout and _basin_mass_text("9") in readout
+    snapshot = page.locator("#metaList").inner_text().replace("\xa0", " ")
+    assert f"Selected: Basin G-H, West Antarctica: {_basin_mass_text('9')}" in snapshot
+    assert "Mass change since 1995 (CPOM): Antarctic Ice Sheet" in snapshot
+
+    # The chart's cursor and the readout follow the epoch.
+    cursor = page.locator("#surfaceChangeChart .cursor")
+    at_end = float(cursor.get_attribute("x1"))
+    page.locator("#surfaceChangeTime").evaluate(
+        "(el) => { el.value = '10'; el.dispatchEvent(new Event('input', { bubbles: true })); }"
+    )
+    assert float(cursor.get_attribute("x1")) < at_end
+    assert _basin_mass_text("9", 10) in _readout(page)
+
+    page.locator("#surfaceChangeBasin").select_option("WAIS")
+    region = _wait_for_selection(page, "WAIS")
+    assert region["selectedCells"] > state["selectedCells"], "West Antarctica holds the Amundsen basin and four more"
+    page.locator("#surfaceChangeBasin").select_option("AIS")
+    assert _wait_for_selection(page, "AIS")["selectedCells"] == 0
+    assert _chart_title(page) == "Antarctic Ice Sheet"
+    assert errors == []
+
+
+def test_clicking_the_ice_picks_the_basin_under_the_pointer_and_again_lets_it_go(page):
+    page, errors = page
+    _show_basins(page, "cumulative")
+    centre = _canvas_centre(page)
+    page.mouse.click(*centre)
+    picked = _wait_for_selection(page)
+    assert page.locator("#surfaceChangeBasin").input_value() == picked["selection"]
+    assert _chart_title(page).startswith("Basin ")
+    selected = _pixels_at(page, *centre)
+    page.mouse.click(*centre)
+    assert _wait_for_selection(page, "AIS")["selectedCells"] == 0
+    # The picked basin keeps its colour and the rest recedes: under the pointer nothing
+    # changed, so the basin picked is the one drawn there, not a neighbour or a mirror image.
+    assert _mean_difference(selected, _pixels_at(page, *centre)) < 3
+    assert errors == []
+
+
+def test_a_click_waiting_for_the_basins_gives_way_to_a_later_choice(playwright_browser, explorer_url):
+    # The record's first pick fetches the rate map for its basins; hold that download.
+    held = []
+    routes = [("**/data/cpom_antarctica_dhdt_480.bin*", lambda route: held.append(route))]
+    context, page, errors = _open(playwright_browser, explorer_url, routes)
+    try:
+        _show_basins(page, "cumulative")
+        page.mouse.click(*_canvas_centre(page))
+        _hold_until_requested(page, held)
+        page.locator("#surfaceChangeBasin").select_option("WAIS")
+        held[0].continue_()
+        _wait_for_selection(page, "WAIS")
+        page.evaluate("window.advanceTime(32)")
+        page.wait_for_timeout(500)
+        assert _state(page)["surfaceChange"]["selection"] == "WAIS"
+        assert page.locator("#surfaceChangeBasin").input_value() == "WAIS"
+        assert errors == []
+    finally:
+        context.close()
+
+
+def test_a_second_click_while_the_basins_load_does_not_undo_the_first(playwright_browser, explorer_url):
+    held = []
+    routes = [("**/data/cpom_antarctica_dhdt_480.bin*", lambda route: held.append(route))]
+    context, page, errors = _open(playwright_browser, explorer_url, routes)
+    try:
+        _show_basins(page, "cumulative")
+        centre = _canvas_centre(page)
+        page.mouse.click(*centre)
+        _hold_until_requested(page, held)
+        page.mouse.click(*centre)
+        held[0].continue_()
+        picked = _wait_for_selection(page)
+        page.wait_for_timeout(500)
+        assert _state(page)["surfaceChange"]["selection"] == picked["selection"]
+        assert errors == []
+    finally:
+        context.close()
+
+
+def test_the_rate_view_and_the_hd_grid_keep_the_selection(page):
+    page, errors = page
+    _show_basins(page, "cumulative")
+    page.locator("#surfaceChangeBasin").select_option(AMUNDSEN)
+    cumulative = _wait_for_selection(page, AMUNDSEN)
+
+    page.locator("#surfaceChangeView").select_option("rate")
+    _wait_for_view(page, "rate")
+    rate = _wait_for_selection(page, AMUNDSEN)
+    # The same basin ids on the same grid; the two views draw nearly the same cells.
+    assert abs(rate["selectedCells"] - cumulative["selectedCells"]) < 0.05 * cumulative["selectedCells"]
+    assert page.locator("#surfaceChangeChart .cursor").get_attribute("visibility") == "hidden"
+    first, last = int(RECORD_META["series"]["years"][0]), int(RECORD_META["series"]["years"][-1])
+    assert f"Basin G-H, West Antarctica, {first}–{last}" in _readout(page)
+
+    page.locator("#resolutionPreset").select_option("hd")
+    page.wait_for_function(
+        f"""() => {{
+            const s = JSON.parse(window.render_game_to_text());
+            return s.ready && s.dataset === 'hd' && s.surfaceChange.shown
+              && s.surfaceChange.selection === '{AMUNDSEN}' && s.surfaceChange.selectedCells > 0;
+        }}""",
+        timeout=LAYER_TIMEOUT_MS,
+    )
+    hd = _state(page)["surfaceChange"]
+    # A 4 km cell is a sixth of a 10 km one.
+    assert 5 * rate["selectedCells"] < hd["selectedCells"] < 7.5 * rate["selectedCells"]
+    assert _chart_title(page) == "Basin G-H, West Antarctica"
+    assert errors == []
+
+
 def test_the_fade_can_be_switched_off(page):
     page, _errors = page
     assert _show_layer(page, "cumulative")["fade"]
@@ -230,7 +439,8 @@ def test_a_view_that_fails_to_load_leaves_the_working_one_on(playwright_browser,
         )
         state = _state(page)["surfaceChange"]
         assert state["enabled"] and state["shown"] and state["view"] == "cumulative"
-        assert errors == []
+        # The failure is reported once, as the layer's own; nothing else goes wrong.
+        assert len(errors) == 1 and errors[0].startswith("Surface-change layer load failed")
     finally:
         context.close()
 
@@ -292,11 +502,15 @@ def test_other_terrains_and_greenland_do_not_offer_the_layer(page):
 def test_the_chinese_page_reads_the_record_in_chinese(playwright_browser, server):
     context, page, errors = _open(playwright_browser, f"{server}/zh/tools/3D-interactive-cryosphere-explorer.html")
     try:
-        _show_layer(page, "cumulative")
+        _show_basins(page, "cumulative")
         readout = _readout(page)
         assert "1995 年以来南极冰盖" in readout
         assert "南极对海平面的贡献" in readout
         assert "年" in page.locator("#surfaceChangeTimeValue").inner_text()
+        page.locator("#surfaceChangeBasin").select_option(AMUNDSEN)
+        _wait_for_selection(page, AMUNDSEN)
+        assert _chart_title(page) == "西南极 G-H 流域"
+        assert "所选范围: 西南极 G-H 流域：" in page.locator("#metaList").inner_text()
         assert errors == []
     finally:
         context.close()

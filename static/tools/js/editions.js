@@ -37,6 +37,7 @@ const CAPABILITY_URL_KEYS = Object.freeze({
     "surfaceChangeRateBinUrl",
     "surfaceChangeRecordMetaUrl",
     "surfaceChangeRecordBinUrl",
+    "surfaceChangeSeriesUrl",
   ]),
 });
 

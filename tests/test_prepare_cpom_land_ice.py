@@ -23,7 +23,7 @@ def cpom_axes():
     return x, y
 
 
-def write_cpom_file(path, x, y, fields, *, start=None, end=None, basin=None):
+def write_cpom_file(path, x, y, fields, *, start=None, end=None, basin=None, basin_flags=None):
     netCDF4 = pytest.importorskip("netCDF4")
     with netCDF4.Dataset(path, "w") as ds:
         ds.createDimension("nx", x.size)
@@ -39,7 +39,12 @@ def write_cpom_file(path, x, y, fields, *, start=None, end=None, basin=None):
                 var = ds.createVariable(name, "f4", ("ny", "nx"), fill_value=np.float32(np.nan))
             var[:] = values
         if basin is not None:
-            ds.createVariable("basin_id", "i1", ("ny", "nx"), fill_value=np.int8(-128))[:] = basin
+            var = ds.createVariable("basin_id", "i1", ("ny", "nx"), fill_value=np.int8(-128))
+            var[:] = basin
+            if basin_flags is not None:
+                # As CPOM writes them: an array of values and a list of strings.
+                var.setncattr("flag_values", np.array(list(basin_flags), dtype=np.int8))
+                var.setncattr("flag_meanings", list(basin_flags.values()))
         if start is not None:
             dims = ("time_period",) if "time_period" in ds.dimensions else ()
             ds.createVariable("start_time", "f4", dims)[:] = start
@@ -166,6 +171,47 @@ def test_read_series_reads_the_four_regions(mod, tmp_path):
         mod.read_series(tmp_path)
 
 
+@pytest.mark.unit
+def test_read_series_reads_the_basins_by_id(mod, tmp_path):
+    rows = [{"time": 1995.4, "dm": 0.0, "uncertainty": 0.1}, {"time": 1995.8, "dm": -2.0, "uncertainty": 0.5}]
+    for basin in mod.BASINS:
+        (tmp_path / f"dmdt_{basin}.json").write_text(json.dumps(rows))
+    series = mod.read_series(tmp_path, mod.BASINS)
+    assert list(series) == [str(i) for i in range(1, 19)]
+    np.testing.assert_allclose(series["18"]["uncertainty_gt"], [0.1, 0.5])
+
+
+@pytest.mark.unit
+def test_basin_names_reads_the_cf_flags_in_each_form(mod):
+    values = np.array([0, 9, 7])
+    expected = {"9": "West G-H", "7": "East A-Ap"}  # 0 (islands, or outside the mask) is not a basin
+    assert mod.basin_names(values, ["Islands", "West G-H", "East A-Ap"]) == expected
+    assert mod.basin_names(values, "['Islands', 'West G-H', 'East A-Ap']") == expected
+    assert mod.basin_names(values, "Islands West_G-H East_A-Ap") == expected
+    with pytest.raises(ValueError, match="3 flag values but 2 meanings"):
+        mod.basin_names(values, ["Islands", "West G-H"])
+    with pytest.raises(ValueError, match="flag_meanings is not a list of names"):
+        mod.basin_names(values, "['Islands', 'West G-H'")
+    with pytest.raises(ValueError, match="repeats flag values"):
+        mod.basin_names(np.array([0, 9, 9]), ["Islands", "West G-H", "East A-Ap"])
+
+
+@pytest.mark.unit
+def test_read_cpom_field_names_the_basins_from_their_flags(mod, tmp_path):
+    x, y = cpom_axes()
+    sec = np.full((y.size, x.size), -0.5)
+    basin = np.full(sec.shape, 9, dtype=np.int8)
+    path = tmp_path / "rate.nc"
+    flags = {0: "Islands", 9: "West G-H", 18: "West Ep-F"}
+    write_cpom_file(path, x, y, {"sec": sec, "sec_uncertainty": sec * 0}, basin=basin, basin_flags=flags)
+    rate = mod.read_cpom_field(path, ("sec", "sec_uncertainty"))
+    assert rate["basin_names"] == {"9": "West G-H", "18": "West Ep-F"}
+    mask = np.full((2, 3), 2, dtype=np.uint8)
+    _, meta = mod.rate_package(rate, path, GRID, mask, "terrain")
+    basin_field = next(f for f in meta["fields"] if f["name"] == "basin_id")
+    assert basin_field["flags"] == {"0": "none", "9": "West G-H", "18": "West Ep-F"}
+
+
 # ------------------------------------------------------------------ packaging
 
 
@@ -240,6 +286,70 @@ def test_change_package_lays_out_frames_and_checks_the_series(mod):
     series["WAIS"]["years"] = centres + 0.5
     with pytest.raises(ValueError, match="WAIS"):
         mod.change_package(frames, series, grid, "bedmachine_antarctica_v4_480")
+
+
+# CPOM's numbering and names of the 18 IMBIE basins, from the rate file's basin_id flags.
+CPOM_BASIN_NAMES = {
+    "1": "West H-Hp", "2": "West F-G", "3": "East E-Ep", "4": "East D-Dp", "5": "East Cp-D", "6": "East B-C",
+    "7": "East A-Ap", "8": "East Jpp-K", "9": "West G-H", "10": "East Dp-E", "11": "East Ap-B", "12": "East C-Cp",
+    "13": "East K-A", "14": "West J-Jpp", "15": "Peninsula Ipp-J", "16": "Peninsula I-Ipp", "17": "Peninsula Hp-I",
+    "18": "West Ep-F",
+}
+
+
+def basin_and_region_series(mod, centres):
+    """A series per basin, and regional series that are their sums (the AIS the sum of all)."""
+    basins = {
+        key: {"years": centres.copy(), "mass_change_gt": -float(key) * np.arange(centres.size),
+              "uncertainty_gt": np.full(centres.size, 1.0)}
+        for key in mod.BASINS
+    }
+    regions = {}
+    for region, prefix in (("WAIS", "West"), ("EAIS", "East"), ("APIS", "Peninsula")):
+        members = [key for key, name in CPOM_BASIN_NAMES.items() if name.startswith(prefix + " ")]
+        regions[region] = {"years": centres.copy(),
+                           "mass_change_gt": sum(basins[key]["mass_change_gt"] for key in members),
+                           "uncertainty_gt": np.full(centres.size, 2.0)}
+    regions["AIS"] = {"years": centres.copy(),
+                      "mass_change_gt": sum(regions[r]["mass_change_gt"] for r in ("WAIS", "EAIS", "APIS")),
+                      "uncertainty_gt": np.full(centres.size, 3.0)}
+    return basins, regions
+
+
+@pytest.mark.unit
+def test_change_package_carries_the_basins_and_refuses_ones_that_do_not_sum_to_their_regions(mod):
+    grid, frames = synthetic_frames(mod, observed_from=5, count=8)
+    centres = (frames["start_years"] + frames["end_years"]) / 2
+    basins, regions = basin_and_region_series(mod, centres)
+    payload, meta = mod.change_package(frames, regions, grid, "terrain", basin_series=basins,
+                                       basin_names_by_id=CPOM_BASIN_NAMES)
+    entries = meta["series"]["basins"]
+    assert list(entries) == list(mod.BASINS)
+    assert entries["9"] == {"name": "West G-H", "code": "G-H", "region": "WAIS",
+                            "mass_change_gt": [-9.0 * i for i in range(8)], "uncertainty_gt": [1.0] * 8}
+    assert [entry["region"] for entry in entries.values()].count("EAIS") == 10
+    assert meta["validation"]["basin_sum_residual_gt"] == {"WAIS": 0.0, "EAIS": 0.0, "APIS": 0.0}
+    # The payload is the same with or without the basins: they live in the metadata.
+    assert payload == mod.change_package(frames, regions, grid, "terrain")[0]
+
+    # Within rounding, the gap is recorded; beyond the tolerance, a basin is in the wrong region.
+    regions["APIS"]["mass_change_gt"] = regions["APIS"]["mass_change_gt"] + 0.5
+    _, meta = mod.change_package(frames, regions, grid, "terrain", basin_series=basins,
+                                 basin_names_by_id=CPOM_BASIN_NAMES)
+    assert meta["validation"]["basin_sum_residual_gt"]["APIS"] == 0.5
+    with pytest.raises(ValueError, match="named into WAIS do not sum"):
+        mod.change_package(frames, regions, grid, "terrain", basin_series=basins,
+                           basin_names_by_id={**CPOM_BASIN_NAMES, "3": "West E-Ep"})
+
+    with pytest.raises(ValueError, match="basin 9 is named 'G-H'"):
+        mod.change_package(frames, regions, grid, "terrain", basin_series=basins,
+                           basin_names_by_id={**CPOM_BASIN_NAMES, "9": "G-H"})
+    with pytest.raises(ValueError, match="basin 18 has no name"):
+        names = {key: name for key, name in CPOM_BASIN_NAMES.items() if key != "18"}
+        mod.change_package(frames, regions, grid, "terrain", basin_series=basins, basin_names_by_id=names)
+    basins["3"]["years"] = centres + 0.5
+    with pytest.raises(ValueError, match="the 3 series"):
+        mod.change_package(frames, regions, grid, "terrain", basin_series=basins, basin_names_by_id=CPOM_BASIN_NAMES)
 
 
 @pytest.mark.unit
@@ -337,3 +447,19 @@ def test_committed_packages_share_the_terrain_grids(mod, data_dir):
     for region in mod.REGIONS:
         assert len(change["series"]["regions"][region]["mass_change_gt"]) == len(years)
     assert 2010.5 < change["pole_hole"]["observed_from_year"] < 2011.5
+
+
+@pytest.mark.integration
+def test_committed_record_carries_cpoms_18_basins_and_they_sum_to_the_regions(mod, data_dir):
+    change = json.loads((data_dir / f"{mod.CHANGE_BASENAME}.meta.json").read_text())
+    basins = change["series"]["basins"]
+    years = change["series"]["years"]
+    assert {key: entry["name"] for key, entry in basins.items()} == CPOM_BASIN_NAMES
+    assert all(len(entry["mass_change_gt"]) == len(entry["uncertainty_gt"]) == len(years) for entry in basins.values())
+    assert max(change["validation"]["basin_sum_residual_gt"].values()) <= 0.1
+    # The Amundsen Sea sector alone loses more than West Antarctica as a whole.
+    assert basins["9"]["mass_change_gt"][-1] < change["series"]["regions"]["WAIS"]["mass_change_gt"][-1] < -2000
+    for suffix in mod.TERRAIN_PACKAGES:
+        rate = json.loads((data_dir / f"{mod.RATE_BASENAME}_{suffix}.meta.json").read_text())
+        flags = next(f for f in rate["fields"] if f["name"] == "basin_id")["flags"]
+        assert flags == {"0": "none", **CPOM_BASIN_NAMES}

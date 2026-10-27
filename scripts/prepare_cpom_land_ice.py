@@ -8,8 +8,9 @@ version 1.0, CC BY 4.0:
   `CPOM-AIS-L3C-DH-MULTIMISSION-5KM-19950321-<end>-fv1.nc` (`dH`, `dH_uncertainty`);
 - the 1995-2026 rate, `CPOM-AIS-L3C-DHDT-MULTIMISSION-5KM-199505-202601-fv1.nc`
   (`sec`, `sec_uncertainty`, `basin_id`);
-- the ice-sheet and regional mass-change series, `get_timeseries.php?product=dmdt&basin=<id>`
-  for AIS, WAIS, EAIS and APIS, saved as `dmdt_<id>.json`.
+- the mass-change series, `get_timeseries.php?product=dmdt&basin=<id>`, saved as
+  `dmdt_<id>.json`: for the ice sheet and its regions (AIS, WAIS, EAIS, APIS), and for the
+  18 IMBIE drainage basins (1-18), which the rate file's `basin_id` names.
 
 They are 5 km grids in EPSG:3031 whose rows run south to north, over grounded ice only.
 Each explorer cell takes the area-weighted mean of the 5 km cells that overlap it, where
@@ -24,7 +25,8 @@ Outputs:
   and HD (4 km) terrain grids (`dhdt`, `dhdt_uncertainty`, `basin_id`);
 - `cpom_antarctica_dh_480`: the cumulative change at every epoch, a sparse time series on
   the 10 km grid (`surface_change`, `final_uncertainty`, `domain_mask`), carrying CPOM's own
-  mass-change series so the explorer quotes CPOM's totals, not sums over the resampled grid.
+  mass-change series of the ice sheet, its regions and its basins, so the explorer quotes
+  CPOM's totals, not sums over the resampled grid.
 
 Two properties of the cumulative files shape the time series:
 
@@ -39,6 +41,7 @@ Two properties of the cumulative files shape the time series:
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import json
 import re
@@ -61,6 +64,12 @@ REGION_NAMES = {
     "EAIS": "East Antarctic Ice Sheet",
     "APIS": "Antarctic Peninsula Ice Sheet",
 }
+BASINS = tuple(str(basin) for basin in range(1, 19))
+# CPOM names each basin by its IMBIE region and coastline segment, as "West G-H".
+BASIN_REGION_PREFIXES = {"West": "WAIS", "East": "EAIS", "Peninsula": "APIS"}
+# CPOM's regional series are the sums of their basins'; a wider gap means a basin was
+# named into the wrong region, and the explorer would outline the wrong basins for it.
+BASIN_SUM_TOLERANCE_GT = 1.0
 # Orbit limits of the missions: ERS-2 and Envisat reach 81.5 S, CryoSat-2 88 S. CPOM fills
 # the gap south of each by extrapolating the surrounding trends (Shepherd et al. 2019).
 POLE_HOLE_LATITUDES = {"ers_envisat": -81.5, "cryosat2": -88.0}
@@ -105,6 +114,31 @@ def read_terrain(meta_path: Path) -> tuple[dict, np.ndarray]:
     return grid, mask.reshape(grid["ny"], grid["nx"]).copy()
 
 
+def basin_names(flag_values, flag_meanings) -> dict[str, str]:
+    """CPOM's name for each basin id 1-18, from `basin_id`'s CF flag attributes.
+
+    netCDF4 returns the meanings as a list of strings. A single string is also accepted,
+    either as a list literal or space-separated with underscores, as CF writes it.
+    """
+    if isinstance(flag_meanings, str):
+        text = flag_meanings.strip()
+        if text.startswith("["):
+            try:
+                meanings = ast.literal_eval(text)
+            except (SyntaxError, ValueError) as error:
+                raise ValueError(f"basin_id's flag_meanings is not a list of names: {text[:60]!r}") from error
+        else:
+            meanings = [word.replace("_", " ") for word in text.split()]
+    else:
+        meanings = [str(meaning) for meaning in flag_meanings]
+    values = [int(value) for value in np.atleast_1d(flag_values)]
+    if len(values) != len(meanings):
+        raise ValueError(f"basin_id has {len(values)} flag values but {len(meanings)} meanings")
+    if len(set(values)) != len(values):
+        raise ValueError(f"basin_id repeats flag values: {sorted(values)}")
+    return {str(value): str(name).strip() for value, name in zip(values, meanings) if str(value) in BASINS}
+
+
 def read_cpom_field(path: Path, names: tuple[str, ...]) -> dict:
     """Axes, the named 2-D fields (NaN outside the data) and attributes, rows north to south."""
     import netCDF4  # noqa: PLC0415 - only the packing run needs it
@@ -120,6 +154,12 @@ def read_cpom_field(path: Path, names: tuple[str, ...]) -> dict:
         }
         attrs = {key: str(ds.getncattr(key)) for key in ("tracking_id", "date_created", "product_version", "license") if key in ds.ncattrs()}
         basin = np.ma.filled(ds["basin_id"][:], 0).astype(np.int16) if "basin_id" in ds.variables else None
+        flags = ds["basin_id"].ncattrs() if basin is not None else []
+        names_by_id = (
+            basin_names(ds["basin_id"].getncattr("flag_values"), ds["basin_id"].getncattr("flag_meanings"))
+            if {"flag_values", "flag_meanings"} <= set(flags)
+            else {}
+        )
     if not (np.all(np.diff(x) > 0) and np.all(np.abs(np.diff(x) - CPOM_CELL_M) < 1e-3)):
         raise ValueError(f"{path.name}: x is not an increasing 5 km axis")
     if not np.all(np.abs(np.abs(np.diff(y)) - CPOM_CELL_M) < 1e-3):
@@ -128,7 +168,7 @@ def read_cpom_field(path: Path, names: tuple[str, ...]) -> dict:
         y = y[::-1]
         fields = {name: values[::-1] for name, values in fields.items()}
         basin = basin[::-1] if basin is not None else None
-    return {"x": x, "y": y, "fields": fields, "times": times, "attrs": attrs, "basin_id": basin}
+    return {"x": x, "y": y, "fields": fields, "times": times, "attrs": attrs, "basin_id": basin, "basin_names": names_by_id}
 
 
 def list_epochs(directory: Path) -> list[dict]:
@@ -147,19 +187,49 @@ def list_epochs(directory: Path) -> list[dict]:
     return sorted(epochs, key=lambda epoch: epoch["end_date"])
 
 
-def read_series(directory: Path) -> dict:
-    """CPOM's cumulative mass change (Gt) and its 1-sigma uncertainty, per region and epoch."""
+def read_series(directory: Path, keys: tuple[str, ...] = REGIONS) -> dict:
+    """CPOM's cumulative mass change (Gt) and its 1-sigma uncertainty, per region or basin and epoch."""
     series = {}
-    for region in REGIONS:
-        rows = json.loads((Path(directory) / f"dmdt_{region}.json").read_text(encoding="utf-8"))
+    for key in keys:
+        rows = json.loads((Path(directory) / f"dmdt_{key}.json").read_text(encoding="utf-8"))
         if not isinstance(rows, list) or not rows:
-            raise ValueError(f"dmdt_{region}.json holds no series")
-        series[region] = {
+            raise ValueError(f"dmdt_{key}.json holds no series")
+        series[key] = {
             "years": np.array([float(row["time"]) for row in rows]),
             "mass_change_gt": np.array([float(row["dm"]) for row in rows]),
             "uncertainty_gt": np.array([float(row["uncertainty"]) for row in rows]),
         }
     return series
+
+
+def basin_entries(basins: dict, names: dict[str, str]) -> dict:
+    """Each basin's code, IMBIE region and series, keyed by CPOM's basin id."""
+    entries = {}
+    for key in BASINS:
+        name = names.get(key)
+        if not name:
+            raise ValueError(f"basin {key} has no name in the rate file's basin_id flags")
+        prefix, _, code = name.partition(" ")
+        if prefix not in BASIN_REGION_PREFIXES or not code:
+            raise ValueError(f"basin {key} is named {name!r}, not '<West|East|Peninsula> <code>'")
+        entries[key] = {
+            "name": name,
+            "code": code,
+            "region": BASIN_REGION_PREFIXES[prefix],
+            "mass_change_gt": [round(float(v), 2) for v in basins[key]["mass_change_gt"]],
+            "uncertainty_gt": [round(float(v), 2) for v in basins[key]["uncertainty_gt"]],
+        }
+    return entries
+
+
+def basin_sum_residuals(entries: dict, regions: dict) -> dict[str, float]:
+    """Largest gap (Gt) over the epochs between each region's series and the sum of its basins."""
+    residuals = {}
+    for region in BASIN_REGION_PREFIXES.values():
+        members = [entry["mass_change_gt"] for entry in entries.values() if entry["region"] == region]
+        total = np.sum(np.array(members, dtype=np.float64), axis=0)
+        residuals[region] = round(float(np.max(np.abs(total - regions[region]["mass_change_gt"]))), 2)
+    return residuals
 
 
 # ---------------------------------------------------------------------------- resampling
@@ -328,7 +398,8 @@ def rate_package(rate: dict, rate_path: Path, grid: dict, mask: np.ndarray, terr
         int16_field("dhdt", dhdt, RATE_STEP_M_PER_YR, "m/yr", "m_per_yr"),
         int16_field("dhdt_uncertainty", dhdt_sigma, RATE_STEP_M_PER_YR, "m/yr", "m_per_yr"),
         {"name": "basin_id", "dtype": "uint8", "blob": basins.tobytes(),
-         "flags": {"0": "none", "1-18": "IMBIE drainage basin of Rignot et al. (2016), as CPOM numbers them"}},
+         "flags": {"0": "none", **rate["basin_names"]},
+         "note": "IMBIE drainage basins, numbered, named and cited (Rignot et al., 2016) as in CPOM's basin_id; each cell takes the basin of the CPOM cell under its centre"},
     ])
     meta = {
         "title": "CPOM Antarctic surface elevation change rate, 1995-2026, multi-mission radar altimetry",
@@ -421,13 +492,25 @@ def first_observed_epoch(frames: dict, grid: dict) -> int:
     return int(structured[0] + 1) if structured.size else 0
 
 
-def change_package(frames: dict, series: dict, grid: dict, terrain_name: str) -> tuple[bytes, dict]:
+def change_package(
+    frames: dict,
+    series: dict,
+    grid: dict,
+    terrain_name: str,
+    basin_series: dict | None = None,
+    basin_names_by_id: dict[str, str] | None = None,
+) -> tuple[bytes, dict]:
     centres = (frames["start_years"] + frames["end_years"]) / 2.0
     if np.any(np.diff(centres) <= 0):
         raise ValueError("epoch centres must increase")
-    for region, values in series.items():
+    for region, values in {**series, **(basin_series or {})}.items():
         if values["years"].size != centres.size or np.max(np.abs(values["years"] - centres)) > 0.01:
             raise ValueError(f"the {region} series does not have the epochs of the cumulative files")
+    basins = basin_entries(basin_series, basin_names_by_id or {}) if basin_series else None
+    residuals = basin_sum_residuals(basins, series) if basins else None
+    for region, gap in (residuals or {}).items():
+        if gap > BASIN_SUM_TOLERANCE_GT:
+            raise ValueError(f"the basins named into {region} do not sum to its series (largest gap {gap} Gt)")
     domain = frames["domain"]
     count = int(domain.sum())
     cell_area = abs(grid["dx_m"] * grid["dy_m"])
@@ -470,7 +553,8 @@ def change_package(frames: dict, series: dict, grid: dict, terrain_name: str) ->
                 }
                 for region in REGIONS
             },
-            "note": "CPOM's cumulative mass change of the grounded ice sheet and of the IMBIE regions, 1-sigma, from the portal's basin time series; sea-level equivalent at 362.5 Gt per mm",
+            **({"basins": basins} if basins else {}),
+            "note": "CPOM's cumulative mass change of the grounded ice sheet, of the IMBIE regions and of the 18 IMBIE drainage basins (numbered as in CPOM's basin_id, which cites Rignot et al. 2016), 1-sigma, from the portal's basin time series; sea-level equivalent at 362.5 Gt per mm",
         },
         "pole_hole": {
             "radius_m": {key: round(pole_hole_radius_m(lat), 1) for key, lat in POLE_HOLE_LATITUDES.items()},
@@ -487,6 +571,12 @@ def change_package(frames: dict, series: dict, grid: dict, terrain_name: str) ->
             "note": "volume change relative to CPOM's 1995 reference level at the last epoch (grid area, no map-scale correction), over every CPOM cell and over the packed domain cells. The net is a small residual of thickening and thinning that nearly cancel, so it moves with the margins; averaging to 10 km also cancels opposite-signed changes within a cell, which lowers both gross volumes",
             "end_source_km3": {"net": round(float(frames["source_volume_km3"][-1]), 1), **frames["source_gross_km3"]},
             "end_packed_km3": {"net": round(float(packed_volume[-1]), 1), **packed_gross},
+            **(
+                {"basin_sum_residual_gt": residuals,
+                 "basin_sum_note": "largest gap over the epochs between each region's series and the sum of its basins' series"}
+                if residuals
+                else {}
+            ),
         },
         "fields": fields,
     }
@@ -500,7 +590,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--cumulative-dir", type=Path, required=True, help="directory of the 81 cumulative dH files")
     parser.add_argument("--rate-file", type=Path, required=True, help="CPOM-AIS-L3C-DHDT-MULTIMISSION-5KM-...-fv1.nc")
-    parser.add_argument("--series-dir", type=Path, required=True, help="directory holding dmdt_{AIS,WAIS,EAIS,APIS}.json")
+    parser.add_argument("--series-dir", type=Path, required=True,
+                        help="directory holding dmdt_{AIS,WAIS,EAIS,APIS}.json and dmdt_1.json to dmdt_18.json")
     parser.add_argument("--terrain-dir", type=Path, default=Path("static/tools/data"))
     parser.add_argument("--output-dir", type=Path, default=Path("static/tools/data"))
     return parser.parse_args()
@@ -518,10 +609,18 @@ def main() -> None:
 
     grid, mask = read_terrain(args.terrain_dir / f"{TERRAIN_PACKAGES['480']}.meta.json")
     frames = epoch_frames(list_epochs(args.cumulative_dir), grid, mask)
-    payload, meta = change_package(frames, read_series(args.series_dir), grid, TERRAIN_PACKAGES["480"])
+    payload, meta = change_package(
+        frames,
+        read_series(args.series_dir),
+        grid,
+        TERRAIN_PACKAGES["480"],
+        basin_series=read_series(args.series_dir, BASINS),
+        basin_names_by_id=rate["basin_names"],
+    )
     write_package(args.output_dir, CHANGE_BASENAME, payload, meta)
     print(f"{CHANGE_BASENAME}: {meta['frames']['count']} epochs x {meta['domain']['cell_count']} cells, "
-          f"{len(payload) / 1e6:.1f} MB; observed south of 81.5 S from {meta['pole_hole']['observed_from_year']}")
+          f"{len(payload) / 1e6:.1f} MB; observed south of 81.5 S from {meta['pole_hole']['observed_from_year']}; "
+          f"basins sum to their regions within {max(meta['validation']['basin_sum_residual_gt'].values())} Gt")
 
 
 if __name__ == "__main__":

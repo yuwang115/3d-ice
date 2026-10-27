@@ -283,11 +283,13 @@ const ALL_REGIONS = {
         oceanCurrentsLightBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.bin?v=20261018-waom2-xy-v4"),
         hydrologyMetaUrl: assetUrl("data/antarctica_subglacial_hydrology_480.meta.json?v=20261018-channels-v2"),
         hydrologyBinUrl: assetUrl("data/antarctica_subglacial_hydrology_480.bin?v=20261018-channels-v2"),
-        // CPOM's elevation-change rate and its 1995-2026 record, resampled onto this grid.
-        surfaceChangeRateMetaUrl: assetUrl("data/cpom_antarctica_dhdt_480.meta.json?v=20261026-fv1"),
+        // CPOM's elevation-change rate and its 1995-2026 record, resampled onto this grid; the
+        // record's metadata also carries the mass-change series the basin chart plots.
+        surfaceChangeRateMetaUrl: assetUrl("data/cpom_antarctica_dhdt_480.meta.json?v=20261027-basins"),
         surfaceChangeRateBinUrl: assetUrl("data/cpom_antarctica_dhdt_480.bin?v=20261026-fv1"),
-        surfaceChangeRecordMetaUrl: assetUrl("data/cpom_antarctica_dh_480.meta.json?v=20261026-fv1"),
+        surfaceChangeRecordMetaUrl: assetUrl("data/cpom_antarctica_dh_480.meta.json?v=20261027-basins"),
         surfaceChangeRecordBinUrl: assetUrl("data/cpom_antarctica_dh_480.bin?v=20261026-fv1"),
+        surfaceChangeSeriesUrl: assetUrl("data/cpom_antarctica_dh_480.meta.json?v=20261027-basins"),
         // The projection packages are resampled onto exactly this grid.
         capabilities: { iceProjection: true },
       },
@@ -311,9 +313,11 @@ const ALL_REGIONS = {
         oceanCurrentsLightBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.bin?v=20261018-waom2-xy-v4"),
         hydrologyMetaUrl: assetUrl("data/antarctica_subglacial_hydrology_741.meta.json?v=20261018-channels-v2"),
         hydrologyBinUrl: assetUrl("data/antarctica_subglacial_hydrology_741.bin?v=20261018-channels-v2"),
-        // The rate only: the record is packed on the 10 km grid alone.
-        surfaceChangeRateMetaUrl: assetUrl("data/cpom_antarctica_dhdt_741.meta.json?v=20261026-fv1"),
+        // The rate only: the record is packed on the 10 km grid alone. Its metadata still
+        // serves the basin chart.
+        surfaceChangeRateMetaUrl: assetUrl("data/cpom_antarctica_dhdt_741.meta.json?v=20261027-basins"),
         surfaceChangeRateBinUrl: assetUrl("data/cpom_antarctica_dhdt_741.bin?v=20261026-fv1"),
+        surfaceChangeSeriesUrl: assetUrl("data/cpom_antarctica_dh_480.meta.json?v=20261027-basins"),
       },
       bedmap3: {
         id: "bedmap3",
@@ -953,6 +957,10 @@ const controlsUI = {
   surfaceChangeTimeValue: resolveControl("surfaceChangeTimeValue"),
   surfaceChangePlay: resolveControl("surfaceChangePlay"),
   surfaceChangeReadout: resolveControl("surfaceChangeReadout"),
+  surfaceChangeBasinControl: resolveControl("surfaceChangeBasinControl"),
+  surfaceChangeBasin: resolveControl("surfaceChangeBasin"),
+  surfaceChangeChart: resolveControl("surfaceChangeChart"),
+  surfaceChangeChartNote: resolveControl("surfaceChangeChartNote"),
   surfaceChangeFade: resolveControl("surfaceChangeFade"),
   surfaceChangeNote: resolveControl("surfaceChangeNote"),
   surfaceChangeLegendSection: resolveControl("surfaceChangeLegendSection"),
@@ -1140,6 +1148,18 @@ let surfaceChangeOverlayLoad = null;
 let surfaceChangePosition = Number.POSITIVE_INFINITY;
 let surfaceChangePlaying = false;
 const surfaceChangePackageCache = new Map();
+// The chart's subject: the whole sheet, a region, or one basin ("basin:<id>"); and the
+// decoded mass-change series, keyed by the metadata URL they came from.
+let surfaceChangeSelection = "AIS";
+const surfaceChangeSeriesCache = new Map();
+// Basin ids per terrain (the rate map's), loading or loaded, keyed by its payload URL; the
+// series the basin list was built from; and the chart's geometry, for its cursor.
+const surfaceChangeBasinIdLoads = new Map();
+let surfaceChangeBasinListSeries = null;
+let surfaceChangeChartGeometry = null;
+// Counts picks and list choices, so a click still waiting for the basins gives way to any
+// that came after it.
+let surfaceChangePickSerial = 0;
 let velocityDataTexture = null;
 let velocityContinuousSamplingWarningIssued = false;
 let basalMeltDataTexture = null;
@@ -7358,8 +7378,9 @@ function bindInteractionGate() {
   }
 }
 
+/** A click (not a drag) picks a flowline if the edition offers that, else the basin under it. */
 function bindFlowlinePicking() {
-  if (!renderer || !THREE || !editionProfile.flowlinePicking) return;
+  if (!renderer || !THREE) return;
   if (!flowlineRaycaster) flowlineRaycaster = new THREE.Raycaster();
   if (!flowlinePointerNdc) flowlinePointerNdc = new THREE.Vector2();
 
@@ -7396,7 +7417,8 @@ function bindFlowlinePicking() {
         Math.abs(event.clientY - gesture.startY) > FLOWLINE_PICK_MOVE_THRESHOLD_PX;
       if (moved || !gesture.interactionReady) return;
 
-      pickVisibleFlowlineAtClientPoint(event.clientX, event.clientY);
+      if (editionProfile.flowlinePicking && pickVisibleFlowlineAtClientPoint(event.clientX, event.clientY)) return;
+      pickSurfaceChangeBasinAtClientPoint(event.clientX, event.clientY);
     },
     { passive: true }
   );
@@ -12181,6 +12203,19 @@ const SURFACE_CHANGE_REGION_LABEL_KEYS = Object.freeze({
   EAIS: "explorer.surfaceChange.regionEais",
   APIS: "explorer.surfaceChange.regionApis",
 });
+// Names of the chart's subjects: the region labels, but the sheet without "since 1995".
+const SURFACE_CHANGE_SUBJECT_NAME_KEYS = Object.freeze({
+  ...SURFACE_CHANGE_REGION_LABEL_KEYS,
+  AIS: "explorer.surfaceChange.sheetName",
+});
+// Outside a picked basin the colour keeps this share, as the fade does; the outline is
+// the page's dark ink, #1b2230. The shader writes colours as they come, like the ramp's
+// sRGB lookup table, so the ink is passed as sRGB too, not through THREE.Color, which
+// would make it linear.
+const SURFACE_CHANGE_OUTSIDE_SHARE = 0.45;
+const SURFACE_CHANGE_OUTLINE_RGB = Object.freeze([0x1b / 255, 0x22 / 255, 0x30 / 255]);
+// The basin chart's plot box in its 260 x 96 viewBox, as the projection chart's.
+const SURFACE_CHANGE_CHART = Object.freeze({ left: 36, right: 254, top: 16, bottom: 80 });
 
 function loadSurfaceChangeModule() {
   if (surfaceChangeModule) return Promise.resolve(surfaceChangeModule);
@@ -12263,7 +12298,64 @@ async function loadSurfaceChangePackage(urls, view, module, showOverlay, signal)
     view === "rate" ? module.decodeSurfaceChangeRate(meta, buffer) : module.decodeSurfaceChangeRecord(meta, buffer);
   const entry = { meta, decoded };
   surfaceChangePackageCache.set(urls.binUrl, entry);
+  if (view !== "rate") rememberSurfaceChangeSeries(urls.metaUrl, decoded);
   return entry;
+}
+
+/** Keep a record's series for the basin chart, so its metadata is not fetched twice. */
+function rememberSurfaceChangeSeries(url, record) {
+  if (!url || surfaceChangeSeriesCache.get(url)?.value) return;
+  const value = { years: record.years, regions: record.regions, basins: record.basins, gtPerMm: record.gtPerMm };
+  surfaceChangeSeriesCache.set(url, { value, promise: Promise.resolve(value) });
+}
+
+/** The mass-change series of the basin chart, once loaded for this dataset; else null. */
+function getSurfaceChangeSeries(dataset = getActiveDatasetConfig()) {
+  return surfaceChangeSeriesCache.get(dataset?.surfaceChangeSeriesUrl)?.value || null;
+}
+
+/** Load the series from the record's metadata alone, which is all the rate views need of it. */
+function ensureSurfaceChangeSeries(dataset = getActiveDatasetConfig()) {
+  const url = dataset?.surfaceChangeSeriesUrl;
+  if (!url) return Promise.resolve(null);
+  const cached = surfaceChangeSeriesCache.get(url);
+  if (cached) return cached.promise;
+  const entry = { value: null, promise: null };
+  entry.promise = loadSurfaceChangeModule()
+    .then((module) =>
+      fetchJsonStrict(url, errorLabel("explorer.errors.failedToLoadSurfaceChangeMetadata")).then((meta) =>
+        module.decodeSurfaceChangeSeries(meta)
+      )
+    )
+    .then((series) => {
+      entry.value = series;
+      return series;
+    })
+    .catch((error) => {
+      // A record that loaded meanwhile may have put its own series in place: keep those.
+      if (surfaceChangeSeriesCache.get(url) === entry) surfaceChangeSeriesCache.delete(url);
+      throw error;
+    });
+  surfaceChangeSeriesCache.set(url, entry);
+  return entry.promise;
+}
+
+/** CPOM's basin of every cell of this terrain, from its rate map, loaded if the record is shown. */
+function ensureSurfaceChangeBasinIds(context) {
+  const urls = getSurfaceChangeOptions(context.dataset).rate;
+  if (!urls) return Promise.resolve(null);
+  let load = surfaceChangeBasinIdLoads.get(urls.binUrl);
+  if (!load) {
+    load = loadSurfaceChangeModule()
+      .then((module) => loadSurfaceChangePackage(urls, "rate", module, false))
+      .then(({ decoded }) => decoded.basin)
+      .catch((error) => {
+        surfaceChangeBasinIdLoads.delete(urls.binUrl);
+        throw error;
+      });
+    surfaceChangeBasinIdLoads.set(urls.binUrl, load);
+  }
+  return load;
 }
 
 /** Abandon the load in flight, which the view or terrain shown no longer needs. */
@@ -12305,6 +12397,9 @@ async function ensureSurfaceChangeLoaded() {
       statusEl.textContent = t("explorer.status.loadingSurfaceChange");
     }
     const module = await loadSurfaceChangeModule();
+    // The record may be downloading this rate map already, for its basins: wait for that
+    // download rather than start a second one.
+    if (view === "rate") await surfaceChangeBasinIdLoads.get(urls.binUrl)?.catch(() => null);
     const { meta, decoded } = await loadSurfaceChangePackage(urls, view, module, showOverlay, signal);
     if (!isCurrent()) {
       releaseSurfaceChangeOverlay(load);
@@ -12416,6 +12511,9 @@ function createSurfaceChangeShaderMaterial(fieldTexture, lutTexture, context, sc
       uFadedShare: { value: surfaceChangeModule.FADED_COLOUR_SHARE },
       uExtrapolatedRadius: { value: 0 },
       uOpacity: { value: SURFACE_CHANGE_OPACITY },
+      uSelection: { value: 0 },
+      uOutsideShare: { value: SURFACE_CHANGE_OUTSIDE_SHARE },
+      uOutlineColor: { value: new THREE.Vector3(...SURFACE_CHANGE_OUTLINE_RGB) },
     },
     vertexShader: `
       precision highp float;
@@ -12442,6 +12540,9 @@ function createSurfaceChangeShaderMaterial(fieldTexture, lutTexture, context, sc
       uniform float uFadedShare;
       uniform float uExtrapolatedRadius;
       uniform float uOpacity;
+      uniform float uSelection;
+      uniform float uOutsideShare;
+      uniform vec3 uOutlineColor;
 
       varying vec2 vUv;
 
@@ -12491,6 +12592,17 @@ function createSurfaceChangeShaderMaterial(fieldTexture, lutTexture, context, sc
         bool withinNoise = uFade > 0.5 && abs(value) < uFadeSigma * sigma;
         if (extrapolated || withinNoise) {
           color = neutral + uFadedShare * (color - neutral);
+        }
+        // A picked basin or region: the alpha channel is 1 on its cells. Interpolated, it
+        // crosses one half midway between an inside and an outside cell, where the outline
+        // runs; outside, the colour recedes.
+        if (uSelection > 0.5) {
+          float inside = mix(mix(s00.a, s10.a, frac.x), mix(s01.a, s11.a, frac.x), frac.y);
+          if (inside < 0.5) {
+            color = neutral + uOutsideShare * (color - neutral);
+          }
+          float edge = 1.0 - smoothstep(0.3, 0.45, abs(inside - 0.5));
+          color = mix(color, uOutlineColor, edge);
         }
         gl_FragColor = vec4(color, uOpacity);
       }
@@ -12553,6 +12665,7 @@ function buildSurfaceChangeScene(context, view, meta, decoded, module) {
     valid,
     domainValues: view === "cumulative" ? new Float32Array(decoded.domainCount) : null,
     drawnSummary: null,
+    selectedCells: 0,
   };
   writeSurfaceChangeStaticChannels();
   if (view === "cumulative") {
@@ -12563,6 +12676,16 @@ function buildSurfaceChangeScene(context, view, meta, decoded, module) {
     surfaceChangeScene.drawnSummary = module.summariseDrawn(decoded.values, decoded.sigma);
   }
   syncSurfaceChangeVisibility();
+  attachSurfaceChangeSeries(surfaceChangeScene);
+}
+
+/** Once the mass-change series are in, list the basins, outline the selection and chart it. */
+function attachSurfaceChangeSeries(state) {
+  ensureSurfaceChangeSeries(state.context.dataset)
+    .then(() => {
+      if (surfaceChangeScene === state) refreshSurfaceChangeSelection();
+    })
+    .catch((error) => console.error("Surface-change series failed to load:", error));
 }
 
 /** Uncertainty and validity, which do not change from frame to frame; and the rate itself. */
@@ -12666,6 +12789,216 @@ function setSurfaceChangePosition(position) {
   writeSurfaceChangeFrame();
   syncSurfaceChangeTimeControls();
   updateSurfaceChangeReadout();
+  updateSurfaceChangeChartCursor();
+}
+
+// ------------------------------------------------ basin chart
+//
+// A basin of CPOM's 18 (picked on the drape or from the list), a region's basins, or the
+// whole sheet: the drape outlines it and a chart plots its mass change since 1995. The
+// basins come from the rate map's basin_id on this terrain, the series from the record's
+// metadata, so both views offer the chart.
+
+/** The selection on the drape: the field's alpha channel is 1 on its cells. */
+function writeSurfaceChangeSelectionChannel(state, mask) {
+  const { data, encode, texture } = state.field;
+  const one = encode(1);
+  const zero = encode(0);
+  let count = 0;
+  for (let cell = 0; cell < state.valid.length; cell += 1) {
+    const inside = Boolean(mask?.[cell] && state.valid[cell]);
+    data[4 * cell + 3] = inside ? one : zero;
+    if (inside) count += 1;
+  }
+  texture.needsUpdate = true;
+  state.mesh.material.uniforms.uSelection.value = count > 0 ? 1 : 0;
+  state.selectedCells = count;
+}
+
+/** Outline the selection on the drape shown; the record waits for the rate map's basins. */
+async function applySurfaceChangeSelection() {
+  const state = surfaceChangeScene;
+  const module = surfaceChangeModule;
+  if (!state || !module) return;
+  const series = getSurfaceChangeSeries(state.context.dataset);
+  if (!(series && module.selectionBasinIds(series, surfaceChangeSelection))) {
+    writeSurfaceChangeSelectionChannel(state, null);
+    return;
+  }
+  const basinIds = state.view === "rate" ? state.decoded.basin : await ensureSurfaceChangeBasinIds(state.context);
+  // The drape may have been rebuilt while the basins loaded, and the selection changed.
+  if (surfaceChangeScene !== state) return;
+  const selected = module.selectionBasinIds(series, surfaceChangeSelection);
+  writeSurfaceChangeSelectionChannel(state, basinIds && selected ? module.selectionMask(basinIds, selected) : null);
+}
+
+function getSurfaceChangeSubjectName(subject) {
+  if (!subject) return "";
+  const regionName = t(SURFACE_CHANGE_SUBJECT_NAME_KEYS[subject.region]);
+  if (subject.kind !== "basin") return regionName;
+  return t("explorer.surfaceChange.basinName", { code: subject.code, region: regionName });
+}
+
+/** The subject the controls ask for, or null before the series are in. */
+function getSurfaceChangeSubject() {
+  const series = getSurfaceChangeSeries();
+  return series && surfaceChangeModule ? surfaceChangeModule.resolveSubject(series, surfaceChangeSelection) : null;
+}
+
+/** Select the whole sheet, a region or a basin; a key the series do not have selects the sheet. */
+function setSurfaceChangeSelection(key) {
+  const series = getSurfaceChangeSeries();
+  const module = surfaceChangeModule;
+  surfaceChangeSelection = series && module?.resolveSubject(series, key) ? key : "AIS";
+  const select = controlsUI.surfaceChangeBasin;
+  if (select && select.value !== surfaceChangeSelection) select.value = surfaceChangeSelection;
+  applySurfaceChangeSelection().catch((error) => console.error("Surface-change basins failed to load:", error));
+  renderSurfaceChangeChart();
+  updateSurfaceChangeReadout();
+  updateMetaFromCurrentState();
+}
+
+function refreshSurfaceChangeSelection() {
+  populateSurfaceChangeBasinList();
+  setSurfaceChangeSelection(surfaceChangeSelection);
+  updateSurfaceChangeControlsUi();
+}
+
+/** The basin list: the whole sheet, then each region with its basins in coastline order. */
+function populateSurfaceChangeBasinList() {
+  const select = controlsUI.surfaceChangeBasin;
+  const series = getSurfaceChangeSeries();
+  const module = surfaceChangeModule;
+  if (!select || !series || !module || series === surfaceChangeBasinListSeries) return;
+  surfaceChangeBasinListSeries = series;
+  const option = (value, label) => {
+    const element = document.createElement("option");
+    element.value = value;
+    element.textContent = label;
+    return element;
+  };
+  const children = [option(module.WHOLE_SHEET, t("explorer.surfaceChange.basinWhole"))];
+  for (const region of module.REGION_KEYS) {
+    if (region === module.WHOLE_SHEET || !series.regions[region]) continue;
+    const group = document.createElement("optgroup");
+    const regionName = t(SURFACE_CHANGE_SUBJECT_NAME_KEYS[region]);
+    group.label = regionName;
+    group.append(option(region, t("explorer.surfaceChange.basinAllOf", { region: regionName })));
+    for (const basin of series.basins) {
+      if (basin.region !== region) continue;
+      group.append(option(module.basinKey(basin.id), t("explorer.surfaceChange.basinOption", { code: basin.code })));
+    }
+    children.push(group);
+  }
+  select.replaceChildren(...children);
+  select.value = surfaceChangeSelection;
+}
+
+/** Pick the basin under a click on the drape; picking the selected one again goes back to the sheet. */
+function pickSurfaceChangeBasinAtClientPoint(clientX, clientY) {
+  const state = surfaceChangeScene;
+  const module = surfaceChangeModule;
+  if (!(state && module && isSurfaceChangeShown() && renderer && camera && flowlineRaycaster && flowlinePointerNdc)) {
+    return false;
+  }
+  if (!getSurfaceChangeSeries(state.context.dataset)?.basins.length) return false;
+  const rect = renderer.domElement.getBoundingClientRect();
+  if (!(rect.width > 0 && rect.height > 0)) return false;
+  if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) return false;
+  flowlinePointerNdc.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+  flowlineRaycaster.setFromCamera(flowlinePointerNdc, camera);
+  const hit = flowlineRaycaster.intersectObject(state.mesh, false)[0];
+  if (!hit?.uv) return false;
+  const { x: u, y: v } = hit.uv;
+  // The record may still wait for the basins: decide against the selection at the click,
+  // and only if no pick or list choice has come since.
+  const serial = ++surfaceChangePickSerial;
+  const selectionAtClick = surfaceChangeSelection;
+  const pick = (basinIds) => {
+    if (serial !== surfaceChangePickSerial || surfaceChangeScene !== state || !basinIds) return;
+    const id = module.basinAtUv(basinIds, state.context.nx, state.context.ny, u, v);
+    if (!id) return;
+    const key = module.basinKey(id);
+    setSurfaceChangeSelection(key === selectionAtClick ? module.WHOLE_SHEET : key);
+  };
+  if (state.view === "rate") pick(state.decoded.basin);
+  else ensureSurfaceChangeBasinIds(state.context).then(pick).catch((error) => console.error("Surface-change basins failed to load:", error));
+  return true;
+}
+
+/** The selection's mass change since 1995 with its 1-sigma band, and a cursor on the epoch shown. */
+function renderSurfaceChangeChart() {
+  const svg = controlsUI.surfaceChangeChart;
+  if (!svg) return;
+  const module = surfaceChangeModule;
+  const series = isSurfaceChangeShown() && module ? getSurfaceChangeSeries(surfaceChangeScene.context.dataset) : null;
+  const subject = series ? module.resolveSubject(series, surfaceChangeSelection) : null;
+  if (!subject) {
+    svg.innerHTML = "";
+    surfaceChangeChartGeometry = null;
+    return;
+  }
+  const box = SURFACE_CHANGE_CHART;
+  const geometry = module.massChangeChartGeometry(series.years, subject.massChange, subject.uncertainty, box);
+  // Coloured as the map colours loss (red) or gain (blue) over the record.
+  const last = subject.massChange[subject.massChange.length - 1];
+  const rgb = module.surfaceChangeRampColor(last < 0 ? 0.12 : 0.88).map((channel) => Math.round(channel * 255));
+  const color = `rgb(${rgb.join(", ")})`;
+  const name = getSurfaceChangeSubjectName(subject);
+  const zeroY = geometry.yOf(0).toFixed(1);
+  const parts = [
+    `<path class="band" fill="${color}" d="${geometry.band}" />`,
+    `<line class="axis" x1="${box.left}" y1="${zeroY}" x2="${box.right}" y2="${zeroY}" />`,
+    `<line class="axis" x1="${box.left}" y1="${box.top}" x2="${box.left}" y2="${box.bottom}" />`,
+    `<text class="label" x="${box.left - 3}" y="${box.top - 5}" text-anchor="end">Gt</text>`,
+  ];
+  for (const value of geometry.yTicks) {
+    const label = value === 0 ? "0" : formatSignedRounded(value, 1);
+    parts.push(
+      `<text class="label" x="${box.left - 3}" y="${(geometry.yOf(value) + 3).toFixed(1)}" text-anchor="end">${escapeHtml(label)}</text>`
+    );
+  }
+  for (const tick of geometry.xTicks) {
+    parts.push(
+      `<text class="label" x="${geometry.xOf(tick.at).toFixed(1)}" y="${box.bottom + 10}" text-anchor="middle">${tick.label}</text>`
+    );
+  }
+  parts.push(
+    `<path class="series is-active" stroke="${color}" d="${geometry.line}" />`,
+    `<text class="label label--series" x="${box.left + 4}" y="${box.top - 5}">${escapeHtml(name)}</text>`,
+    `<line class="cursor" x1="${box.left}" y1="${box.top}" x2="${box.left}" y2="${box.bottom}" />`,
+    `<circle class="cursor-dot" r="2.6" cx="${box.left}" cy="${zeroY}" fill="${color}" />`
+  );
+  svg.innerHTML = parts.join("");
+  svg.setAttribute(
+    "aria-label",
+    t("explorer.surfaceChange.chartLabel", {
+      name,
+      first: geometry.xTicks[0].label,
+      last: geometry.xTicks[geometry.xTicks.length - 1].label,
+    })
+  );
+  surfaceChangeChartGeometry = { ...geometry, series, subject };
+  updateSurfaceChangeChartCursor();
+}
+
+/** The record's epoch on the chart; the rate views have none. */
+function updateSurfaceChangeChartCursor() {
+  const svg = controlsUI.surfaceChangeChart;
+  const geometry = surfaceChangeChartGeometry;
+  if (!svg || !geometry || !surfaceChangeModule) return;
+  const cursor = svg.querySelector(".cursor");
+  const dot = svg.querySelector(".cursor-dot");
+  const year = surfaceChangeScene?.view === "cumulative" ? getSurfaceChangeYear() : Number.NaN;
+  const visible = Number.isFinite(year);
+  for (const element of [cursor, dot]) element?.setAttribute("visibility", visible ? "visible" : "hidden");
+  if (!visible) return;
+  const change = surfaceChangeModule.seriesChangeAt(geometry.series, geometry.subject, year);
+  const x = geometry.xOf(year).toFixed(1);
+  cursor?.setAttribute("x1", x);
+  cursor?.setAttribute("x2", x);
+  dot?.setAttribute("cx", x);
+  dot?.setAttribute("cy", geometry.yOf(change.massChangeGt).toFixed(1));
 }
 
 function formatSurfaceChangeDate(year) {
@@ -12740,6 +13073,15 @@ function formatSignedRounded(value, step) {
   return `${rounded > 0 ? "+" : "−"}${text}`;
 }
 
+/** "−1,890 ± 320 Gt": tens of gigatonnes once the uncertainty reaches them, whole ones before. */
+function formatSurfaceChangeMass(change) {
+  const step = change.uncertaintyGt >= 10 ? 10 : 1;
+  return t("explorer.surfaceChange.massValue", {
+    value: formatSignedRounded(change.massChangeGt, step),
+    sigma: (Math.max(1, Math.round(change.uncertaintyGt / step)) * step).toLocaleString(numberLocale),
+  });
+}
+
 function updateSurfaceChangeReadout() {
   const el = controlsUI.surfaceChangeReadout;
   if (!el) return;
@@ -12749,26 +13091,25 @@ function updateSurfaceChangeReadout() {
     return;
   }
   const rows = [];
+  const subject = getSurfaceChangeSubject();
   if (state.view === "cumulative") {
-    const regional = surfaceChangeModule.regionalChangeAt(state.decoded, getSurfaceChangeYear());
+    const year = getSurfaceChangeYear();
+    const regional = surfaceChangeModule.regionalChangeAt(state.decoded, year);
     for (const key of surfaceChangeModule.REGION_KEYS) {
       const change = regional[key];
       if (!change) continue;
-      // Tens of gigatonnes once the uncertainty reaches them; whole gigatonnes before.
-      const step = change.uncertaintyGt >= 10 ? 10 : 1;
-      rows.push([
-        t(SURFACE_CHANGE_REGION_LABEL_KEYS[key]),
-        t("explorer.surfaceChange.massValue", {
-          value: formatSignedRounded(change.massChangeGt, step),
-          sigma: (Math.max(1, Math.round(change.uncertaintyGt / step)) * step).toLocaleString(numberLocale),
-        }),
-      ]);
+      rows.push([t(SURFACE_CHANGE_REGION_LABEL_KEYS[key]), formatSurfaceChangeMass(change)]);
       if (key === "AIS") {
         rows.push([
           t("explorer.surfaceChange.readoutSeaLevel"),
           t("explorer.surfaceChange.seaLevelValue", { value: formatSignedRounded(change.seaLevelMm, 0.1) }),
         ]);
       }
+    }
+    // The regions are listed already; a basin is added below them.
+    if (subject?.kind === "basin") {
+      const change = surfaceChangeModule.seriesChangeAt(getSurfaceChangeSeries(), subject, year);
+      rows.push([getSurfaceChangeSubjectName(subject), formatSurfaceChangeMass(change)]);
     }
   } else {
     const summary = state.drawnSummary;
@@ -12784,6 +13125,19 @@ function updateSurfaceChangeReadout() {
       rows.push([
         t("explorer.surfaceChange.readoutSignificant"),
         `${Math.round(summary.significantShare * 100)}%`,
+      ]);
+    }
+    // The selection's mass change over the whole record.
+    const series = getSurfaceChangeSeries();
+    if (subject && series) {
+      const change = surfaceChangeModule.seriesChangeAt(series, subject, series.years[series.years.length - 1]);
+      rows.push([
+        t("explorer.surfaceChange.readoutTotal", {
+          name: getSurfaceChangeSubjectName(subject),
+          first: Math.floor(series.years[0]),
+          last: Math.floor(series.years[series.years.length - 1]),
+        }),
+        formatSurfaceChangeMass(change),
       ]);
     }
   }
@@ -12839,10 +13193,17 @@ function updateSurfaceChangeControlsUi() {
   if (controlsUI.surfaceChangeTimeControl) {
     controlsUI.surfaceChangeTimeControl.hidden = getSurfaceChangeView() !== "cumulative";
   }
+  if (controlsUI.surfaceChangeBasinControl) {
+    controlsUI.surfaceChangeBasinControl.hidden = !(isSurfaceChangeShown() && getSurfaceChangeSeries()?.basins.length);
+  }
+  if (controlsUI.surfaceChangeChartNote) {
+    controlsUI.surfaceChangeChartNote.textContent = t("explorer.surfaceChange.chartNote");
+  }
   syncSurfaceChangeTimeControls();
   updateSurfaceChangePlayButton();
   updateSurfaceChangeNote();
   updateSurfaceChangeReadout();
+  renderSurfaceChangeChart();
   if (isSurfaceChangeShown()) renderSurfaceChangeLegend();
 }
 
@@ -12913,10 +13274,47 @@ function buildSurfaceChangeMetaItems() {
       )
     );
   }
+  items.push(...buildSurfaceChangeMassItems(item, state));
   items.push(
     item(t("explorer.meta.surfaceChangeCells"), t("explorer.meta.surfaceChangeCellsValue"), true),
     item(t("explorer.meta.surfaceChangeMethod"), t("explorer.meta.surfaceChangeMethodValue"), true)
   );
+  return items;
+}
+
+/**
+ * CPOM's mass change of the sheet and its regions, and of the selection if it is narrower:
+ * at the epoch shown in the record, over the whole record in the rate views.
+ */
+function buildSurfaceChangeMassItems(item, state) {
+  const series = getSurfaceChangeSeries(state.context.dataset);
+  const module = surfaceChangeModule;
+  if (!series || !module) return [];
+  const lastYear = series.years[series.years.length - 1];
+  const year = state.view === "cumulative" ? getSurfaceChangeYear() : lastYear;
+  const parts = module.REGION_KEYS.filter((key) => series.regions[key]).map((key) =>
+    t("explorer.meta.surfaceChangeMassPart", {
+      name: t(SURFACE_CHANGE_SUBJECT_NAME_KEYS[key]),
+      value: formatSurfaceChangeMass(module.seriesChangeAt(series, series.regions[key], year)),
+    })
+  );
+  const label =
+    state.view === "cumulative"
+      ? t("explorer.meta.surfaceChangeMassSince")
+      : t("explorer.meta.surfaceChangeMassPeriod", { first: Math.floor(series.years[0]), last: Math.floor(lastYear) });
+  const items = [item(label, parts.join(t("explorer.meta.surfaceChangeMassSeparator")))];
+  const subject = getSurfaceChangeSubject();
+  if (subject && subject.kind !== "sheet") {
+    items.push(
+      item(
+        t("explorer.meta.surfaceChangeSelected"),
+        t("explorer.meta.surfaceChangeSelectedValue", {
+          name: getSurfaceChangeSubjectName(subject),
+          value: formatSurfaceChangeMass(module.seriesChangeAt(series, subject, year)),
+        })
+      )
+    );
+  }
   return items;
 }
 
@@ -12935,6 +13333,10 @@ function collectSurfaceChangeState() {
     playing: surfaceChangePlaying,
     extrapolatedRadiusKm: state?.mesh ? Math.round(state.mesh.material.uniforms.uExtrapolatedRadius.value / 1000) : null,
     fade: Boolean(state?.mesh && state.mesh.material.uniforms.uFade.value > 0.5),
+    selection: surfaceChangeSelection,
+    selectedCells: state?.selectedCells ?? 0,
+    basinCount: getSurfaceChangeSeries()?.basins.length ?? 0,
+    chartShown: Boolean(surfaceChangeChartGeometry),
   };
 }
 
@@ -12976,6 +13378,10 @@ function bindSurfaceChangeControls() {
   controlsUI.surfaceChangeFade?.addEventListener("change", () => {
     const uniforms = surfaceChangeScene?.mesh?.material?.uniforms;
     if (uniforms) uniforms.uFade.value = controlsUI.surfaceChangeFade.checked ? 1 : 0;
+  });
+  controlsUI.surfaceChangeBasin?.addEventListener("change", () => {
+    surfaceChangePickSerial += 1;
+    setSurfaceChangeSelection(controlsUI.surfaceChangeBasin.value);
   });
 }
 

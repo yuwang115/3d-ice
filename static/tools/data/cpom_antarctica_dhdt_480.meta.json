@@ -130,8 +130,26 @@
       "dtype": "uint8",
       "flags": {
         "0": "none",
-        "1-18": "IMBIE drainage basin of Rignot et al. (2016), as CPOM numbers them"
+        "1": "West H-Hp",
+        "2": "West F-G",
+        "3": "East E-Ep",
+        "4": "East D-Dp",
+        "5": "East Cp-D",
+        "6": "East B-C",
+        "7": "East A-Ap",
+        "8": "East Jpp-K",
+        "9": "West G-H",
+        "10": "East Dp-E",
+        "11": "East Ap-B",
+        "12": "East C-Cp",
+        "13": "East K-A",
+        "14": "West J-Jpp",
+        "15": "Peninsula Ipp-J",
+        "16": "Peninsula I-Ipp",
+        "17": "Peninsula Hp-I",
+        "18": "West Ep-F"
       },
+      "note": "IMBIE drainage basins, numbered, named and cited (Rignot et al., 2016) as in CPOM's basin_id; each cell takes the basin of the CPOM cell under its centre",
       "byte_offset": 1779556,
       "byte_length": 444889
     }
