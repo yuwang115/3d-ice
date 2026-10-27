@@ -2659,6 +2659,13 @@ function terminateGeometryWorker() {
   geometryWorkerPending.clear();
 }
 
+// A dataset switch replaces the context a layer load was building for, and the worker
+// termination that comes with it rejects any build the load was waiting on. The switch has
+// already dropped that load, so its failure is neither reported nor acted on.
+function isAbandonedLayerLoad(context) {
+  return context !== currentCoreContext || context.generation !== loadGeneration;
+}
+
 async function loadBedColorTable() {
   const response = await fetch(GMT_RELIEF_RGB_URL);
   if (!response.ok) {
@@ -9049,7 +9056,8 @@ async function loadPublishedRebound(context, module, showOverlay) {
 /**
  * Solve an idealised (ELRA or Airy) response in the worker, or on the main thread. The
  * model and datum are the ones the request was keyed on, not whatever the controls say by
- * the time the module has loaded; a stale result is re-requested by the caller.
+ * the time the module has loaded; a stale result is re-requested by the caller. Returns
+ * null when the terrain changed underneath the solve.
  */
 async function solveIdealisedRebound(context, module, showOverlay, { model, seaLevelMeters }) {
   const payload = {
@@ -9077,6 +9085,9 @@ async function solveIdealisedRebound(context, module, showOverlay, { model, seaL
     try {
       return await workerTask;
     } catch (workerError) {
+      // A dataset switch terminates the worker under any solve in flight. The worker is not
+      // broken, and the switch has dropped this solve, so there is nothing to retry.
+      if (!isCurrentReboundContext(context)) return null;
       console.warn("Isostatic-rebound worker failed, retrying on the main thread.", workerError);
       reboundWorkerUnavailable = true;
     }
@@ -9158,18 +9169,18 @@ async function ensureIsostaticReboundLoaded({ trigger = "toggle" } = {}) {
     return true;
   })()
     .catch((error) => {
+      // A load the dataset switch superseded is neither reported nor acted on.
+      if (!isCurrentReboundContext(context)) return false;
       console.error("Isostatic-rebound solve failed:", error);
-      if (context === currentCoreContext && context.generation === loadGeneration) {
-        context.reboundUnavailable = true;
-        if (controlsUI.showIsostaticRebound) {
-          controlsUI.showIsostaticRebound.checked = false;
-          controlsUI.showIsostaticRebound.disabled = true;
-        }
-        updateReboundControlsUi();
-        applyReboundGeometry({ recomputeNormals: true });
-        setTransientStatus(t("explorer.status.isostaticReboundUnavailable"));
-        setLoadingOverlayVisible(false);
+      context.reboundUnavailable = true;
+      if (controlsUI.showIsostaticRebound) {
+        controlsUI.showIsostaticRebound.checked = false;
+        controlsUI.showIsostaticRebound.disabled = true;
       }
+      updateReboundControlsUi();
+      applyReboundGeometry({ recomputeNormals: true });
+      setTransientStatus(t("explorer.status.isostaticReboundUnavailable"));
+      setLoadingOverlayVisible(false);
       return false;
     })
     .finally(() => {
@@ -11044,8 +11055,9 @@ async function ensureBasalFrictionLoaded({ trigger = "prefetch" } = {}) {
     return true;
   })()
     .catch((error) => {
+      if (isAbandonedLayerLoad(context)) return false;
       console.error("Basal-friction layer load failed:", error);
-      if (context === currentCoreContext && context.generation === loadGeneration && trigger === "toggle") {
+      if (trigger === "toggle") {
         context.basalFrictionUnavailable = true;
         controlsUI.showBasalFriction.checked = false;
         controlsUI.showBasalFriction.disabled = true;
@@ -11342,6 +11354,8 @@ async function ensureOceanCurrentsLoaded({ trigger = "prefetch" } = {}) {
       if (context !== currentCoreContext || context.generation !== loadGeneration) return false;
       builtMesh = buildOceanCurrentMeshFromWorkerResult(oceanMeta, workerResult);
     } catch (workerError) {
+      // An abandoned build is not rebuilt on the main thread for a dataset no longer shown.
+      if (isAbandonedLayerLoad(context)) return false;
       if (!allowMainThreadFallback) {
         console.error("Ocean-current worker build failed for a large dataset; skipping main-thread fallback.", workerError);
         throw workerError;
@@ -11377,8 +11391,9 @@ async function ensureOceanCurrentsLoaded({ trigger = "prefetch" } = {}) {
     return true;
   })()
     .catch((error) => {
+      if (isAbandonedLayerLoad(context)) return false;
       console.error("Ocean-current layer load failed:", error);
-      if (context === currentCoreContext && context.generation === loadGeneration && trigger === "toggle") {
+      if (trigger === "toggle") {
         context.oceanCurrentUnavailable = true;
         controlsUI.showOceanCurrents.checked = false;
         oceanCurrentMesh = disposeObject3D(oceanCurrentMesh);
@@ -11496,8 +11511,9 @@ async function ensureVelocityLoaded({ trigger = "prefetch" } = {}) {
     });
   })()
     .catch((error) => {
+      if (isAbandonedLayerLoad(context)) return false;
       console.error("Velocity layer load failed:", error);
-      if (context === currentCoreContext && context.generation === loadGeneration && trigger === "toggle") {
+      if (trigger === "toggle") {
         context.velocityUnavailable = true;
         controlsUI.showVelocity.checked = false;
         controlsUI.showFlowline.checked = false;
@@ -11718,8 +11734,9 @@ async function ensureHydrologyLoaded({ trigger = "prefetch" } = {}) {
     return true;
   })()
     .catch((error) => {
+      if (isAbandonedLayerLoad(context)) return false;
       console.error("Hydrology layer load failed:", error);
-      if (context === currentCoreContext && context.generation === loadGeneration && trigger === "toggle") {
+      if (trigger === "toggle") {
         context.hydrologyUnavailable = true;
         controlsUI.showEffectivePressure.checked = false;
         controlsUI.showSubglacialChannels.checked = false;
@@ -11784,8 +11801,10 @@ function startBackgroundWarmup() {
       (layer) => !(prefersLightPackages && layer === "oceanCurrents")
     );
     for (const [position, layer] of warmupLayers.entries()) {
-      if (!context || context !== currentCoreContext || context.generation !== loadGeneration) return;
       if (position > 0) await nextAnimationFrame();
+      // Checked after the wait: the loaders build for whichever dataset is current, so a
+      // warmup outliving a dataset switch would warm the new one, which may opt out.
+      if (!context || context !== currentCoreContext || context.generation !== loadGeneration) return;
       await loaders[layer]({ trigger: "warmup" });
     }
   })().catch((error) => {
