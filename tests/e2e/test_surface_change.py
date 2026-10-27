@@ -107,10 +107,53 @@ def test_the_record_shows_cpoms_totals_at_the_last_epoch(page):
     assert mass_text in readout
     assert sea_level_text in readout
     assert not page.locator("#surfaceChangeLegendSection").is_hidden()
-    labels = page.locator("#surfaceChangeLegendLabels").inner_text()
-    assert "−150 m" in labels and "+150 m" in labels
+    assert _legend_labels(page) == ["−150", "−20", "−5", "0 m", "+5", "+20", "+150"]
     assert _state(page)["meshes"]["surfaceChange"]
     assert errors == []
+
+
+def _legend_labels(page) -> list[str]:
+    return page.locator("#surfaceChangeLegendLabels span").all_inner_texts()
+
+
+def _legend_rows(page) -> set[str]:
+    """The `top` of every legend label, once the layout has placed them: one value is one row."""
+    page.wait_for_function(
+        "() => [...document.querySelectorAll('#surfaceChangeLegendLabels span')].every((s) => s.style.top)",
+        timeout=10_000,
+    )
+    return set(page.locator("#surfaceChangeLegendLabels span").evaluate_all("(spans) => spans.map((s) => s.style.top)"))
+
+
+@pytest.mark.parametrize("viewport", [(1280, 800), (390, 844)])
+def test_the_legend_labels_of_both_views_fit_on_one_row(playwright_browser, explorer_url, viewport):
+    context = playwright_browser.new_context(viewport={"width": viewport[0], "height": viewport[1]})
+    try:
+        page = context.new_page()
+        page.goto(explorer_url, wait_until="domcontentloaded", timeout=30_000)
+        page.wait_for_function(
+            "() => window.render_game_to_text && JSON.parse(window.render_game_to_text()).ready",
+            timeout=READY_TIMEOUT_MS,
+        )
+        # The phone layout keeps the controls in a drawer; check the box through the page.
+        page.evaluate(
+            "() => { const el = document.getElementById('showSurfaceChange'); el.checked = true;"
+            " el.dispatchEvent(new Event('change', { bubbles: true })); }"
+        )
+        _wait_for_view(page, "cumulative")
+        assert _legend_rows(page) == {"0px"}
+        page.evaluate(
+            "() => { const el = document.getElementById('surfaceChangeView'); el.value = 'rate';"
+            " el.dispatchEvent(new Event('change', { bubbles: true })); }"
+        )
+        _wait_for_view(page, "rate")
+        page.wait_for_function(
+            "() => document.getElementById('surfaceChangeLegendLabels').textContent.includes('m/yr')", timeout=10_000
+        )
+        assert _legend_labels(page) == ["−5", "−1", "−0.2", "0 m/yr", "+0.2", "+1", "+5"]
+        assert _legend_rows(page) == {"0px"}
+    finally:
+        context.close()
 
 
 def test_the_slider_and_playback_move_through_the_epochs(page):

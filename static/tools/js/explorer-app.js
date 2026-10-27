@@ -7062,6 +7062,7 @@ function refreshResponsiveLayout() {
   scheduleTickLegendLayout(controlsUI?.basalMeltLegendLabels);
   scheduleTickLegendLayout(controlsUI?.effectivePressureLegendLabels);
   scheduleTickLegendLayout(controlsUI?.channelLegendLabels);
+  scheduleTickLegendLayout(controlsUI?.surfaceChangeLegendLabels);
   if (shouldUseShowcaseMobileLinkout() && interactionGateActive) {
     setInteractionGateActive(false);
   }
@@ -12800,12 +12801,11 @@ function updateSurfaceChangeNote() {
     getSurfaceChangeView() === "rate" ? t("explorer.surfaceChange.noteRate") : t("explorer.surfaceChange.noteCumulative");
 }
 
+/** A legend label: the unit rides on zero, as on the velocity legend, so the ends stay short. */
 function formatSurfaceChangeTick(value, view) {
-  if (value === 0) return "0";
+  if (value === 0) return view === "rate" ? "0 m/yr" : "0 m";
   const magnitude = Math.abs(value).toLocaleString(numberLocale);
-  const ticks = surfaceChangeModule?.SURFACE_CHANGE_SCALES[view]?.ticks || [];
-  const unit = Math.abs(value) === ticks[ticks.length - 1] ? (view === "rate" ? " m/yr" : " m") : "";
-  return `${value > 0 ? "+" : "−"}${magnitude}${unit}`;
+  return `${value > 0 ? "+" : "−"}${magnitude}`;
 }
 
 function renderSurfaceChangeLegend() {
@@ -12814,12 +12814,12 @@ function renderSurfaceChangeLegend() {
   if (!state || !module) return;
   const { scale } = state.decoded;
   updateContinuousLegend(controlsUI.surfaceChangeLegendBar, (position) => module.surfaceChangeRampColor(position));
+  // The default gap, as the layout's later passes use (on showing the section, on resize).
   renderTickLegendLabels(
     controlsUI.surfaceChangeLegendLabels,
     scale.ticks,
     (value) => module.surfaceChangeScaleT(value, scale),
-    (value) => formatSurfaceChangeTick(value, state.view),
-    { minGapPx: 4 }
+    (value) => formatSurfaceChangeTick(value, state.view)
   );
   if (controlsUI.surfaceChangeLegendTitle) {
     controlsUI.surfaceChangeLegendTitle.textContent =

@@ -25,18 +25,19 @@ export const SURFACE_CHANGE_VIEWS = Object.freeze({ cumulative: "cumulative", ra
 
 /**
  * Colour scales: asinh, linear within `softness` and saturating at `saturation`. The ticks
- * are placed at their values on the legend.
+ * are placed at their values on the legend. They are spread so that their labels fit on one
+ * row of the 300 px legend, with the unit on the zero label only.
  */
 export const SURFACE_CHANGE_SCALES = Object.freeze({
   cumulative: Object.freeze({
     softness: 1,
     saturation: 150,
-    ticks: Object.freeze([-150, -30, -5, -1, 0, 1, 5, 30, 150]),
+    ticks: Object.freeze([-150, -20, -5, 0, 5, 20, 150]),
   }),
   rate: Object.freeze({
     softness: 0.05,
     saturation: 5,
-    ticks: Object.freeze([-5, -1, -0.2, -0.05, 0, 0.05, 0.2, 1, 5]),
+    ticks: Object.freeze([-5, -1, -0.2, 0, 0.2, 1, 5]),
   }),
 });
 
