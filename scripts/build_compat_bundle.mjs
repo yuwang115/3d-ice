@@ -18,7 +18,8 @@ const manifestName = "3d-ice-compat-manifest.json";
 /**
  * Files a host serves at the same paths as 3d-ice.com: both explorer editions in both
  * locales, and what the home page loads, typefaces included, so a copy of the page draws
- * the same weights. yuwang.blog mounts the bundle at its site root.
+ * the same weights. yuwang.blog mounts the bundle at its site root. The explorer pages also
+ * load the analytics script, which loads no tracker on any host but 3d-ice.com.
  */
 const SERVED_PATHS = Object.freeze([
   "tools",
@@ -27,6 +28,7 @@ const SERVED_PATHS = Object.freeze([
   "zh/tools/3D-interactive-cryosphere-explorer.html",
   "js/3d-ice-locale.js",
   "js/3d-ice-home.js",
+  "js/3d-ice-analytics.js",
   "css/3d-ice-home.css",
   "css/3d-ice-type.css",
   "fonts/playfair-display-latin.woff2",

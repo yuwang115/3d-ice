@@ -47,15 +47,9 @@
     <link rel="stylesheet" href="/css/3d-ice-home.css" />
     <script src="/js/3d-ice-locale.js" defer></script>
     <script src="/js/3d-ice-home.js" defer></script>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-YGK0V9S67F"></script>
+    <!-- Analytics (Google Analytics, GoatCounter), on 3d-ice.com only. -->
+    <script src="/js/3d-ice-analytics.js"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        window.dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-      gtag("config", "G-YGK0V9S67F", {});
-      gtag("set", { cookie_flags: "SameSite=None;Secure" });
       // Outbound clicks, reported as they were before the rebuild.
       document.addEventListener("click", (event) => {
         const link = event.target.closest && event.target.closest("a[href]");
