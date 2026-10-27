@@ -20,6 +20,26 @@ All notable changes to 3D ICE are recorded here. The format follows
     polar cap that CPOM extrapolates is always faded.
   - `scripts/prepare_cpom_land_ice.py` writes the three packages (`cpom_antarctica_dhdt_480`,
     `_741`, `cpom_antarctica_dh_480`); the public edition does not offer the layer yet.
+- A cookieless GoatCounter count (yuwang.goatcounter.com) beside Google Analytics, as an
+  independent check on it. It loads GoatCounter's count.js v5, pinned by its published
+  Subresource Integrity hash.
+
+### Fixed
+
+- Google Analytics records 3d-ice.com again. Since mid-April 2026 the site had loaded
+  `gtag/js?id=G-YGK0V9S67F`, which Google answers with a 404, because the 3D ICE stream had
+  been attached as a second destination to yuwang.blog's Google tag instead of getting one
+  of its own. No 3d-ice.com visit was recorded in that time, and the 3D ICE property
+  received yuwang.blog's traffic. The stream now has its own tag, GT-WPQPVBWP, which the
+  site loads.
+- Analytics count only visits to 3d-ice.com. Every page used to carry its own copy of the
+  Google tag, which loaded wherever the page was served: local previews, test runs and the
+  copy of the explorer that yuwang.blog serves from the compatibility bundle. The pages now
+  load `js/3d-ice-analytics.js`, which loads trackers only on 3d-ice.com and only in a
+  top-level window, so the explorer in the home page's showcase iframe still adds no page
+  view. The script defines `gtag` on every host, so the pages' own events (outbound clicks
+  and `page_not_found`) still queue. The `cookie_flags` setting now comes before `config`
+  rather than after it. The compatibility bundle carries the new script.
 
 ## [0.3.1] — 2026-10-22
 

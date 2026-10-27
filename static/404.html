@@ -30,14 +30,9 @@
       } catch (_e) {}
     })();
   </script>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YGK0V9S67F"></script>
+  <!-- Analytics (Google Analytics, GoatCounter), on 3d-ice.com only. -->
+  <script src="/js/3d-ice-analytics.js"></script>
   <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag("js", new Date());
-    gtag("config", "G-YGK0V9S67F", {});
-    gtag("set", {cookie_flags: "SameSite=None;Secure"});
     // Emit a dedicated event so real 3d-ice.com 404s can be separated
     // from the default page_view in reports.
     try {
