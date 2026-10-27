@@ -8,6 +8,15 @@
  * and the explorer inside the home page's showcase iframe are therefore never counted.
  * `window.gtag` is defined everywhere, so the pages' own events (outbound clicks, the 404
  * page's page_not_found) can always be queued; away from 3d-ice.com nothing sends them.
+ *
+ * GoatCounter also counts events, reported through `window.__3dIceAnalytics.event(name,
+ * title)`, which is defined everywhere too:
+ *   tour-start, tour-complete      the guided tour (static/tools/js/explore-guide.js);
+ *   open-<edition>-edition:<from>  a click into the public or research edition, from the other
+ *                                  edition or from the home page section holding the link
+ *                                  (home-hero, home-editions, home-antarctica-features, ...).
+ * An event reported before count.js has loaded waits for it; away from 3d-ice.com, or once
+ * count.js has failed to load, events are dropped.
  */
 (() => {
   "use strict";
@@ -22,6 +31,10 @@
   // (https://www.goatcounter.com/help/countjs-versions).
   const GOATCOUNTER_SCRIPT = "https://gc.zgo.at/count.v5.js";
   const GOATCOUNTER_INTEGRITY = "sha384-atnOLvQb9t+jTSipvd75X2yginT4PjVbqDdlJAmxMm+wYElFmeR6EmLP5bYeoRVQ";
+  // The home pages, whose links into an edition are named by the section holding them.
+  const HOME_PATHS = ["/", "/index.html", "/zh/", "/zh/index.html"];
+
+  const counting = window.top === window.self && PRODUCTION_HOSTS.includes(window.location.hostname);
 
   window.dataLayer = window.dataLayer || [];
   window.gtag =
@@ -31,7 +44,45 @@
       window.dataLayer.push(arguments);
     };
 
-  if (window.top !== window.self || !PRODUCTION_HOSTS.includes(window.location.hostname)) return;
+  const pendingEvents = [];
+  let goatcounterFailed = false;
+  const sendEvent = ({ name, title }) => window.goatcounter.count({ path: name, title, event: true });
+
+  window.__3dIceAnalytics = {
+    event(name, title = name) {
+      if (!counting || !GOATCOUNTER_CODE || goatcounterFailed) return;
+      if (typeof window.goatcounter?.count === "function") sendEvent({ name, title });
+      else pendingEvents.push({ name, title });
+    },
+  };
+
+  // The edition a URL on this site opens: "public" (/explore/) or "research", else null.
+  const editionAt = ({ pathname }) => {
+    if (/\/explore\/(index\.html)?$/.test(pathname)) return "public";
+    if (pathname.endsWith("/tools/3D-interactive-cryosphere-explorer.html")) return "research";
+    return null;
+  };
+
+  // Where a link into an edition was clicked: the other edition, or a home page section.
+  const entrySource = (link) => {
+    const here = editionAt(window.location);
+    if (here) return `${here}-edition`;
+    if (!HOME_PATHS.includes(window.location.pathname)) return "other";
+    return `home-${link.closest("section[id]")?.id || "hero"}`;
+  };
+
+  // A click on a link into an edition is an entry to it. Links within an edition, such as its
+  // language switch, are not, and neither are links to other sites.
+  const countEditionEntry = (event) => {
+    const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
+    if (event.defaultPrevented || !link || link.host !== window.location.host) return;
+    const edition = editionAt(link);
+    if (!edition || edition === editionAt(window.location)) return;
+    const from = entrySource(link);
+    window.__3dIceAnalytics.event(`open-${edition}-edition:${from}`, `Opened the ${edition} edition from ${from}`);
+  };
+
+  if (!counting) return;
 
   const appendScript = (src, attributes = {}) => {
     const script = document.createElement("script");
@@ -39,6 +90,7 @@
     script.src = src;
     for (const [name, value] of Object.entries(attributes)) script.setAttribute(name, value);
     document.head.appendChild(script);
+    return script;
   };
 
   appendScript(`https://www.googletagmanager.com/gtag/js?id=${GA_TAG_ID}`);
@@ -47,10 +99,17 @@
   window.gtag("config", GA_TAG_ID, {});
 
   if (GOATCOUNTER_CODE) {
-    appendScript(GOATCOUNTER_SCRIPT, {
+    const script = appendScript(GOATCOUNTER_SCRIPT, {
       "data-goatcounter": `https://${GOATCOUNTER_CODE}.goatcounter.com/count`,
       integrity: GOATCOUNTER_INTEGRITY,
       crossorigin: "anonymous",
     });
+    script.addEventListener("load", () => pendingEvents.splice(0).forEach(sendEvent));
+    // An ad blocker, for one, stops count.js; the events waiting for it would wait forever.
+    script.addEventListener("error", () => {
+      goatcounterFailed = true;
+      pendingEvents.length = 0;
+    });
+    document.addEventListener("click", countEditionEntry);
   }
 })();

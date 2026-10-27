@@ -11,6 +11,14 @@ All notable changes to 3D ICE are recorded here. The format follows
 - A cookieless GoatCounter count (yuwang.goatcounter.com) beside Google Analytics, as an
   independent check on it. It loads GoatCounter's count.js v5, pinned by its published
   Subresource Integrity hash.
+- GoatCounter events for the guided tour and the ways into each edition. `tour-start`
+  counts a tour opened afresh, from a launcher or a `tour=` address, but not one resumed
+  after closing; `tour-complete` counts a finished tour, ended with Finish or a choice of
+  region. A click into the public or research edition counts as
+  `open-<edition>-edition:<from>`, where `<from>` is the other edition or the home page
+  section that holds the link, such as `home-hero` or `home-editions`. A link within an
+  edition, such as its language switch, is not an entry. Pages report events through
+  `window.__3dIceAnalytics.event()`, which sends them on 3d-ice.com only.
 
 ### Fixed
 
