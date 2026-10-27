@@ -298,6 +298,29 @@
 
       <section id="interactiveScenariosSection" class="section" aria-labelledby="interactiveScenariosHeading">
         <h2 id="interactiveScenariosHeading" class="section-title">交互式情景</h2>
+        <div id="surfaceChangeRow" hidden>
+          <label class="toggle"><input id="showSurfaceChange" type="checkbox" /> 显示观测到的冰面高程变化（CPOM，1995–2026）</label>
+          <div id="surfaceChangeControls" class="toggle-group" hidden>
+            <div class="control">
+              <label for="surfaceChangeView">视图</label>
+              <select id="surfaceChangeView">
+                <option value="cumulative" selected>相对 1995 年的变化</option>
+                <option value="rate">1995–2026 年变化速率</option>
+              </select>
+            </div>
+            <div id="surfaceChangeTimeControl" class="control">
+              <label for="surfaceChangeTime">日期 <span id="surfaceChangeTimeValue" class="mono"></span></label>
+              <div class="projection-timeline">
+                <button id="surfaceChangePlay" type="button" class="projection-play" aria-label="播放">播放</button>
+                <input id="surfaceChangeTime" type="range" min="0" max="80" step="0.01" value="80" />
+              </div>
+            </div>
+            <div id="surfaceChangeReadout" class="projection-readout" aria-live="polite"></div>
+            <label class="toggle toggle--sub"><input id="surfaceChangeFade" type="checkbox" checked /> 淡化 2σ 以内的变化</label>
+            <div id="surfaceChangeNote" class="legend-note"></div>
+          </div>
+          <div class="toggle-divider" aria-hidden="true"></div>
+        </div>
         <div id="iceProjectionRow" hidden>
           <label class="toggle"><input id="showIceProjection" type="checkbox" /> 显示冰盖未来预估（ISMIP6，至 2300 年）</label>
           <div id="iceProjectionControls" class="toggle-group" hidden>
@@ -367,6 +390,13 @@
         <div id="projectionLegendBar" class="legend" aria-hidden="true"></div>
         <div id="projectionLegendLabels" class="legend-labels"></div>
         <div id="projectionLegendNote" class="legend-note"></div>
+      </section>
+
+      <section id="surfaceChangeLegendSection" class="section" hidden>
+        <h2 id="surfaceChangeLegendTitle" class="section-title">冰面高程变化配色</h2>
+        <div id="surfaceChangeLegendBar" class="legend" aria-hidden="true"></div>
+        <div id="surfaceChangeLegendLabels" class="legend-labels"></div>
+        <div id="surfaceChangeLegendNote" class="legend-note"></div>
       </section>
 
       <section id="velocityLegendSection" class="section">
