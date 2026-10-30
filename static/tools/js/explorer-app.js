@@ -180,12 +180,24 @@ const ALL_REGIONS = {
       hydrology: true,
       isostaticRebound: true,
       iceProjection: false,
+      surfaceChange: true,
     },
     sources: {
       geometry: {
         text: "MEaSUREs BedMachine Antarctica, Version 4",
         url: "https://nsidc.org/data/NSIDC-0756/versions/4",
       },
+      surfaceChange: [
+        {
+          text: "CPOM (2026) Antarctic Ice Sheet surface elevation change from multi-mission radar altimetry (ESA ERS-2, Envisat and CryoSat-2), product version 1.0, CC BY 4.0",
+          url: "https://www.cpom.ucl.ac.uk/landice/",
+        },
+        "; ",
+        {
+          text: "Shepherd et al. (2019), Geophysical Research Letters",
+          url: "https://doi.org/10.1029/2019GL082182",
+        },
+      ],
       velocity: {
         text: "MEaSUREs Phase-Based Antarctica Ice Velocity Map, Version 1",
         url: "https://nsidc.org/data/NSIDC-0754/versions/1",
@@ -271,6 +283,13 @@ const ALL_REGIONS = {
         oceanCurrentsLightBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.bin?v=20261018-waom2-xy-v4"),
         hydrologyMetaUrl: assetUrl("data/antarctica_subglacial_hydrology_480.meta.json?v=20261018-channels-v2"),
         hydrologyBinUrl: assetUrl("data/antarctica_subglacial_hydrology_480.bin?v=20261018-channels-v2"),
+        // CPOM's elevation-change rate and its 1995-2026 record, resampled onto this grid; the
+        // record's metadata also carries the mass-change series the basin chart plots.
+        surfaceChangeRateMetaUrl: assetUrl("data/cpom_antarctica_dhdt_480.meta.json?v=20261027-basins"),
+        surfaceChangeRateBinUrl: assetUrl("data/cpom_antarctica_dhdt_480.bin?v=20261026-fv1"),
+        surfaceChangeRecordMetaUrl: assetUrl("data/cpom_antarctica_dh_480.meta.json?v=20261027-basins"),
+        surfaceChangeRecordBinUrl: assetUrl("data/cpom_antarctica_dh_480.bin?v=20261026-fv1"),
+        surfaceChangeSeriesUrl: assetUrl("data/cpom_antarctica_dh_480.meta.json?v=20261027-basins"),
         // The projection packages are resampled onto exactly this grid.
         capabilities: { iceProjection: true },
       },
@@ -294,6 +313,11 @@ const ALL_REGIONS = {
         oceanCurrentsLightBinUrl: assetUrl("data/antarctica_ocean_currents_waom2_yr5_annual_combined_light.bin?v=20261018-waom2-xy-v4"),
         hydrologyMetaUrl: assetUrl("data/antarctica_subglacial_hydrology_741.meta.json?v=20261018-channels-v2"),
         hydrologyBinUrl: assetUrl("data/antarctica_subglacial_hydrology_741.bin?v=20261018-channels-v2"),
+        // The rate only: the record is packed on the 10 km grid alone. Its metadata still
+        // serves the basin chart.
+        surfaceChangeRateMetaUrl: assetUrl("data/cpom_antarctica_dhdt_741.meta.json?v=20261027-basins"),
+        surfaceChangeRateBinUrl: assetUrl("data/cpom_antarctica_dhdt_741.bin?v=20261026-fv1"),
+        surfaceChangeSeriesUrl: assetUrl("data/cpom_antarctica_dh_480.meta.json?v=20261027-basins"),
       },
       bedmap3: {
         id: "bedmap3",
@@ -386,6 +410,7 @@ const ALL_REGIONS = {
       hydrology: false,
       isostaticRebound: true,
       iceProjection: false,
+      surfaceChange: false,
     },
     sources: {
       geometry: {
@@ -923,6 +948,26 @@ const controlsUI = {
   reboundSeaLevelValue: resolveControl("reboundSeaLevelValue"),
   reboundSeaLevelNote: resolveControl("reboundSeaLevelNote"),
   highlightEmergentLand: resolveControl("highlightEmergentLand"),
+  surfaceChangeRow: resolveControl("surfaceChangeRow"),
+  showSurfaceChange: resolveControl("showSurfaceChange"),
+  surfaceChangeControls: resolveControl("surfaceChangeControls"),
+  surfaceChangeView: resolveControl("surfaceChangeView"),
+  surfaceChangeTimeControl: resolveControl("surfaceChangeTimeControl"),
+  surfaceChangeTime: resolveControl("surfaceChangeTime"),
+  surfaceChangeTimeValue: resolveControl("surfaceChangeTimeValue"),
+  surfaceChangePlay: resolveControl("surfaceChangePlay"),
+  surfaceChangeReadout: resolveControl("surfaceChangeReadout"),
+  surfaceChangeBasinControl: resolveControl("surfaceChangeBasinControl"),
+  surfaceChangeBasin: resolveControl("surfaceChangeBasin"),
+  surfaceChangeChart: resolveControl("surfaceChangeChart"),
+  surfaceChangeChartNote: resolveControl("surfaceChangeChartNote"),
+  surfaceChangeFade: resolveControl("surfaceChangeFade"),
+  surfaceChangeNote: resolveControl("surfaceChangeNote"),
+  surfaceChangeLegendSection: resolveControl("surfaceChangeLegendSection"),
+  surfaceChangeLegendTitle: resolveControl("surfaceChangeLegendTitle"),
+  surfaceChangeLegendBar: resolveControl("surfaceChangeLegendBar"),
+  surfaceChangeLegendLabels: resolveControl("surfaceChangeLegendLabels"),
+  surfaceChangeLegendNote: resolveControl("surfaceChangeLegendNote"),
   iceProjectionRow: resolveControl("iceProjectionRow"),
   showIceProjection: resolveControl("showIceProjection"),
   iceProjectionControls: resolveControl("iceProjectionControls"),
@@ -1090,6 +1135,31 @@ let iceProjectionChartGeometry = null;
 let iceProjectionRaisedSea = false;
 // The same for the flowlines, which the projection shows by default.
 let iceProjectionRaisedFlowlines = false;
+// Observed surface elevation change (see the "observed surface change" section), declared up
+// here for the same reason as the projection's state.
+let surfaceChangeModule = null;
+let surfaceChangeModulePromise = null;
+let surfaceChangeScene = null;
+// The load in flight, { context, view, controller, promise }, and the one showing the
+// loading overlay, if any.
+let surfaceChangeLoad = null;
+let surfaceChangeOverlayLoad = null;
+// Fractional epoch shown by the record; it starts on the last epoch.
+let surfaceChangePosition = Number.POSITIVE_INFINITY;
+let surfaceChangePlaying = false;
+const surfaceChangePackageCache = new Map();
+// The chart's subject: the whole sheet, a region, or one basin ("basin:<id>"); and the
+// decoded mass-change series, keyed by the metadata URL they came from.
+let surfaceChangeSelection = "AIS";
+const surfaceChangeSeriesCache = new Map();
+// Basin ids per terrain (the rate map's), loading or loaded, keyed by its payload URL; the
+// series the basin list was built from; and the chart's geometry, for its cursor.
+const surfaceChangeBasinIdLoads = new Map();
+let surfaceChangeBasinListSeries = null;
+let surfaceChangeChartGeometry = null;
+// Counts picks and list choices, so a click still waiting for the basins gives way to any
+// that came after it.
+let surfaceChangePickSerial = 0;
 let velocityDataTexture = null;
 let velocityContinuousSamplingWarningIssued = false;
 let basalMeltDataTexture = null;
@@ -1466,6 +1536,7 @@ function updateRegionLayerAvailability(regionKey) {
     Boolean(!isShowcaseMode && capabilities.isostaticRebound)
   );
   updateIceProjectionAvailability();
+  updateSurfaceChangeAvailability();
   updateOceanCurrentLayerControls();
   updateLegendVisibility();
 }
@@ -1529,6 +1600,10 @@ function updateLegendVisibility() {
   }
   if (controlsUI.projectionLegendSection) {
     controlsUI.projectionLegendSection.hidden = !(isIceProjectionActive() && getIceProjectionColorMode() === "change");
+  }
+  if (controlsUI.surfaceChangeLegendSection) {
+    controlsUI.surfaceChangeLegendSection.hidden = !isSurfaceChangeShown();
+    if (!controlsUI.surfaceChangeLegendSection.hidden) scheduleTickLegendLayout(controlsUI.surfaceChangeLegendLabels);
   }
 }
 
@@ -2322,6 +2397,7 @@ function stepRuntime(deltaMs = 16) {
   // Flights keep to their schedule on slow frames instead of stretching with the 48 ms step.
   stepCameraFlight(clamp(Number(deltaMs) || 0, 0, CAMERA_FLIGHT_FRAME_LIMIT_MS));
   stepIceProjectionPlayback(safeDeltaMs / 1000);
+  stepSurfaceChangePlayback(safeDeltaMs / 1000);
   if (orbit) orbit.update();
 }
 
@@ -2553,24 +2629,32 @@ async function loadThreeRuntime() {
   OrbitControlsCtor = orbitModule.OrbitControls;
 }
 
-async function fetchJsonStrict(url, errorLabel) {
-  const response = await fetch(url, { cache: "force-cache" });
+// The optional `signal` lets a caller abandon a download it no longer needs.
+async function fetchJsonStrict(url, errorLabel, signal = undefined) {
+  const response = await fetch(url, { cache: "force-cache", signal });
   if (!response.ok) {
     throw new Error(`${errorLabel} (${response.status})`);
   }
   return response.json();
 }
 
-async function fetchArrayBufferStrict(url, errorLabel) {
-  const response = await fetch(url, { cache: "force-cache" });
+async function fetchArrayBufferStrict(url, errorLabel, signal = undefined) {
+  const response = await fetch(url, { cache: "force-cache", signal });
   if (!response.ok) {
     throw new Error(`${errorLabel} (${response.status})`);
   }
   return response.arrayBuffer();
 }
 
-async function fetchArrayBufferWithProgress(url, progressStart, progressEnd, stageText, responseErrorLabel = "") {
-  const response = await fetch(url, { cache: "force-cache" });
+async function fetchArrayBufferWithProgress(
+  url,
+  progressStart,
+  progressEnd,
+  stageText,
+  responseErrorLabel = "",
+  signal = undefined
+) {
+  const response = await fetch(url, { cache: "force-cache", signal });
   if (!response.ok) {
     throw new Error(`${responseErrorLabel || `Failed to load ${url}`} (${response.status})`);
   }
@@ -5514,6 +5598,7 @@ function collectExplorerState() {
         : null,
     },
     iceProjection: collectIceProjectionState(),
+    surfaceChange: collectSurfaceChangeState(),
     featureLayers: polarFeatureState.featureLayers,
     search: polarFeatureState.search,
     selectedFeature: polarFeatureState.selectedFeature,
@@ -5562,6 +5647,7 @@ function collectExplorerState() {
       bed: Boolean(bedMesh && bedMesh.visible),
       isostaticRebound: Boolean(bedMesh && bedMesh.visible && isReboundActive()),
       iceProjection: Boolean(isIceProjectionActive() && iceMesh && iceMesh.visible),
+      surfaceChange: isSurfaceChangeShown(),
       ice: Boolean(iceMesh && iceMesh.visible),
       iceBottom: Boolean(iceBottomMesh && iceBottomMesh.visible),
       velocity: Boolean(velocitySurfaceMesh && velocitySurfaceMesh.visible),
@@ -5645,6 +5731,8 @@ function clearRefinedBasinOverlays() {
 function clearModelMeshes() {
   polarFeaturesController?.clearScene();
   releaseIceProjectionScene();
+  stopSurfaceChangePlayback();
+  releaseSurfaceChangeScene();
   bedMesh = disposeMesh(bedMesh);
   iceMesh = disposeMesh(iceMesh);
   iceBottomMesh = disposeMesh(iceBottomMesh);
@@ -6994,6 +7082,7 @@ function refreshResponsiveLayout() {
   scheduleTickLegendLayout(controlsUI?.basalMeltLegendLabels);
   scheduleTickLegendLayout(controlsUI?.effectivePressureLegendLabels);
   scheduleTickLegendLayout(controlsUI?.channelLegendLabels);
+  scheduleTickLegendLayout(controlsUI?.surfaceChangeLegendLabels);
   if (shouldUseShowcaseMobileLinkout() && interactionGateActive) {
     setInteractionGateActive(false);
   }
@@ -7289,8 +7378,9 @@ function bindInteractionGate() {
   }
 }
 
+/** A click (not a drag) picks a flowline if the edition offers that, else the basin under it. */
 function bindFlowlinePicking() {
-  if (!renderer || !THREE || !editionProfile.flowlinePicking) return;
+  if (!renderer || !THREE) return;
   if (!flowlineRaycaster) flowlineRaycaster = new THREE.Raycaster();
   if (!flowlinePointerNdc) flowlinePointerNdc = new THREE.Vector2();
 
@@ -7327,7 +7417,8 @@ function bindFlowlinePicking() {
         Math.abs(event.clientY - gesture.startY) > FLOWLINE_PICK_MOVE_THRESHOLD_PX;
       if (moved || !gesture.interactionReady) return;
 
-      pickVisibleFlowlineAtClientPoint(event.clientX, event.clientY);
+      if (editionProfile.flowlinePicking && pickVisibleFlowlineAtClientPoint(event.clientX, event.clientY)) return;
+      pickSurfaceChangeBasinAtClientPoint(event.clientX, event.clientY);
     },
     { passive: true }
   );
@@ -7576,6 +7667,7 @@ function bindUI() {
   if (iceBottomMesh) iceBottomMesh.scale.y = value;
   if (iceSideMesh) iceSideMesh.scale.y = value;
   if (velocitySurfaceMesh) velocitySurfaceMesh.scale.y = value;
+  if (surfaceChangeScene?.mesh) surfaceChangeScene.mesh.scale.y = value;
   if (basalFrictionMesh) basalFrictionMesh.scale.y = value;
   if (basalMeltMesh) basalMeltMesh.scale.y = value;
     if (thermalDrivingMesh) thermalDrivingMesh.scale.y = value;
@@ -7612,6 +7704,8 @@ function bindUI() {
     updateMetaFromCurrentState();
   });
   controlsUI.showVelocity.addEventListener("change", () => {
+    // The observed elevation change colours the same surface.
+    if (controlsUI.showVelocity.checked) hideSurfaceChange();
     updateLegendVisibility();
     if (controlsUI.showVelocity.checked && !velocitySurfaceMesh) {
       ensureVelocityLoaded({ trigger: "toggle" });
@@ -7856,6 +7950,7 @@ function bindUI() {
     updateIceProjectionControlsUi();
     updateLegendVisibility();
   });
+  bindSurfaceChangeControls();
   // Turning on a layer drawn against the present-day ice or bed hands the scene back.
   for (const key of ICE_PROJECTION_EXCLUSIVE_TOGGLES) {
     controlsUI[key]?.addEventListener("change", () => {
@@ -7873,6 +7968,7 @@ function bindUI() {
     if (iceBottomMesh) iceBottomMesh.material.wireframe = enable;
     if (iceSideMesh) iceSideMesh.material.wireframe = enable;
     if (velocitySurfaceMesh) velocitySurfaceMesh.material.wireframe = enable;
+    if (surfaceChangeScene?.mesh) surfaceChangeScene.mesh.material.wireframe = enable;
     if (basalFrictionMesh) basalFrictionMesh.material.wireframe = enable;
     if (basalMeltMesh) basalMeltMesh.material.wireframe = enable;
     if (thermalDrivingMesh) thermalDrivingMesh.material.wireframe = enable;
@@ -8375,6 +8471,10 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   if (projectionItems.length && dataset.sources.iceProjection) {
     sourceLines.push(renderSourceLine(t("explorer.meta.sourceIceProjection"), dataset.sources.iceProjection));
   }
+  const surfaceChangeItems = buildSurfaceChangeMetaItems();
+  if (surfaceChangeItems.length && dataset.sources.surfaceChange) {
+    sourceLines.push(renderSourceLine(t("explorer.meta.sourceSurfaceChange"), dataset.sources.surfaceChange));
+  }
 
   const selectedFlowlineCard =
     capabilities.velocity && capabilities.flowline && controlsUI.showFlowline.checked
@@ -8397,6 +8497,9 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
       defaultOpen: true,
     }),
     renderMetaSection("ice-projection", t("explorer.meta.iceProjectionSection"), projectionItems, {
+      defaultOpen: true,
+    }),
+    renderMetaSection("surface-change", t("explorer.meta.surfaceChangeSection"), surfaceChangeItems, {
       defaultOpen: true,
     }),
     renderMetaSection("sources", t("explorer.meta.sourcesSection"), sourceLines),
@@ -8765,6 +8868,7 @@ function hideOverlaysForRebound() {
     "showOceanCurrents",
     "showFlowline",
     "showRefinedBasins",
+    "showSurfaceChange",
   ]) {
     const control = controlsUI[key];
     if (control?.checked) {
@@ -8773,6 +8877,9 @@ function hideOverlaysForRebound() {
     }
   }
   if (!changed) return false;
+  stopSurfaceChangePlayback();
+  syncSurfaceChangeVisibility();
+  updateSurfaceChangeControlsUi();
   if (velocitySurfaceMesh) velocitySurfaceMesh.visible = false;
   if (basalFrictionMesh) basalFrictionMesh.visible = false;
   if (effectivePressureMesh) effectivePressureMesh.visible = false;
@@ -9215,6 +9322,7 @@ const ICE_PROJECTION_EXCLUSIVE_TOGGLES = [
   "showOceanCurrents",
   "showRefinedBasins",
   "showIsostaticRebound",
+  "showSurfaceChange",
 ];
 
 function loadIceProjectionModule() {
@@ -9823,6 +9931,9 @@ function hideOverlaysForIceProjection() {
   if (basalFrictionMesh) basalFrictionMesh.visible = false;
   if (effectivePressureMesh) effectivePressureMesh.visible = false;
   if (subglacialChannelMesh) subglacialChannelMesh.visible = false;
+  stopSurfaceChangePlayback();
+  syncSurfaceChangeVisibility();
+  updateSurfaceChangeControlsUi();
   updateRiseOverlayVisibility();
   updateOceanCurrentLayerControls();
   updateOceanCurrentLayerVisibility();
@@ -11852,6 +11963,10 @@ async function loadAndBuildMeshes(datasetKey = currentDatasetKey) {
   terminateReboundWorker();
   reboundLoadPromise = null;
   iceProjectionLoadPromise = null;
+  // The terrain load owns the overlay from here; an elevation-change download for the old
+  // terrain is abandoned.
+  surfaceChangeOverlayLoad = null;
+  abortSurfaceChangeLoad();
   if (reboundGeometryFrame !== null) {
     window.cancelAnimationFrame(reboundGeometryFrame);
     reboundGeometryFrame = null;
@@ -12050,6 +12165,9 @@ async function loadAndBuildMeshes(datasetKey = currentDatasetKey) {
     } else {
       updateIceProjectionControlsUi();
     }
+    if (controlsUI.showSurfaceChange?.checked && isSurfaceChangeAvailable(currentCoreContext?.dataset)) {
+      ensureSurfaceChangeLoaded();
+    }
     if (!isShowcaseMode && !isPreviewMode) {
       const warmupDelay = viewerInteracted ? 180 : 900;
       backgroundWarmupTimer = window.setTimeout(() => {
@@ -12062,6 +12180,1209 @@ async function loadAndBuildMeshes(datasetKey = currentDatasetKey) {
     updateRegionControlAvailability();
     updateResolutionControlAvailability();
   }
+}
+
+// ------------------------------------------------------------------ observed surface change
+//
+// CPOM's record of Antarctic surface elevation change from radar altimetry, 1995-2026
+// (js/surface-change.js; docs/data-contract.md), in two views that share one drape on
+// today's ice surface: the change since 1995 at any of the record's 140-day epochs
+// (Balanced grid), and the 1995-2026 rate (Balanced and HD grids). Like the projection it
+// is exclusive with the layers that redraw the ice or the bed, and with the velocity
+// colour, which uses the same surface.
+
+const SURFACE_CHANGE_OFFSET_M = 12;
+const SURFACE_CHANGE_OPACITY = 0.96;
+const SURFACE_CHANGE_RENDER_ORDER = 12;
+// The 81 epochs play in about thirteen seconds.
+const SURFACE_CHANGE_PLAYBACK_EPOCHS_PER_SECOND = 6;
+const SURFACE_CHANGE_LUT_SIZE = 256;
+const SURFACE_CHANGE_REGION_LABEL_KEYS = Object.freeze({
+  AIS: "explorer.surfaceChange.regionAis",
+  WAIS: "explorer.surfaceChange.regionWais",
+  EAIS: "explorer.surfaceChange.regionEais",
+  APIS: "explorer.surfaceChange.regionApis",
+});
+// Names of the chart's subjects: the region labels, but the sheet without "since 1995".
+const SURFACE_CHANGE_SUBJECT_NAME_KEYS = Object.freeze({
+  ...SURFACE_CHANGE_REGION_LABEL_KEYS,
+  AIS: "explorer.surfaceChange.sheetName",
+});
+// Outside a picked basin the colour keeps this share, as the fade does; the outline is
+// the page's dark ink, #1b2230. The shader writes colours as they come, like the ramp's
+// sRGB lookup table, so the ink is passed as sRGB too, not through THREE.Color, which
+// would make it linear.
+const SURFACE_CHANGE_OUTSIDE_SHARE = 0.45;
+const SURFACE_CHANGE_OUTLINE_RGB = Object.freeze([0x1b / 255, 0x22 / 255, 0x30 / 255]);
+// The basin chart's plot box in its 260 x 96 viewBox, as the projection chart's.
+const SURFACE_CHANGE_CHART = Object.freeze({ left: 36, right: 254, top: 16, bottom: 80 });
+
+function loadSurfaceChangeModule() {
+  if (surfaceChangeModule) return Promise.resolve(surfaceChangeModule);
+  if (!surfaceChangeModulePromise) {
+    surfaceChangeModulePromise = import(assetUrl("js/surface-change.js")).then((module) => {
+      surfaceChangeModule = module;
+      return module;
+    });
+  }
+  return surfaceChangeModulePromise;
+}
+
+function getActiveDatasetConfig() {
+  const region = getRegionConfig(currentRegionKey);
+  return getDatasetConfig(region.key, datasetSelectionByRegion[region.key] || currentDatasetKey);
+}
+
+/** The packages behind each view on this dataset; null for a view it does not offer. */
+function getSurfaceChangeOptions(dataset = getActiveDatasetConfig()) {
+  if (isShowcaseMode || isPreviewMode || !dataset?.capabilities?.surfaceChange) return { rate: null, cumulative: null };
+  const pair = (metaUrl, binUrl) => (metaUrl && binUrl ? { metaUrl, binUrl } : null);
+  return {
+    rate: pair(dataset.surfaceChangeRateMetaUrl, dataset.surfaceChangeRateBinUrl),
+    cumulative: pair(dataset.surfaceChangeRecordMetaUrl, dataset.surfaceChangeRecordBinUrl),
+  };
+}
+
+function isSurfaceChangeAvailable(dataset) {
+  const options = getSurfaceChangeOptions(dataset);
+  return Boolean(options.rate || options.cumulative);
+}
+
+/** The view the controls ask for, or the other one when this dataset only has that. */
+function getSurfaceChangeView(dataset) {
+  const options = getSurfaceChangeOptions(dataset);
+  const requested = controlsUI.surfaceChangeView?.value === "rate" ? "rate" : "cumulative";
+  if (options[requested]) return requested;
+  return options.rate ? "rate" : "cumulative";
+}
+
+function isSurfaceChangeShown() {
+  return Boolean(controlsUI.showSurfaceChange?.checked && surfaceChangeScene?.mesh?.visible);
+}
+
+function updateSurfaceChangeAvailability() {
+  const options = getSurfaceChangeOptions();
+  const available = Boolean(options.rate || options.cumulative);
+  if (controlsUI.surfaceChangeRow) controlsUI.surfaceChangeRow.hidden = !available;
+  setToggleAvailability(controlsUI.showSurfaceChange, available);
+  const select = controlsUI.surfaceChangeView;
+  if (select?.options) {
+    for (const option of select.options) option.disabled = !options[option.value];
+    if (available && !options[select.value]) select.value = options.cumulative ? "cumulative" : "rate";
+  }
+  if (!available) stopSurfaceChangePlayback();
+  syncSurfaceChangeVisibility();
+  updateSurfaceChangeControlsUi();
+}
+
+async function loadSurfaceChangePackage(urls, view, module, showOverlay, signal) {
+  const cached = surfaceChangePackageCache.get(urls.binUrl);
+  if (cached) return cached;
+  const meta = await fetchJsonStrict(
+    urls.metaUrl,
+    errorLabel("explorer.errors.failedToLoadSurfaceChangeMetadata"),
+    signal
+  );
+  const fieldError = errorLabel("explorer.errors.failedToLoadSurfaceChangeField");
+  const buffer = showOverlay
+    ? await fetchArrayBufferWithProgress(
+        urls.binUrl,
+        0.12,
+        0.86,
+        t("explorer.loading.downloadingSurfaceChange"),
+        fieldError,
+        signal
+      )
+    : await fetchArrayBufferStrict(urls.binUrl, fieldError, signal);
+  const decoded =
+    view === "rate" ? module.decodeSurfaceChangeRate(meta, buffer) : module.decodeSurfaceChangeRecord(meta, buffer);
+  const entry = { meta, decoded };
+  surfaceChangePackageCache.set(urls.binUrl, entry);
+  if (view !== "rate") rememberSurfaceChangeSeries(urls.metaUrl, decoded);
+  return entry;
+}
+
+/** Keep a record's series for the basin chart, so its metadata is not fetched twice. */
+function rememberSurfaceChangeSeries(url, record) {
+  if (!url || surfaceChangeSeriesCache.get(url)?.value) return;
+  const value = { years: record.years, regions: record.regions, basins: record.basins, gtPerMm: record.gtPerMm };
+  surfaceChangeSeriesCache.set(url, { value, promise: Promise.resolve(value) });
+}
+
+/** The mass-change series of the basin chart, once loaded for this dataset; else null. */
+function getSurfaceChangeSeries(dataset = getActiveDatasetConfig()) {
+  return surfaceChangeSeriesCache.get(dataset?.surfaceChangeSeriesUrl)?.value || null;
+}
+
+/** Load the series from the record's metadata alone, which is all the rate views need of it. */
+function ensureSurfaceChangeSeries(dataset = getActiveDatasetConfig()) {
+  const url = dataset?.surfaceChangeSeriesUrl;
+  if (!url) return Promise.resolve(null);
+  const cached = surfaceChangeSeriesCache.get(url);
+  if (cached) return cached.promise;
+  const entry = { value: null, promise: null };
+  entry.promise = loadSurfaceChangeModule()
+    .then((module) =>
+      fetchJsonStrict(url, errorLabel("explorer.errors.failedToLoadSurfaceChangeMetadata")).then((meta) =>
+        module.decodeSurfaceChangeSeries(meta)
+      )
+    )
+    .then((series) => {
+      entry.value = series;
+      return series;
+    })
+    .catch((error) => {
+      // A record that loaded meanwhile may have put its own series in place: keep those.
+      if (surfaceChangeSeriesCache.get(url) === entry) surfaceChangeSeriesCache.delete(url);
+      throw error;
+    });
+  surfaceChangeSeriesCache.set(url, entry);
+  return entry.promise;
+}
+
+/** CPOM's basin of every cell of this terrain, from its rate map, loaded if the record is shown. */
+function ensureSurfaceChangeBasinIds(context) {
+  const urls = getSurfaceChangeOptions(context.dataset).rate;
+  if (!urls) return Promise.resolve(null);
+  let load = surfaceChangeBasinIdLoads.get(urls.binUrl);
+  if (!load) {
+    load = loadSurfaceChangeModule()
+      .then((module) => loadSurfaceChangePackage(urls, "rate", module, false))
+      .then(({ decoded }) => decoded.basin)
+      .catch((error) => {
+        surfaceChangeBasinIdLoads.delete(urls.binUrl);
+        throw error;
+      });
+    surfaceChangeBasinIdLoads.set(urls.binUrl, load);
+  }
+  return load;
+}
+
+/** Abandon the load in flight, which the view or terrain shown no longer needs. */
+function abortSurfaceChangeLoad() {
+  const load = surfaceChangeLoad;
+  surfaceChangeLoad = null;
+  load?.controller.abort();
+}
+
+/**
+ * Load and show the view the controls ask for on this terrain. A load for that same view
+ * and terrain is shared; one for anything else is abandoned, so a slow or stalled download
+ * never holds up the view the visitor has moved on to.
+ */
+async function ensureSurfaceChangeLoaded() {
+  const context = currentCoreContext;
+  if (!context || context.generation !== loadGeneration || !THREE) return false;
+  const view = getSurfaceChangeView(context.dataset);
+  const urls = getSurfaceChangeOptions(context.dataset)[view];
+  if (!urls) return false;
+  if (surfaceChangeScene?.context === context && surfaceChangeScene.view === view) {
+    abortSurfaceChangeLoad();
+    syncSurfaceChangeVisibility();
+    refreshSurfaceChangeUi();
+    return true;
+  }
+  if (surfaceChangeLoad?.context === context && surfaceChangeLoad.view === view) return surfaceChangeLoad.promise;
+  abortSurfaceChangeLoad();
+
+  const load = { context, view, controller: new AbortController(), promise: null };
+  const { signal } = load.controller;
+  const showOverlay = !surfaceChangePackageCache.has(urls.binUrl);
+  const isCurrent = () => !signal.aborted && context === currentCoreContext && context.generation === loadGeneration;
+  load.promise = (async () => {
+    if (showOverlay) {
+      surfaceChangeOverlayLoad = load;
+      setLoadingOverlayVisible(true);
+      updateLoadingProgress(0.06, t("explorer.loading.loadingSurfaceChange"));
+      statusEl.textContent = t("explorer.status.loadingSurfaceChange");
+    }
+    const module = await loadSurfaceChangeModule();
+    // The record may be downloading this rate map already, for its basins: wait for that
+    // download rather than start a second one.
+    if (view === "rate") await surfaceChangeBasinIdLoads.get(urls.binUrl)?.catch(() => null);
+    const { meta, decoded } = await loadSurfaceChangePackage(urls, view, module, showOverlay, signal);
+    if (!isCurrent()) {
+      releaseSurfaceChangeOverlay(load);
+      return false;
+    }
+    if (!gridsMatch(decoded.grid, context.meta.grid)) {
+      throw new Error("Surface-change grid is not aligned to the active terrain grid.");
+    }
+    buildSurfaceChangeScene(context, view, meta, decoded, module);
+    releaseSurfaceChangeOverlay(load, () => updateLoadingProgress(1, t("explorer.loading.surfaceChangeReady")));
+    refreshSurfaceChangeUi();
+    return true;
+  })()
+    .catch((error) => {
+      releaseSurfaceChangeOverlay(load);
+      // An abandoned load is not a failure: the view or terrain it was for has gone.
+      if (signal.aborted || error?.name === "AbortError") return false;
+      console.error("Surface-change layer load failed:", error);
+      if (context === currentCoreContext && context.generation === loadGeneration) {
+        handleSurfaceChangeLoadFailure(context, view);
+      }
+      return false;
+    })
+    .finally(() => {
+      if (surfaceChangeLoad === load) surfaceChangeLoad = null;
+    });
+  surfaceChangeLoad = load;
+  return load.promise;
+}
+
+/** Hide the loading overlay if this load showed it and nothing has taken it over since. */
+function releaseSurfaceChangeOverlay(load, beforeHide = null) {
+  if (surfaceChangeOverlayLoad !== load) return;
+  surfaceChangeOverlayLoad = null;
+  beforeHide?.();
+  setLoadingOverlayVisible(false);
+  if (load.context === currentCoreContext) statusEl.textContent = getReadyStatusText(load.context);
+}
+
+/**
+ * A view that failed to load leaves the layer on the other view if that one is drawn, and
+ * switches the layer off otherwise.
+ */
+function handleSurfaceChangeLoadFailure(context, view) {
+  const working = surfaceChangeScene?.context === context && surfaceChangeScene.view !== view ? surfaceChangeScene : null;
+  if (working && controlsUI.surfaceChangeView) {
+    controlsUI.surfaceChangeView.value = working.view;
+    syncSurfaceChangeVisibility();
+  } else {
+    controlsUI.showSurfaceChange.checked = false;
+    releaseSurfaceChangeScene();
+  }
+  refreshSurfaceChangeUi();
+  const readyText = getReadyStatusText(context);
+  const transientText = t("explorer.status.surfaceChangeUnavailable");
+  statusEl.textContent = transientText;
+  window.setTimeout(() => {
+    if (statusEl.textContent === transientText) statusEl.textContent = readyText;
+  }, 1800);
+}
+
+function createSurfaceChangeFieldTexture(nx, ny) {
+  const textureType = getVelocityTextureType(renderer, nx, ny);
+  if (!textureType) return null;
+  const half = textureType !== THREE.FloatType;
+  if (half && typeof THREE.DataUtils?.toHalfFloat !== "function") return null;
+  const data = half ? new Uint16Array(nx * ny * 4) : new Float32Array(nx * ny * 4);
+  const texture = new THREE.DataTexture(data, nx, ny, THREE.RGBAFormat, textureType);
+  texture.minFilter = THREE.NearestFilter;
+  texture.magFilter = THREE.NearestFilter;
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.generateMipmaps = false;
+  texture.flipY = false;
+  texture.unpackAlignment = 1;
+  if ("colorSpace" in texture && "NoColorSpace" in THREE) texture.colorSpace = THREE.NoColorSpace;
+  // Half floats are written through toHalfFloat; full floats as they are.
+  const encode = half ? (value) => THREE.DataUtils.toHalfFloat(value) : (value) => value;
+  return { texture, data, encode };
+}
+
+function createSurfaceChangeLutTexture(lut) {
+  const texture = new THREE.DataTexture(lut, lut.length / 4, 1, THREE.RGBAFormat, THREE.UnsignedByteType);
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.generateMipmaps = false;
+  texture.flipY = false;
+  if ("colorSpace" in texture && "NoColorSpace" in THREE) texture.colorSpace = THREE.NoColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function createSurfaceChangeShaderMaterial(fieldTexture, lutTexture, context, scale) {
+  const { grid } = context.meta;
+  return new THREE.ShaderMaterial({
+    glslVersion: THREE.GLSL1,
+    uniforms: {
+      uFieldTex: { value: fieldTexture },
+      uRampTex: { value: lutTexture },
+      uTexSize: { value: new THREE.Vector2(context.nx, context.ny) },
+      uOrigin: { value: new THREE.Vector2(grid.x0_m, grid.y0_m) },
+      uStep: { value: new THREE.Vector2(grid.dx_m, grid.dy_m) },
+      uSoftness: { value: scale.softness },
+      uSaturation: { value: scale.saturation },
+      uFade: { value: controlsUI.surfaceChangeFade?.checked === false ? 0 : 1 },
+      uFadeSigma: { value: surfaceChangeModule.FADE_SIGMA },
+      uFadedShare: { value: surfaceChangeModule.FADED_COLOUR_SHARE },
+      uExtrapolatedRadius: { value: 0 },
+      uOpacity: { value: SURFACE_CHANGE_OPACITY },
+      uSelection: { value: 0 },
+      uOutsideShare: { value: SURFACE_CHANGE_OUTSIDE_SHARE },
+      uOutlineColor: { value: new THREE.Vector3(...SURFACE_CHANGE_OUTLINE_RGB) },
+    },
+    vertexShader: `
+      precision highp float;
+
+      varying vec2 vUv;
+
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      precision highp float;
+
+      uniform sampler2D uFieldTex;
+      uniform sampler2D uRampTex;
+      uniform vec2 uTexSize;
+      uniform vec2 uOrigin;
+      uniform vec2 uStep;
+      uniform float uSoftness;
+      uniform float uSaturation;
+      uniform float uFade;
+      uniform float uFadeSigma;
+      uniform float uFadedShare;
+      uniform float uExtrapolatedRadius;
+      uniform float uOpacity;
+      uniform float uSelection;
+      uniform float uOutsideShare;
+      uniform vec3 uOutlineColor;
+
+      varying vec2 vUv;
+
+      // GLSL ES 1.0 has no asinh; x is never negative here.
+      float asinhPositive(float x) {
+        return log(x + sqrt(x * x + 1.0));
+      }
+
+      // The same mapping as thicknessChangeScaleT in js/ice-projection.js.
+      float scaleT(float value) {
+        float magnitude = min(1.0, asinhPositive(abs(value) / uSoftness) / asinhPositive(uSaturation / uSoftness));
+        return 0.5 + 0.5 * sign(value) * magnitude;
+      }
+
+      vec3 ramp(float t) {
+        float u = (clamp(t, 0.0, 1.0) * ${SURFACE_CHANGE_LUT_SIZE - 1}.0 + 0.5) / ${SURFACE_CHANGE_LUT_SIZE}.0;
+        return texture2D(uRampTex, vec2(u, 0.5)).rgb;
+      }
+
+      void main() {
+        vec2 texSize = max(uTexSize, vec2(1.0));
+        vec2 texelPos = clamp(vUv, vec2(0.0), vec2(1.0)) * (texSize - 1.0);
+        vec2 maxBase = max(texSize - 2.0, vec2(0.0));
+        vec2 base = clamp(floor(texelPos), vec2(0.0), maxBase);
+        vec2 frac = clamp(texelPos - base, vec2(0.0), vec2(1.0));
+        vec2 texelSize = 1.0 / texSize;
+
+        vec4 s00 = texture2D(uFieldTex, (base + vec2(0.5, 0.5)) * texelSize);
+        vec4 s10 = texture2D(uFieldTex, (base + vec2(1.5, 0.5)) * texelSize);
+        vec4 s01 = texture2D(uFieldTex, (base + vec2(0.5, 1.5)) * texelSize);
+        vec4 s11 = texture2D(uFieldTex, (base + vec2(1.5, 1.5)) * texelSize);
+
+        if (s00.b < 0.5 || s10.b < 0.5 || s01.b < 0.5 || s11.b < 0.5) {
+          discard;
+        }
+
+        vec2 v0 = mix(s00.rg, s10.rg, frac.x);
+        vec2 v1 = mix(s01.rg, s11.rg, frac.x);
+        vec2 sampleValue = mix(v0, v1, frac.y);
+        float value = sampleValue.x;
+        float sigma = sampleValue.y;
+
+        vec3 color = ramp(scaleT(value));
+        vec3 neutral = ramp(0.5);
+        vec2 xy = uOrigin + texelPos * uStep;
+        bool extrapolated = length(xy) < uExtrapolatedRadius;
+        bool withinNoise = uFade > 0.5 && abs(value) < uFadeSigma * sigma;
+        if (extrapolated || withinNoise) {
+          color = neutral + uFadedShare * (color - neutral);
+        }
+        // A picked basin or region: the alpha channel is 1 on its cells. Interpolated, it
+        // crosses one half midway between an inside and an outside cell, where the outline
+        // runs; outside, the colour recedes.
+        if (uSelection > 0.5) {
+          float inside = mix(mix(s00.a, s10.a, frac.x), mix(s01.a, s11.a, frac.x), frac.y);
+          if (inside < 0.5) {
+            color = neutral + uOutsideShare * (color - neutral);
+          }
+          float edge = 1.0 - smoothstep(0.3, 0.45, abs(inside - 0.5));
+          color = mix(color, uOutlineColor, edge);
+        }
+        gl_FragColor = vec4(color, uOpacity);
+      }
+    `,
+    transparent: true,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+    polygonOffset: true,
+    polygonOffsetFactor: -2,
+    polygonOffsetUnits: -2,
+  });
+}
+
+/** The explorer ice cells a view draws, with their height on the drape (m). */
+function surfaceChangeDrawnCells(context, view, decoded) {
+  const valid = new Uint8Array(context.cellCount);
+  const heights = new Float32Array(context.cellCount);
+  const mark = (cell) => {
+    const surface = context.surfaceHeights[cell];
+    if (!context.iceValid[cell] || !Number.isFinite(surface)) return;
+    valid[cell] = 1;
+    heights[cell] = surface + SURFACE_CHANGE_OFFSET_M;
+  };
+  if (view === "rate") {
+    for (let cell = 0; cell < context.cellCount; cell += 1) {
+      if (Number.isFinite(decoded.values[cell])) mark(cell);
+    }
+  } else {
+    for (const cell of decoded.cellIndex) mark(cell);
+  }
+  return { valid, heights };
+}
+
+function buildSurfaceChangeScene(context, view, meta, decoded, module) {
+  releaseSurfaceChangeScene();
+  const { valid, heights } = surfaceChangeDrawnCells(context, view, decoded);
+  const geometry = buildRiseOverlayGeometry(context, heights, valid);
+  if (!geometry) throw new Error("The surface-change layer has no cells to draw on this grid.");
+  const field = createSurfaceChangeFieldTexture(context.nx, context.ny);
+  if (!field) {
+    geometry.dispose();
+    throw new Error("This browser cannot sample the surface-change field.");
+  }
+  const lutTexture = createSurfaceChangeLutTexture(module.surfaceChangeRampLut(SURFACE_CHANGE_LUT_SIZE));
+  const material = createSurfaceChangeShaderMaterial(field.texture, lutTexture, context, decoded.scale);
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.scale.y = Number(controlsUI.exaggeration.value);
+  mesh.material.wireframe = controlsUI.wireframe.checked;
+  mesh.renderOrder = SURFACE_CHANGE_RENDER_ORDER;
+  mesh.visible = false;
+  scene.add(mesh);
+  surfaceChangeScene = {
+    context,
+    view,
+    meta,
+    decoded,
+    mesh,
+    field,
+    lutTexture,
+    valid,
+    domainValues: view === "cumulative" ? new Float32Array(decoded.domainCount) : null,
+    drawnSummary: null,
+    selectedCells: 0,
+  };
+  writeSurfaceChangeStaticChannels();
+  if (view === "cumulative") {
+    writeSurfaceChangeFrame();
+  } else {
+    // The rate is extrapolated throughout CryoSat-2's polar cap.
+    material.uniforms.uExtrapolatedRadius.value = decoded.poleHole.lateRadiusM;
+    surfaceChangeScene.drawnSummary = module.summariseDrawn(decoded.values, decoded.sigma);
+  }
+  syncSurfaceChangeVisibility();
+  attachSurfaceChangeSeries(surfaceChangeScene);
+}
+
+/** Once the mass-change series are in, list the basins, outline the selection and chart it. */
+function attachSurfaceChangeSeries(state) {
+  ensureSurfaceChangeSeries(state.context.dataset)
+    .then(() => {
+      if (surfaceChangeScene === state) refreshSurfaceChangeSelection();
+    })
+    .catch((error) => console.error("Surface-change series failed to load:", error));
+}
+
+/** Uncertainty and validity, which do not change from frame to frame; and the rate itself. */
+function writeSurfaceChangeStaticChannels() {
+  const state = surfaceChangeScene;
+  if (!state) return;
+  const { data, encode, texture } = state.field;
+  data.fill(encode(0));
+  const { decoded, valid } = state;
+  if (state.view === "rate") {
+    for (let cell = 0; cell < valid.length; cell += 1) {
+      if (!valid[cell]) continue;
+      data[4 * cell] = encode(decoded.values[cell]);
+      const sigma = decoded.sigma[cell];
+      data[4 * cell + 1] = encode(Number.isFinite(sigma) ? sigma : 0);
+      data[4 * cell + 2] = encode(1);
+    }
+  } else {
+    for (let i = 0; i < decoded.domainCount; i += 1) {
+      const cell = decoded.cellIndex[i];
+      if (!valid[cell]) continue;
+      const sigma = decoded.finalSigma[i];
+      data[4 * cell + 1] = encode(Number.isFinite(sigma) ? sigma : 0);
+    }
+  }
+  texture.needsUpdate = true;
+}
+
+function getSurfaceChangeYear() {
+  const record = surfaceChangeScene?.view === "cumulative" ? surfaceChangeScene.decoded : null;
+  if (!record || !surfaceChangeModule) return Number.NaN;
+  return surfaceChangeModule.yearAtEpoch(record, surfaceChangePosition);
+}
+
+/** The record's change at the epoch shown, written into the drape. */
+function writeSurfaceChangeFrame() {
+  const state = surfaceChangeScene;
+  if (!state || state.view !== "cumulative" || !surfaceChangeModule) return;
+  const record = state.decoded;
+  const last = record.years.length - 1;
+  surfaceChangePosition = Math.min(last, Math.max(0, Number(surfaceChangePosition) || 0));
+  const year = getSurfaceChangeYear();
+  surfaceChangeModule.blendRecordInto(record, year, state.domainValues);
+  const { data, encode, texture } = state.field;
+  for (let i = 0; i < record.domainCount; i += 1) {
+    const cell = record.cellIndex[i];
+    const value = state.domainValues[i];
+    const drawn = state.valid[cell] && Number.isFinite(value);
+    data[4 * cell] = encode(drawn ? value : 0);
+    data[4 * cell + 2] = encode(drawn ? 1 : 0);
+  }
+  texture.needsUpdate = true;
+  state.mesh.material.uniforms.uExtrapolatedRadius.value = surfaceChangeModule.extrapolatedRadiusM(record, year);
+  state.drawnSummary = null;
+}
+
+function releaseSurfaceChangeScene() {
+  const state = surfaceChangeScene;
+  surfaceChangeScene = null;
+  if (!state) return;
+  disposeMesh(state.mesh);
+  disposeTexture(state.field?.texture);
+  disposeTexture(state.lutTexture);
+}
+
+function syncSurfaceChangeVisibility() {
+  const state = surfaceChangeScene;
+  if (!state?.mesh) return;
+  state.mesh.visible = Boolean(
+    controlsUI.showSurfaceChange?.checked &&
+      state.context === currentCoreContext &&
+      state.view === getSurfaceChangeView(state.context.dataset)
+  );
+}
+
+/** The velocity colour shares the surface and the rebound moves it: switch them off. */
+function leaveLayersForSurfaceChange() {
+  if (controlsUI.showVelocity?.checked) {
+    controlsUI.showVelocity.checked = false;
+    if (velocitySurfaceMesh) velocitySurfaceMesh.visible = false;
+  }
+  if (controlsUI.showIsostaticRebound?.checked) {
+    controlsUI.showIsostaticRebound.checked = false;
+    updateReboundControlsUi();
+    applyReboundGeometry({ recomputeNormals: true });
+    if (iceSideMesh) updateIceSideVisibility();
+  }
+}
+
+/** Switch the layer off (when a layer it cannot be shown with is switched on). */
+function hideSurfaceChange() {
+  if (!controlsUI.showSurfaceChange?.checked) return;
+  controlsUI.showSurfaceChange.checked = false;
+  stopSurfaceChangePlayback();
+  syncSurfaceChangeVisibility();
+  updateSurfaceChangeControlsUi();
+}
+
+function setSurfaceChangePosition(position) {
+  surfaceChangePosition = Number(position);
+  writeSurfaceChangeFrame();
+  syncSurfaceChangeTimeControls();
+  updateSurfaceChangeReadout();
+  updateSurfaceChangeChartCursor();
+}
+
+// ------------------------------------------------ basin chart
+//
+// A basin of CPOM's 18 (picked on the drape or from the list), a region's basins, or the
+// whole sheet: the drape outlines it and a chart plots its mass change since 1995. The
+// basins come from the rate map's basin_id on this terrain, the series from the record's
+// metadata, so both views offer the chart.
+
+/** The selection on the drape: the field's alpha channel is 1 on its cells. */
+function writeSurfaceChangeSelectionChannel(state, mask) {
+  const { data, encode, texture } = state.field;
+  const one = encode(1);
+  const zero = encode(0);
+  let count = 0;
+  for (let cell = 0; cell < state.valid.length; cell += 1) {
+    const inside = Boolean(mask?.[cell] && state.valid[cell]);
+    data[4 * cell + 3] = inside ? one : zero;
+    if (inside) count += 1;
+  }
+  texture.needsUpdate = true;
+  state.mesh.material.uniforms.uSelection.value = count > 0 ? 1 : 0;
+  state.selectedCells = count;
+}
+
+/** Outline the selection on the drape shown; the record waits for the rate map's basins. */
+async function applySurfaceChangeSelection() {
+  const state = surfaceChangeScene;
+  const module = surfaceChangeModule;
+  if (!state || !module) return;
+  const series = getSurfaceChangeSeries(state.context.dataset);
+  if (!(series && module.selectionBasinIds(series, surfaceChangeSelection))) {
+    writeSurfaceChangeSelectionChannel(state, null);
+    return;
+  }
+  const basinIds = state.view === "rate" ? state.decoded.basin : await ensureSurfaceChangeBasinIds(state.context);
+  // The drape may have been rebuilt while the basins loaded, and the selection changed.
+  if (surfaceChangeScene !== state) return;
+  const selected = module.selectionBasinIds(series, surfaceChangeSelection);
+  writeSurfaceChangeSelectionChannel(state, basinIds && selected ? module.selectionMask(basinIds, selected) : null);
+}
+
+function getSurfaceChangeSubjectName(subject) {
+  if (!subject) return "";
+  const regionName = t(SURFACE_CHANGE_SUBJECT_NAME_KEYS[subject.region]);
+  if (subject.kind !== "basin") return regionName;
+  return t("explorer.surfaceChange.basinName", { code: subject.code, region: regionName });
+}
+
+/** The subject the controls ask for, or null before the series are in. */
+function getSurfaceChangeSubject() {
+  const series = getSurfaceChangeSeries();
+  return series && surfaceChangeModule ? surfaceChangeModule.resolveSubject(series, surfaceChangeSelection) : null;
+}
+
+/** Select the whole sheet, a region or a basin; a key the series do not have selects the sheet. */
+function setSurfaceChangeSelection(key) {
+  const series = getSurfaceChangeSeries();
+  const module = surfaceChangeModule;
+  surfaceChangeSelection = series && module?.resolveSubject(series, key) ? key : "AIS";
+  const select = controlsUI.surfaceChangeBasin;
+  if (select && select.value !== surfaceChangeSelection) select.value = surfaceChangeSelection;
+  applySurfaceChangeSelection().catch((error) => console.error("Surface-change basins failed to load:", error));
+  renderSurfaceChangeChart();
+  updateSurfaceChangeReadout();
+  updateMetaFromCurrentState();
+}
+
+function refreshSurfaceChangeSelection() {
+  populateSurfaceChangeBasinList();
+  setSurfaceChangeSelection(surfaceChangeSelection);
+  updateSurfaceChangeControlsUi();
+}
+
+/** The basin list: the whole sheet, then each region with its basins in coastline order. */
+function populateSurfaceChangeBasinList() {
+  const select = controlsUI.surfaceChangeBasin;
+  const series = getSurfaceChangeSeries();
+  const module = surfaceChangeModule;
+  if (!select || !series || !module || series === surfaceChangeBasinListSeries) return;
+  surfaceChangeBasinListSeries = series;
+  const option = (value, label) => {
+    const element = document.createElement("option");
+    element.value = value;
+    element.textContent = label;
+    return element;
+  };
+  const children = [option(module.WHOLE_SHEET, t("explorer.surfaceChange.basinWhole"))];
+  for (const region of module.REGION_KEYS) {
+    if (region === module.WHOLE_SHEET || !series.regions[region]) continue;
+    const group = document.createElement("optgroup");
+    const regionName = t(SURFACE_CHANGE_SUBJECT_NAME_KEYS[region]);
+    group.label = regionName;
+    group.append(option(region, t("explorer.surfaceChange.basinAllOf", { region: regionName })));
+    for (const basin of series.basins) {
+      if (basin.region !== region) continue;
+      group.append(option(module.basinKey(basin.id), t("explorer.surfaceChange.basinOption", { code: basin.code })));
+    }
+    children.push(group);
+  }
+  select.replaceChildren(...children);
+  select.value = surfaceChangeSelection;
+}
+
+/** Pick the basin under a click on the drape; picking the selected one again goes back to the sheet. */
+function pickSurfaceChangeBasinAtClientPoint(clientX, clientY) {
+  const state = surfaceChangeScene;
+  const module = surfaceChangeModule;
+  if (!(state && module && isSurfaceChangeShown() && renderer && camera && flowlineRaycaster && flowlinePointerNdc)) {
+    return false;
+  }
+  if (!getSurfaceChangeSeries(state.context.dataset)?.basins.length) return false;
+  const rect = renderer.domElement.getBoundingClientRect();
+  if (!(rect.width > 0 && rect.height > 0)) return false;
+  if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) return false;
+  flowlinePointerNdc.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+  flowlineRaycaster.setFromCamera(flowlinePointerNdc, camera);
+  const hit = flowlineRaycaster.intersectObject(state.mesh, false)[0];
+  if (!hit?.uv) return false;
+  const { x: u, y: v } = hit.uv;
+  // The record may still wait for the basins: decide against the selection at the click,
+  // and only if no pick or list choice has come since.
+  const serial = ++surfaceChangePickSerial;
+  const selectionAtClick = surfaceChangeSelection;
+  const pick = (basinIds) => {
+    if (serial !== surfaceChangePickSerial || surfaceChangeScene !== state || !basinIds) return;
+    const id = module.basinAtUv(basinIds, state.context.nx, state.context.ny, u, v);
+    if (!id) return;
+    const key = module.basinKey(id);
+    setSurfaceChangeSelection(key === selectionAtClick ? module.WHOLE_SHEET : key);
+  };
+  if (state.view === "rate") pick(state.decoded.basin);
+  else ensureSurfaceChangeBasinIds(state.context).then(pick).catch((error) => console.error("Surface-change basins failed to load:", error));
+  return true;
+}
+
+/** The selection's mass change since 1995 with its 1-sigma band, and a cursor on the epoch shown. */
+function renderSurfaceChangeChart() {
+  const svg = controlsUI.surfaceChangeChart;
+  if (!svg) return;
+  const module = surfaceChangeModule;
+  const series = isSurfaceChangeShown() && module ? getSurfaceChangeSeries(surfaceChangeScene.context.dataset) : null;
+  const subject = series ? module.resolveSubject(series, surfaceChangeSelection) : null;
+  if (!subject) {
+    svg.innerHTML = "";
+    surfaceChangeChartGeometry = null;
+    return;
+  }
+  const box = SURFACE_CHANGE_CHART;
+  const geometry = module.massChangeChartGeometry(series.years, subject.massChange, subject.uncertainty, box);
+  // Coloured as the map colours loss (red) or gain (blue) over the record.
+  const last = subject.massChange[subject.massChange.length - 1];
+  const rgb = module.surfaceChangeRampColor(last < 0 ? 0.12 : 0.88).map((channel) => Math.round(channel * 255));
+  const color = `rgb(${rgb.join(", ")})`;
+  const name = getSurfaceChangeSubjectName(subject);
+  const zeroY = geometry.yOf(0).toFixed(1);
+  const parts = [
+    `<path class="band" fill="${color}" d="${geometry.band}" />`,
+    `<line class="axis" x1="${box.left}" y1="${zeroY}" x2="${box.right}" y2="${zeroY}" />`,
+    `<line class="axis" x1="${box.left}" y1="${box.top}" x2="${box.left}" y2="${box.bottom}" />`,
+    `<text class="label" x="${box.left - 3}" y="${box.top - 5}" text-anchor="end">Gt</text>`,
+  ];
+  for (const value of geometry.yTicks) {
+    const label = value === 0 ? "0" : formatSignedRounded(value, 1);
+    parts.push(
+      `<text class="label" x="${box.left - 3}" y="${(geometry.yOf(value) + 3).toFixed(1)}" text-anchor="end">${escapeHtml(label)}</text>`
+    );
+  }
+  for (const tick of geometry.xTicks) {
+    parts.push(
+      `<text class="label" x="${geometry.xOf(tick.at).toFixed(1)}" y="${box.bottom + 10}" text-anchor="middle">${tick.label}</text>`
+    );
+  }
+  parts.push(
+    `<path class="series is-active" stroke="${color}" d="${geometry.line}" />`,
+    `<text class="label label--series" x="${box.left + 4}" y="${box.top - 5}">${escapeHtml(name)}</text>`,
+    `<line class="cursor" x1="${box.left}" y1="${box.top}" x2="${box.left}" y2="${box.bottom}" />`,
+    `<circle class="cursor-dot" r="2.6" cx="${box.left}" cy="${zeroY}" fill="${color}" />`
+  );
+  svg.innerHTML = parts.join("");
+  svg.setAttribute(
+    "aria-label",
+    t("explorer.surfaceChange.chartLabel", {
+      name,
+      first: geometry.xTicks[0].label,
+      last: geometry.xTicks[geometry.xTicks.length - 1].label,
+    })
+  );
+  surfaceChangeChartGeometry = { ...geometry, series, subject };
+  updateSurfaceChangeChartCursor();
+}
+
+/** The record's epoch on the chart; the rate views have none. */
+function updateSurfaceChangeChartCursor() {
+  const svg = controlsUI.surfaceChangeChart;
+  const geometry = surfaceChangeChartGeometry;
+  if (!svg || !geometry || !surfaceChangeModule) return;
+  const cursor = svg.querySelector(".cursor");
+  const dot = svg.querySelector(".cursor-dot");
+  const year = surfaceChangeScene?.view === "cumulative" ? getSurfaceChangeYear() : Number.NaN;
+  const visible = Number.isFinite(year);
+  for (const element of [cursor, dot]) element?.setAttribute("visibility", visible ? "visible" : "hidden");
+  if (!visible) return;
+  const change = surfaceChangeModule.seriesChangeAt(geometry.series, geometry.subject, year);
+  const x = geometry.xOf(year).toFixed(1);
+  cursor?.setAttribute("x1", x);
+  cursor?.setAttribute("x2", x);
+  dot?.setAttribute("cx", x);
+  dot?.setAttribute("cy", geometry.yOf(change.massChangeGt).toFixed(1));
+}
+
+function formatSurfaceChangeDate(year) {
+  if (!Number.isFinite(year) || !surfaceChangeModule) return "";
+  const parts = surfaceChangeModule.decimalYearParts(year);
+  return new Intl.DateTimeFormat(pageLocale, { year: "numeric", month: "short", timeZone: "UTC" }).format(
+    new Date(Date.UTC(parts.year, parts.month, 15))
+  );
+}
+
+function syncSurfaceChangeTimeControls() {
+  const record = surfaceChangeScene?.view === "cumulative" ? surfaceChangeScene.decoded : null;
+  const slider = controlsUI.surfaceChangeTime;
+  if (slider && record) {
+    slider.max = String(record.years.length - 1);
+    const last = record.years.length - 1;
+    slider.value = String(Math.min(last, Math.max(0, surfaceChangePosition)));
+  }
+  if (controlsUI.surfaceChangeTimeValue) {
+    controlsUI.surfaceChangeTimeValue.textContent = record ? formatSurfaceChangeDate(getSurfaceChangeYear()) : "";
+  }
+}
+
+function updateSurfaceChangePlayButton() {
+  const button = controlsUI.surfaceChangePlay;
+  if (!button) return;
+  const label = surfaceChangePlaying ? t("explorer.projection.pause") : t("explorer.projection.play");
+  button.textContent = label;
+  button.setAttribute("aria-label", label);
+  button.setAttribute("aria-pressed", String(surfaceChangePlaying));
+  button.disabled = !(isSurfaceChangeShown() && surfaceChangeScene.view === "cumulative");
+}
+
+function startSurfaceChangePlayback() {
+  const record = surfaceChangeScene?.view === "cumulative" ? surfaceChangeScene.decoded : null;
+  if (!record || !isSurfaceChangeShown()) return;
+  if (surfaceChangePosition >= record.years.length - 1) setSurfaceChangePosition(0);
+  surfaceChangePlaying = true;
+  // A live region rewritten every frame would flood screen readers; it speaks again on stop.
+  controlsUI.surfaceChangeReadout?.setAttribute("aria-live", "off");
+  updateSurfaceChangePlayButton();
+}
+
+function stopSurfaceChangePlayback() {
+  if (!surfaceChangePlaying) return;
+  surfaceChangePlaying = false;
+  controlsUI.surfaceChangeReadout?.setAttribute("aria-live", "polite");
+  updateSurfaceChangePlayButton();
+}
+
+function stepSurfaceChangePlayback(deltaSeconds) {
+  if (!surfaceChangePlaying) return;
+  const record = surfaceChangeScene?.view === "cumulative" ? surfaceChangeScene.decoded : null;
+  if (!record || !isSurfaceChangeShown()) {
+    stopSurfaceChangePlayback();
+    return;
+  }
+  const last = record.years.length - 1;
+  const next = Math.min(last, surfaceChangePosition + deltaSeconds * SURFACE_CHANGE_PLAYBACK_EPOCHS_PER_SECOND);
+  setSurfaceChangePosition(next);
+  if (next >= last) {
+    stopSurfaceChangePlayback();
+    updateMetaFromCurrentState();
+  }
+}
+
+function formatSignedRounded(value, step) {
+  if (!Number.isFinite(value)) return t("explorer.meta.notApplicable");
+  const rounded = Math.round(value / step) * step;
+  const text = Math.abs(rounded).toLocaleString(numberLocale, { maximumFractionDigits: step < 1 ? 1 : 0 });
+  if (rounded === 0) return text;
+  return `${rounded > 0 ? "+" : "−"}${text}`;
+}
+
+/** "−1,890 ± 320 Gt": tens of gigatonnes once the uncertainty reaches them, whole ones before. */
+function formatSurfaceChangeMass(change) {
+  const step = change.uncertaintyGt >= 10 ? 10 : 1;
+  return t("explorer.surfaceChange.massValue", {
+    value: formatSignedRounded(change.massChangeGt, step),
+    sigma: (Math.max(1, Math.round(change.uncertaintyGt / step)) * step).toLocaleString(numberLocale),
+  });
+}
+
+function updateSurfaceChangeReadout() {
+  const el = controlsUI.surfaceChangeReadout;
+  if (!el) return;
+  const state = surfaceChangeScene;
+  if (!state || !isSurfaceChangeShown()) {
+    el.innerHTML = "";
+    return;
+  }
+  const rows = [];
+  const subject = getSurfaceChangeSubject();
+  if (state.view === "cumulative") {
+    const year = getSurfaceChangeYear();
+    const regional = surfaceChangeModule.regionalChangeAt(state.decoded, year);
+    for (const key of surfaceChangeModule.REGION_KEYS) {
+      const change = regional[key];
+      if (!change) continue;
+      rows.push([t(SURFACE_CHANGE_REGION_LABEL_KEYS[key]), formatSurfaceChangeMass(change)]);
+      if (key === "AIS") {
+        rows.push([
+          t("explorer.surfaceChange.readoutSeaLevel"),
+          t("explorer.surfaceChange.seaLevelValue", { value: formatSignedRounded(change.seaLevelMm, 0.1) }),
+        ]);
+      }
+    }
+    // The regions are listed already; a basin is added below them.
+    if (subject?.kind === "basin") {
+      const change = surfaceChangeModule.seriesChangeAt(getSurfaceChangeSeries(), subject, year);
+      rows.push([getSurfaceChangeSubjectName(subject), formatSurfaceChangeMass(change)]);
+    }
+  } else {
+    const summary = state.drawnSummary;
+    const period = state.decoded.period;
+    rows.push([
+      t("explorer.surfaceChange.readoutPeriod"),
+      t("explorer.surfaceChange.periodValue", {
+        first: Math.floor(period.startYear),
+        last: Math.floor(period.endYear),
+      }),
+    ]);
+    if (summary?.count) {
+      rows.push([
+        t("explorer.surfaceChange.readoutSignificant"),
+        `${Math.round(summary.significantShare * 100)}%`,
+      ]);
+    }
+    // The selection's mass change over the whole record.
+    const series = getSurfaceChangeSeries();
+    if (subject && series) {
+      const change = surfaceChangeModule.seriesChangeAt(series, subject, series.years[series.years.length - 1]);
+      rows.push([
+        t("explorer.surfaceChange.readoutTotal", {
+          name: getSurfaceChangeSubjectName(subject),
+          first: Math.floor(series.years[0]),
+          last: Math.floor(series.years[series.years.length - 1]),
+        }),
+        formatSurfaceChangeMass(change),
+      ]);
+    }
+  }
+  const html = rows
+    .map(([label, value]) => `<span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong>`)
+    .join("");
+  // Rewritten only when it changes, as playback redraws it every frame.
+  if (el.innerHTML !== html) el.innerHTML = html;
+}
+
+function updateSurfaceChangeNote() {
+  const el = controlsUI.surfaceChangeNote;
+  if (!el) return;
+  el.textContent =
+    getSurfaceChangeView() === "rate" ? t("explorer.surfaceChange.noteRate") : t("explorer.surfaceChange.noteCumulative");
+}
+
+/** A legend label: the unit rides on zero, as on the velocity legend, so the ends stay short. */
+function formatSurfaceChangeTick(value, view) {
+  if (value === 0) return view === "rate" ? "0 m/yr" : "0 m";
+  const magnitude = Math.abs(value).toLocaleString(numberLocale);
+  return `${value > 0 ? "+" : "−"}${magnitude}`;
+}
+
+function renderSurfaceChangeLegend() {
+  const state = surfaceChangeScene;
+  const module = surfaceChangeModule;
+  if (!state || !module) return;
+  const { scale } = state.decoded;
+  updateContinuousLegend(controlsUI.surfaceChangeLegendBar, (position) => module.surfaceChangeRampColor(position));
+  // The default gap, as the layout's later passes use (on showing the section, on resize).
+  renderTickLegendLabels(
+    controlsUI.surfaceChangeLegendLabels,
+    scale.ticks,
+    (value) => module.surfaceChangeScaleT(value, scale),
+    (value) => formatSurfaceChangeTick(value, state.view)
+  );
+  if (controlsUI.surfaceChangeLegendTitle) {
+    controlsUI.surfaceChangeLegendTitle.textContent =
+      state.view === "rate" ? t("explorer.surfaceChange.legendTitleRate") : t("explorer.surfaceChange.legendTitleCumulative");
+  }
+  if (controlsUI.surfaceChangeLegendNote) {
+    controlsUI.surfaceChangeLegendNote.textContent =
+      state.view === "rate"
+        ? t("explorer.surfaceChange.legendNoteRate", { softness: scale.softness })
+        : t("explorer.surfaceChange.legendNoteCumulative", { softness: scale.softness });
+  }
+}
+
+function updateSurfaceChangeControlsUi() {
+  const enabled = Boolean(controlsUI.showSurfaceChange?.checked);
+  if (controlsUI.surfaceChangeControls) controlsUI.surfaceChangeControls.hidden = !enabled;
+  if (controlsUI.surfaceChangeTimeControl) {
+    controlsUI.surfaceChangeTimeControl.hidden = getSurfaceChangeView() !== "cumulative";
+  }
+  if (controlsUI.surfaceChangeBasinControl) {
+    controlsUI.surfaceChangeBasinControl.hidden = !(isSurfaceChangeShown() && getSurfaceChangeSeries()?.basins.length);
+  }
+  if (controlsUI.surfaceChangeChartNote) {
+    controlsUI.surfaceChangeChartNote.textContent = t("explorer.surfaceChange.chartNote");
+  }
+  syncSurfaceChangeTimeControls();
+  updateSurfaceChangePlayButton();
+  updateSurfaceChangeNote();
+  updateSurfaceChangeReadout();
+  renderSurfaceChangeChart();
+  if (isSurfaceChangeShown()) renderSurfaceChangeLegend();
+}
+
+function refreshSurfaceChangeUi() {
+  updateSurfaceChangeControlsUi();
+  updateLegendVisibility();
+  updateMetaFromCurrentState();
+}
+
+function buildSurfaceChangeMetaItems() {
+  const state = surfaceChangeScene;
+  if (!state || !isSurfaceChangeShown() || !surfaceChangeModule) return [];
+  const item = (label, value, compact = false) =>
+    `<li${compact ? ' class="meta-compact"' : ""}><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</li>`;
+  const fmt = (value, digits) =>
+    Number.isFinite(Number(value))
+      ? Number(value).toLocaleString(numberLocale, { minimumFractionDigits: digits, maximumFractionDigits: digits })
+      : t("explorer.meta.notApplicable");
+  const items = [];
+  if (state.view === "cumulative") {
+    const record = state.decoded;
+    const year = getSurfaceChangeYear();
+    if (!state.drawnSummary) state.drawnSummary = surfaceChangeModule.summariseDrawn(state.domainValues, record.finalSigma);
+    const summary = state.drawnSummary;
+    items.push(
+      item(
+        t("explorer.meta.surfaceChangeEpoch"),
+        t("explorer.meta.surfaceChangeEpochValue", {
+          date: formatSurfaceChangeDate(year),
+          count: record.years.length,
+          first: formatSurfaceChangeDate(record.years[0]),
+          last: formatSurfaceChangeDate(record.years[record.years.length - 1]),
+        })
+      ),
+      item(
+        t("explorer.meta.surfaceChangeRange"),
+        t("explorer.meta.surfaceChangeRangeValue", { min: fmt(summary.min, 1), max: fmt(summary.max, 1), unit: "m" })
+      ),
+      item(
+        t("explorer.meta.surfaceChangeSignificant"),
+        t("explorer.meta.surfaceChangeSignificantValue", { share: Math.round(summary.significantShare * 100) }),
+        true
+      ),
+      item(
+        t("explorer.meta.surfaceChangeExtrapolated"),
+        t("explorer.meta.surfaceChangeExtrapolatedValue", {
+          date: formatSurfaceChangeDate(record.poleHole.observedFromYear),
+        }),
+        true
+      )
+    );
+  } else {
+    const summary = state.drawnSummary || surfaceChangeModule.summariseDrawn(state.decoded.values, state.decoded.sigma);
+    const period = state.decoded.period;
+    items.push(
+      item(
+        t("explorer.meta.surfaceChangePeriod"),
+        t("explorer.surfaceChange.periodValue", { first: Math.floor(period.startYear), last: Math.floor(period.endYear) })
+      ),
+      item(
+        t("explorer.meta.surfaceChangeRange"),
+        t("explorer.meta.surfaceChangeRangeValue", { min: fmt(summary.min, 2), max: fmt(summary.max, 2), unit: "m/yr" })
+      ),
+      item(
+        t("explorer.meta.surfaceChangeSignificant"),
+        t("explorer.meta.surfaceChangeSignificantValue", { share: Math.round(summary.significantShare * 100) }),
+        true
+      )
+    );
+  }
+  items.push(...buildSurfaceChangeMassItems(item, state));
+  items.push(
+    item(t("explorer.meta.surfaceChangeCells"), t("explorer.meta.surfaceChangeCellsValue"), true),
+    item(t("explorer.meta.surfaceChangeMethod"), t("explorer.meta.surfaceChangeMethodValue"), true)
+  );
+  return items;
+}
+
+/**
+ * CPOM's mass change of the sheet and its regions, and of the selection if it is narrower:
+ * at the epoch shown in the record, over the whole record in the rate views.
+ */
+function buildSurfaceChangeMassItems(item, state) {
+  const series = getSurfaceChangeSeries(state.context.dataset);
+  const module = surfaceChangeModule;
+  if (!series || !module) return [];
+  const lastYear = series.years[series.years.length - 1];
+  const year = state.view === "cumulative" ? getSurfaceChangeYear() : lastYear;
+  const parts = module.REGION_KEYS.filter((key) => series.regions[key]).map((key) =>
+    t("explorer.meta.surfaceChangeMassPart", {
+      name: t(SURFACE_CHANGE_SUBJECT_NAME_KEYS[key]),
+      value: formatSurfaceChangeMass(module.seriesChangeAt(series, series.regions[key], year)),
+    })
+  );
+  const label =
+    state.view === "cumulative"
+      ? t("explorer.meta.surfaceChangeMassSince")
+      : t("explorer.meta.surfaceChangeMassPeriod", { first: Math.floor(series.years[0]), last: Math.floor(lastYear) });
+  const items = [item(label, parts.join(t("explorer.meta.surfaceChangeMassSeparator")))];
+  const subject = getSurfaceChangeSubject();
+  if (subject && subject.kind !== "sheet") {
+    items.push(
+      item(
+        t("explorer.meta.surfaceChangeSelected"),
+        t("explorer.meta.surfaceChangeSelectedValue", {
+          name: getSurfaceChangeSubjectName(subject),
+          value: formatSurfaceChangeMass(module.seriesChangeAt(series, subject, year)),
+        })
+      )
+    );
+  }
+  return items;
+}
+
+function collectSurfaceChangeState() {
+  const state = surfaceChangeScene;
+  const record = state?.view === "cumulative" ? state.decoded : null;
+  const year = getSurfaceChangeYear();
+  return {
+    available: isSurfaceChangeAvailable(),
+    enabled: Boolean(controlsUI.showSurfaceChange?.checked),
+    shown: isSurfaceChangeShown(),
+    view: state?.view || null,
+    epochCount: record ? record.years.length : null,
+    position: record ? Number(Math.min(record.years.length - 1, Math.max(0, surfaceChangePosition)).toFixed(3)) : null,
+    year: Number.isFinite(year) ? Number(year.toFixed(3)) : null,
+    playing: surfaceChangePlaying,
+    extrapolatedRadiusKm: state?.mesh ? Math.round(state.mesh.material.uniforms.uExtrapolatedRadius.value / 1000) : null,
+    fade: Boolean(state?.mesh && state.mesh.material.uniforms.uFade.value > 0.5),
+    selection: surfaceChangeSelection,
+    selectedCells: state?.selectedCells ?? 0,
+    basinCount: getSurfaceChangeSeries()?.basins.length ?? 0,
+    chartShown: Boolean(surfaceChangeChartGeometry),
+  };
+}
+
+function bindSurfaceChangeControls() {
+  controlsUI.showSurfaceChange?.addEventListener("change", () => {
+    if (controlsUI.showSurfaceChange.checked) {
+      leaveLayersForSurfaceChange();
+      updateSurfaceChangeControlsUi();
+      updateLegendVisibility();
+      ensureSurfaceChangeLoaded();
+      return;
+    }
+    stopSurfaceChangePlayback();
+    syncSurfaceChangeVisibility();
+    refreshSurfaceChangeUi();
+  });
+  controlsUI.surfaceChangeView?.addEventListener("change", () => {
+    stopSurfaceChangePlayback();
+    syncSurfaceChangeVisibility();
+    updateSurfaceChangeControlsUi();
+    if (controlsUI.showSurfaceChange?.checked) ensureSurfaceChangeLoaded();
+    else refreshSurfaceChangeUi();
+  });
+  controlsUI.surfaceChangeTime?.addEventListener("input", () => {
+    stopSurfaceChangePlayback();
+    setSurfaceChangePosition(Number(controlsUI.surfaceChangeTime.value));
+  });
+  controlsUI.surfaceChangeTime?.addEventListener("change", () => {
+    updateMetaFromCurrentState();
+  });
+  controlsUI.surfaceChangePlay?.addEventListener("click", () => {
+    if (surfaceChangePlaying) {
+      stopSurfaceChangePlayback();
+      updateMetaFromCurrentState();
+      return;
+    }
+    startSurfaceChangePlayback();
+  });
+  controlsUI.surfaceChangeFade?.addEventListener("change", () => {
+    const uniforms = surfaceChangeScene?.mesh?.material?.uniforms;
+    if (uniforms) uniforms.uFade.value = controlsUI.surfaceChangeFade.checked ? 1 : 0;
+  });
+  controlsUI.surfaceChangeBasin?.addEventListener("change", () => {
+    surfaceChangePickSerial += 1;
+    setSurfaceChangeSelection(controlsUI.surfaceChangeBasin.value);
+  });
 }
 
 // ------------------------------------------------------------------ edition guide

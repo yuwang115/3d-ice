@@ -257,20 +257,33 @@ test("gridded int16 fields and masks cover the declared grid", async (t) => {
   }
 });
 
+// Fields with one value per domain cell, and per domain cell and keyframe, by kind of sparse
+// time series. The ice-sheet projections (ismip6_2300_mean8_*) carry no kind; the observed
+// surface elevation change (cpom_antarctica_dh_480) does.
+const SPARSE_TIME_SERIES_FIELDS = {
+  projection: { perCell: ["bed"], perFrame: ["thickness"] },
+  observed_surface_change: { perCell: ["final_uncertainty"], perFrame: ["surface_change"] },
+};
+
 test("sparse time-series packages cover their domain at every keyframe", async (t) => {
-  // The ISMIP6 projection packages (ismip6_2300_mean8_*) use this layout.
   const sparse = PACKAGE_NAMES.filter((name) => loadPackage(name).meta.geometry_type === SPARSE_TIME_SERIES);
   for (const name of sparse) {
     await t.test(name, () => {
       const { meta, buffer } = loadPackage(name);
+      const layout = SPARSE_TIME_SERIES_FIELDS[meta.time_series_kind || "projection"];
+      assert.ok(layout, `unknown time_series_kind ${meta.time_series_kind}`);
       const cells = meta.grid.nx * meta.grid.ny;
       const domain = parseField(meta, buffer, "domain_mask");
       assert.equal(domain.length, cells, "domain_mask vs grid");
       const count = domain.reduce((sum, value) => sum + (value ? 1 : 0), 0);
       assert.equal(count, meta.domain.cell_count, "domain_mask vs domain.cell_count");
-      assert.equal(parseField(meta, buffer, "bed").length, count, "bed vs domain");
+      for (const fieldName of layout.perCell) {
+        assert.equal(parseField(meta, buffer, fieldName).length, count, `${fieldName} vs domain`);
+      }
       assert.equal(meta.frames.years.length, meta.frames.count, "frame years vs frame count");
-      assert.equal(parseField(meta, buffer, "thickness").length, meta.frames.count * count, "thickness vs frames x domain");
+      for (const fieldName of layout.perFrame) {
+        assert.equal(parseField(meta, buffer, fieldName).length, meta.frames.count * count, `${fieldName} vs frames x domain`);
+      }
       for (let i = 1; i < meta.frames.years.length; i += 1) {
         assert.ok(meta.frames.years[i] > meta.frames.years[i - 1], "frame years must increase");
       }

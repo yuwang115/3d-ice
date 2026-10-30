@@ -32,6 +32,13 @@ const CAPABILITY_URL_KEYS = Object.freeze({
   hydrology: Object.freeze(["hydrologyMetaUrl", "hydrologyBinUrl"]),
   refinedBasins: Object.freeze(["refinedBasinsUrl"]),
   isostaticRebound: Object.freeze(["reboundMetaUrl", "reboundBinUrl"]),
+  surfaceChange: Object.freeze([
+    "surfaceChangeRateMetaUrl",
+    "surfaceChangeRateBinUrl",
+    "surfaceChangeRecordMetaUrl",
+    "surfaceChangeRecordBinUrl",
+    "surfaceChangeSeriesUrl",
+  ]),
 });
 
 /** Package URL keys and the keys of their light versions, which phones load instead. */
@@ -73,7 +80,8 @@ const PROFILES = deepFreeze({
       antarctica: ["balanced"],
       greenland: ["3km"],
     },
-    disabledCapabilities: ["basalFriction", "rise", "hydrology", "refinedBasins"],
+    // The observed elevation change waits for a tour stop and an explainer of its own.
+    disabledCapabilities: ["basalFriction", "rise", "hydrology", "refinedBasins", "surfaceChange"],
     standInControls: true,
     // State of the controls this edition's page leaves out. Anything not listed stands in
     // as an unchecked checkbox, so the layer it drives stays off.

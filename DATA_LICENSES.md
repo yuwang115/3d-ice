@@ -17,6 +17,7 @@ you reuse the data; the references are below and in [paper.bib](paper.bib).
 | Mouginot & Rignot (2019), Greenland glacier catchments ([doi:10.7280/D1WT11](https://doi.org/10.7280/D1WT11)) | `greenland_basins_ps_v1_4_2.json`, `greenland_refined_basins_search.json` |
 | Paxman, Austermann & Hollyday, isostatic response grid files v3 ([doi:10.18739/A22Z12R8C](https://doi.org/10.18739/A22Z12R8C)) | `*_isostatic_response_*` |
 | Nowicki & ISMIP6 Team (2024), ISMIP6 Antarctica 2300 projections ([doi:10.5281/zenodo.13135599](https://doi.org/10.5281/zenodo.13135599)), with Seroussi & Pelle (2024) ([doi:10.5281/zenodo.10528582](https://doi.org/10.5281/zenodo.10528582)) | `ismip6_2300_mean8_*` |
+| CPOM (2026), Antarctic Ice Sheet surface elevation change from multi-mission radar altimetry, product version 1.0 ([CPOM Land Ice Portal](https://www.cpom.ucl.ac.uk/landice/)), described in Shepherd et al. (2019) ([doi:10.1029/2019GL082182](https://doi.org/10.1029/2019GL082182)); from ERS-2 and Envisat (ESA FDR4ALT) and CryoSat-2 (ESA Cryo-TEMPO) data | `cpom_antarctica_dhdt_*`, `cpom_antarctica_dh_480` |
 | SCAR Composite Gazetteer of Antarctica ([placenames.aq](https://placenames.aq/)) | `antarctica_geographic_names.json` (with a few Natural Earth and GEBCO labels, below) |
 
 ## NASA open data (cite the data set)

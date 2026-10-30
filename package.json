@@ -16,7 +16,8 @@
     "test:runtime": "node --experimental-test-coverage --test-coverage-include=static/tools/js/vertical-scale.js --test-coverage-include=static/tools/js/layer-stats.js --test-coverage-include=static/tools/js/overlay-cells.js --test-coverage-include=static/tools/js/source-links.js --test-coverage-lines=80 --test tests/js/vertical-scale.test.mjs tests/js/layer-stats.test.mjs tests/js/overlay-cells.test.mjs tests/js/source-links.test.mjs",
     "test:examples": "node --test tests/js/examples.test.mjs",
     "test:locale": "node --test tests/js/locale-coverage.test.mjs",
-    "test:js": "npm run test:polar-features && npm run test:gia-rebound && npm run test:ice-projection && npm run test:data-contract && npm run test:editions && npm run test:runtime && npm run test:examples && npm run test:locale",
-    "example:rebound": "node examples/isostatic-rebound.mjs"
+    "test:js": "npm run test:polar-features && npm run test:gia-rebound && npm run test:ice-projection && npm run test:surface-change && npm run test:data-contract && npm run test:editions && npm run test:runtime && npm run test:examples && npm run test:locale",
+    "example:rebound": "node examples/isostatic-rebound.mjs",
+    "test:surface-change": "node --experimental-test-coverage --test-coverage-include=static/tools/js/surface-change.js --test-coverage-lines=80 --test tests/js/surface-change.test.mjs"
   }
 }

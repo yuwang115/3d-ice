@@ -1,0 +1,157 @@
+{
+  "title": "CPOM Antarctic surface elevation change rate, 1995-2026, multi-mission radar altimetry",
+  "product_version": "CPOM multi-mission radar altimetry surface elevation change, Antarctica, 5 km, product version 1.0 (fv1)",
+  "reference": "Shepherd, A. et al. (2019): Trends in Antarctic Ice Sheet elevation and mass. Geophysical Research Letters 46, 8174-8183. doi:10.1029/2019GL082182",
+  "license": "CC BY 4.0 (the CPOM files' licence); cite the sources listed under `sources`",
+  "source_url": "https://www.cpom.ucl.ac.uk/landice/",
+  "sources": {
+    "dataset": {
+      "citation": "Centre for Polar Observation and Modelling (2026): Antarctic Ice Sheet surface elevation change at 5 km from multi-mission radar altimetry (ERS-2, Envisat, CryoSat-2), product version 1.0. CPOM Land Ice Portal.",
+      "url": "https://www.cpom.ucl.ac.uk/landice/",
+      "license": "CC-BY-4.0",
+      "creators": "A. Muir, T. Slater, J. Maddalena, B. Palmer (CPOM)"
+    },
+    "paper": {
+      "citation": "Shepherd, A. et al. (2019): Trends in Antarctic Ice Sheet elevation and mass. Geophysical Research Letters 46, 8174-8183.",
+      "doi": "10.1029/2019GL082182"
+    },
+    "missions": "ERS-2 and Envisat (ESA FDR4ALT Land Ice Thematic Data Product v1) and CryoSat-2 (ESA Cryo-TEMPO Land Ice, Baseline D)"
+  },
+  "grid": {
+    "nx": 667,
+    "ny": 667,
+    "x0_m": -3333000,
+    "y0_m": 3333000,
+    "dx_m": 10000,
+    "dy_m": -10000
+  },
+  "source_package": {
+    "grid_from": "bedmachine_antarctica_v4_480.meta.json",
+    "mask_from": "bedmachine_antarctica_v4_480.bin"
+  },
+  "resampling": {
+    "method": "area-weighted mean of the 5 km CPOM cells overlapping each explorer cell",
+    "min_cover": 0.5,
+    "drawn_on": "explorer ice cells (BedMachine Antarctica v4 grounded ice, floating ice and Lake Vostok)",
+    "reason": "CPOM's cells are on a 5 km EPSG:3031 grid of their own; overlay and terrain cells must correspond one to one",
+    "rows": "CPOM rows run south to north and are flipped"
+  },
+  "source_file": {
+    "name": "CPOM-AIS-L3C-DHDT-MULTIMISSION-5KM-199505-202601-fv1.nc",
+    "sha256": "1228562b305a7bc7ee47f50b7ec8f5ed6be94989f397c6b0fd825155bb4d693b",
+    "tracking_id": "dee6f9fa-aaac-11f1-88e7-de45127caf02",
+    "date_created": "20260907T121127Z",
+    "product_version": "1.0",
+    "license": "Creative Commons Attribution 4.0 International (CC BY 4.0)"
+  },
+  "period": {
+    "start_year": 1995.408203125,
+    "end_year": 2026.0712890625,
+    "note": "linear trend of the cross-calibrated, gap-filled elevation record over the period"
+  },
+  "pole_hole": {
+    "radius_m": {
+      "ers_envisat": 925174.8,
+      "cryosat2": 217326.1
+    },
+    "latitude_deg": {
+      "ers_envisat": -81.5,
+      "cryosat2": -88.0
+    },
+    "note": "south of 88 S the rate is extrapolated throughout; south of 81.5 S so are its years before CryoSat-2 data arrive, late in 2010"
+  },
+  "quantization": {
+    "unit": "m/yr",
+    "scale": 0.001,
+    "offset": 0.0,
+    "int16_fill_value": -32768
+  },
+  "visualization": {
+    "scale": "asinh",
+    "linear_core_m_per_yr": 0.05,
+    "saturation_m_per_yr": 5.0,
+    "fade_below_sigma": 2.0
+  },
+  "coverage": {
+    "drawn_cells": 118216,
+    "by_mask": {
+      "2": 117693,
+      "3": 369,
+      "4": 154
+    },
+    "explorer_ice_cells_without_value": 2365
+  },
+  "validation": {
+    "note": "volume-change rate (grid area, no map-scale correction) of the CPOM 5 km field and of the packed cells: net, and over the thickening and the thinning cells. They differ where CPOM cells fall outside explorer ice or below the cover threshold, and averaging cancels opposite-signed rates within a cell",
+    "source_km3_per_yr": {
+      "net": -21.525,
+      "thickening": 243.9,
+      "thinning": -265.4
+    },
+    "packed_km3_per_yr": {
+      "net": -21.875,
+      "thickening": 217.2,
+      "thinning": -239.1
+    }
+  },
+  "fields": [
+    {
+      "name": "dhdt",
+      "dtype": "int16",
+      "unit": "m/yr",
+      "scale": 0.001,
+      "offset": 0.0,
+      "fill_value": -32768,
+      "stats_m_per_yr": {
+        "min": -5.20092050075531,
+        "max": 1.198002152442932,
+        "mean": -0.0018503940912936612
+      },
+      "byte_offset": 0,
+      "byte_length": 889778
+    },
+    {
+      "name": "dhdt_uncertainty",
+      "dtype": "int16",
+      "unit": "m/yr",
+      "scale": 0.001,
+      "offset": 0.0,
+      "fill_value": -32768,
+      "stats_m_per_yr": {
+        "min": 0.001150579984532669,
+        "max": 0.1539527840912342,
+        "mean": 0.008611956021640475
+      },
+      "byte_offset": 889778,
+      "byte_length": 889778
+    },
+    {
+      "name": "basin_id",
+      "dtype": "uint8",
+      "flags": {
+        "0": "none",
+        "1": "West H-Hp",
+        "2": "West F-G",
+        "3": "East E-Ep",
+        "4": "East D-Dp",
+        "5": "East Cp-D",
+        "6": "East B-C",
+        "7": "East A-Ap",
+        "8": "East Jpp-K",
+        "9": "West G-H",
+        "10": "East Dp-E",
+        "11": "East Ap-B",
+        "12": "East C-Cp",
+        "13": "East K-A",
+        "14": "West J-Jpp",
+        "15": "Peninsula Ipp-J",
+        "16": "Peninsula I-Ipp",
+        "17": "Peninsula Hp-I",
+        "18": "West Ep-F"
+      },
+      "note": "IMBIE drainage basins, numbered, named and cited (Rignot et al., 2016) as in CPOM's basin_id; each cell takes the basin of the CPOM cell under its centre",
+      "byte_offset": 1779556,
+      "byte_length": 444889
+    }
+  ]
+}

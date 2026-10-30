@@ -713,6 +713,11 @@ select:focus {
   font-weight: 600;
 }
 
+/* The basin list and chart of the observed elevation change, set off from the readout above. */
+.surface-change-basins {
+  margin-top: 10px;
+}
+
 .projection-chart {
   display: block;
   width: 100%;

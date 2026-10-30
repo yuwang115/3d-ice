@@ -51,6 +51,7 @@ by 250 m, and hybridising a bed product with another product's surface and mask.
 | `prepare_greenland_basins.py` | Greenland drainage basins | `greenland_basins_ps_v1_4_2.json` |
 | `regrid_ismip6_2300_run.py`, `combine_ismip6_2300_mean.py` | ISMIP6 Antarctica 2300 model output (run next to the 2D archive on an HPC system) | per-run 10 km fields and the 8-model mean change per experiment |
 | `prepare_ismip6_projection.py` | the 8-model mean change, BedMachine v4 Balanced, the published scalars | `ismip6_2300_mean8_ae{05,10,14}_480` |
+| `prepare_cpom_land_ice.py` | CPOM Antarctic surface elevation change from multi-mission radar altimetry (1995–2026 rate, 81 cumulative epochs, mass-change series of the ice sheet, its regions and its 18 IMBIE basins) | `cpom_antarctica_dhdt_{480,741}`, `cpom_antarctica_dh_480` |
 | `prepare_polar_features.py` | Research-station and place-name catalogues | `*_research_stations.json`, `*_geographic_names.json` |
 | `prepare_refined_basin_search.mjs` | MEaSUREs Antarctic Boundaries v2 refined basins; the Greenland basins above | `*_refined_basins_search.json` |
 
@@ -88,6 +89,7 @@ bibliography.
 | `static/tools/antarctica-geometry-worker.js` | Module worker that builds velocity, basal-friction, hydrology and ocean-current geometry off the main thread |
 | `static/tools/gia-rebound-worker.js` | Module worker for the idealised isostatic-rebound solve |
 | `static/tools/js/gia-rebound.js`, `gia-grid.js`, `fft2d.js` | Published-response summary, flexural and Airy isostasy solver, grid utilities and 2-D FFT |
+| `static/tools/js/surface-change.js` | Observed surface elevation change: package decoding, epoch interpolation, the extrapolated polar cap, significance against the uncertainty, regional readout and colour scale, basin selection and the basin chart's geometry |
 | `static/tools/js/ice-projection.js` | Ice-sheet projection playback: package decoding, keyframe interpolation, flotation geometry from the level the ice rests on (the lake over Lake Vostok), scale-corrected cell areas, triangles, normals, speed change along the flowlines and colour scale |
 | `static/tools/js/polar-feature-search.js`, `polar-feature-label-style.js`, `polar-refined-basins.js`, `polar-features.js` | Place and feature search, label styling, refined-basin validation, and the controller that binds them to the scene |
 | `static/js/3d-ice-locale.js` | English and Chinese strings, published as `window.__3dIceLocale` |
@@ -153,6 +155,26 @@ between, the same rule the sea plane follows.
 Layers drawn against the present-day ice or bed, and the isostatic-rebound layer, are
 mutually exclusive with it.
 
+**Observed elevation change** shows CPOM's record of Antarctic surface elevation change
+from radar altimetry (ERS-2, Envisat, CryoSat-2) as a colour on today's ice surface, in two
+views. *Change since 1995* plays the 81 cumulative 140-day epochs of the Balanced dataset
+with the projection's slider and playback, interpolating between epochs in
+`surface-change.js`; *Rate, 1995–2026* draws the linear trend on the Balanced and HD
+datasets. One shader drape on the ice surface takes the value and its uncertainty from a
+data texture: the record rewrites the values of its domain cells for each frame. Changes
+within twice their uncertainty (a fade the visitor can switch off), and the polar cap that
+CPOM extrapolates (south of 81.5°S until CryoSat-2 data arrive, south of 88°S throughout),
+are drawn at a quarter of their colour. Loads are abortable: one for a view or terrain no
+longer shown is abandoned rather than waited for. The readout quotes CPOM's own ice-sheet and regional mass changes, carried in the
+package, rather than sums over the resampled grid. A click on the drape, or the basin list,
+picks one of CPOM's 18 IMBIE basins or a region: the field texture's alpha channel marks its
+cells, from the rate map's `basin_id` on that terrain (loaded for the record too), so the
+shader outlines it where the interpolated mask crosses one half and lets the rest recede; an
+SVG chart in the controls plots its mass change since 1995 from the record's metadata, which
+is all the rate views fetch of the record. The layer is in the research edition
+only. It is exclusive with the projection, the rebound and the velocity colour, which
+redraw or recolour the same surface.
+
 **Asset base.** Asset URLs resolve against a base taken, in order, from the `assetBase`
 query parameter, `window.__ICE_ASSET_BASE__`, a `<meta name="3d-ice-asset-base">` tag,
 or the `/tools/` segment of the page's own path. This is what lets the same files serve
@@ -195,6 +217,7 @@ current Chrome, Edge, Firefox and Safari (Chrome and Edge 89+, Firefox 114+, Saf
 | Rebound solver against the analytic point-load (Kelvin function) solution and the Airy limit | node:test | `tests/js/gia-point-load.test.mjs`, `tests/js/gia-rebound.test.mjs` | JavaScript unit tests |
 | Published-response packages: node alignment, the published identities, quantization, provenance | pytest, node:test | `tests/test_prepare_isostatic_response.py`, `tests/js/examples.test.mjs` | Python and JavaScript unit tests |
 | Projection decoding, interpolation, flotation (including over Lake Vostok), cell areas, triangles, normals, speed change; the ISMIP6 packer's frames, sea-level series and package layout | node:test, pytest | `tests/js/ice-projection.test.mjs`, `tests/test_prepare_ismip6_projection.py` | JavaScript and Python unit tests |
+| Observed elevation change: decoding, epoch interpolation, the extrapolated polar cap, significance, readout and colours, basin selection and chart geometry; the CPOM packer's row flip, area-weighted resampling, CryoSat-2 detection, basin names and series, and package layout | node:test, pytest | `tests/js/surface-change.test.mjs`, `tests/test_prepare_cpom_land_ice.py` | JavaScript and Python unit tests |
 | Place search, label styling, refined-basin validation | node:test | `tests/js/polar-features.test.mjs` | JavaScript unit tests |
 | Edition profiles, polar projections against every catalogue position, tour framing and flights, and copy parity across locales | node:test | `tests/js/editions.test.mjs`, `polar-projection.test.mjs`, `explore-tour.test.mjs`, `explore-content.test.mjs` | JavaScript unit tests |
 | Every localisation key used at runtime resolves in both locales | node:test | `tests/js/locale-coverage.test.mjs` | JavaScript unit tests |

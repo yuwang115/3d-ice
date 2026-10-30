@@ -8,6 +8,21 @@ All notable changes to 3D ICE are recorded here. The format follows
 
 ### Added
 
+- Observed elevation change in the research edition: CPOM's record of Antarctic surface
+  elevation change from multi-mission radar altimetry (ERS-2, Envisat, CryoSat-2; product
+  version 1.0, CC BY 4.0; Shepherd et al., 2019), drawn as a colour on today's ice surface
+  under *Interactive Scenarios*.
+  - *Change since 1995* plays the 81 cumulative 140-day epochs from 1995 to 2026 on the
+    Balanced dataset. Its readout quotes CPOM's own mass change for the ice sheet and the IMBIE
+    regions, and the sea-level equivalent.
+  - *Rate, 1995–2026* shows the linear trend on the Balanced and HD datasets.
+  - Changes within twice their uncertainty are faded, and the fade can be switched off. The
+    polar cap that CPOM extrapolates is always faded.
+  - A basin chart: clicking the ice, or the basin list, picks one of CPOM's 18 IMBIE drainage
+    basins or a region. The map outlines it, and a chart plots its mass change since 1995 with
+    its 1σ band; the readout and the Data Snapshot add its total.
+  - `scripts/prepare_cpom_land_ice.py` writes the three packages (`cpom_antarctica_dhdt_480`,
+    `_741`, `cpom_antarctica_dh_480`); the public edition does not offer the layer yet.
 - A cookieless GoatCounter count (yuwang.goatcounter.com) beside Google Analytics, as an
   independent check on it. It loads GoatCounter's count.js v5, pinned by its published
   Subresource Integrity hash.

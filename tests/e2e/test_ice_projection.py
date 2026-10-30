@@ -358,6 +358,32 @@ class TestIceProjection:
         assert state["meshes"]["ice"] is True
         assert state["legends"]["iceProjection"] is False
 
+    def test_the_observed_elevation_change_hands_the_scene_back(self, projection_page):
+        page, _ = projection_page
+        _enable(page)
+        page.locator("#showSurfaceChange").check()
+        page.wait_for_function(
+            """() => {
+                const s = JSON.parse(window.render_game_to_text());
+                return !s.iceProjection.active && s.surfaceChange.shown;
+            }""",
+            timeout=READY_TIMEOUT_MS,
+        )
+        state = _state(page)
+        assert state["toggles"]["showIceProjection"] is False
+        assert state["meshes"]["ice"] is True
+
+    def test_the_projection_switches_the_observed_elevation_change_off(self, projection_page):
+        page, _ = projection_page
+        page.locator("#showSurfaceChange").check()
+        page.wait_for_function(
+            "() => JSON.parse(window.render_game_to_text()).surfaceChange.shown", timeout=READY_TIMEOUT_MS
+        )
+        _enable(page)
+        state = _state(page)
+        assert state["surfaceChange"]["enabled"] is False
+        assert state["surfaceChange"]["shown"] is False
+
     def test_enabling_rebound_switches_the_projection_off(self, projection_page):
         page, _ = projection_page
         _enable(page)
