@@ -11,7 +11,8 @@
  * layer is on. A URL parameter tour=1 (or tour=<stop id>) opens the tour on load. The first
  * time a visitor switches the rebound layer on, the ice melts away over a few seconds.
  * While a stop shows the projection, the card reads out its year and sea-level change, and
- * the last stop ends the tour in the region the visitor picks.
+ * the last stop ends the tour in the region the visitor picks. Each tour started and each
+ * tour finished is counted in the site's analytics (static/js/3d-ice-analytics.js).
  */
 
 import { TOUR_CHAPTERS, getExploreContent } from "./explore-content.js";
@@ -28,6 +29,9 @@ const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
 const TEXT_INPUT_TYPES = new Set(["", "text", "search", "email", "number", "password", "tel", "url"]);
 // Values of the tour URL parameter that leave the tour closed.
 const TOUR_PARAM_OFF = new Set(["0", "false", "no", "off"]);
+
+// Counts an event in the site's analytics (static/js/3d-ice-analytics.js), on 3d-ice.com only.
+const countEvent = (name, title) => window.__3dIceAnalytics?.event(name, title);
 
 function interpolate(template, vars) {
   return String(template).replace(/\{(\w+)\}/g, (_match, token) => (token in vars ? String(vars[token]) : ""));
@@ -588,6 +592,8 @@ function createTour(api, content) {
   }
 
   function start(startIndex = 0, launcher = null) {
+    // Opening the card again after closing it resumes the same tour, which is not counted.
+    if (index < 0) countEvent("tour-start", "Guided tour started");
     opener = launcher;
     setOpen(true);
     api.closeMobilePanel();
@@ -604,6 +610,7 @@ function createTour(api, content) {
 
   // Finishing starts the next tour from the top rather than resuming at the end.
   function finish() {
+    countEvent("tour-complete", "Guided tour completed");
     close();
     index = -1;
     syncLaunchers();

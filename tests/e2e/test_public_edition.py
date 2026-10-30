@@ -53,6 +53,20 @@ PUBLIC_TOGGLES = {
 }
 # The high-emission projection's mean sea-level rise from Antarctica by 2300 (its package).
 HIGH_EMISSIONS_2300_SEA_LEVEL = "+1.46 m"
+# Records the events the page asks the site's analytics to count, in window.__countedEvents.
+# Away from 3d-ice.com the analytics counts nothing itself, so this record is all there is.
+RECORD_COUNTED_EVENTS = """(() => {
+    const counted = [];
+    let analytics;
+    Object.defineProperty(window, "__countedEvents", { value: counted });
+    Object.defineProperty(window, "__3dIceAnalytics", {
+        configurable: true,
+        get: () => analytics,
+        set: (value) => {
+            analytics = { ...value, event: (name, title) => { counted.push(name); value.event(name, title); } };
+        },
+    });
+})();"""
 
 
 def _state(page) -> dict:
@@ -354,6 +368,34 @@ class TestGuidedTour:
             _wait_camera_still(page)
             assert _state(page)["camera"] == arrived, "at Greenland's opening view, as Reset view gives it"
             assert errors == []
+        finally:
+            context.close()
+
+    def test_the_tour_counts_each_start_and_completion_once(self, playwright_browser, explore_url):
+        context = playwright_browser.new_context(viewport={"width": 1280, "height": 800}, reduced_motion="reduce")
+        context.add_init_script(RECORD_COUNTED_EVENTS)
+        page = context.new_page()
+
+        def counted() -> list[str]:
+            return page.evaluate("[...window.__countedEvents]")
+
+        try:
+            page.goto(f"{explore_url}?tour=your-turn", wait_until="domcontentloaded", timeout=30_000)
+            _wait_ready(page)
+            _wait_for_stop(page, "your-turn")
+            assert counted() == ["tour-start"], "a tour opened from the address counts as started"
+            page.locator('.tour-card__nav--start[data-region="antarctica"]').click()
+            assert counted() == ["tour-start", "tour-complete"]
+            # Finishing resets the tour, so the next one is a new start.
+            page.locator("#tourStartButton").click()
+            _wait_for_stop(page, "ice-continent")
+            assert counted() == ["tour-start", "tour-complete", "tour-start"]
+            # Closing part-way and opening again resumes the same tour.
+            page.keyboard.press("Escape")
+            assert page.locator("#tourCard").is_hidden()
+            page.locator("#tourStartButton").click()
+            _wait_for_stop(page, "ice-continent")
+            assert counted() == ["tour-start", "tour-complete", "tour-start"]
         finally:
             context.close()
 
