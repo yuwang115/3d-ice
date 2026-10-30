@@ -30,6 +30,12 @@ you reuse the data; the references are below and in [paper.bib](paper.bib).
 | MEaSUREs Antarctic Boundaries, Version 2, refined basins ([doi:10.5067/AXE4121732AD](https://doi.org/10.5067/AXE4121732AD)) | `imbie_refined_basins_v2.json`, `antarctica_refined_basins_search.json` |
 | ITS_LIVE V02.1 summary velocity mosaic, 2014–2024 (CC0 on the [ITS_LIVE](https://its-live.jpl.nasa.gov/) archive). Credit: velocity data generated using auto-RIFT (Gardner et al., 2018, [doi:10.5194/tc-12-521-2018](https://doi.org/10.5194/tc-12-521-2018)) and provided by the NASA MEaSUREs ITS_LIVE project (Gardner et al., 2025, [doi:10.5067/JQ6337239C96](https://doi.org/10.5067/JQ6337239C96)) | `greenland_ice_velocity_*` |
 
+## NOAA open data (cite the data set)
+
+| Data | Packages |
+| --- | --- |
+| NOAA/NSIDC Climate Data Record of Passive Microwave Sea Ice Concentration, Version 6 (G02202), Meier et al. (2026) ([doi:10.7265/b18j-z797](https://doi.org/10.7265/b18j-z797)). The files state "No constraints on data access or use"; NSIDC asks that the data set be cited as a condition of use | `nsidc_sea_ice_antarctica`, `nsidc_sea_ice_greenland` |
+
 ## Other terms
 
 - **Copernicus Marine Service licence.** The Greenland ocean currents
