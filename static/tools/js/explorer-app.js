@@ -181,6 +181,7 @@ const ALL_REGIONS = {
       isostaticRebound: true,
       iceProjection: false,
       surfaceChange: true,
+      seaIce: true,
     },
     sources: {
       geometry: {
@@ -259,7 +260,16 @@ const ALL_REGIONS = {
         text: "ISMIP6 Antarctica 2300 projections, mean of eight ice sheet models (Seroussi et al. 2024; Nowicki & ISMIP6 Team 2024), CC BY 4.0",
         url: "https://doi.org/10.5281/zenodo.13135599",
       },
+      // NSIDC asks for the data set to be cited as a condition of use.
+      seaIce: {
+        text: "NOAA/NSIDC Climate Data Record of Passive Microwave Sea Ice Concentration, Version 6 (Meier et al., 2026), monthly, 25 km",
+        url: "https://doi.org/10.7265/b18j-z797",
+      },
     },
+    // Monthly sea-ice concentration on a 25 km grid of its own, which every terrain of the
+    // region draws on its own ocean.
+    seaIceMetaUrl: assetUrl("data/nsidc_sea_ice_antarctica.meta.json?v=20261030-cdr-v6"),
+    seaIceBinUrl: assetUrl("data/nsidc_sea_ice_antarctica.bin?v=20261030-cdr-v6"),
     // Short label for the effective-elastic-thickness model behind the published response.
     reboundTeModelLabel: "Swain & Kirby 2021",
     datasets: {
@@ -411,6 +421,7 @@ const ALL_REGIONS = {
       isostaticRebound: true,
       iceProjection: false,
       surfaceChange: false,
+      seaIce: true,
     },
     sources: {
       geometry: {
@@ -466,7 +477,14 @@ const ALL_REGIONS = {
           url: "https://doi.org/10.18739/A22Z12R8C",
         },
       ],
+      // NSIDC asks for the data set to be cited as a condition of use.
+      seaIce: {
+        text: "NOAA/NSIDC Climate Data Record of Passive Microwave Sea Ice Concentration, Version 6 (Meier et al., 2026), monthly, 25 km",
+        url: "https://doi.org/10.7265/b18j-z797",
+      },
     },
+    seaIceMetaUrl: assetUrl("data/nsidc_sea_ice_greenland.meta.json?v=20261030-cdr-v6"),
+    seaIceBinUrl: assetUrl("data/nsidc_sea_ice_greenland.bin?v=20261030-cdr-v6"),
     reboundTeModelLabel: "Steffen et al. 2018",
     datasets: {
       "3km": {
@@ -609,6 +627,8 @@ function getDatasetConfig(regionKey, datasetKey) {
     capabilities: { ...region.capabilities, ...(dataset.capabilities || {}) },
     sources: { ...region.sources, ...(dataset.sources || {}) },
     refinedBasinsUrl: dataset.refinedBasinsUrl || region.refinedBasinsUrl || null,
+    seaIceMetaUrl: dataset.seaIceMetaUrl || region.seaIceMetaUrl || null,
+    seaIceBinUrl: dataset.seaIceBinUrl || region.seaIceBinUrl || null,
     basinToggleLabel: dataset.basinToggleLabel || region.basinToggleLabel || t("explorer.regions.antarctica.basinToggleLabel"),
     basinStatusLabel: dataset.basinStatusLabel || region.basinStatusLabel || t("explorer.regions.antarctica.basinStatusLabel"),
   };
@@ -968,6 +988,24 @@ const controlsUI = {
   surfaceChangeLegendBar: resolveControl("surfaceChangeLegendBar"),
   surfaceChangeLegendLabels: resolveControl("surfaceChangeLegendLabels"),
   surfaceChangeLegendNote: resolveControl("surfaceChangeLegendNote"),
+  seaIceRow: resolveControl("seaIceRow"),
+  showSeaIce: resolveControl("showSeaIce"),
+  seaIceControls: resolveControl("seaIceControls"),
+  seaIceMonth: resolveControl("seaIceMonth"),
+  seaIceMonthValue: resolveControl("seaIceMonthValue"),
+  seaIceYear: resolveControl("seaIceYear"),
+  seaIceYearValue: resolveControl("seaIceYearValue"),
+  seaIcePlay: resolveControl("seaIcePlay"),
+  seaIceReadout: resolveControl("seaIceReadout"),
+  seaIceChart: resolveControl("seaIceChart"),
+  seaIceChartNote: resolveControl("seaIceChartNote"),
+  seaIceMedianEdge: resolveControl("seaIceMedianEdge"),
+  seaIceNote: resolveControl("seaIceNote"),
+  seaIceLegendSection: resolveControl("seaIceLegendSection"),
+  seaIceLegendTitle: resolveControl("seaIceLegendTitle"),
+  seaIceLegendBar: resolveControl("seaIceLegendBar"),
+  seaIceLegendLabels: resolveControl("seaIceLegendLabels"),
+  seaIceLegendNote: resolveControl("seaIceLegendNote"),
   iceProjectionRow: resolveControl("iceProjectionRow"),
   showIceProjection: resolveControl("showIceProjection"),
   iceProjectionControls: resolveControl("iceProjectionControls"),
@@ -1160,6 +1198,25 @@ let surfaceChangeChartGeometry = null;
 // Counts picks and list choices, so a click still waiting for the basins gives way to any
 // that came after it.
 let surfaceChangePickSerial = 0;
+// Observed sea ice (see the "observed sea ice" section), declared up here likewise.
+let seaIceModule = null;
+let seaIceModulePromise = null;
+let seaIceScene = null;
+// The load in flight, { context, url, controller, promise }, and the one showing the
+// loading overlay, if any.
+let seaIceLoad = null;
+let seaIceOverlayLoad = null;
+// Decoded records keyed by payload URL: one per region, shared by its terrains.
+const seaIcePackageCache = new Map();
+// The month the sliders ask for (null until the first record sets its latest month), and
+// the fractional frame drawn, which playback moves from month to month.
+let seaIceYear = null;
+let seaIceMonth = null;
+let seaIcePosition = Number.NaN;
+let seaIcePlaying = false;
+let seaIceChartGeometry = null;
+// Whether switching the layer on raised the sea plane, so switching it off can lower it.
+let seaIceRaisedSea = false;
 let velocityDataTexture = null;
 let velocityContinuousSamplingWarningIssued = false;
 let basalMeltDataTexture = null;
@@ -1537,6 +1594,7 @@ function updateRegionLayerAvailability(regionKey) {
   );
   updateIceProjectionAvailability();
   updateSurfaceChangeAvailability();
+  updateSeaIceAvailability();
   updateOceanCurrentLayerControls();
   updateLegendVisibility();
 }
@@ -1604,6 +1662,10 @@ function updateLegendVisibility() {
   if (controlsUI.surfaceChangeLegendSection) {
     controlsUI.surfaceChangeLegendSection.hidden = !isSurfaceChangeShown();
     if (!controlsUI.surfaceChangeLegendSection.hidden) scheduleTickLegendLayout(controlsUI.surfaceChangeLegendLabels);
+  }
+  if (controlsUI.seaIceLegendSection) {
+    controlsUI.seaIceLegendSection.hidden = !isSeaIceShown();
+    if (!controlsUI.seaIceLegendSection.hidden) scheduleTickLegendLayout(controlsUI.seaIceLegendLabels);
   }
 }
 
@@ -2398,6 +2460,7 @@ function stepRuntime(deltaMs = 16) {
   stepCameraFlight(clamp(Number(deltaMs) || 0, 0, CAMERA_FLIGHT_FRAME_LIMIT_MS));
   stepIceProjectionPlayback(safeDeltaMs / 1000);
   stepSurfaceChangePlayback(safeDeltaMs / 1000);
+  stepSeaIcePlayback(safeDeltaMs / 1000);
   if (orbit) orbit.update();
 }
 
@@ -5445,6 +5508,7 @@ function hasPendingLayerLoads() {
       oceanCurrentLoadPromise ||
       refinedBasinLoadPromise ||
       iceProjectionLoadPromise ||
+      seaIceLoad ||
       polarFeaturesController?.getState().loading
   );
 }
@@ -5599,6 +5663,7 @@ function collectExplorerState() {
     },
     iceProjection: collectIceProjectionState(),
     surfaceChange: collectSurfaceChangeState(),
+    seaIce: collectSeaIceState(),
     featureLayers: polarFeatureState.featureLayers,
     search: polarFeatureState.search,
     selectedFeature: polarFeatureState.selectedFeature,
@@ -5648,6 +5713,7 @@ function collectExplorerState() {
       isostaticRebound: Boolean(bedMesh && bedMesh.visible && isReboundActive()),
       iceProjection: Boolean(isIceProjectionActive() && iceMesh && iceMesh.visible),
       surfaceChange: isSurfaceChangeShown(),
+      seaIce: isSeaIceShown(),
       ice: Boolean(iceMesh && iceMesh.visible),
       iceBottom: Boolean(iceBottomMesh && iceBottomMesh.visible),
       velocity: Boolean(velocitySurfaceMesh && velocitySurfaceMesh.visible),
@@ -5733,6 +5799,8 @@ function clearModelMeshes() {
   releaseIceProjectionScene();
   stopSurfaceChangePlayback();
   releaseSurfaceChangeScene();
+  stopSeaIcePlayback();
+  releaseSeaIceScene();
   bedMesh = disposeMesh(bedMesh);
   iceMesh = disposeMesh(iceMesh);
   iceBottomMesh = disposeMesh(iceBottomMesh);
@@ -7843,8 +7911,9 @@ function bindUI() {
   });
   controlsUI.showSea.addEventListener("change", () => {
     if (seaLevelMesh) seaLevelMesh.visible = controlsUI.showSea.checked;
-    // A visitor's own choice wins over the projection's.
+    // A visitor's own choice wins over the projection's and the sea ice's.
     iceProjectionRaisedSea = false;
+    seaIceRaisedSea = false;
   });
 
   controlsUI.showIsostaticRebound?.addEventListener("change", () => {
@@ -7951,6 +8020,7 @@ function bindUI() {
     updateLegendVisibility();
   });
   bindSurfaceChangeControls();
+  bindSeaIceControls();
   // Turning on a layer drawn against the present-day ice or bed hands the scene back.
   for (const key of ICE_PROJECTION_EXCLUSIVE_TOGGLES) {
     controlsUI[key]?.addEventListener("change", () => {
@@ -8475,6 +8545,10 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   if (surfaceChangeItems.length && dataset.sources.surfaceChange) {
     sourceLines.push(renderSourceLine(t("explorer.meta.sourceSurfaceChange"), dataset.sources.surfaceChange));
   }
+  const seaIceItems = buildSeaIceMetaItems();
+  if (seaIceItems.length && dataset.sources.seaIce) {
+    sourceLines.push(renderSourceLine(t("explorer.meta.sourceSeaIce"), dataset.sources.seaIce));
+  }
 
   const selectedFlowlineCard =
     capabilities.velocity && capabilities.flowline && controlsUI.showFlowline.checked
@@ -8500,6 +8574,9 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
       defaultOpen: true,
     }),
     renderMetaSection("surface-change", t("explorer.meta.surfaceChangeSection"), surfaceChangeItems, {
+      defaultOpen: true,
+    }),
+    renderMetaSection("sea-ice", t("explorer.meta.seaIceSection"), seaIceItems, {
       defaultOpen: true,
     }),
     renderMetaSection("sources", t("explorer.meta.sourcesSection"), sourceLines),
@@ -8869,6 +8946,7 @@ function hideOverlaysForRebound() {
     "showFlowline",
     "showRefinedBasins",
     "showSurfaceChange",
+    "showSeaIce",
   ]) {
     const control = controlsUI[key];
     if (control?.checked) {
@@ -8880,6 +8958,7 @@ function hideOverlaysForRebound() {
   stopSurfaceChangePlayback();
   syncSurfaceChangeVisibility();
   updateSurfaceChangeControlsUi();
+  leaveSeaIce();
   if (velocitySurfaceMesh) velocitySurfaceMesh.visible = false;
   if (basalFrictionMesh) basalFrictionMesh.visible = false;
   if (effectivePressureMesh) effectivePressureMesh.visible = false;
@@ -9323,6 +9402,7 @@ const ICE_PROJECTION_EXCLUSIVE_TOGGLES = [
   "showRefinedBasins",
   "showIsostaticRebound",
   "showSurfaceChange",
+  "showSeaIce",
 ];
 
 function loadIceProjectionModule() {
@@ -9934,6 +10014,7 @@ function hideOverlaysForIceProjection() {
   stopSurfaceChangePlayback();
   syncSurfaceChangeVisibility();
   updateSurfaceChangeControlsUi();
+  leaveSeaIce();
   updateRiseOverlayVisibility();
   updateOceanCurrentLayerControls();
   updateOceanCurrentLayerVisibility();
@@ -11967,6 +12048,8 @@ async function loadAndBuildMeshes(datasetKey = currentDatasetKey) {
   // terrain is abandoned.
   surfaceChangeOverlayLoad = null;
   abortSurfaceChangeLoad();
+  seaIceOverlayLoad = null;
+  abortSeaIceLoad();
   if (reboundGeometryFrame !== null) {
     window.cancelAnimationFrame(reboundGeometryFrame);
     reboundGeometryFrame = null;
@@ -12126,7 +12209,8 @@ async function loadAndBuildMeshes(datasetKey = currentDatasetKey) {
     updateLoadingProgress(1, t("explorer.loading.coreTerrainReady"));
 
     window.setTimeout(() => {
-      if (generation === loadGeneration) {
+      // A layer download started since then shows its own progress and hides the overlay itself.
+      if (generation === loadGeneration && !seaIceOverlayLoad && !surfaceChangeOverlayLoad) {
         setLoadingOverlayVisible(false);
       }
     }, 120);
@@ -12167,6 +12251,9 @@ async function loadAndBuildMeshes(datasetKey = currentDatasetKey) {
     }
     if (controlsUI.showSurfaceChange?.checked && isSurfaceChangeAvailable(currentCoreContext?.dataset)) {
       ensureSurfaceChangeLoaded();
+    }
+    if (controlsUI.showSeaIce?.checked && isSeaIceAvailable(currentCoreContext?.dataset)) {
+      ensureSeaIceLoaded();
     }
     if (!isShowcaseMode && !isPreviewMode) {
       const warmupDelay = viewerInteracted ? 180 : 900;
@@ -13382,6 +13469,898 @@ function bindSurfaceChangeControls() {
   controlsUI.surfaceChangeBasin?.addEventListener("change", () => {
     surfaceChangePickSerial += 1;
     setSurfaceChangeSelection(controlsUI.surfaceChangeBasin.value);
+  });
+}
+
+// ------------------------------------------------------------------ observed sea ice
+//
+// NOAA/NSIDC monthly sea-ice concentration from satellite passive microwave, November 1978
+// onwards (js/sea-ice.js; docs/data-contract.md): one package per region on a 25 km grid of
+// its own, drawn as a texture on the sea surface and clipped to the ocean of the terrain
+// shown, so every terrain of a region shares it. Two sliders pick the calendar month (the
+// seasons) and the year (the same month across the years); playback runs month by month,
+// blending from one month to the next. The readout and the chart quote the extent of the
+// whole hemisphere from the same record. It is exclusive with the projection and the
+// rebound, which move the ice front and the sea surface.
+
+const SEA_ICE_RENDER_ORDER = 25;
+// Six months a second: a year in two seconds, the whole record in about a minute and a half.
+const SEA_ICE_PLAYBACK_MONTHS_PER_SECOND = 6;
+// The chart's plot box in its 260 x 96 viewBox, as the projection chart's.
+const SEA_ICE_CHART = Object.freeze({ left: 36, right: 254, top: 16, bottom: 80 });
+const SEA_ICE_CHART_RGB = "rgb(90, 169, 230)";
+// Ocean nodes interpolate to 1 and land to 0; the sea ice fades out across the coastline.
+const SEA_ICE_COAST_LOW = 0.35;
+const SEA_ICE_COAST_HIGH = 0.65;
+const SEA_ICE_HEMISPHERE_KEYS = Object.freeze({
+  north: "explorer.seaIce.arctic",
+  south: "explorer.seaIce.antarctic",
+});
+
+function loadSeaIceModule() {
+  if (seaIceModule) return Promise.resolve(seaIceModule);
+  if (!seaIceModulePromise) {
+    seaIceModulePromise = import(assetUrl("js/sea-ice.js")).then(
+      (module) => {
+        seaIceModule = module;
+        return module;
+      },
+      (error) => {
+        // Let a later toggle try again.
+        seaIceModulePromise = null;
+        throw error;
+      }
+    );
+  }
+  return seaIceModulePromise;
+}
+
+/** The region's sea-ice package, or null where this page or region has none. */
+function getSeaIceUrls(dataset = getActiveDatasetConfig()) {
+  if (isShowcaseMode || isPreviewMode || !dataset?.capabilities?.seaIce) return null;
+  const { seaIceMetaUrl: metaUrl, seaIceBinUrl: binUrl } = dataset;
+  return metaUrl && binUrl ? { metaUrl, binUrl } : null;
+}
+
+function isSeaIceAvailable(dataset) {
+  return Boolean(getSeaIceUrls(dataset));
+}
+
+function isSeaIceShown() {
+  return Boolean(controlsUI.showSeaIce?.checked && seaIceScene?.mesh?.visible);
+}
+
+function updateSeaIceAvailability() {
+  const available = isSeaIceAvailable();
+  if (controlsUI.seaIceRow) controlsUI.seaIceRow.hidden = !available;
+  setToggleAvailability(controlsUI.showSeaIce, available);
+  if (!available) stopSeaIcePlayback();
+  syncSeaIceVisibility();
+  updateSeaIceControlsUi();
+}
+
+async function loadSeaIcePackage(urls, module, showOverlay, signal) {
+  const cached = seaIcePackageCache.get(urls.binUrl);
+  if (cached) return cached;
+  const meta = await fetchJsonStrict(urls.metaUrl, errorLabel("explorer.errors.failedToLoadSeaIceMetadata"), signal);
+  const fieldError = errorLabel("explorer.errors.failedToLoadSeaIceField");
+  const buffer = showOverlay
+    ? await fetchArrayBufferWithProgress(urls.binUrl, 0.12, 0.86, t("explorer.loading.downloadingSeaIce"), fieldError, signal)
+    : await fetchArrayBufferStrict(urls.binUrl, fieldError, signal);
+  const entry = { meta, record: module.decodeSeaIceRecord(meta, buffer) };
+  seaIcePackageCache.set(urls.binUrl, entry);
+  return entry;
+}
+
+/** Abandon the load in flight, which the terrain shown no longer needs. */
+function abortSeaIceLoad() {
+  const load = seaIceLoad;
+  seaIceLoad = null;
+  load?.controller.abort();
+}
+
+/**
+ * Load the region's record and draw it on this terrain. A load for the same terrain is
+ * shared; one for another is abandoned, as the elevation change's are.
+ */
+async function ensureSeaIceLoaded() {
+  const context = currentCoreContext;
+  if (!context || context.generation !== loadGeneration || !THREE) return false;
+  const urls = getSeaIceUrls(context.dataset);
+  if (!urls) return false;
+  if (seaIceScene?.context === context && seaIceScene.url === urls.binUrl) {
+    abortSeaIceLoad();
+    syncSeaIceVisibility();
+    refreshSeaIceUi();
+    return true;
+  }
+  if (seaIceLoad?.context === context && seaIceLoad.url === urls.binUrl) return seaIceLoad.promise;
+  abortSeaIceLoad();
+
+  const load = { context, url: urls.binUrl, controller: new AbortController(), promise: null };
+  const { signal } = load.controller;
+  const showOverlay = !seaIcePackageCache.has(urls.binUrl);
+  const isCurrent = () => !signal.aborted && context === currentCoreContext && context.generation === loadGeneration;
+  load.promise = (async () => {
+    if (showOverlay) {
+      seaIceOverlayLoad = load;
+      setLoadingOverlayVisible(true);
+      updateLoadingProgress(0.06, t("explorer.loading.loadingSeaIce"));
+      statusEl.textContent = t("explorer.status.loadingSeaIce");
+    }
+    const module = await loadSeaIceModule();
+    const { meta, record } = await loadSeaIcePackage(urls, module, showOverlay, signal);
+    if (!isCurrent()) {
+      releaseSeaIceOverlay(load);
+      return false;
+    }
+    buildSeaIceScene(context, urls.binUrl, meta, record);
+    releaseSeaIceOverlay(load, () => updateLoadingProgress(1, t("explorer.loading.seaIceReady")));
+    refreshSeaIceUi();
+    return true;
+  })()
+    .catch((error) => {
+      releaseSeaIceOverlay(load);
+      // An abandoned load is not a failure: the terrain it was for has gone.
+      if (signal.aborted || error?.name === "AbortError") return false;
+      console.error("Sea-ice layer load failed:", error);
+      if (context === currentCoreContext && context.generation === loadGeneration) handleSeaIceLoadFailure(context);
+      return false;
+    })
+    .finally(() => {
+      if (seaIceLoad === load) seaIceLoad = null;
+    });
+  seaIceLoad = load;
+  return load.promise;
+}
+
+/** Hide the loading overlay if this load showed it and nothing has taken it over since. */
+function releaseSeaIceOverlay(load, beforeHide = null) {
+  if (seaIceOverlayLoad !== load) return;
+  seaIceOverlayLoad = null;
+  beforeHide?.();
+  setLoadingOverlayVisible(false);
+  if (load.context === currentCoreContext) statusEl.textContent = getReadyStatusText(load.context);
+}
+
+function handleSeaIceLoadFailure(context) {
+  controlsUI.showSeaIce.checked = false;
+  releaseSeaIceScene();
+  lowerSeaRaisedBySeaIce();
+  refreshSeaIceUi();
+  const readyText = getReadyStatusText(context);
+  const transientText = t("explorer.status.seaIceUnavailable");
+  statusEl.textContent = transientText;
+  window.setTimeout(() => {
+    if (statusEl.textContent === transientText) statusEl.textContent = readyText;
+  }, 1800);
+}
+
+function createSeaIceDataTexture(data, width, height) {
+  const texture = new THREE.DataTexture(data, width, height, THREE.RGBAFormat, THREE.UnsignedByteType);
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.generateMipmaps = false;
+  texture.flipY = false;
+  texture.unpackAlignment = 1;
+  if ("colorSpace" in texture && "NoColorSpace" in THREE) texture.colorSpace = THREE.NoColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+/** The terrain's ocean (mask class 0) as a texture: 1 on ocean nodes, 0 elsewhere. */
+function createSeaIceOceanTexture(context) {
+  const count = context.nx * context.ny;
+  const data = new Uint8Array(count * 4);
+  for (let cell = 0; cell < count; cell += 1) {
+    if (context.mask[cell] === 0) data[4 * cell] = 255;
+    data[4 * cell + 3] = 255;
+  }
+  return createSeaIceDataTexture(data, context.nx, context.ny);
+}
+
+function createSeaIceShaderMaterial(context, record, fieldTexture, oceanTexture) {
+  const style = seaIceModule.SEA_ICE_STYLE;
+  const terrain = context.meta.grid;
+  return new THREE.ShaderMaterial({
+    glslVersion: THREE.GLSL1,
+    extensions: { derivatives: true },
+    uniforms: {
+      uIceTex: { value: fieldTexture },
+      uOceanTex: { value: oceanTexture },
+      uTerrainSize: { value: new THREE.Vector2(context.nx, context.ny) },
+      uTerrainOrigin: { value: new THREE.Vector2(terrain.x0_m, terrain.y0_m) },
+      uTerrainStep: { value: new THREE.Vector2(terrain.dx_m, terrain.dy_m) },
+      uMetersPerUnit: { value: context.baseConfig.horizontalMetersPerUnit },
+      uIceSize: { value: new THREE.Vector2(record.nx, record.ny) },
+      uIceOrigin: { value: new THREE.Vector2(record.grid.x0_m, record.grid.y0_m) },
+      uIceStep: { value: new THREE.Vector2(record.grid.dx_m, record.grid.dy_m) },
+      uThreshold: { value: record.thresholdPercent / 100 },
+      uShowIce: { value: 1 },
+      uShowEdge: { value: 1 },
+      uLowColor: { value: new THREE.Vector3(...style.lowColor) },
+      uHighColor: { value: new THREE.Vector3(...style.highColor) },
+      uLowAlpha: { value: style.lowAlpha },
+      uHighAlpha: { value: style.highAlpha },
+      uEdgeColor: { value: new THREE.Vector3(...style.edgeColor) },
+    },
+    vertexShader: `
+      precision highp float;
+
+      varying vec2 vPlane;
+
+      void main() {
+        vec4 world = modelMatrix * vec4(position, 1.0);
+        vPlane = world.xz;
+        gl_Position = projectionMatrix * viewMatrix * world;
+      }
+    `,
+    fragmentShader: `
+      precision highp float;
+
+      uniform sampler2D uIceTex;
+      uniform sampler2D uOceanTex;
+      uniform vec2 uTerrainSize;
+      uniform vec2 uTerrainOrigin;
+      uniform vec2 uTerrainStep;
+      uniform float uMetersPerUnit;
+      uniform vec2 uIceSize;
+      uniform vec2 uIceOrigin;
+      uniform vec2 uIceStep;
+      uniform float uThreshold;
+      uniform float uShowIce;
+      uniform float uShowEdge;
+      uniform vec3 uLowColor;
+      uniform vec3 uHighColor;
+      uniform float uLowAlpha;
+      uniform float uHighAlpha;
+      uniform vec3 uEdgeColor;
+
+      varying vec2 vPlane;
+
+      void main() {
+        // The scene centres the terrain grid on its middle node, x along its columns and z
+        // along its rows, so this point's node and projected position follow from x and z.
+        vec2 node = vPlane * uMetersPerUnit / vec2(uTerrainStep.x, abs(uTerrainStep.y)) + 0.5 * (uTerrainSize - 1.0);
+        vec2 xy = uTerrainOrigin + node * uTerrainStep;
+        // Every lookup and derivative before any discard, which would leave them undefined.
+        float ocean = texture2D(uOceanTex, (node + 0.5) / uTerrainSize).r;
+        vec4 field = texture2D(uIceTex, ((xy - uIceOrigin) / uIceStep + 0.5) / uIceSize);
+        float concentration = field.r;
+        float reference = field.g;
+        float width = max(fwidth(reference), 1e-4);
+        if (ocean < ${SEA_ICE_COAST_LOW.toFixed(2)}) discard;
+
+        // Ice from the 15 % threshold up: bluish and see-through at first, white when the
+        // sea is covered.
+        float t = clamp((concentration - uThreshold) / (1.0 - uThreshold), 0.0, 1.0);
+        float drawn = smoothstep(uThreshold - 0.015, uThreshold + 0.015, concentration);
+        float iceAlpha = uShowIce * drawn * mix(uLowAlpha, uHighAlpha, t);
+        vec3 color = mix(uLowColor, uHighColor, smoothstep(0.0, 1.0, t));
+
+        // The median ice edge, where the share of 1981-2010 years with ice crosses one half:
+        // a line about two pixels wide however far the camera is.
+        float edge = uShowEdge * (1.0 - smoothstep(0.6 * width, 1.2 * width, abs(reference - 0.5)));
+        color = mix(color, uEdgeColor, edge);
+
+        float alpha = max(iceAlpha, 0.95 * edge) * smoothstep(${SEA_ICE_COAST_LOW.toFixed(2)}, ${SEA_ICE_COAST_HIGH.toFixed(2)}, ocean);
+        if (alpha < 0.004) discard;
+        gl_FragColor = vec4(color, alpha);
+      }
+    `,
+    transparent: true,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+    depthTest: true,
+  });
+}
+
+function buildSeaIceScene(context, url, meta, record) {
+  releaseSeaIceScene();
+  const maxTextureSize = Number(renderer?.capabilities?.maxTextureSize || 0);
+  if (maxTextureSize > 0 && Math.max(context.nx, context.ny, record.nx, record.ny) > maxTextureSize) {
+    throw new Error("This browser cannot draw the sea ice on this terrain.");
+  }
+  const field = { data: new Uint8Array(record.nx * record.ny * 4), texture: null };
+  for (let i = 3; i < field.data.length; i += 4) field.data[i] = 255;
+  field.texture = createSeaIceDataTexture(field.data, record.nx, record.ny);
+  const oceanTexture = createSeaIceOceanTexture(context);
+  const material = createSeaIceShaderMaterial(context, record, field.texture, oceanTexture);
+  // The sea plane's footprint: the terrain grid from its first node to its last.
+  const widthUnits = ((context.nx - 1) * Math.abs(context.meta.grid.dx_m)) / context.baseConfig.horizontalMetersPerUnit;
+  const depthUnits = ((context.ny - 1) * Math.abs(context.meta.grid.dy_m)) / context.baseConfig.horizontalMetersPerUnit;
+  const geometry = new THREE.PlaneGeometry(widthUnits, depthUnits, 1, 1);
+  geometry.rotateX(-Math.PI / 2);
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.renderOrder = SEA_ICE_RENDER_ORDER;
+  mesh.visible = false;
+  scene.add(mesh);
+  seaIceScene = {
+    context,
+    url,
+    meta,
+    record,
+    mesh,
+    field,
+    oceanTexture,
+    concentration: new Float32Array(record.domainCount),
+    reference: new Float32Array(record.domainCount),
+    bracket: null,
+  };
+  if (seaIceYear === null || seaIceMonth === null) {
+    // The record opens on its latest month.
+    const latest = seaIceModule.frameDate(record, record.frameCount - 1);
+    seaIceYear = latest.year;
+    seaIceMonth = latest.month;
+  }
+  syncSeaIceSliderRanges();
+  if (!seaIcePlaying || !Number.isFinite(seaIcePosition)) seaIcePosition = getSeaIceSelectedIndex();
+  writeSeaIceFrame();
+  syncSeaIceVisibility();
+}
+
+function releaseSeaIceScene() {
+  const state = seaIceScene;
+  seaIceScene = null;
+  seaIceChartGeometry = null;
+  if (!state) return;
+  disposeMesh(state.mesh);
+  disposeTexture(state.field?.texture);
+  disposeTexture(state.oceanTexture);
+}
+
+function syncSeaIceVisibility() {
+  const state = seaIceScene;
+  if (!state?.mesh) return;
+  state.mesh.visible = Boolean(controlsUI.showSeaIce?.checked && state.context === currentCoreContext);
+}
+
+/** The frame of the month the sliders ask for, or NaN when the record does not reach it. */
+function getSeaIceSelectedIndex() {
+  const record = seaIceScene?.record;
+  if (!record || !seaIceModule || seaIceYear === null) return Number.NaN;
+  const index = seaIceModule.frameIndexOf(record, seaIceYear, seaIceMonth);
+  return index >= 0 ? index : Number.NaN;
+}
+
+/** The frame the labels name: during playback, the nearer of the two months blended. */
+function getSeaIceShownIndex() {
+  const bracket = seaIceScene?.bracket;
+  if (!bracket || !Number.isFinite(seaIcePosition)) return -1;
+  return bracket.weight < 0.5 ? bracket.lower : bracket.upper;
+}
+
+/** The record's concentration and median edge at the position shown, written into the texture. */
+function writeSeaIceFrame() {
+  const state = seaIceScene;
+  const module = seaIceModule;
+  if (!state || !module) return;
+  const { record } = state;
+  let bracket = null;
+  if (Number.isFinite(seaIcePosition)) {
+    bracket = module.blendConcentrationInto(record, seaIcePosition, state.concentration, { bridgeGaps: seaIcePlaying });
+    module.blendReferenceInto(record, bracket, state.reference);
+  } else {
+    // A month the record does not reach: no ice, but the median edge of that calendar month.
+    state.concentration.fill(0);
+    const sameMonth = module.frameIndexOf(record, record.firstYear + 1, seaIceMonth ?? 1);
+    module.blendReferenceInto(record, { lower: sameMonth, upper: sameMonth, weight: 0 }, state.reference);
+  }
+  const { data, texture } = state.field;
+  for (let i = 0; i < record.domainCount; i += 1) {
+    const cell = record.cellIndex[i];
+    data[4 * cell] = Math.round(state.concentration[i] * 2.55);
+    data[4 * cell + 1] = Math.round(state.reference[i] * 2.55);
+  }
+  texture.needsUpdate = true;
+  const { uniforms } = state.mesh.material;
+  uniforms.uShowIce.value = bracket && !bracket.empty ? 1 : 0;
+  uniforms.uShowEdge.value = controlsUI.seaIceMedianEdge?.checked === false ? 0 : 1;
+  state.bracket = bracket;
+}
+
+/** The sliders follow the record: the years it spans, and the month and year asked for. */
+function syncSeaIceSliderRanges() {
+  const record = seaIceScene?.record;
+  const year = controlsUI.seaIceYear;
+  if (record && year) {
+    year.min = String(record.firstYear);
+    year.max = String(record.lastYear);
+  }
+  syncSeaIceTimeControls();
+}
+
+function syncSeaIceTimeControls() {
+  if (controlsUI.seaIceMonth && seaIceMonth !== null) controlsUI.seaIceMonth.value = String(seaIceMonth);
+  if (controlsUI.seaIceYear && seaIceYear !== null) controlsUI.seaIceYear.value = String(seaIceYear);
+  if (controlsUI.seaIceMonthValue) {
+    controlsUI.seaIceMonthValue.textContent = seaIceMonth === null ? "" : formatSeaIceMonth(seaIceMonth, "short");
+  }
+  if (controlsUI.seaIceYearValue) controlsUI.seaIceYearValue.textContent = seaIceYear === null ? "" : String(seaIceYear);
+}
+
+function formatSeaIceMonth(month, style = "long") {
+  return new Intl.DateTimeFormat(pageLocale, { month: style, timeZone: "UTC" }).format(new Date(Date.UTC(2001, month - 1, 15)));
+}
+
+function formatSeaIceDate(year, month) {
+  return new Intl.DateTimeFormat(pageLocale, { year: "numeric", month: "long", timeZone: "UTC" }).format(
+    new Date(Date.UTC(year, month - 1, 15))
+  );
+}
+
+/** Ask for a month: the drape shows it, or nothing if the record has no data for it. */
+function setSeaIceSelection(year, month) {
+  const monthChanged = month !== seaIceMonth;
+  seaIceYear = Math.round(Number(year));
+  seaIceMonth = Math.min(12, Math.max(1, Math.round(Number(month))));
+  seaIcePosition = getSeaIceSelectedIndex();
+  writeSeaIceFrame();
+  syncSeaIceTimeControls();
+  updateSeaIceReadout();
+  if (monthChanged || !seaIceChartGeometry) renderSeaIceChart();
+  else updateSeaIceChartCursor();
+}
+
+function updateSeaIcePlayButton() {
+  const button = controlsUI.seaIcePlay;
+  if (!button) return;
+  const label = seaIcePlaying ? t("explorer.projection.pause") : t("explorer.projection.play");
+  button.textContent = label;
+  button.setAttribute("aria-label", label);
+  button.setAttribute("aria-pressed", String(seaIcePlaying));
+  button.disabled = !isSeaIceShown();
+}
+
+function startSeaIcePlayback() {
+  const record = seaIceScene?.record;
+  if (!record || !isSeaIceShown()) return;
+  // From the month shown; from the first month when that is the last, or off the record.
+  const start = getSeaIceSelectedIndex();
+  seaIcePosition = Number.isFinite(start) && start < record.frameCount - 1 ? start : 0;
+  seaIcePlaying = true;
+  // A live region rewritten every frame would flood screen readers; it speaks again on stop.
+  controlsUI.seaIceReadout?.setAttribute("aria-live", "off");
+  stepSeaIcePlayback(0);
+  updateSeaIcePlayButton();
+}
+
+/** Stop on the month the labels name, so the drape and the sliders agree. */
+function stopSeaIcePlayback() {
+  if (!seaIcePlaying) return;
+  seaIcePlaying = false;
+  controlsUI.seaIceReadout?.setAttribute("aria-live", "polite");
+  const shown = getSeaIceShownIndex();
+  if (shown >= 0 && seaIceScene && seaIceModule) {
+    const date = seaIceModule.frameDate(seaIceScene.record, shown);
+    setSeaIceSelection(date.year, date.month);
+  }
+  updateSeaIcePlayButton();
+}
+
+function stepSeaIcePlayback(deltaSeconds) {
+  if (!seaIcePlaying) return;
+  const record = seaIceScene?.record;
+  if (!record || !isSeaIceShown()) {
+    stopSeaIcePlayback();
+    return;
+  }
+  const last = record.frameCount - 1;
+  seaIcePosition = Math.min(last, Math.max(0, seaIcePosition + deltaSeconds * SEA_ICE_PLAYBACK_MONTHS_PER_SECOND));
+  writeSeaIceFrame();
+  const shown = getSeaIceShownIndex();
+  if (shown >= 0) {
+    const date = seaIceModule.frameDate(record, shown);
+    const monthChanged = date.month !== seaIceMonth;
+    seaIceYear = date.year;
+    seaIceMonth = date.month;
+    syncSeaIceTimeControls();
+    updateSeaIceReadout();
+    if (monthChanged) renderSeaIceChart();
+    else updateSeaIceChartCursor();
+  }
+  if (seaIcePosition >= last) {
+    stopSeaIcePlayback();
+    updateMetaFromCurrentState();
+  }
+}
+
+function formatSeaIceMillions(value, digits = 2) {
+  return Number(value).toLocaleString(numberLocale, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+}
+
+function formatSeaIceSigned(value, digits) {
+  const text = Math.abs(value).toLocaleString(numberLocale, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  if (Number(text.replace(/[^0-9]/g, "")) === 0) return text;
+  return `${value > 0 ? "+" : "−"}${text}`;
+}
+
+function formatSeaIceOrdinal(place) {
+  if (isChineseLocale) return String(place);
+  const tens = place % 100;
+  const suffix = tens >= 11 && tens <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[place % 10] || "th";
+  return `${place}${suffix}`;
+}
+
+function formatSeaIceRank(readout) {
+  const rank = seaIceModule.rankFromNearestEnd(readout.rank, readout.rankCount);
+  if (!rank) return "";
+  const vars = {
+    place: rank.place,
+    ordinal: formatSeaIceOrdinal(rank.place),
+    count: rank.count,
+    month: formatSeaIceMonth(readout.month),
+  };
+  if (rank.end === "lowest") return t(rank.place === 1 ? "explorer.seaIce.rankLowest" : "explorer.seaIce.rankLow", vars);
+  return t(rank.place === 1 ? "explorer.seaIce.rankHighest" : "explorer.seaIce.rankHigh", vars);
+}
+
+function getSeaIceHemisphereName(record) {
+  return t(SEA_ICE_HEMISPHERE_KEYS[record?.hemisphere] || SEA_ICE_HEMISPHERE_KEYS.south);
+}
+
+function updateSeaIceReadout() {
+  const el = controlsUI.seaIceReadout;
+  if (!el) return;
+  const state = seaIceScene;
+  if (!state || !isSeaIceShown() || !seaIceModule || seaIceYear === null) {
+    el.innerHTML = "";
+    return;
+  }
+  const { record } = state;
+  const index = seaIcePlaying ? getSeaIceShownIndex() : Number.isFinite(seaIcePosition) ? Math.round(seaIcePosition) : -1;
+  const readout = index >= 0 ? seaIceModule.extentReadout(record, index) : null;
+  const rows = [];
+  if (readout) {
+    rows.push(
+      [
+        t("explorer.seaIce.extentLabel", { region: getSeaIceHemisphereName(record) }),
+        t("explorer.seaIce.millionKm2", { value: formatSeaIceMillions(readout.extent) }),
+      ],
+      [
+        t("explorer.seaIce.anomalyLabel", { first: record.referencePeriod[0], last: record.referencePeriod[1] }),
+        t("explorer.seaIce.anomalyValue", {
+          value: formatSeaIceSigned(readout.anomaly, 2),
+          percent: formatSeaIceSigned(readout.anomalyPercent, 0),
+        }),
+      ],
+      [t("explorer.seaIce.rankLabel"), formatSeaIceRank(readout)]
+    );
+  } else {
+    const first = seaIceModule.frameDate(record, 0);
+    const last = seaIceModule.frameDate(record, record.frameCount - 1);
+    const inside = seaIceModule.frameIndexOf(record, seaIceYear, seaIceMonth) >= 0;
+    rows.push([
+      formatSeaIceDate(seaIceYear, seaIceMonth),
+      inside
+        ? t("explorer.seaIce.noDataGap")
+        : t("explorer.seaIce.noDataOutside", {
+            first: formatSeaIceDate(first.year, first.month),
+            last: formatSeaIceDate(last.year, last.month),
+          }),
+    ]);
+  }
+  const html = rows
+    .map(([label, value]) => `<span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong>`)
+    .join("");
+  // Rewritten only when it changes, as playback redraws it every frame.
+  if (el.innerHTML !== html) el.innerHTML = html;
+}
+
+function formatSeaIceAxisValue(value, step) {
+  const decimals = (String(Number(step.toPrecision(6))).split(".")[1] || "").length;
+  return value.toLocaleString(numberLocale, { maximumFractionDigits: decimals });
+}
+
+/** The extent of the month asked for in every year, its trend, and a cursor on the year shown. */
+function renderSeaIceChart() {
+  const svg = controlsUI.seaIceChart;
+  if (!svg) return;
+  const module = seaIceModule;
+  const record = isSeaIceShown() && module ? seaIceScene.record : null;
+  if (!record || seaIceMonth === null) {
+    svg.innerHTML = "";
+    seaIceChartGeometry = null;
+    return;
+  }
+  const box = SEA_ICE_CHART;
+  const series = module.monthSeries(record, seaIceMonth);
+  const statistics = record.monthly[seaIceMonth - 1];
+  const geometry = module.extentChartGeometry(series, statistics, box, {
+    firstYear: record.firstYear,
+    lastYear: record.lastYear,
+  });
+  const monthName = formatSeaIceMonth(seaIceMonth);
+  const parts = [
+    `<line class="axis" x1="${box.left}" y1="${box.bottom}" x2="${box.right}" y2="${box.bottom}" />`,
+    `<line class="axis" x1="${box.left}" y1="${box.top}" x2="${box.left}" y2="${box.bottom}" />`,
+    `<text class="label" x="${box.left - 3}" y="${box.top - 5}" text-anchor="end">${escapeHtml(t("explorer.seaIce.chartUnit"))}</text>`,
+  ];
+  for (const value of geometry.yTicks) {
+    parts.push(
+      `<text class="label" x="${box.left - 3}" y="${(geometry.yOf(value) + 3).toFixed(1)}" text-anchor="end">${escapeHtml(
+        formatSeaIceAxisValue(value, geometry.step)
+      )}</text>`
+    );
+  }
+  for (const tick of geometry.xTicks) {
+    parts.push(
+      `<text class="label" x="${geometry.xOf(tick.at).toFixed(1)}" y="${box.bottom + 10}" text-anchor="middle">${tick.label}</text>`
+    );
+  }
+  parts.push(
+    `<path class="trend" d="${geometry.trend}" />`,
+    `<path class="series is-active" stroke="${SEA_ICE_CHART_RGB}" d="${geometry.line}" />`,
+    `<text class="label label--series" x="${box.left + 4}" y="${box.top - 5}">${escapeHtml(monthName)}</text>`,
+    `<text class="label" x="${box.right}" y="${box.top - 5}" text-anchor="end">${escapeHtml(
+      t("explorer.seaIce.chartTrend", { value: formatSeaIceSigned(statistics.percentPerDecade, 1) })
+    )}</text>`,
+    `<line class="cursor" x1="${box.left}" y1="${box.top}" x2="${box.left}" y2="${box.bottom}" />`,
+    `<circle class="cursor-dot" r="2.6" cx="${box.left}" cy="${box.bottom}" fill="${SEA_ICE_CHART_RGB}" />`
+  );
+  svg.innerHTML = parts.join("");
+  svg.setAttribute(
+    "aria-label",
+    t("explorer.seaIce.chartLabel", {
+      month: monthName,
+      region: getSeaIceHemisphereName(record),
+      first: geometry.xTicks[0].label,
+      last: geometry.xTicks[geometry.xTicks.length - 1].label,
+    })
+  );
+  seaIceChartGeometry = { ...geometry, series };
+  updateSeaIceChartCursor();
+}
+
+/** The year the sliders ask for on the chart; the dot is hidden where that year has no value. */
+function updateSeaIceChartCursor() {
+  const svg = controlsUI.seaIceChart;
+  const geometry = seaIceChartGeometry;
+  if (!svg || !geometry || seaIceYear === null) return;
+  const cursor = svg.querySelector(".cursor");
+  const dot = svg.querySelector(".cursor-dot");
+  const x = geometry.xOf(seaIceYear).toFixed(1);
+  cursor?.setAttribute("x1", x);
+  cursor?.setAttribute("x2", x);
+  const at = Array.prototype.indexOf.call(geometry.series.years, seaIceYear);
+  const value = at >= 0 ? geometry.series.extent[at] : Number.NaN;
+  dot?.setAttribute("visibility", Number.isFinite(value) ? "visible" : "hidden");
+  if (Number.isFinite(value)) {
+    dot?.setAttribute("cx", x);
+    dot?.setAttribute("cy", geometry.yOf(value).toFixed(1));
+  }
+}
+
+function updateSeaIceNotes() {
+  const record = seaIceScene?.record;
+  if (controlsUI.seaIceNote) controlsUI.seaIceNote.textContent = t("explorer.seaIce.note");
+  if (controlsUI.seaIceChartNote) {
+    controlsUI.seaIceChartNote.textContent = t(
+      record?.hemisphere === "north" ? "explorer.seaIce.chartNoteNorth" : "explorer.seaIce.chartNoteSouth"
+    );
+  }
+}
+
+function renderSeaIceLegend() {
+  const module = seaIceModule;
+  if (!module) return;
+  updateContinuousLegend(controlsUI.seaIceLegendBar, (position) => module.seaIceRampColor(position));
+  renderTickLegendLabels(controlsUI.seaIceLegendLabels, module.SEA_ICE_LEGEND_TICKS, module.seaIceScaleT, (value) =>
+    value === module.EXTENT_THRESHOLD_PERCENT ? `${value}%` : String(value)
+  );
+  if (controlsUI.seaIceLegendNote) controlsUI.seaIceLegendNote.textContent = t("explorer.seaIce.legendNote");
+}
+
+function updateSeaIceControlsUi() {
+  const enabled = Boolean(controlsUI.showSeaIce?.checked);
+  if (controlsUI.seaIceControls) controlsUI.seaIceControls.hidden = !enabled;
+  // Until the record is in, there is no month to pick.
+  for (const slider of [controlsUI.seaIceMonth, controlsUI.seaIceYear]) {
+    if (slider) slider.disabled = !isSeaIceShown();
+  }
+  syncSeaIceTimeControls();
+  updateSeaIcePlayButton();
+  updateSeaIceNotes();
+  updateSeaIceReadout();
+  renderSeaIceChart();
+  if (isSeaIceShown()) renderSeaIceLegend();
+}
+
+function refreshSeaIceUi() {
+  updateSeaIceControlsUi();
+  updateLegendVisibility();
+  updateMetaFromCurrentState();
+}
+
+/** Switching the layer on shows the sea plane if it is off, as the projection does. */
+function raiseSeaForSeaIce() {
+  if (!controlsUI.showSea || controlsUI.showSea.checked) return;
+  controlsUI.showSea.checked = true;
+  if (seaLevelMesh) seaLevelMesh.visible = true;
+  seaIceRaisedSea = true;
+}
+
+/** Switch the sea plane off again if the layer switched it on and it was left so. */
+function lowerSeaRaisedBySeaIce() {
+  if (!seaIceRaisedSea) return;
+  seaIceRaisedSea = false;
+  if (!controlsUI.showSea?.checked) return;
+  controlsUI.showSea.checked = false;
+  if (seaLevelMesh) seaLevelMesh.visible = false;
+}
+
+/** The projection and the rebound move the ice front and the sea surface: switch them off. */
+function leaveLayersForSeaIce() {
+  if (controlsUI.showIceProjection?.checked) {
+    controlsUI.showIceProjection.checked = false;
+    deactivateIceProjection();
+    refreshIceProjectionUi();
+  }
+  if (controlsUI.showIsostaticRebound?.checked) {
+    controlsUI.showIsostaticRebound.checked = false;
+    updateReboundControlsUi();
+    applyReboundGeometry({ recomputeNormals: true });
+    updateReboundSeaPlane();
+    if (iceSideMesh) updateIceSideVisibility();
+  }
+}
+
+/** After a layer it cannot be shown with has switched it off: tidy up its scene and controls. */
+function leaveSeaIce() {
+  stopSeaIcePlayback();
+  if (!controlsUI.showSeaIce?.checked) lowerSeaRaisedBySeaIce();
+  syncSeaIceVisibility();
+  updateSeaIceControlsUi();
+  updateLegendVisibility();
+}
+
+function buildSeaIceMetaItems() {
+  const state = seaIceScene;
+  const module = seaIceModule;
+  if (!state || !isSeaIceShown() || !module) return [];
+  const { record, meta } = state;
+  const item = (label, value, compact = false) =>
+    `<li${compact ? ' class="meta-compact"' : ""}><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</li>`;
+  const first = module.frameDate(record, 0);
+  const last = module.frameDate(record, record.frameCount - 1);
+  const index = Number.isFinite(seaIcePosition) ? Math.round(seaIcePosition) : -1;
+  const readout = index >= 0 ? module.extentReadout(record, index) : null;
+  const items = [
+    item(
+      t("explorer.meta.seaIceMonth"),
+      t("explorer.meta.seaIceMonthValue", {
+        date: seaIceYear === null ? "" : formatSeaIceDate(seaIceYear, seaIceMonth),
+        count: record.frameCount,
+        first: formatSeaIceDate(first.year, first.month),
+        last: formatSeaIceDate(last.year, last.month),
+      })
+    ),
+  ];
+  if (readout) {
+    const statistics = record.monthly[readout.month - 1];
+    const sensor = module.sensorOfMonth(record, index);
+    items.push(
+      item(
+        t("explorer.meta.seaIceExtent"),
+        t(record.hemisphere === "north" ? "explorer.meta.seaIceExtentValueNorth" : "explorer.meta.seaIceExtentValueSouth", {
+          extent: formatSeaIceMillions(readout.extent),
+          area: formatSeaIceMillions(readout.area),
+        })
+      ),
+      item(
+        t("explorer.meta.seaIceTrend", { month: formatSeaIceMonth(readout.month) }),
+        t("explorer.meta.seaIceTrendValue", {
+          mean: formatSeaIceMillions(statistics.referenceMean),
+          slope: formatSeaIceSigned(statistics.slope * 10, 2),
+          percent: formatSeaIceSigned(statistics.percentPerDecade, 1),
+          first: statistics.firstYear,
+          last: statistics.lastYear,
+        })
+      ),
+      ...(sensor ? [item(t("explorer.meta.seaIceSensor"), sensor.name, true)] : [])
+    );
+  }
+  const filled = meta.validation?.filled_cells;
+  if (filled && Number.isFinite(filled.share_of_domain_max)) {
+    items.push(
+      item(
+        t("explorer.meta.seaIceCoast"),
+        t("explorer.meta.seaIceCoastValue", { share: Math.round(filled.share_of_domain_max * 100) }),
+        true
+      )
+    );
+  }
+  const index_ = meta.validation?.sea_ice_index;
+  if (index_ && Number.isFinite(index_.mean_relative_difference_percent)) {
+    const percent = (value) =>
+      Number.isFinite(value) ? value.toLocaleString(numberLocale, { maximumFractionDigits: 0 }) : t("explorer.meta.notApplicable");
+    items.push(
+      item(
+        t("explorer.meta.seaIceIndex"),
+        t("explorer.meta.seaIceIndexValue", {
+          percent: percent(index_.mean_relative_difference_percent),
+          meanField: percent(index_.mean_field_mean_relative_difference_percent),
+        }),
+        true
+      )
+    );
+  }
+  items.push(item(t("explorer.meta.seaIceMethod"), t("explorer.meta.seaIceMethodValue"), true));
+  return items;
+}
+
+function collectSeaIceState() {
+  const state = seaIceScene;
+  const record = state?.record || null;
+  const index = Number.isFinite(seaIcePosition) ? Math.round(seaIcePosition) : -1;
+  const readout = record && seaIceModule && index >= 0 ? seaIceModule.extentReadout(record, index) : null;
+  return {
+    available: isSeaIceAvailable(),
+    enabled: Boolean(controlsUI.showSeaIce?.checked),
+    shown: isSeaIceShown(),
+    region: record?.region || null,
+    frameCount: record ? record.frameCount : null,
+    domainCells: record ? record.domainCount : null,
+    year: seaIceYear,
+    month: seaIceMonth,
+    position: Number.isFinite(seaIcePosition) ? Number(seaIcePosition.toFixed(3)) : null,
+    playing: seaIcePlaying,
+    iceDrawn: Boolean(state?.mesh && state.mesh.material.uniforms.uShowIce.value > 0.5),
+    medianEdge: Boolean(state?.mesh && state.mesh.material.uniforms.uShowEdge.value > 0.5),
+    extentMkm2: readout ? Number(readout.extent.toFixed(4)) : null,
+    rank: readout ? readout.rank : null,
+    rankCount: readout ? readout.rankCount : null,
+    raisedSea: seaIceRaisedSea,
+    chartShown: Boolean(seaIceChartGeometry),
+  };
+}
+
+function bindSeaIceControls() {
+  controlsUI.showSeaIce?.addEventListener("change", () => {
+    if (controlsUI.showSeaIce.checked) {
+      leaveLayersForSeaIce();
+      raiseSeaForSeaIce();
+      updateSeaIceControlsUi();
+      updateLegendVisibility();
+      ensureSeaIceLoaded();
+      return;
+    }
+    // A download still under way is no longer wanted; abandoning it hides its overlay.
+    abortSeaIceLoad();
+    stopSeaIcePlayback();
+    lowerSeaRaisedBySeaIce();
+    syncSeaIceVisibility();
+    refreshSeaIceUi();
+  });
+  // Each reads the slider before stopping playback, which puts the sliders on the month it shows.
+  controlsUI.seaIceMonth?.addEventListener("input", () => {
+    if (!seaIceScene) return;
+    const month = Number(controlsUI.seaIceMonth.value);
+    stopSeaIcePlayback();
+    setSeaIceSelection(seaIceYear, month);
+  });
+  controlsUI.seaIceYear?.addEventListener("input", () => {
+    if (!seaIceScene) return;
+    const year = Number(controlsUI.seaIceYear.value);
+    stopSeaIcePlayback();
+    setSeaIceSelection(year, seaIceMonth);
+  });
+  for (const slider of [controlsUI.seaIceMonth, controlsUI.seaIceYear]) {
+    slider?.addEventListener("change", () => updateMetaFromCurrentState());
+  }
+  controlsUI.seaIcePlay?.addEventListener("click", () => {
+    if (seaIcePlaying) {
+      stopSeaIcePlayback();
+      updateMetaFromCurrentState();
+      return;
+    }
+    startSeaIcePlayback();
+  });
+  controlsUI.seaIceMedianEdge?.addEventListener("change", () => {
+    const uniforms = seaIceScene?.mesh?.material?.uniforms;
+    if (uniforms) uniforms.uShowEdge.value = controlsUI.seaIceMedianEdge.checked ? 1 : 0;
   });
 }
 

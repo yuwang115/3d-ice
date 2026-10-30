@@ -23,6 +23,19 @@ All notable changes to 3D ICE are recorded here. The format follows
     its 1σ band; the readout and the Data Snapshot add its total.
   - `scripts/prepare_cpom_land_ice.py` writes the three packages (`cpom_antarctica_dhdt_480`,
     `_741`, `cpom_antarctica_dh_480`); the public edition does not offer the layer yet.
+- Observed sea ice in the research edition, around Antarctica and Greenland: the NOAA/NSIDC
+  climate data record of monthly sea-ice concentration from passive microwave radiometers
+  (G02202 Version 6; Meier et al., 2026), every month from November 1978 to September 2026,
+  drawn on the sea surface under *Interactive Scenarios*.
+  - A month slider shows the seasons and a year slider the same month across the years; Play
+    runs the record month by month. December 1987, January 1988 and, in the Arctic, July 1984
+    have no data and say so.
+  - The readout quotes the extent of the whole Arctic or Southern Ocean from the same record,
+    its departure from the month's 1981–2010 average and its rank among the years. A chart
+    plots the month's extent in every year with its least-squares trend.
+  - An orange line marks the month's 1981–2010 median ice edge; it can be switched off.
+  - `scripts/prepare_nsidc_sea_ice.py` writes `nsidc_sea_ice_antarctica` (24 MB) and
+    `nsidc_sea_ice_greenland` (2 MB); the public edition does not offer the layer yet.
 - A cookieless GoatCounter count (yuwang.goatcounter.com) beside Google Analytics, as an
   independent check on it. It loads GoatCounter's count.js v5, pinned by its published
   Subresource Integrity hash.

@@ -334,6 +334,28 @@
           </div>
           <div class="toggle-divider" aria-hidden="true"></div>
         </div>
+        <div id="seaIceRow" hidden>
+          <label class="toggle"><input id="showSeaIce" type="checkbox" /> Show observed sea ice (NSIDC, 1978–2026)</label>
+          <div id="seaIceControls" class="toggle-group" hidden>
+            <div class="control">
+              <label for="seaIceMonth">Month <span id="seaIceMonthValue" class="mono"></span></label>
+              <input id="seaIceMonth" type="range" min="1" max="12" step="1" value="9" />
+            </div>
+            <div class="control">
+              <label for="seaIceYear">Year <span id="seaIceYearValue" class="mono"></span></label>
+              <div class="projection-timeline">
+                <button id="seaIcePlay" type="button" class="projection-play" aria-label="Play">Play</button>
+                <input id="seaIceYear" type="range" min="1978" max="2026" step="1" value="2026" />
+              </div>
+            </div>
+            <div id="seaIceReadout" class="projection-readout" aria-live="polite"></div>
+            <svg id="seaIceChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="Sea-ice extent of the month in every year"></svg>
+            <div id="seaIceChartNote" class="legend-note"></div>
+            <label class="toggle toggle--sub"><input id="seaIceMedianEdge" type="checkbox" checked /> Show 1981–2010 median ice edge</label>
+            <div id="seaIceNote" class="legend-note"></div>
+          </div>
+          <div class="toggle-divider" aria-hidden="true"></div>
+        </div>
         <div id="iceProjectionRow" hidden>
           <label class="toggle"><input id="showIceProjection" type="checkbox" /> Show future projection (ISMIP6, to 2300)</label>
           <div id="iceProjectionControls" class="toggle-group" hidden>
@@ -410,6 +432,13 @@
         <div id="surfaceChangeLegendBar" class="legend" aria-hidden="true"></div>
         <div id="surfaceChangeLegendLabels" class="legend-labels"></div>
         <div id="surfaceChangeLegendNote" class="legend-note"></div>
+      </section>
+
+      <section id="seaIceLegendSection" class="section" hidden>
+        <h2 id="seaIceLegendTitle" class="section-title">Sea-Ice Concentration</h2>
+        <div id="seaIceLegendBar" class="legend" aria-hidden="true"></div>
+        <div id="seaIceLegendLabels" class="legend-labels"></div>
+        <div id="seaIceLegendNote" class="legend-note"></div>
       </section>
 
       <section id="velocityLegendSection" class="section">
