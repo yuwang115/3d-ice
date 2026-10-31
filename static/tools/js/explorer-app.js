@@ -2481,6 +2481,9 @@ const BED_ELEVATION_MIN = -7000;
 const BED_ELEVATION_MAX = 3500;
 const TARGET_WORLD_EXTENT_UNITS = 128;
 const FLOWLINE_PICK_MOVE_THRESHOLD_PX = 7;
+// How far from a place marker a click (or a finger) still picks it, in CSS pixels.
+const PLACE_PICK_RADIUS_PX = 12;
+const PLACE_PICK_TOUCH_RADIUS_PX = 22;
 const FLOWLINE_PROFILE_SAMPLE_TARGET = 88;
 const FLOWLINE_HIGHLIGHT_SAMPLE_TARGET = 144;
 const FLOWLINE_SURFACE_OFFSET_M = 26;
@@ -7454,7 +7457,10 @@ function bindInteractionGate() {
   }
 }
 
-/** A click (not a drag) picks a flowline if the edition offers that, else the basin under it. */
+/**
+ * A click (not a drag) picks a place marker or label, else a flowline if the edition offers
+ * that, else the basin under it.
+ */
 function bindFlowlinePicking() {
   if (!renderer || !THREE) return;
   if (!flowlineRaycaster) flowlineRaycaster = new THREE.Raycaster();
@@ -7493,6 +7499,12 @@ function bindFlowlinePicking() {
         Math.abs(event.clientY - gesture.startY) > FLOWLINE_PICK_MOVE_THRESHOLD_PX;
       if (moved || !gesture.interactionReady) return;
 
+      const pickedPlace = polarFeaturesController?.pickFeatureAtClientPoint(event.clientX, event.clientY, {
+        camera,
+        rect: canvas.getBoundingClientRect(),
+        radiusPx: event.pointerType === "touch" ? PLACE_PICK_TOUCH_RADIUS_PX : PLACE_PICK_RADIUS_PX,
+      });
+      if (pickedPlace) return;
       if (editionProfile.flowlinePicking && pickVisibleFlowlineAtClientPoint(event.clientX, event.clientY)) return;
       pickSurfaceChangeBasinAtClientPoint(event.clientX, event.clientY);
     },

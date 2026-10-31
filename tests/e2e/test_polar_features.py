@@ -237,3 +237,48 @@ def test_ice_core_search_switches_to_greenland(page):
     )
     layer = page.evaluate("JSON.parse(window.render_game_to_text())")["featureLayers"]["iceCores"]
     assert layer["renderedLabelCount"] == _ice_core_count("greenland")
+
+
+def _canvas_centre(page):
+    box = page.locator("#viewer canvas, canvas").evaluate_all(
+        """(canvases) => {
+          const canvas = canvases.sort((a, b) => b.clientWidth * b.clientHeight - a.clientWidth * a.clientHeight)[0];
+          const r = canvas.getBoundingClientRect();
+          return [r.left + r.width / 2, r.top + r.height / 2];
+        }"""
+    )
+    return box[0], box[1]
+
+
+def test_clicking_a_marker_shows_its_details_without_moving_the_camera(page):
+    # Choosing a site in search centres the camera on its marker.
+    search = page.get_by_role("combobox", name="Search places and features")
+    search.fill("WAIS Divide")
+    page.get_by_role("option", name=re.compile("WAIS Divide.*Deep ice core", re.IGNORECASE)).click()
+    page.wait_for_function(
+        "() => JSON.parse(window.render_game_to_text()).selectedFeature?.layer === 'ice_cores'",
+        timeout=30_000,
+    )
+    page.wait_for_timeout(1_500)
+    # Switching the layer off clears the card; switching it back on redraws the markers.
+    toggle = page.get_by_label("Show ice-core sites")
+    toggle.uncheck()
+    expect(page.locator("#polarFeatureDetails")).to_be_hidden()
+    toggle.check()
+    page.wait_for_function(
+        "() => JSON.parse(window.render_game_to_text()).featureLayers.iceCores.visibleCount > 0",
+        timeout=30_000,
+    )
+    before = page.evaluate("JSON.parse(window.render_game_to_text()).camera.target")
+
+    x, y = _canvas_centre(page)
+    page.mouse.click(x + 3, y + 2)
+
+    page.wait_for_function(
+        "() => JSON.parse(window.render_game_to_text()).selectedFeature?.id === 'antarctica-ice-core-wais-divide'",
+        timeout=10_000,
+    )
+    details = page.locator("#polarFeatureDetails")
+    expect(details).to_be_visible()
+    expect(details).to_contain_text("Deep ice core · Antarctica")
+    assert page.evaluate("JSON.parse(window.render_game_to_text()).camera.target") == before

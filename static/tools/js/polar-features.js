@@ -31,6 +31,8 @@ const BASE_SEARCH_LAYERS = ["research_stations", "geographic_names"];
 // Point layers a page may leave out: a page offers one by passing its catalogue URLs.
 const OPTIONAL_POINT_LAYERS = ["ice_cores"];
 const LABEL_HEIGHT_OFFSET = 0.5;
+// How far from a marker, in CSS pixels, a click still picks it.
+const PICK_RADIUS_PX = 12;
 
 const LAYER_KEYS = {
   research_stations: "researchStations",
@@ -42,6 +44,20 @@ const MAX_NAME_LENGTH = 180;
 const MAX_FIELD_LENGTH = 500;
 const MAX_ALIASES = 30;
 const MAX_CATALOGUE_RESPONSE_BYTES = 2 * 1024 * 1024;
+/** The candidate nearest (x, y) within radiusPx, or null. Candidates are {x, y} in pixels. */
+export function pickNearestScreenPoint(candidates, x, y, radiusPx) {
+  let best = null;
+  let bestDistance = radiusPx;
+  for (const candidate of candidates) {
+    const distance = Math.hypot(candidate.x - x, candidate.y - y);
+    if (distance <= bestDistance) {
+      best = candidate;
+      bestDistance = distance;
+    }
+  }
+  return best;
+}
+
 function boundedText(value, maximum = MAX_FIELD_LENGTH) {
   const text = String(value || "").trim();
   return text.length <= maximum ? text : text.slice(0, maximum);
@@ -189,6 +205,9 @@ export function createPolarFeaturesController(options) {
   let selectionGeneration = 0;
   let blurTimer = null;
   const requestAbortController = new AbortController();
+  const pickRaycaster = new THREE.Raycaster();
+  const pickNdc = new THREE.Vector2();
+  const pickVector = new THREE.Vector3();
 
   function on(target, type, handler) {
     target.addEventListener(type, handler);
@@ -327,6 +346,7 @@ export function createPolarFeaturesController(options) {
       );
       points.renderOrder = 29;
       points.userData.baseY = baseY;
+      points.userData.features = rendered.map(({ feature }) => feature);
       group.add(points);
 
       rendered
@@ -345,7 +365,7 @@ export function createPolarFeaturesController(options) {
           sprite.userData.baseY = point.baseY;
           sprite.userData.heightOffset = heightOffset;
           sprite.userData.featureId = feature.id;
-          labelSprites.set(feature.id, { sprite, layer, region: feature.region });
+          labelSprites.set(feature.id, { sprite, layer, region: feature.region, feature });
           group.add(sprite);
         });
     }
@@ -434,6 +454,54 @@ export function createPolarFeaturesController(options) {
       console.warn("Polar feature selection failed:", error);
       elements.searchStatus.textContent = labels.loadError;
     }
+  }
+
+  function markerCandidates(camera, rect) {
+    const candidates = [];
+    for (const group of groups.values()) {
+      const points = group.children.find((child) => child.isPoints);
+      const features = points?.userData.features;
+      const positions = points?.geometry.getAttribute("position");
+      if (!features || !positions) continue;
+      features.forEach((feature, index) => {
+        pickVector.fromBufferAttribute(positions, index).project(camera);
+        if (pickVector.z < -1 || pickVector.z > 1) return;
+        candidates.push({
+          feature,
+          x: rect.left + ((pickVector.x + 1) / 2) * rect.width,
+          y: rect.top + ((1 - pickVector.y) / 2) * rect.height,
+        });
+      });
+    }
+    return candidates;
+  }
+
+  function labelFeatureAt(clientX, clientY, camera, rect) {
+    pickNdc.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+    pickRaycaster.setFromCamera(pickNdc, camera);
+    const sprites = [...labelSprites.values()].map((entry) => entry.sprite);
+    const hit = pickRaycaster.intersectObjects(sprites, false)[0];
+    return hit ? labelSprites.get(hit.object.userData.featureId)?.feature || null : null;
+  }
+
+  /**
+   * A click on a marker or its label shows that feature's details without moving the camera.
+   * Markers win over labels, so a click on a dot picks that dot even under a neighbour's name.
+   */
+  function pickFeatureAtClientPoint(clientX, clientY, { camera, rect, radiusPx = PICK_RADIUS_PX } = {}) {
+    if (destroyed || !camera || !(rect?.width > 0 && rect?.height > 0) || !groups.size) return null;
+    if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) return null;
+    const feature =
+      pickNearestScreenPoint(markerCandidates(camera, rect), clientX, clientY, radiusPx)?.feature ||
+      labelFeatureAt(clientX, clientY, camera, rect);
+    if (!feature) return null;
+    // A search choice still loading would otherwise replace this one when it lands.
+    selectionGeneration += 1;
+    state.selectedFeature = feature;
+    focusedExistingLabelId = labelSprites.has(feature.id) ? feature.id : null;
+    showDetails(feature);
+    elements.details.scrollIntoView?.({ block: "nearest" });
+    return feature;
   }
 
   function renderSearchResults(results) {
@@ -663,5 +731,5 @@ export function createPolarFeaturesController(options) {
     listeners.splice(0).forEach((remove) => remove());
   }
 
-  return { initialize, clearScene, onTerrainReady, updateExaggeration, getState, destroy };
+  return { initialize, clearScene, onTerrainReady, updateExaggeration, pickFeatureAtClientPoint, getState, destroy };
 }

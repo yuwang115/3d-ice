@@ -26,6 +26,8 @@ All notable changes to 3D ICE are recorded here. The format follows
     `greenland_ice_cores.json`, and refuses a site whose sources disagree by more than 5 km.
     A test checks that every site lies on BedMachine ice within 350 m of its own elevation.
   - The details card and its text move to `static/tools/js/polar-feature-details.js`.
+- A click on a place marker or its label, in either edition, opens that place's card
+  without moving the camera; before, only a search result did.
 - Observed elevation change in the research edition: CPOM's record of Antarctic surface
   elevation change from multi-mission radar altimetry (ERS-2, Envisat, CryoSat-2; product
   version 1.0, CC BY 4.0; Shepherd et al., 2019), drawn as a colour on today's ice surface

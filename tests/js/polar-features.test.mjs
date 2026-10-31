@@ -630,3 +630,17 @@ test("ice-core markers are pale lilac rings, distinct from station and place dot
   assert.ok(radius + context.lineWidth / 2 <= 31);
   assert.ok((radius - context.lineWidth / 2) * 2 >= 64 / 3);
 });
+
+test("a click picks the nearest marker within the radius, and nothing beyond it", async () => {
+  const { pickNearestScreenPoint } = await import("../../static/tools/js/polar-features.js");
+  const candidates = [
+    { id: "a", x: 100, y: 100 },
+    { id: "b", x: 108, y: 100 },
+    { id: "c", x: 300, y: 300 },
+  ];
+  assert.equal(pickNearestScreenPoint(candidates, 106, 101, 12)?.id, "b");
+  assert.equal(pickNearestScreenPoint(candidates, 101, 100, 12)?.id, "a");
+  assert.equal(pickNearestScreenPoint(candidates, 300, 312, 12)?.id, "c");
+  assert.equal(pickNearestScreenPoint(candidates, 300, 313, 12), null);
+  assert.equal(pickNearestScreenPoint([], 0, 0, 12), null);
+});
