@@ -764,6 +764,14 @@ select:focus {
   stroke-dasharray: 2 2;
 }
 
+/* The least-squares trend under the sea-ice extent line. */
+.projection-chart .trend {
+  fill: none;
+  stroke: var(--legend-note);
+  stroke-width: 0.9;
+  stroke-dasharray: 3 2;
+}
+
 button {
   width: 100%;
   margin-top: 6px;

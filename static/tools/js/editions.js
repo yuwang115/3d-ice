@@ -39,6 +39,7 @@ const CAPABILITY_URL_KEYS = Object.freeze({
     "surfaceChangeRecordBinUrl",
     "surfaceChangeSeriesUrl",
   ]),
+  seaIce: Object.freeze(["seaIceMetaUrl", "seaIceBinUrl"]),
 });
 
 /** Package URL keys and the keys of their light versions, which phones load instead. */
@@ -80,8 +81,9 @@ const PROFILES = deepFreeze({
       antarctica: ["balanced"],
       greenland: ["3km"],
     },
-    // The observed elevation change waits for a tour stop and an explainer of its own.
-    disabledCapabilities: ["basalFriction", "rise", "hydrology", "refinedBasins", "surfaceChange"],
+    // The observed elevation change and the observed sea ice wait for tour stops and
+    // explainers of their own.
+    disabledCapabilities: ["basalFriction", "rise", "hydrology", "refinedBasins", "surfaceChange", "seaIce"],
     standInControls: true,
     // State of the controls this edition's page leaves out. Anything not listed stands in
     // as an unchecked checkbox, so the layer it drives stays off.

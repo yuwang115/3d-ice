@@ -257,12 +257,14 @@ test("gridded int16 fields and masks cover the declared grid", async (t) => {
   }
 });
 
-// Fields with one value per domain cell, and per domain cell and keyframe, by kind of sparse
-// time series. The ice-sheet projections (ismip6_2300_mean8_*) carry no kind; the observed
-// surface elevation change (cpom_antarctica_dh_480) does.
+// Fields with one value per domain cell, per domain cell and keyframe, and per domain cell and
+// calendar month, by kind of sparse time series. The ice-sheet projections (ismip6_2300_mean8_*)
+// carry no kind; the observed surface elevation change (cpom_antarctica_dh_480) and the
+// observed sea ice (nsidc_sea_ice_*) do.
 const SPARSE_TIME_SERIES_FIELDS = {
   projection: { perCell: ["bed"], perFrame: ["thickness"] },
   observed_surface_change: { perCell: ["final_uncertainty"], perFrame: ["surface_change"] },
+  observed_sea_ice_concentration: { perCell: [], perFrame: ["concentration"], perCalendarMonth: ["reference_ice_frequency"] },
 };
 
 test("sparse time-series packages cover their domain at every keyframe", async (t) => {
@@ -283,6 +285,9 @@ test("sparse time-series packages cover their domain at every keyframe", async (
       assert.equal(meta.frames.years.length, meta.frames.count, "frame years vs frame count");
       for (const fieldName of layout.perFrame) {
         assert.equal(parseField(meta, buffer, fieldName).length, meta.frames.count * count, `${fieldName} vs frames x domain`);
+      }
+      for (const fieldName of layout.perCalendarMonth || []) {
+        assert.equal(parseField(meta, buffer, fieldName).length, 12 * count, `${fieldName} vs 12 months x domain`);
       }
       for (let i = 1; i < meta.frames.years.length; i += 1) {
         assert.ok(meta.frames.years[i] > meta.frames.years[i - 1], "frame years must increase");

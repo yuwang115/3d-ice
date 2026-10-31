@@ -20,10 +20,11 @@ script produced a package: the metadata is the whole interface.
   fields hold one value per grid cell.
 - **Streamline packages** (ocean currents) set `"geometry_type": "streamlines_3d"` and have
   no grid; their fields hold one value per streamline segment.
-- **Sparse time-series packages** (ice-sheet projections, observed surface elevation change)
-  set `"geometry_type": "sparse_grid_time_series"`. They carry a `grid`, but only a mask covers
-  it; their other fields hold one value per domain cell, or per domain cell and keyframe. The
-  observed record adds `"time_series_kind": "observed_surface_change"`, which names its fields.
+- **Sparse time-series packages** (ice-sheet projections, observed surface elevation change,
+  observed sea ice) set `"geometry_type": "sparse_grid_time_series"`. They carry a `grid`, but
+  only a mask covers it; their other fields hold one value per domain cell, or per domain cell
+  and keyframe (or calendar month). The observed records add a `time_series_kind`
+  (`"observed_surface_change"` or `"observed_sea_ice_concentration"`), which names their fields.
 
 ## Grid
 
@@ -92,6 +93,8 @@ what the codes can represent, so no package clips.
 | Isostatic response | `topography_change`, `solid_surface_change`, `standard_deviation` | 0.1 m |
 | Surface elevation change rate | `dhdt`, `dhdt_uncertainty` | 0.001 m/yr |
 | Observed surface elevation change | `surface_change`, `final_uncertainty` | 0.01 m |
+
+The observed sea-ice packages store whole percent in `uint8` fields, with `255` for no data.
 
 `float32` fields are stored unquantized and mark missing values with `NaN`. Categorical
 `uint8` fields carry their class codes in `flags`, which are authoritative for each
@@ -169,6 +172,39 @@ how closely each region's series is the sum of its basins'; `pole_hole` the radi
 88°S) and the first year with CryoSat-2 data south of 81.5°S; `source_files` the name, SHA-256,
 `tracking_id` and creation date of each CPOM file. Field-level `scale`, `offset` and
 `fill_value` define the quantization.
+
+**Observed sea-ice concentration.** `nsidc_sea_ice_antarctica` and `nsidc_sea_ice_greenland`
+hold the monthly means of the NOAA/NSIDC Climate Data Record of Passive Microwave Sea Ice
+Concentration, Version 6 (G02202, v06r00; Meier et al. 2026), from November 1978. Unlike every
+other gridded package, their grid is not a terrain grid: it is a 25 km grid of its own in the
+region's projection (`crs`, EPSG:3031 or EPSG:3413), with cell centres at odd multiples of
+12.5 km, covering every terrain grid of the region. The explorer draws it as a texture on the
+sea surface and clips it to the ocean (mask class `0`) of whichever terrain is shown, so one
+package serves all of a region's terrains. Each cell centre is projected into NSIDC's grid
+(`source_grid`: polar stereographic on the Hughes 1980 ellipsoid, EPSG:3412 or EPSG:3411) and
+takes the bilinear mean of the NSIDC ocean cells around it; cells that a terrain lookup can read
+but that NSIDC's land mask leaves without an ocean neighbour take the mean of their filled
+neighbours (`resampling`, `validation.filled_cells`). The fields are, in this order,
+`concentration` (`uint8`, whole percent 0–100, frame-major like the projections' `thickness`,
+`255` throughout a month without data), `reference_ice_frequency` (`uint8`, percent of the
+1981–2010 years in which the cell held at least 15 % ice, one frame per calendar month, January
+first; its 50 % contour is the month's median ice edge) and `domain_mask` (the cells that hold
+ice in at least one month and that a lookup on any terrain's ocean can read; every other cell is
+open water throughout). The frames are consecutive months at mid-month: `frames.months` labels
+them `YYYY-MM`, `frames.empty_months` lists those without data (December 1987 and January 1988
+in both hemispheres, July 1984 in the Arctic), and `frames.sensors` gives the sensor of each run
+of months (SMMR, SSM/I, SSMIS, AMSR2). `series` carries the extent and area of the whole
+hemisphere every month, summed on NSIDC's grid with each cell's area from the projection's
+scale factor (`null` for an empty month). The extent counts the ocean cells that the files' QA
+flag marks as holding at least 15 % ice on at least half of the month's days, which is close to
+the Sea Ice Index's monthly extent (an average of daily extents); the area weights the same
+cells by their monthly mean concentration. `mean_field_extent_mkm2` is the area of the cells
+whose monthly mean concentration reaches 15 %, the ice the map draws, which is larger. Under
+`monthly` are each calendar month's 1981–2010 average extent and least-squares trend from
+1979, in million km² per year and in percent of that average per decade. `validation` records how closely the projection
+reproduces NSIDC's cell positions and how this extent compares with the Sea Ice Index's;
+`source_files` the name, MD5 (checked against NSIDC's manifest), sensor and creation date of
+every monthly file. Rule 3 above does not apply to this family.
 
 **Streamlines.** Each segment stores its end points as `x0_ps_m`, `y0_ps_m`, `depth0_m`
 and `x1_ps_m`, `y1_ps_m`, `depth1_m` (projected metres and depth in metres), the potential

@@ -77,6 +77,11 @@ def cpom_land_ice_module():
 
 
 @pytest.fixture(scope="session")
+def nsidc_sea_ice_module():
+    return _load_script_module("prepare_nsidc_sea_ice.py")
+
+
+@pytest.fixture(scope="session")
 def ismip6_combine_module():
     pytest.importorskip("netCDF4", reason="netCDF4 not installed")
     return _load_script_module("combine_ismip6_2300_mean.py")
