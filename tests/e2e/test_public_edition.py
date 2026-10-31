@@ -25,7 +25,7 @@ STOP_TIMEOUT_MS = 120_000
 # Packages only the research edition may fetch: its extra layers and its other terrain grids.
 RESEARCH_ONLY_PACKAGE = re.compile(
     r"basal_friction|rise_antarctica|hydrology|refined_basins|imbie|greenland_basins|bedmap3|"
-    r"_741\.|_1km\.|qrf|cmocean|cpom_|nsidc_sea_ice"
+    r"_741\.|_1km\.|qrf|cmocean|cpom_|nsidc_sea_ice|ice_cores"
 )
 
 # What each tour stop leaves switched on, in order (see static/tools/js/explore-content.js).
@@ -142,6 +142,7 @@ class TestPublicEditionCore:
             "showSubglacialChannels",
             "showRefinedBasins",
             "showSurfaceChange",
+            "showIceCores",
             "reboundModel",
             "reboundSeaLevel",
             "wireframe",
@@ -157,6 +158,7 @@ class TestPublicEditionCore:
             assert toggles[f"showOceanLayer{band}"], band
         for research_layer in ("showVelocity", "showBasalFriction", "showEffectivePressure", "showRefinedBasins"):
             assert not toggles[research_layer], research_layer
+        assert not _state(page)["featureLayers"]["iceCores"]["offered"]
 
     def test_a_preset_cannot_switch_research_layers_on(self, playwright_browser, explore_url):
         for preset in ("antarctica-subglacial-features", "antarctica-basin-boundary"):

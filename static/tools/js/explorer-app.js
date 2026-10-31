@@ -41,17 +41,21 @@ const [
   import(assetUrl("js/source-links.js")),
 ]);
 const editionProfile = getEditionProfile(document.documentElement.dataset.edition);
-// An edition without the basin layer leaves basins out of place search as well.
+// An edition without the basin layer leaves basins out of place search as well, and one
+// without the ice-core layer leaves out the ice-core sites.
 const searchesRefinedBasins = !editionProfile.disabledCapabilities.includes("refinedBasins");
+const offersIceCores = !editionProfile.disabledCapabilities.includes("iceCores");
 const polarFeatureDataUrls = Object.freeze({
   antarctica: Object.freeze({
     research_stations: assetUrl("data/antarctica_research_stations.json"),
     geographic_names: assetUrl("data/antarctica_geographic_names.json"),
+    ...(offersIceCores ? { ice_cores: assetUrl("data/antarctica_ice_cores.json") } : {}),
     ...(searchesRefinedBasins ? { refined_basins: assetUrl("data/antarctica_refined_basins_search.json") } : {}),
   }),
   greenland: Object.freeze({
     research_stations: assetUrl("data/greenland_research_stations.json"),
     geographic_names: assetUrl("data/greenland_geographic_names.json"),
+    ...(offersIceCores ? { ice_cores: assetUrl("data/greenland_ice_cores.json") } : {}),
     ...(searchesRefinedBasins ? { refined_basins: assetUrl("data/greenland_refined_basins_search.json") } : {}),
   }),
 });
@@ -927,6 +931,7 @@ const controlsUI = {
   polarFeatureDetails: resolveControl("polarFeatureDetails"),
   showResearchStations: resolveControl("showResearchStations"),
   showGeographicNames: resolveControl("showGeographicNames"),
+  showIceCores: offersIceCores ? resolveControl("showIceCores") : null,
   regionPreset: resolveControl("regionPreset"),
   resolutionPreset: resolveControl("resolutionPreset"),
   exaggeration: resolveControl("exaggeration"),
@@ -5574,6 +5579,7 @@ function collectExplorerState() {
     featureLayers: {
       researchStations: { enabled: false, loaded: false, totalCount: 0, visibleCount: 0 },
       geographicNames: { enabled: false, loaded: false, totalCount: 0, visibleCount: 0 },
+      iceCores: { enabled: false, loaded: false, totalCount: 0, visibleCount: 0, offered: false },
     },
     search: { query: "", resultCount: 0, activeIndex: -1 },
     selectedFeature: null,
@@ -5602,6 +5608,7 @@ function collectExplorerState() {
     wireframe: Boolean(controlsUI.wireframe?.checked),
     showResearchStations: Boolean(controlsUI.showResearchStations?.checked),
     showGeographicNames: Boolean(controlsUI.showGeographicNames?.checked),
+    showIceCores: Boolean(controlsUI.showIceCores?.checked),
   };
   return {
     ready: isExplorerReady(),
@@ -6055,6 +6062,7 @@ function initializePolarFeatures() {
       details: controlsUI.polarFeatureDetails,
       stationToggle: controlsUI.showResearchStations,
       namesToggle: controlsUI.showGeographicNames,
+      iceCoreToggle: controlsUI.showIceCores,
       basinToggle: controlsUI.showRefinedBasins,
     },
     dataUrls: polarFeatureDataUrls,

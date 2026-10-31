@@ -82,8 +82,8 @@ const PROFILES = deepFreeze({
       greenland: ["3km"],
     },
     // The observed elevation change and the observed sea ice wait for tour stops and
-    // explainers of their own.
-    disabledCapabilities: ["basalFriction", "rise", "hydrology", "refinedBasins", "surfaceChange", "seaIce"],
+    // explainers of their own; the ice-core sites are a research-page place layer.
+    disabledCapabilities: ["basalFriction", "rise", "hydrology", "refinedBasins", "surfaceChange", "seaIce", "iceCores"],
     standInControls: true,
     // State of the controls this edition's page leaves out. Anything not listed stands in
     // as an unchecked checkbox, so the layer it drives stays off.

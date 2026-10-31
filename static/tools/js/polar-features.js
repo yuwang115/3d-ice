@@ -9,7 +9,14 @@ import {
   createPolarMarkerCanvas,
   getPolarFeatureLabelStyle,
   getPolarFeatureMarkerMaterialOptions,
+  getPolarFeatureMarkerShape,
 } from "./polar-feature-label-style.js";
+import {
+  POLAR_FEATURE_TEXT,
+  polarFeatureTypeLabel,
+  renderPolarFeatureDetails,
+  safeSourceUrl,
+} from "./polar-feature-details.js";
 
 export {
   createRefinedBasinSearchFeatures,
@@ -21,92 +28,20 @@ export {
 const DEFAULT_LIMIT = 12;
 const SEARCH_REGIONS = ["antarctica", "greenland"];
 const BASE_SEARCH_LAYERS = ["research_stations", "geographic_names"];
-
-const TEXT = {
-  en: {
-    antarctica: "Antarctica",
-    greenland: "Greenland",
-    loading: "Loading polar places…",
-    loadError: "Polar place data could not be loaded.",
-    noMatches: "No matches.",
-    resultCount: (count) => `Showing ${count} match${count === 1 ? "" : "es"}.`,
-    details: "Feature details",
-    operator: "Operator",
-    country: "Country",
-    status: "Status",
-    coordinates: "Coordinates",
-    source: "Source",
-    area: "Area",
-    research_station: "Research station",
-    ocean: "Ocean",
-    sea: "Sea",
-    basin: "Basin",
-    refined_basin: "Refined basin",
-    mountain_range: "Mountain range",
-    mountain: "Mountain",
-    plateau: "Plateau",
-    ice_shelf: "Ice shelf",
-    ice_sheet: "Ice sheet",
-    fjord: "Fjord",
-    strait: "Strait",
-    nunatak: "Nunatak",
-    open: "Open",
-    temporarily_closed: "Temporarily closed",
-    relocated: "Relocated",
-  },
-  zh: {
-    antarctica: "南极洲",
-    greenland: "格陵兰岛",
-    loading: "正在加载极地地理信息…",
-    loadError: "无法加载极地地理信息。",
-    noMatches: "未找到匹配结果。",
-    resultCount: (count) => `显示 ${count} 条匹配结果。`,
-    details: "地理信息详情",
-    operator: "运营机构",
-    country: "国家/地区",
-    status: "状态",
-    coordinates: "坐标",
-    source: "数据来源",
-    area: "面积",
-    research_station: "科考站",
-    ocean: "大洋",
-    sea: "海域",
-    basin: "盆地",
-    refined_basin: "细化流域",
-    mountain_range: "山脉",
-    mountain: "山峰",
-    plateau: "高原",
-    ice_shelf: "冰架",
-    ice_sheet: "冰盖",
-    fjord: "峡湾",
-    strait: "海峡",
-    nunatak: "冰原岛峰",
-    open: "开放",
-    temporarily_closed: "暂时关闭",
-    relocated: "已迁移",
-  },
-};
+// Point layers a page may leave out: a page offers one by passing its catalogue URLs.
+const OPTIONAL_POINT_LAYERS = ["ice_cores"];
+const LABEL_HEIGHT_OFFSET = 0.5;
 
 const LAYER_KEYS = {
   research_stations: "researchStations",
   geographic_names: "geographicNames",
+  ice_cores: "iceCores",
 };
 const MAX_CATALOGUE_ITEMS = 20_000;
 const MAX_NAME_LENGTH = 180;
 const MAX_FIELD_LENGTH = 500;
 const MAX_ALIASES = 30;
 const MAX_CATALOGUE_RESPONSE_BYTES = 2 * 1024 * 1024;
-const TRUSTED_SOURCE_HOSTS = new Set([
-  "www.comnap.aq",
-  "www.interact-gis.org",
-  "placenames.aq",
-  "www.placenames.aq",
-  "kort.nunagis.gl",
-  "services2.arcgis.com",
-  "www.gebco.net",
-  "www.naturalearthdata.com",
-]);
-
 function boundedText(value, maximum = MAX_FIELD_LENGTH) {
   const text = String(value || "").trim();
   return text.length <= maximum ? text : text.slice(0, maximum);
@@ -162,6 +97,14 @@ function validateCatalogue(payload, expectedRegion, expectedLayer) {
       lon: Number.isFinite(item.lon) ? item.lon : null,
       area_km2: Number.isFinite(item.area_km2) && item.area_km2 >= 0 ? item.area_km2 : null,
       subregion: boundedText(item.subregion),
+      project: boundedText(item.project),
+      drilled: boundedText(item.drilled, MAX_NAME_LENGTH),
+      core_type: boundedText(item.core_type, MAX_NAME_LENGTH),
+      depth_m: Number.isFinite(item.depth_m) && item.depth_m > 0 ? item.depth_m : null,
+      reached_bed: item.reached_bed === true,
+      oldest_ka: Number.isFinite(item.oldest_ka) && item.oldest_ka > 0 ? item.oldest_ka : null,
+      elevation_m: Number.isFinite(item.elevation_m) ? item.elevation_m : null,
+      citation: boundedText(item.citation),
     }));
   return {
     schema_version: 1,
@@ -198,24 +141,6 @@ async function readBoundedJsonResponse(response, maximumBytes = MAX_CATALOGUE_RE
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 
-function safeSourceUrl(value) {
-  try {
-    const url = new URL(String(value || ""));
-    return url.protocol === "https:" && TRUSTED_SOURCE_HOSTS.has(url.hostname) ? url.href : "";
-  } catch (_error) {
-    return "";
-  }
-}
-
-function appendDetailRow(documentRef, list, term, value) {
-  if (!String(value || "").trim()) return;
-  const dt = documentRef.createElement("dt");
-  dt.textContent = term;
-  const dd = documentRef.createElement("dd");
-  dd.textContent = String(value);
-  list.append(dt, dd);
-}
-
 export function createPolarFeaturesController(options) {
   const {
     THREE,
@@ -232,7 +157,19 @@ export function createPolarFeaturesController(options) {
     activateRefinedBasinFeature = async () => false,
   } = options;
   const language = polarFeatureLanguageKey(locale);
-  const labels = TEXT[language];
+  const labels = POLAR_FEATURE_TEXT[language];
+  const layerToggles = {
+    research_stations: elements.stationToggle,
+    geographic_names: elements.namesToggle,
+    ice_cores: elements.iceCoreToggle || null,
+  };
+  // A layer is offered only where the page passes its catalogues and its toggle.
+  const pointLayers = [
+    ...BASE_SEARCH_LAYERS,
+    ...OPTIONAL_POINT_LAYERS.filter(
+      (layer) => layerToggles[layer] && SEARCH_REGIONS.every((region) => dataUrls?.[region]?.[layer]),
+    ),
+  ];
   const documentRef = elements.searchInput.ownerDocument;
   const catalogueCache = new Map();
   const cataloguePromises = new Map();
@@ -242,6 +179,7 @@ export function createPolarFeaturesController(options) {
   const state = {
     researchStations: { enabled: Boolean(elements.stationToggle.checked), loaded: false, totalCount: 0, visibleCount: 0 },
     geographicNames: { enabled: Boolean(elements.namesToggle.checked), loaded: false, totalCount: 0, visibleCount: 0 },
+    iceCores: { enabled: Boolean(layerToggles.ice_cores?.checked), loaded: false, totalCount: 0, visibleCount: 0 },
     search: { query: "", resultCount: 0, activeIndex: -1 },
     selectedFeature: null,
   };
@@ -258,7 +196,7 @@ export function createPolarFeaturesController(options) {
   }
 
   function layerToggle(layer) {
-    return layer === "research_stations" ? elements.stationToggle : elements.namesToggle;
+    return layerToggles[layer];
   }
 
   async function loadCatalogue(region, layer) {
@@ -282,7 +220,7 @@ export function createPolarFeaturesController(options) {
     return promise;
   }
 
-  function loadSearchCatalogues(layers = BASE_SEARCH_LAYERS) {
+  function loadSearchCatalogues(layers = pointLayers) {
     return Promise.all(
       SEARCH_REGIONS.flatMap((region) =>
         layers.map((layer) => loadCatalogue(region, layer)),
@@ -291,18 +229,22 @@ export function createPolarFeaturesController(options) {
   }
 
   async function loadAllFeatures() {
-    const catalogues = await loadSearchCatalogues();
+    const catalogues = await loadSearchCatalogues(BASE_SEARCH_LAYERS);
+    // Optional layers search when they load and never take the base layers down with them.
     // A page that offers no basin layer passes no basin catalogue, and searches without it.
-    const basinRegions = SEARCH_REGIONS.filter((region) => dataUrls?.[region]?.refined_basins);
-    const refinedResults = await Promise.allSettled(
-      basinRegions.map((region) => loadCatalogue(region, "refined_basins")),
-    );
-    const refinedCatalogues = refinedResults.flatMap((result) => {
+    const optional = [
+      ...pointLayers.filter((layer) => !BASE_SEARCH_LAYERS.includes(layer)).flatMap((layer) =>
+        SEARCH_REGIONS.map((region) => [region, layer]),
+      ),
+      ...SEARCH_REGIONS.filter((region) => dataUrls?.[region]?.refined_basins).map((region) => [region, "refined_basins"]),
+    ];
+    const optionalResults = await Promise.allSettled(optional.map(([region, layer]) => loadCatalogue(region, layer)));
+    const optionalCatalogues = optionalResults.flatMap((result, index) => {
       if (result.status === "fulfilled") return [result.value];
-      console.warn("Refined basin search region could not be loaded:", result.reason);
+      console.warn(`Search catalogue ${optional[index].join("/")} could not be loaded:`, result.reason);
       return [];
     });
-    return [...catalogues, ...refinedCatalogues].flatMap((catalogue) => catalogue.items);
+    return [...catalogues, ...optionalCatalogues].flatMap((catalogue) => catalogue.items);
   }
 
   function disposeObject(object) {
@@ -371,7 +313,7 @@ export function createPolarFeaturesController(options) {
       });
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-      const markerCanvas = createPolarMarkerCanvas(documentRef);
+      const markerCanvas = createPolarMarkerCanvas(documentRef, { shape: getPolarFeatureMarkerShape(layer) });
       const markerTexture = markerCanvas ? new THREE.CanvasTexture(markerCanvas) : null;
       if (markerTexture) {
         markerTexture.colorSpace = THREE.SRGBColorSpace;
@@ -396,9 +338,12 @@ export function createPolarFeaturesController(options) {
         .forEach(({ feature, point }) => {
           const sprite = createLabelSprite(getPolarFeatureLabel(feature, locale), { layer, region: feature.region });
           if (!sprite) return;
-          sprite.position.set(point.x, point.y + 0.5, point.z);
+          // Ice cores are drilled beside stations (Vostok, Concordia, Kohnen, Summit), so
+          // their labels stack above the station's rather than over it.
+          const heightOffset = layer === "ice_cores" ? LABEL_HEIGHT_OFFSET + sprite.scale.y : LABEL_HEIGHT_OFFSET;
+          sprite.position.set(point.x, point.y + heightOffset, point.z);
           sprite.userData.baseY = point.baseY;
-          sprite.userData.heightOffset = 0.5;
+          sprite.userData.heightOffset = heightOffset;
           sprite.userData.featureId = feature.id;
           labelSprites.set(feature.id, { sprite, layer, region: feature.region });
           group.add(sprite);
@@ -440,51 +385,7 @@ export function createPolarFeaturesController(options) {
   }
 
   function showDetails(feature) {
-    const container = elements.details;
-    container.replaceChildren();
-    if (!feature) {
-      container.hidden = true;
-      return;
-    }
-    const heading = documentRef.createElement("h3");
-    heading.textContent = getPolarFeatureLabel(feature, locale);
-    const eyebrow = documentRef.createElement("p");
-    eyebrow.className = "polar-feature-details__type";
-    eyebrow.textContent = `${labels[feature.kind] || feature.kind} · ${labels[feature.region] || feature.region}`;
-    const list = documentRef.createElement("dl");
-    appendDetailRow(documentRef, list, labels.operator, feature.operator);
-    appendDetailRow(documentRef, list, labels.country, feature.country);
-    appendDetailRow(
-      documentRef,
-      list,
-      labels.status,
-      labels[feature.status] || String(feature.status || "").replace(/_/g, " "),
-    );
-    const latitude = Number(feature.lat);
-    const longitude = Number(feature.lon);
-    if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
-      appendDetailRow(documentRef, list, labels.coordinates, `${latitude.toFixed(3)}°, ${longitude.toFixed(3)}°`);
-    }
-    const areaKm2 = feature.area_km2 === null || feature.area_km2 === "" ? Number.NaN : Number(feature.area_km2);
-    if (Number.isFinite(areaKm2)) {
-      appendDetailRow(
-        documentRef,
-        list,
-        labels.area,
-        `${areaKm2.toLocaleString(undefined, { maximumFractionDigits: 0 })} km²`,
-      );
-    }
-    container.append(heading, eyebrow, list);
-    const sourceUrl = safeSourceUrl(feature.source_url);
-    if (sourceUrl) {
-      const source = documentRef.createElement("a");
-      source.href = sourceUrl;
-      source.target = "_blank";
-      source.rel = "noopener noreferrer";
-      source.textContent = labels.source;
-      container.append(source);
-    }
-    container.hidden = false;
+    renderPolarFeatureDetails(elements.details, feature, { labels, locale, getLabel: getPolarFeatureLabel });
   }
 
   function updateActiveOption() {
@@ -516,7 +417,9 @@ export function createPolarFeaturesController(options) {
         if (!activated || isCancelled()) return;
       } else {
         const stateKey = LAYER_KEYS[feature.layer];
-        if (!stateKey) throw new Error(`Unsupported polar feature layer: ${feature.layer}`);
+        if (!stateKey || !pointLayers.includes(feature.layer)) {
+          throw new Error(`Unsupported polar feature layer: ${feature.layer}`);
+        }
         state[stateKey] = { ...state[stateKey], enabled: true };
         layerToggle(feature.layer).checked = true;
         await ensureLayer(feature.layer);
@@ -546,7 +449,7 @@ export function createPolarFeaturesController(options) {
       name.textContent = getPolarFeatureLabel(feature, locale);
       const meta = documentRef.createElement("span");
       meta.className = "polar-search-result__meta";
-      meta.textContent = `${labels[feature.kind] || feature.kind} · ${labels[feature.region] || feature.region}`;
+      meta.textContent = `${polarFeatureTypeLabel(feature, labels)} · ${labels[feature.region] || feature.region}`;
       option.append(name, meta);
       option.addEventListener("pointerdown", (event) => event.preventDefault());
       option.addEventListener("click", () => void chooseFeature(feature));
@@ -654,6 +557,9 @@ export function createPolarFeaturesController(options) {
     });
     on(elements.stationToggle, "change", () => void handleLayerToggle("research_stations", elements.stationToggle.checked));
     on(elements.namesToggle, "change", () => void handleLayerToggle("geographic_names", elements.namesToggle.checked));
+    if (pointLayers.includes("ice_cores")) {
+      on(layerToggles.ice_cores, "change", () => void handleLayerToggle("ice_cores", layerToggles.ice_cores.checked));
+    }
     if (elements.basinToggle) {
       on(elements.basinToggle, "change", () => {
         if (!elements.basinToggle.checked && state.selectedFeature?.layer === "refined_basins") {
@@ -682,7 +588,7 @@ export function createPolarFeaturesController(options) {
   async function onTerrainReady() {
     clearScene();
     await Promise.all(
-      ["research_stations", "geographic_names"].map((layer) =>
+      pointLayers.map((layer) =>
         ensureLayer(layer).catch((error) => {
           console.warn(`Polar feature layer failed (${layer}):`, error);
         }),
@@ -732,6 +638,11 @@ export function createPolarFeaturesController(options) {
         geographicNames: {
           ...state.geographicNames,
           renderedLabelCount: [...labelSprites.values()].filter((entry) => entry.layer === "geographic_names").length,
+        },
+        iceCores: {
+          ...state.iceCores,
+          offered: pointLayers.includes("ice_cores"),
+          renderedLabelCount: [...labelSprites.values()].filter((entry) => entry.layer === "ice_cores").length,
         },
       },
       search: { ...state.search },

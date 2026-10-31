@@ -1,0 +1,2673 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-10-30",
+  "description": "Deep and representative ice-core drilling sites of Antarctica and Greenland, compiled for the 3D ICE explorer's Places & Geographic Features. Every position is given by at least two independent sources (coordinate_sources); depths, drilling years, ages and elevations come from the sources in fact_sources, and notes record disagreements between them. scripts/prepare_ice_cores.py builds the explorer catalogues from this table.",
+  "conventions": {
+    "depth_m": "Final drilled depth of the core from the surface, in metres.",
+    "reached_bed": "True only where a source states that drilling reached the bed (for Vostok, the subglacial lake).",
+    "oldest_ka": "For a drilled core, the time span of its continuous dated record, in thousands of years; disturbed ice below it is not counted. For a blue-ice site, the age of its oldest dated ice.",
+    "core_type": "deep: about 1000 m or more on a major ice divide or dome; intermediate: about 300–1500 m; shallow: under about 300 m; blue_ice: a blue-ice area sampled at or near the surface.",
+    "coordinates": "Decimal degrees on WGS 84, south and west negative."
+  },
+  "cross_checked_against": [
+    {
+      "name": "NOAA NCEI Paleoclimatology ice-core archive",
+      "url": "https://www.ncei.noaa.gov/products/paleoclimatology/ice-core"
+    },
+    {
+      "name": "Davidge, Brooks & Mah (2022), Global ice drilling and archive location data for select ice cores",
+      "url": "https://doi.org/10.5281/zenodo.7076469"
+    }
+  ],
+  "sites": [
+    {
+      "name": "Vostok",
+      "aliases": [
+        "Vostok",
+        "Vostok 5G",
+        "5G-1",
+        "5G-2",
+        "Vostok Station",
+        "Lake Vostok"
+      ],
+      "region": "antarctica",
+      "core_type": "deep",
+      "project": "Russian Antarctic Expedition deep drilling at Vostok Station (borehole 5G)",
+      "operator": "Russia (Russian Antarctic Expedition), with French and US science partners",
+      "drilled": "1990–2012",
+      "depth_m": 3769.3,
+      "reached_bed": true,
+      "oldest_ka": 420,
+      "elevation_m": 3488,
+      "lat": -78.4667,
+      "lon": 106.8,
+      "coordinate_sources": [
+        {
+          "url": "https://doi.org/10.3189/172756407786857776",
+          "lat": -78.4667,
+          "lon": 106.8,
+          "what": "Vasiliev et al. 2007, Ann. Glaciol. 47, text: Vostok station 78°28'S, 106°48'E, 3488 m a.s.l."
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/6091",
+          "lat": -78.47,
+          "lon": 106.8,
+          "what": "NOAA NCEI paleo study site record 'Vostok' (elev. 3488 m)"
+        }
+      ],
+      "reference": {
+        "citation": "Petit et al. 1999, Nature 399, 429–436",
+        "doi": "10.1038/20859"
+      },
+      "fact_sources": [
+        "https://doi.org/10.3189/172756407786857776",
+        "https://doi.org/10.3189/2014AoG65A002",
+        "https://www.ncei.noaa.gov/access/paleo-search/study/6091"
+      ],
+      "notes": "Borehole 5G started 20 Feb 1990; drilling stopped at 3623 m in Jan 1998, about 130 m above the lake, and the meteoric-to-accreted (lake) ice transition is at 3538 m (Vasiliev et al. 2007). After deepening via branch hole 5G-2, the drill reached Subglacial Lake Vostok on 5 Feb 2012 at 3769.3 m by ice-core length (Lukin & Vasiliev 2014, Ann. Glaciol. 55(65)). reached_bed=true means the ice-water interface at the base of the ice sheet was reached; there is no bedrock contact. depth_m includes accreted lake ice below 3538 m. oldest_ka=420 is the span of the Petit et al. (1999) climate record, not the age of the deepest (accreted) ice. Discrepancies: NCEI core lengths [36, 40, 2757, 3500] omit 3623/3769 m; the Zenodo 5G row gives bottom 3623 m (1998) and elevation 3500 m vs 3488 m (Vasiliev et al. 2007; NCEI)."
+    },
+    {
+      "name": "EPICA Dome C",
+      "aliases": [
+        "EDC",
+        "Dome C",
+        "Dome Concordia",
+        "Concordia",
+        "EDC99",
+        "EDC2",
+        "EDC96",
+        "EPICA"
+      ],
+      "region": "antarctica",
+      "core_type": "deep",
+      "project": "European Project for Ice Coring in Antarctica (EPICA)",
+      "operator": "10 European nations (ESF/EC programme); drilled at the French–Italian Concordia site",
+      "drilled": "1999–2004",
+      "depth_m": 3270.2,
+      "reached_bed": false,
+      "oldest_ka": 800,
+      "elevation_m": 3233,
+      "lat": -75.1,
+      "lon": 123.35,
+      "coordinate_sources": [
+        {
+          "url": "https://doi.pangaea.de/10.1594/PANGAEA.671367",
+          "lat": -75.1,
+          "lon": 123.35,
+          "what": "PANGAEA event EDC (EDC3 timescale dataset), elevation 3233 m"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/6091",
+          "lat": -75.1,
+          "lon": 123.4,
+          "what": "NOAA NCEI paleo study site record 'EPICA Dome C' (elev. 3233 m)"
+        }
+      ],
+      "reference": {
+        "citation": "EPICA community members 2004, Nature 429, 623–628",
+        "doi": "10.1038/nature02599"
+      },
+      "fact_sources": [
+        "https://doi.org/10.3189/172756407786857767",
+        "https://doi.org/10.5194/cp-3-485-2007",
+        "https://doi.pangaea.de/10.1594/PANGAEA.671367",
+        "https://cordis.europa.eu/project/id/EVK2-CT-2000-00077"
+      ],
+      "notes": "Reported core is EDC2 (EDC99): started 11 Dec 1999, completed 21 Dec 2004 at 3270.2 m, an estimated 16 m above bedrock, stopped because of environmental and drill-safety concerns (Augustin et al. 2007). Parrenin et al. (2007) describe the EDC99 drilling as voluntarily stopped at 3260 m, about 15 m above bedrock, above suspected melt water; Zenodo repository rows give 3259.85 m (IGE) and 3260 m (AWI). The 3260 vs 3270.2 m difference is not explained in the sources consulted; 3270.2 m is the drilling report's final depth. Some secondary sources say '5 m above bedrock', contradicting the drilling report. The first hole, EDC96 (from 1996), was abandoned when the drill stuck at 788 m in 1999. oldest_ka=800 per EDC3 (Parrenin et al. 2007). Discrepancies: NCEI lists core lengths up to 3275 m; the Zenodo IGE row gives elevation 3250 m vs 3233 m (PANGAEA, NCEI). Ten EPICA nations: Belgium, Denmark, France, Germany, Italy, Netherlands, Norway, Sweden, Switzerland, UK."
+    },
+    {
+      "name": "Beyond EPICA – Little Dome C",
+      "aliases": [
+        "BELDC",
+        "Little Dome C",
+        "LDC",
+        "Beyond EPICA",
+        "Beyond EPICA Oldest Ice"
+      ],
+      "region": "antarctica",
+      "core_type": "deep",
+      "project": "Beyond EPICA – Oldest Ice (EU Horizon 2020, grant 815384)",
+      "operator": "12 institutions from 10 European nations, coordinated by CNR-ISP (Italy)",
+      "drilled": "2021–2025",
+      "depth_m": 2799.85,
+      "reached_bed": true,
+      "oldest_ka": null,
+      "elevation_m": 3230,
+      "lat": -75.29917,
+      "lon": 122.44516,
+      "coordinate_sources": [
+        {
+          "url": "https://doi.org/10.5194/tc-15-1881-2021",
+          "lat": -75.29917,
+          "lon": 122.4451,
+          "what": "Lilien et al. 2021, The Cryosphere 15, text: chosen BELDC site"
+        },
+        {
+          "url": "https://doi.org/10.5194/tc-17-3461-2023",
+          "lat": -75.29917,
+          "lon": 122.44516,
+          "what": "Chung et al. 2023, The Cryosphere 17, Sect. 2 (BELDC marked in Fig. 2)"
+        }
+      ],
+      "reference": {
+        "citation": "Lilien et al. 2021, The Cryosphere 15, 1881–1888",
+        "doi": "10.5194/tc-15-1881-2021"
+      },
+      "fact_sources": [
+        "https://www.beyondepica.eu/fileadmin/user_upload/www.beyondepica.eu/user_upload/Beyond_EPICA_upload/Clara/New_Events/Press_Release/PR_Antarctica_Beyond_Epica_bedrock_4th_drilling_campaign_2025.pdf",
+        "https://doi.org/10.21203/rs.3.rs-9883712/v1",
+        "https://doi.org/10.5194/tc-15-1881-2021",
+        "https://doi.org/10.5194/tc-17-3461-2023"
+      ],
+      "notes": "Ice-rock interface reached at 2799.85 m (Westhoff et al. 2026, Research Square preprint doi:10.21203/rs.3.rs-9883712/v1, not yet peer reviewed); the Jan 2025 project press release gives 2,800 m, bedrock reached in the fourth field season (2024/25), with rock fragments recovered. Radar ice thickness at the site was 2764 ± 20 m (Lilien et al. 2021), ~36 m less than drilled. Coordinates are the selected drill site from site-selection papers by the project team (not an as-drilled survey), ~35 km SW of EDC. Elevation 3230 m is above the WGS84 ellipsoid (2020) per Lilien et al. 2021; the press release gives ~3200 m a.s.l. oldest_ka left null: '>= 1.2 Ma' (a 0.8–1.2 Ma record between 2426 and 2490 m, continuous record in the uppermost 2480 m) is a preliminary field estimate from the press release, not yet in a peer-reviewed publication; the lowest ~210 m are heavily deformed old ice of unknown origin. Not in the NCEI or Zenodo files."
+    },
+    {
+      "name": "EPICA Dronning Maud Land",
+      "aliases": [
+        "EDML",
+        "Kohnen",
+        "Kohnen Station",
+        "EPICA DML",
+        "DML",
+        "DML28C01_00"
+      ],
+      "region": "antarctica",
+      "core_type": "deep",
+      "project": "European Project for Ice Coring in Antarctica (EPICA)",
+      "operator": "10 European nations (ESF/EC programme); drilling led by AWI (Germany) at Kohnen Station",
+      "drilled": "2001–2006",
+      "depth_m": 2774.15,
+      "reached_bed": null,
+      "oldest_ka": 150,
+      "elevation_m": 2892,
+      "lat": -75.0025,
+      "lon": 0.0684,
+      "coordinate_sources": [
+        {
+          "url": "https://doi.pangaea.de/10.1594/PANGAEA.841035",
+          "lat": -75.0025,
+          "lon": 0.0684,
+          "what": "PANGAEA event EDML (DML28C01_00), drilling protocol dataset, elevation 2891.7 m WGS84"
+        },
+        {
+          "url": "https://doi.org/10.5194/cp-3-475-2007",
+          "lat": -75.0,
+          "lon": 0.0667,
+          "what": "Ruth et al. 2007, Clim. Past 3, text: Kohnen station 75°00'S, 0°04'E, 2892 m (WGS84)"
+        }
+      ],
+      "reference": {
+        "citation": "EPICA Community Members 2006, Nature 444, 195–198",
+        "doi": "10.1038/nature05301"
+      },
+      "fact_sources": [
+        "https://doi.org/10.3189/2014AoG68A189",
+        "https://doi.pangaea.de/10.1594/PANGAEA.841035",
+        "https://doi.org/10.5194/cp-3-475-2007",
+        "https://www.ncei.noaa.gov/access/paleo-search/study/15076"
+      ],
+      "notes": "Deep-drilling seasons 2001/02–2005/06 (pause in 2004/05); reached 2774.15 m logging depth on 16 Jan 2006, when subglacial water rising in the hole faster than it could be removed ended drilling, with refrozen water on the tools (Wilhelms et al. 2014). PANGAEA lists recovery 2774.15 m and a maximum sample depth of 2761.77 m. reached_bed=null: basal water entered the hole, but no source consulted states bedrock was reached. oldest_ka=150 is the span of the EDML1 chronology (Ruth et al. 2007); the deepest ~350 m have a complex flow history and are not covered. Zenodo has only shallow Kohnen cores (B40–B52), no deep EDML row; NCEI coordinates (-75.0, 0.07) and core length 2774 m agree."
+    },
+    {
+      "name": "Dome Fuji",
+      "aliases": [
+        "Dome Fuji",
+        "Dome F",
+        "DF",
+        "DF1",
+        "DF2",
+        "Dome Fuji Station"
+      ],
+      "region": "antarctica",
+      "core_type": "deep",
+      "project": "Dome Fuji Ice Core Project (Japanese Antarctic Research Expedition, JARE)",
+      "operator": "Japan (National Institute of Polar Research, JARE)",
+      "drilled": "2003–2007",
+      "depth_m": 3035.22,
+      "reached_bed": false,
+      "oldest_ka": 720,
+      "elevation_m": 3810,
+      "lat": -77.3169,
+      "lon": 39.7033,
+      "coordinate_sources": [
+        {
+          "url": "https://doi.org/10.1126/sciadv.1600446",
+          "lat": -77.3169,
+          "lon": 39.7033,
+          "what": "Dome Fuji Ice Core Project Members 2017, Sci. Adv. 3, Materials and Methods: 77°19'01\"S, 39°42'12\"E, 3810 m"
+        },
+        {
+          "url": "https://doi.org/10.1017/aog.2020.84",
+          "lat": -77.3164,
+          "lon": 39.7014,
+          "what": "Motoyama et al. 2020, Ann. Glaciol., Introduction: 77°18'59\"S, 39°42'05\"E, 3810 m"
+        },
+        {
+          "url": "https://doi.org/10.2204/iodp.sd.5.05.2007",
+          "lat": -77.3167,
+          "lon": 39.7,
+          "what": "Motoyama 2007, Scientific Drilling 5: 39°42'E, 77°19'S, 3810 m"
+        }
+      ],
+      "reference": {
+        "citation": "Dome Fuji Ice Core Project Members 2017, Science Advances 3, e1600446",
+        "doi": "10.1126/sciadv.1600446"
+      },
+      "fact_sources": [
+        "https://doi.org/10.1126/sciadv.1600446",
+        "https://doi.org/10.2204/iodp.sd.5.05.2007",
+        "https://doi.org/10.1017/aog.2020.84"
+      ],
+      "notes": "Depth and years are for DF2, drilled 44 m from DF1 in the 2003/04–2006/07 seasons: 3028.52 m on 23 Jan 2006, final 3035.22 m on 26 Jan 2007 (Motoyama 2007, 2020). Bedrock was not reached, but rock particles and refrozen subglacial water in the deepest runs indicate the bed was close; radar gave 3028 ± 15 m to bedrock (Motoyama et al. 2020). DF1: first deep drilling began in 1995 and reached 2503 m in Dec 1996, after which the drill stuck at ~2300 m and the hole was abandoned; DF1 records span ~340 kyr. oldest_ka=720 is the estimated age of the deepest DF2 ice (dated against EDC). Discrepancies: NCEI gives longitude 38.7 E (should be 39.70 E; ~25 km error); the Zenodo DF2 row gives bottom 3028.52 m (the 2006 depth, not the final 3035.22 m)."
+    },
+    {
+      "name": "Dome A (Kunlun)",
+      "aliases": [
+        "Dome A",
+        "Dome Argus",
+        "Kunlun",
+        "Kunlun Station",
+        "DK-1",
+        "Chinese deep ice core"
+      ],
+      "region": "antarctica",
+      "core_type": "intermediate",
+      "project": "Chinese deep ice-core drilling project DK-1 at Kunlun Station (CHINARE)",
+      "operator": "China (Polar Research Institute of China, Jilin University)",
+      "drilled": "2012–2019",
+      "depth_m": 803.54,
+      "reached_bed": false,
+      "oldest_ka": null,
+      "elevation_m": 4087,
+      "lat": -80.4169,
+      "lon": 77.1161,
+      "coordinate_sources": [
+        {
+          "url": "https://doi.org/10.3189/2014AoG68A006",
+          "lat": -80.4169,
+          "lon": 77.1161,
+          "what": "Zhang et al. 2014, Ann. Glaciol. 55(68), Sect. 1: Kunlun station 80°25'01\"S, 77°06'58\"E"
+        },
+        {
+          "url": "https://doi.org/10.5194/tc-12-1651-2018",
+          "lat": -80.4169,
+          "lon": 77.1161,
+          "what": "Zhao et al. 2018, The Cryosphere 12, Sect. 2: Kunlun station 80°25'01\"S, 77°06'58\"E, 4087 m a.s.l."
+        },
+        {
+          "url": "https://doi.org/10.5281/zenodo.7076469",
+          "lat": -80.416,
+          "lon": 77.116,
+          "what": "Davidge et al. 2022 archive table, Dome A / Kunlun Station row (PRIC)"
+        }
+      ],
+      "reference": {
+        "citation": "Hu et al. 2021, Annals of Glaciology 62(85-86), 293–304",
+        "doi": "10.1017/aog.2021.2"
+      },
+      "fact_sources": [
+        "https://doi.org/10.1017/aog.2021.2",
+        "https://doi.org/10.12143/j.ztgc.2021.09.001",
+        "https://doi.org/10.3189/2014AoG68A006",
+        "https://doi.org/10.5194/tc-12-1651-2018"
+      ],
+      "notes": "Latest published depth: 803.54 m, reported 'as of 2021' by Fan et al. 2021 (Drilling Engineering 48(9), 1–8, doi:10.12143/j.ztgc.2021.09.001); the Zenodo (PRIC) row gives 803.5 m with end year 2019. Earlier: casing installed Jan 2012, 800.8 m reached Jan 2017 (Hu et al. 2021). No later depth found in English or Chinese sources (searched Oct 2026). Classified 'intermediate' by depth although it is a deep-drilling project; target is bedrock at ~3100 m (average ice thickness ~3100 m, Zhang et al. 2014). Elevation: 4087 m for Kunlun Station (Zhao et al. 2018; Zenodo); Zhang et al. 2014 say 'nearly 4100 m'. oldest_ka null: core not dated to its bottom; Hu et al. 2021 cite an expected basal age of ~800 ka at the drill site, a model estimate. Not in the NCEI file."
+    },
+    {
+      "name": "Talos Dome (TALDICE)",
+      "aliases": [
+        "TALDICE",
+        "Talos Dome",
+        "Talos Dome Ice Core"
+      ],
+      "region": "antarctica",
+      "core_type": "deep",
+      "project": "Talos Dome Ice Core Project (TALDICE)",
+      "operator": "Italy, France, Germany, Switzerland, United Kingdom (Italy-led)",
+      "drilled": "2004–2008",
+      "depth_m": 1620,
+      "reached_bed": false,
+      "oldest_ka": 343,
+      "elevation_m": 2315,
+      "lat": -72.8167,
+      "lon": 159.1833,
+      "coordinate_sources": [
+        {
+          "url": "https://doi.org/10.5194/cp-7-1-2011",
+          "lat": -72.8167,
+          "lon": 159.1833,
+          "what": "Buiron et al. 2011, Clim. Past 7, Introduction: 159°11'E, 72°49'S, 2315 m a.s.l."
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/15076",
+          "lat": -72.8166,
+          "lon": 159.1833,
+          "what": "NOAA NCEI paleo study site record 'Talos Dome TALDICE' (elev. 2315 m)"
+        }
+      ],
+      "reference": {
+        "citation": "Stenni et al. 2011, Nature Geoscience 4, 46–49",
+        "doi": "10.1038/ngeo1026"
+      },
+      "fact_sources": [
+        "https://doi.org/10.5194/cp-7-1-2011",
+        "https://doi.org/10.1016/j.quascirev.2021.107078",
+        "https://www.taldice.org/"
+      ],
+      "notes": "1620 m core recovered 5 km from the Talos Dome summit in field seasons 2004–2008 (Buiron et al. 2011). Bedrock was not reached: the drilling missed its target by <200 m and sits over a 1.6 km wide subglacial valley; ice thickness at the drill site ~1795 m (Crotti et al. 2021). oldest_ka=343: the TALDICE-deep1 chronology ends at 1548 m (MIS 10.1, ~343 ka); ice below 1548 m is probably affected by mixing (Crotti et al. 2021). AICC2012 covered only to ~150 ka (1438 m). NCEI and Zenodo coordinates and depth agree."
+    },
+    {
+      "name": "Taylor Dome",
+      "aliases": [
+        "Taylor Dome",
+        "Taylor Dome M3C1",
+        "M3C1"
+      ],
+      "region": "antarctica",
+      "core_type": "intermediate",
+      "project": "Taylor Dome Ice Core Project",
+      "operator": "USA (University of Washington; drilled by PICO; NSF)",
+      "drilled": "1993–1994",
+      "depth_m": 554,
+      "reached_bed": true,
+      "oldest_ka": null,
+      "elevation_m": 2365,
+      "lat": -77.7964,
+      "lon": 158.7239,
+      "coordinate_sources": [
+        {
+          "url": "https://www.ncei.noaa.gov/pub/data/paleo/icecore/antarctica/taylor/taylor-info.txt",
+          "lat": -77.7964,
+          "lon": 158.7239,
+          "what": "NOAA NCEI Taylor Dome project description (UW): 77°47'47\"S, 158°43'26\"E, 2365 m"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/pub/data/paleo/icecore/antarctica/taylor/mosley-thompson2024/mosley-thompson2024-taylor-full.txt",
+          "lat": -77.7964,
+          "lon": 158.7239,
+          "what": "NOAA NCEI Mosley-Thompson 2024 Taylor Dome dust file header (OSU): 77°47'47\"S, 158°43'26\"E, 2365 m"
+        },
+        {
+          "url": "https://isolab.ess.washington.edu/data/taylor/",
+          "lat": -77.7964,
+          "lon": 158.7239,
+          "what": "UW IsoLab Taylor Dome project page"
+        }
+      ],
+      "reference": {
+        "citation": "Steig et al. 2000, Geografiska Annaler 82A(2-3), 213–235",
+        "doi": "10.1111/j.0435-3676.2000.00122.x"
+      },
+      "fact_sources": [
+        "https://www.ncei.noaa.gov/pub/data/paleo/icecore/antarctica/taylor/taylor-info.txt",
+        "https://icecores.org/inventory/taylor-dome",
+        "https://isolab.ess.washington.edu/data/taylor/",
+        "https://www.ncei.noaa.gov/access/paleo-search/study/2422"
+      ],
+      "notes": "Deep drilling by PICO reached bedrock at 554 m in the 1993–94 austral summer; NSF-ICF lists core M3C1 from 1.16 to 554.99 m, drilled to bedrock and 60 mm of basal sediment. Classified 'deep' under the 'to bed on an ice dome' rule despite 554 m. All coordinate sources trace to the UW/OSU project documentation; NSF-ICF, USAP-DC/NSIDC and Zenodo give a rounded or incorrect point (-77.667, 158.0, or -77, 158) with elevation 2440 m, ~22 km from the drill site. oldest_ka null: the project describes the record as 'the last 130,000 years or more' without a bottom age, and the timescale (st9810) has been revised. 3D ICE review: Typed intermediate (554 m) rather than deep."
+    },
+    {
+      "name": "Law Dome (DSS)",
+      "aliases": [
+        "Law Dome",
+        "DSS",
+        "Dome Summit South",
+        "DSS main",
+        "Law Dome DSS"
+      ],
+      "region": "antarctica",
+      "core_type": "deep",
+      "project": "Law Dome Dome Summit South (DSS) deep drilling, Australian Antarctic Program",
+      "operator": "Australia (Australian Antarctic Division)",
+      "drilled": "1987–1993",
+      "depth_m": 1196,
+      "reached_bed": true,
+      "oldest_ka": null,
+      "elevation_m": 1370,
+      "lat": -66.77,
+      "lon": 112.807,
+      "coordinate_sources": [
+        {
+          "url": "https://doi.org/10.5281/zenodo.7076469",
+          "lat": -66.77,
+          "lon": 112.807,
+          "what": "Davidge et al. 2022 archive table, Law Dome DSSmain row (Tasmania repository)"
+        },
+        {
+          "url": "https://doi.org/10.5194/cp-7-707-2011",
+          "lat": -66.7667,
+          "lon": 112.8,
+          "what": "Pedro et al. 2011, Clim. Past 7, Sect. 2: DSS 66°46'S, 112°48'E, 4.6 km SSW of summit"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/13564",
+          "lat": -66.7722,
+          "lon": 112.8072,
+          "what": "NOAA NCEI site 'Law Dome DSS 0506 Core' (mid-length core at the DSS site, elev. 1370 m)"
+        }
+      ],
+      "reference": {
+        "citation": "Morgan et al. 1997, Journal of Glaciology 43(143), 3–10",
+        "doi": "10.3189/S0022143000002768"
+      },
+      "fact_sources": [
+        "https://api.crossref.org/works/10.3189/S0022143000002768",
+        "https://doi.org/10.5194/cp-8-1929-2012",
+        "https://doi.org/10.5194/cp-7-707-2011",
+        "https://www.ncei.noaa.gov/access/paleo-search/study/13564"
+      ],
+      "notes": "Main DSS core drilled 1987–1993 at Dome Summit South, 4.6 km SSW of the summit; drilling was completed in Feb 1993 when basal ice containing small rock fragments was reached at 1196 m (Morgan et al. 1997 abstract; Plummer et al. 2012). reached_bed=true on that basis. Classified 'deep' (to bed near the dome summit; the primary source calls it deep drilling), though <1500 m. Discrepancies: Plummer et al. (2012) print 66°43'S and 'southeast' (~6 km from the other sources); NCEI site 'Law Dome' (-66.73, 112.83, 1390 m) is the summit area, not DSS; the Zenodo DSSmain row gives end year 1988, bottom 1200 m and elevation 1379.4 m. oldest_ka null: the lower core is dated by flow-model extrapolation and no bottom age is stated in the sources consulted (Zenodo lists 100000, unverified)."
+    },
+    {
+      "name": "Mizuho",
+      "aliases": [
+        "Mizuho",
+        "Mizuho Station",
+        "Mizuho Plateau"
+      ],
+      "region": "antarctica",
+      "core_type": "intermediate",
+      "project": "Glaciological Research Program in East Dronning Maud Land (JARE-24/25)",
+      "operator": "Japan (National Institute of Polar Research, JARE)",
+      "drilled": "1983–1984",
+      "depth_m": 700.63,
+      "reached_bed": false,
+      "oldest_ka": null,
+      "elevation_m": 2230,
+      "lat": -70.6981,
+      "lon": 44.3317,
+      "coordinate_sources": [
+        {
+          "url": "https://icedrill.org/sites/default/files/contents110000010324.pdf",
+          "lat": -70.6981,
+          "lon": 44.3317,
+          "what": "Narita et al. 1994, Mem. Natl Inst. Polar Res. Spec. Issue 49, abstract and Fig. 1: 70°41'53\"S, 44°19'54\"E, 2230 m a.s.l."
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q2350884",
+          "lat": -70.699,
+          "lon": 44.2778,
+          "what": "COMNAP Antarctic Facilities List (2017) value for Mizuho Station, as stored in Wikidata"
+        }
+      ],
+      "reference": {
+        "citation": "Narita et al. 1988, Annals of Glaciology 10, 213",
+        "doi": "10.3189/S0260305500004596"
+      },
+      "fact_sources": [
+        "https://icedrill.org/sites/default/files/contents110000010324.pdf",
+        "https://api.crossref.org/works/10.3189/S0260305500004596"
+      ],
+      "notes": "Thermal drilling by JARE-24/25: first hole (from 22 Apr 1983) stopped at 411.5 m because of rapid closure; second hole drilled 11 Jun–1 Aug 1984 from 133.5 m to 700.63 m (Narita et al. 1994). Ice thickness 2095 m, so the bed was not reached. Depth discrepancies: 700.5 m (Narita et al. 1988 abstract), 700.56 m (Zenodo, NIPR). Zenodo latitude -77.700 is wrong (station at -70.698, ~780 km away). Reference is the 1988 Annals abstract because the full 1994 drilling report (Narita et al., Mem. Natl Inst. Polar Res. Spec. Issue 49, 172–183) has no DOI. oldest_ka null: no bottom age found (Zenodo lists '10500 bp', unverified). Not in the NCEI file."
+    },
+    {
+      "name": "Aurora Basin North",
+      "aliases": [
+        "ABN",
+        "Aurora Basin North",
+        "ABN1314",
+        "ABN1314-103",
+        "Aurora Basin"
+      ],
+      "region": "antarctica",
+      "core_type": "intermediate",
+      "project": "Aurora Basin North ice core project (Australian Antarctic Program)",
+      "operator": "Australia-led; 15 partner organisations from Australia, China, Denmark, France, Germany and the USA",
+      "drilled": "2013–2014",
+      "depth_m": 303,
+      "reached_bed": false,
+      "oldest_ka": 2.7,
+      "elevation_m": 2690,
+      "lat": -71.17,
+      "lon": 111.37,
+      "coordinate_sources": [
+        {
+          "url": "https://doi.org/10.5194/cp-19-1125-2023",
+          "lat": -71.17,
+          "lon": 111.37,
+          "what": "Servettaz et al. 2023, Clim. Past 19, site description: 71.17°S, 111.37°E, 2690 m"
+        },
+        {
+          "url": "https://doi.pangaea.de/10.1594/PANGAEA.941491",
+          "lat": -71.17,
+          "lon": 111.37,
+          "what": "PANGAEA dataset (Akers et al. 2022) for the ABN1314-103 core at the same site, 2679 m a.s.l."
+        },
+        {
+          "url": "https://doi.org/10.5281/zenodo.7076469",
+          "lat": -71.167,
+          "lon": 111.367,
+          "what": "Davidge et al. 2022 archive table, ABN1314 row (Tasmania repository)"
+        }
+      ],
+      "reference": {
+        "citation": "Servettaz et al. 2023, Climate of the Past 19, 1125–1152",
+        "doi": "10.5194/cp-19-1125-2023"
+      },
+      "fact_sources": [
+        "https://doi.org/10.5194/cp-19-1125-2023",
+        "https://www.antarctica.gov.au/science/climate-processes-and-change/antarctic-palaeoclimate/aurora-basin/",
+        "https://doi.pangaea.de/10.1594/PANGAEA.941491"
+      ],
+      "notes": "Main core ABN1314 (303 m) drilled Dec 2013–Jan 2014, with shallow cores of 116 m and 103 m (Australian Antarctic Division page; Servettaz et al. 2023). Discrepancies: the Zenodo row gives 299 m; one section of the AAD page mentions a '400 m (2,000 year)' core, inconsistent with the rest of the page; PANGAEA gives 2679 m elevation for the 103 m core vs 2690 m. oldest_ka=2.7: the record 'covers the last 2700 years' (deepest ice ~700 BCE; Servettaz et al. 2023). Ice thickness not given in the sources consulted; no source reports reaching the bed. Not in the NCEI file."
+    },
+    {
+      "name": "Mount Brown South",
+      "aliases": [
+        "MBS",
+        "Mount Brown South",
+        "MBS1718",
+        "MBS Main",
+        "Mt Brown South"
+      ],
+      "region": "antarctica",
+      "core_type": "shallow",
+      "project": "Mount Brown South ice core project (Australian Antarctic Program)",
+      "operator": "Australia (Australian Antarctic Division, University of Tasmania, ANU)",
+      "drilled": "2017–2018",
+      "depth_m": 294.785,
+      "reached_bed": false,
+      "oldest_ka": 1.137,
+      "elevation_m": 2084,
+      "lat": -69.111,
+      "lon": 86.312,
+      "coordinate_sources": [
+        {
+          "url": "https://doi.org/10.5194/cp-20-969-2024",
+          "lat": -69.111,
+          "lon": 86.312,
+          "what": "Vance et al. 2024, Clim. Past 20, Sect. 2 and Table 1 (MBS Main): 69.111°S, 86.312°E, 2084 m a.s.l."
+        },
+        {
+          "url": "https://doi.org/10.5194/cp-19-1653-2023",
+          "lat": -69.11,
+          "lon": 86.31,
+          "what": "Jackson et al. 2023, Clim. Past 19, site description: 69.11°S 86.31°E, 2084 m a.s.l."
+        },
+        {
+          "url": "https://doi.org/10.5281/zenodo.7076469",
+          "lat": -69.111,
+          "lon": 86.312,
+          "what": "Davidge et al. 2022 archive table, MBS1718 row (Tasmania repository)"
+        }
+      ],
+      "reference": {
+        "citation": "Vance et al. 2024, Climate of the Past 20, 969–990",
+        "doi": "10.5194/cp-20-969-2024"
+      },
+      "fact_sources": [
+        "https://doi.org/10.5194/cp-20-969-2024",
+        "https://doi.org/10.5194/cp-19-1653-2023"
+      ],
+      "notes": "MBS Main drilled 23 Dec 2017–15 Jan 2018 over 4.25–294.785 m (Vance et al. 2024, Table 1), described as 295 m (Jackson et al. 2023); the Zenodo row gives 294.6 m. Three 20–25 m surface cores (Alpha, Bravo, Charlie) were drilled ~80–95 m away. Mean regional ice thickness ~2000 m, so the bed was not reached. Classified 'shallow' only because it is just under the 300 m threshold. oldest_ka=1.08: the annually resolved chronology of the Main core spans 873–2009 CE (1137 years); 1.08 ka is before 1950. Not in the NCEI file. 3D ICE review: oldest_ka is the span of the dated record, 873–2009 CE (1137 years), not its age before 1950."
+    },
+    {
+      "name": "Allan Hills",
+      "aliases": [
+        "Allan Hills",
+        "Allan Hills blue ice area",
+        "Allan Hills Main Ice Field",
+        "ALHIC",
+        "ALHIC1503",
+        "ALHIC1901",
+        "ALHIC1902",
+        "BIT58",
+        "AH-1503"
+      ],
+      "region": "antarctica",
+      "core_type": "blue_ice",
+      "project": "Allan Hills blue-ice old-ice coring (NSF; Center for Oldest Ice Exploration, COLDEX)",
+      "operator": "USA (NSF COLDEX; Princeton University, Woods Hole Oceanographic Institution and partners)",
+      "drilled": "2019–2020",
+      "depth_m": 159,
+      "reached_bed": true,
+      "oldest_ka": 6000,
+      "elevation_m": null,
+      "lat": -76.732376,
+      "lon": 159.356125,
+      "coordinate_sources": [
+        {
+          "url": "https://doi.org/10.1073/pnas.2502681122",
+          "lat": -76.732376,
+          "lon": 159.356125,
+          "what": "Shackleton et al. 2025, PNAS 122, main text: ALHIC1901 76.732376°S, 159.356125°E, adjacent to site BIT58/ALHIC1503"
+        },
+        {
+          "url": "https://doi.org/10.15784/601128",
+          "lat": -76.73243,
+          "lon": 159.3562,
+          "what": "USAP-DC dataset 601128 (AH-1503 stable isotopes), spatial coverage point"
+        }
+      ],
+      "reference": {
+        "citation": "Shackleton et al. 2025, PNAS 122, e2502681122",
+        "doi": "10.1073/pnas.2502681122"
+      },
+      "fact_sources": [
+        "https://doi.org/10.1073/pnas.2502681122",
+        "https://doi.org/10.1038/s41586-019-1692-3",
+        "https://doi.org/10.15784/601128",
+        "https://doi.org/10.15784/601896",
+        "https://doi.org/10.1073/pnas.1420232112"
+      ],
+      "notes": "One entry for the Allan Hills Main Ice Field (1900–2000 m a.s.l.; drill-site elevation not given, so null). Point and depth are ALHIC1901, drilled to bedrock at 159 m with the IDP 24 cm Blue Ice Drill adjacent to site BIT58/ALHIC1503 (Shackleton et al. 2025); 'drilled' gives 2019–2020 from the core name, while the paper states only that its three cores were drilled in the 2019–20 and 2022–23 seasons. ALHIC1503 (2015–16 season) yielded basal ice with 40Ar_atm ages to 2.7 Ma (Yan et al. 2019, Nature 574, 663–666); the BIT58 hole was first drilled to 124 m in 2011–12 (USAP-DC 601128). oldest_ka=6000 is the oldest dated ice in the area: up to ~6 Ma (Late Miocene), dated by the deficit of 40Ar relative to the modern atmosphere, from ALHIC1902 (76.745357°S, 159.374108°E, ~1.5 km SE; drilled to bedrock at 206 m); ALHIC1901 reaches the Early Pliocene. The ice is stratigraphically discontinuous (snapshots, not a continuous record); samples older than ~2.7 Ma show Ar loss, and gas-poor basal ice beneath the 6 Ma sample is undated. 1 Ma ice was first reported from the base of a 126 m core (Higgins et al. 2015). Not in the NCEI or Zenodo files."
+    },
+    {
+      "name": "Styx Glacier",
+      "aliases": [
+        "Styx Glacier",
+        "Styx-M",
+        "Styx",
+        "Styx Glacier plateau"
+      ],
+      "region": "antarctica",
+      "core_type": "shallow",
+      "project": "Styx Glacier ice core drilling (KOPRI)",
+      "operator": "South Korea (Korea Polar Research Institute, KOPRI)",
+      "drilled": "2014–2015",
+      "depth_m": 210.5,
+      "reached_bed": false,
+      "oldest_ka": null,
+      "elevation_m": 1623,
+      "lat": -73.8517,
+      "lon": 163.687,
+      "coordinate_sources": [
+        {
+          "url": "https://doi.org/10.14770/jgsk.2015.51.3.343",
+          "lat": -73.8517,
+          "lon": 163.687,
+          "what": "Han et al. 2015, J. Geol. Soc. Korea 51(3): Styx-M drill site 73°51.10'S, 163°41.22'E, 1623 m"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/30752",
+          "lat": -73.8667,
+          "lon": 163.7,
+          "what": "NOAA NCEI site 'Styx Glacier' (elev. 1700 m)"
+        }
+      ],
+      "reference": {
+        "citation": "Han et al. 2015, Journal of the Geological Society of Korea 51(3), 343–355",
+        "doi": "10.14770/jgsk.2015.51.3.343"
+      },
+      "fact_sources": [
+        "https://doi.org/10.14770/jgsk.2015.51.3.343",
+        "https://doi.org/10.1017/jog.2025.10074",
+        "https://www.ncei.noaa.gov/access/paleo-search/study/30752"
+      ],
+      "notes": "Drilling camp 10 Dec 2014–2 Jan 2015; a 210.5 m (210.51 m) core was taken in 300 runs over 20 days (Han et al. 2015). Bedrock not reported. Discrepancies: the Zenodo row's longitude 162.680 is ~1° (~31 km) west of the drill site (163.687°E); NCEI gives elevation 1700 m vs 1623 m. oldest_ka null because estimates conflict: 1.36 ± 0.06 ka at 210.51 m from a density/temperature model (Han et al. 2015), '~500 BC' in the Zenodo row, and an N2O gas record from the core reaching ~1.4 ka (NCEI study 30752, Ryu et al. 2020); the layer-counted chronology covers only the upper 98.5 m (1259–2014 CE; Ro et al. 2025, J. Glaciol. 71)."
+    },
+    {
+      "name": "Dominion Range",
+      "aliases": [
+        "Dominion Range",
+        "Dominion Range ice core"
+      ],
+      "region": "antarctica",
+      "core_type": "shallow",
+      "project": "Dominion Range ice core (Transantarctic Mountains)",
+      "operator": "USA (University of New Hampshire; drilled by PICO; NSF)",
+      "drilled": "1984",
+      "depth_m": null,
+      "reached_bed": null,
+      "oldest_ka": null,
+      "elevation_m": 2700,
+      "lat": -85.25,
+      "lon": 166.1667,
+      "coordinate_sources": [
+        {
+          "url": "https://www.ncei.noaa.gov/pub/data/paleo/icecore/antarctica/dominion/readme_dominion.txt",
+          "lat": -85.25,
+          "lon": 166.1667,
+          "what": "NOAA NCEI Dominion Range readme: 85°15'S, 166°10'E, elevation 2,700 m"
+        },
+        {
+          "url": "https://icecores.org/inventory/dominion-range",
+          "lat": -85.25,
+          "lon": 166.16667,
+          "what": "NSF Ice Core Facility inventory page"
+        }
+      ],
+      "reference": {
+        "citation": "Mayewski et al. 1990, Journal of Glaciology 36(122), 11–16",
+        "doi": "10.3189/S0022143000005499"
+      },
+      "fact_sources": [
+        "https://www.ncei.noaa.gov/pub/data/paleo/icecore/antarctica/dominion/readme_dominion.txt",
+        "https://icecores.org/inventory/dominion-range",
+        "https://www.ncei.noaa.gov/access/paleo-search/study/2427"
+      ],
+      "notes": "Tent camp operated 20 Nov–14 Dec 1984 on an ice-covered massif at the heads of the Beardmore and Mill glaciers (NCEI readme). depth_m null because sources disagree: 201 m ('attempted recovery of a 201 m core' in the NCEI readme; '201-meter core' on the NSF-ICF page), 160 m ('one core was drilled ... to a depth of 160 meters', same readme), 159.66 m (Zenodo, NSF-ICF) and 3–177 m (NSF-ICF core table; archive not continuous, partly de-accessed). The Mayewski et al. (1990) paper could not be retrieved to resolve this. Classified 'shallow' (all candidate depths <300 m). Elevation 2700 m is given as the average elevation of the range, not a surveyed drill-site value. reached_bed and oldest_ka null: not stated; the record spans roughly 3–3.5 kyr (NCEI data to 2950 yr BP; Spencer et al. 1990, Ann. Glaciol., 'A 3500-year ice chemistry record')."
+    },
+    {
+      "name": "Mill Island",
+      "aliases": [
+        "Mill Island",
+        "MI0910",
+        "Mill Island ice cap"
+      ],
+      "region": "antarctica",
+      "core_type": "shallow",
+      "project": "Mill Island ice core (Australian Antarctic Program)",
+      "operator": "Australia (Australian Antarctic Division)",
+      "drilled": "2009–2010",
+      "depth_m": 120,
+      "reached_bed": false,
+      "oldest_ka": 0.097,
+      "elevation_m": 503,
+      "lat": -65.5528,
+      "lon": 100.785,
+      "coordinate_sources": [
+        {
+          "url": "https://doi.org/10.5194/cp-13-437-2017",
+          "lat": -65.5528,
+          "lon": 100.785,
+          "what": "Inoue et al. 2017, Clim. Past 13, Tables 1–2 (MI0910): 65°33'10\"S, 100°47'06\"E, 503 m"
+        },
+        {
+          "url": "https://doi.org/10.5194/tc-7-263-2013",
+          "lat": -65.5572,
+          "lon": 100.7865,
+          "what": "Roberts et al. 2013, The Cryosphere 7, Sect. 2: dry borehole 65°33'25.84\"S, 100°47'11.44\"E, 503 m"
+        },
+        {
+          "url": "https://doi.org/10.5281/zenodo.7076469",
+          "lat": -65.557,
+          "lon": 100.787,
+          "what": "Davidge et al. 2022 archive table, MI0910 row (Tasmania repository)"
+        }
+      ],
+      "reference": {
+        "citation": "Inoue et al. 2017, Climate of the Past 13, 437–453",
+        "doi": "10.5194/cp-13-437-2017"
+      },
+      "fact_sources": [
+        "https://doi.org/10.5194/cp-13-437-2017",
+        "https://doi.org/10.5194/tc-7-263-2013"
+      ],
+      "notes": "Main core MI0910 (120 m) drilled near the ~500 m summit of the Mill Island ice cap with an ECLIPSE drill during the 2009/10 Australian season; Table 2 gives drill date 2010-01-18 (Inoue et al. 2017). The borehole was capped in 2009/10 and temperature-logged in 2010/11 (Roberts et al. 2013); the two published positions differ by ~0.5 km. The abstract's 65°30'S, 100°40'E is rounded (~8 km from the table value). Bed not reached. oldest_ka=0.037: the annually dated record spans 1913–2009 CE (97 years); 0.037 ka is before 1950. Not in the NCEI file. 3D ICE review: oldest_ka is the span of the dated record, 1913–2009 CE (97 years), not its age before 1950."
+    },
+    {
+      "name": "GV7",
+      "aliases": [
+        "GV7",
+        "GV7(B)",
+        "GV7 Oates Land"
+      ],
+      "region": "antarctica",
+      "core_type": "shallow",
+      "project": "IPICS-2kyr-IT (PNRA), Italy–South Korea collaboration",
+      "operator": "Italy (PNRA) and South Korea (KOPRI)",
+      "drilled": "2013–2014",
+      "depth_m": 250.2,
+      "reached_bed": false,
+      "oldest_ka": null,
+      "elevation_m": 1950,
+      "lat": -70.6881,
+      "lon": 158.8636,
+      "coordinate_sources": [
+        {
+          "url": "https://doi.org/10.5194/cp-17-2073-2021",
+          "lat": -70.6881,
+          "lon": 158.8636,
+          "what": "Nardin et al. 2021, Clim. Past 17, Fig. 1 caption: 70°41'17.1\"S, 158°51'48.9\"E, 1950 m a.s.l."
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/22710",
+          "lat": -70.68,
+          "lon": 158.86,
+          "what": "NOAA NCEI site 'GV7' (earlier 55 m core at the same site, elev. 1947 m)"
+        },
+        {
+          "url": "https://doi.org/10.5281/zenodo.7076469",
+          "lat": -70.688,
+          "lon": 158.864,
+          "what": "Davidge et al. 2022 archive table, GV7-C row (KOPRI, 78 m core)"
+        }
+      ],
+      "reference": {
+        "citation": "Nardin et al. 2021, Climate of the Past 17, 2073–2089",
+        "doi": "10.5194/cp-17-2073-2021"
+      },
+      "fact_sources": [
+        "https://doi.org/10.5194/cp-17-2073-2021"
+      ],
+      "notes": "GV7(B) was drilled in the 2013/14 season through a bilateral Italy–South Korea collaboration; drilling reached 250.2 m, and an 87 m core and six shallow firn cores were also recovered (Nardin et al. 2021). Ice thickness at GV7 is 1530 m, so the bed was not reached. oldest_ka null: only the upper ~197 m are dated (1179–2009 CE); the deeper section was too damaged to analyse. The NCEI 'GV7' entry (55 m) and the Zenodo 'GV7-C' row (78 m, KOPRI, 2013) are other, shallower cores at the same site, so neither file lists this core's depth."
+    },
+    {
+      "name": "Dome C (1977–78)",
+      "aliases": [
+        "Dome C 1978",
+        "DC78",
+        "Dome C 1977-78",
+        "Old Dome C",
+        "Dome C core 1"
+      ],
+      "region": "antarctica",
+      "core_type": "intermediate",
+      "project": "International Antarctic Glaciological Project (IAGP)",
+      "operator": "France (Laboratoire de Glaciologie, Grenoble), with US Navy/NSF logistic support",
+      "drilled": "1977–1978",
+      "depth_m": 905,
+      "reached_bed": false,
+      "oldest_ka": null,
+      "elevation_m": 3240,
+      "lat": -74.65,
+      "lon": 124.1667,
+      "coordinate_sources": [
+        {
+          "url": "https://icedrill.org/sites/default/files/AJUSvXIIIn4p50.pdf",
+          "lat": -74.65,
+          "lon": 124.1667,
+          "what": "Lorius & Donnou 1978, Antarctic Journal of the US 13(4), 50–51: dome C 74°39'S, 124°10'E, elevation ~3,200 m"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/pub/data/paleo/icecore/antarctica/domec/domec-info.txt",
+          "lat": -74.65,
+          "lon": 124.1667,
+          "what": "NOAA NCEI Dome C info file: 74°39'S, 124°10'E, elevation 3,240 m"
+        }
+      ],
+      "reference": {
+        "citation": "Lorius et al. 1979, Nature 280, 644–648",
+        "doi": "10.1038/280644a0"
+      },
+      "fact_sources": [
+        "https://icedrill.org/sites/default/files/AJUSvXIIIn4p50.pdf",
+        "https://www.ncei.noaa.gov/pub/data/paleo/icecore/antarctica/domec/domec-info.txt",
+        "https://www.ncei.noaa.gov/pub/data/paleo/icecore/antarctica/domec/domec1.txt",
+        "https://doi.pangaea.de/10.1594/PANGAEA.57629"
+      ],
+      "notes": "Drilling began 4 Dec 1977 (electromechanical corer to 141 m, then a thermal drill) and stopped after 42 days at 905 m because of closure of the dry hole (Lorius & Donnou 1978). NCEI gives 906 m and elevation 3240 m; Lorius & Donnou give ~3,200 m. This 'old Dome C' site is ~55 km NE of EPICA Dome C. PANGAEA (doi:10.1594/PANGAEA.57629) places the Lorius et al. (1979) record at -75.102, 123.395, i.e. the EPICA/Concordia location, which is wrong for this core; its abstract text also says 950 m. oldest_ka null: the chronologies disagree ('30,000-yr' in Lorius et al. 1979, '~32,000 years' in the NCEI description, 39.5 ka at 903.4 m in the NCEI data file). Not in the Zenodo file."
+    },
+    {
+      "name": "Byrd Station",
+      "aliases": [
+        "Byrd",
+        "Byrd 68",
+        "BYRD STATION '68",
+        "Byrd deep core"
+      ],
+      "region": "antarctica",
+      "core_type": "deep",
+      "project": "USA CRREL deep ice-core drilling programme (Byrd Station)",
+      "operator": "US Army CRREL, NSF (USA)",
+      "drilled": "1966–1968",
+      "depth_m": 2164,
+      "reached_bed": true,
+      "oldest_ka": null,
+      "elevation_m": 1530,
+      "lat": -80.0167,
+      "lon": -119.5167,
+      "coordinate_sources": [
+        {
+          "url": "https://icedrill.org/sites/default/files/CRREL-Technical-Report-231.pdf",
+          "lat": -80.0167,
+          "lon": -119.5167,
+          "what": "Ueda & Garfield 1969, CRREL TR 231, Introduction: 80°01'S, 119°31'W (scan prints '80°91'')"
+        },
+        {
+          "url": "https://icecores.org/inventory/byrd",
+          "lat": -80.0167,
+          "lon": -119.5167,
+          "what": "NSF-ICF inventory table, BYRD STATION '68"
+        }
+      ],
+      "reference": {
+        "citation": "Gow, Ueda & Garfield 1968, Science 161, 1011–1013",
+        "doi": "10.1126/science.161.3845.1011"
+      },
+      "fact_sources": [
+        "https://icedrill.org/sites/default/files/CRREL-Technical-Report-231.pdf",
+        "https://icecores.org/inventory/byrd",
+        "https://www.science.org/doi/10.1126/science.161.3845.1011"
+      ],
+      "notes": "Bed reached 29 Jan 1968 after the 1966-67 and 1967-68 seasons; liquid water at the bed. 2164 m is the vertical ice thickness (Gow et al. 1968; TR 231 gives vertical depth 7101 ft). The hole deviated up to 15°, losing 94 ft of vertical depth, so the along-hole length was ~7195 ft (~2193 m): this explains the 2191.26 m bottom depth in the Zenodo/NSF-ICF row (our interpretation). NSF-ICF's own table gives an archived core bottom of 2138.92 m (archive not continuous). A 1971 Byrd core (380 m) also exists. Elevation from NSF-ICF and NCEI. No publication fetched states a bottom age, so oldest_ka is null."
+    },
+    {
+      "name": "Siple Dome",
+      "aliases": [
+        "SDMA",
+        "Siple Dome A",
+        "SDM-A",
+        "Siple Dome deep core"
+      ],
+      "region": "antarctica",
+      "core_type": "deep",
+      "project": "Siple Dome Ice Core (SDMA)",
+      "operator": "NSF, PICO (USA)",
+      "drilled": "1996–1999",
+      "depth_m": 1004,
+      "reached_bed": true,
+      "oldest_ka": null,
+      "elevation_m": 621,
+      "lat": -81.6588,
+      "lon": -148.812,
+      "coordinate_sources": [
+        {
+          "url": "https://icecores.org/inventory/siple-dome",
+          "lat": -81.6588333,
+          "lon": -148.812,
+          "what": "NSF-ICF inventory table, SIPLE DOME A"
+        },
+        {
+          "url": "https://doi.org/10.3189/172756504781829864",
+          "lat": -81.65,
+          "lon": -148.81,
+          "what": "Taylor et al. 2004, J. Glaciol. 50, Introduction (81.65°S, 148.81°W; 621 m)"
+        }
+      ],
+      "reference": {
+        "citation": "Brook et al. 2005, Quaternary Science Reviews 24, 1333–1343",
+        "doi": "10.1016/j.quascirev.2005.02.002"
+      },
+      "fact_sources": [
+        "https://icecores.org/inventory/siple-dome",
+        "https://www.cambridge.org/core/journals/journal-of-glaciology/article/physical-properties-crystalline-textures-and-caxis-fabrics-of-the-siple-dome-antarctica-ice-core/C4202AC6A681038AAF800B9152D6F145",
+        "https://www.cambridge.org/core/journals/journal-of-glaciology/article/dating-the-siple-dome-antarctica-ice-core-by-manual-and-computer-interpretation-of-annual-layering/FAFD1233BA3F669EDF99160C3671F17E"
+      ],
+      "notes": "Ice–rock interface at 1004 m (Gow & Meese 2007; Taylor et al. 2004); NSF-ICF archive bottom 1003.81 m; no attempt was made to core the bed. Drilling years conflict: NSF-ICF (citing Bentley & Koci 2007) gives 154 m in 1996/97, 351 m in 1997/98 and the bed in 1998/99, while Gow & Meese 2007 say 1997–99 and Taylor et al. 2004 say 'drilled in 1999'. Classed deep as a to-bed core on a dome (it is ~1 km). NCEI's Siple Dome entry lists a 150 m core length (that is the 1994 shallow core, not SDMA). Reference is the glacial-period timescale paper; its DOI was checked via Crossref but its text was not fetched. No fetched source states a bottom age, so oldest_ka is null."
+    },
+    {
+      "name": "WAIS Divide",
+      "aliases": [
+        "WDC06A",
+        "WDC",
+        "WAIS",
+        "WD",
+        "WAIS Divide Ice Core"
+      ],
+      "region": "antarctica",
+      "core_type": "deep",
+      "project": "WAIS Divide Ice Core (WDC06A)",
+      "operator": "NSF, IDDO (USA)",
+      "drilled": "2006–2011",
+      "depth_m": 3405,
+      "reached_bed": false,
+      "oldest_ka": 67.8,
+      "elevation_m": 1766,
+      "lat": -79.4676,
+      "lon": -112.0865,
+      "coordinate_sources": [
+        {
+          "url": "https://icecores.org/inventory/wais-divide",
+          "lat": -79.467,
+          "lon": -112.085,
+          "what": "NSF-ICF inventory table, WDC06A"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/17975",
+          "lat": -79.4676,
+          "lon": -112.0865,
+          "what": "NCEI paleo site 'WAIS Divide WDC06A'"
+        }
+      ],
+      "reference": {
+        "citation": "WAIS Divide Project Members 2013, Nature 500, 440–444",
+        "doi": "10.1038/nature12376"
+      },
+      "fact_sources": [
+        "https://icecores.org/inventory/wais-divide",
+        "https://cp.copernicus.org/articles/11/153/2015/",
+        "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/02625B439634E5998F40CB81992EB23E/S0260305521000070a.pdf/ice-drilling-on-skytrain-ice-rise-and-sherman-island-antarctica.pdf"
+      ],
+      "notes": "Final depth 3405 m reached 1 Dec 2011; drilling stopped deliberately ~50 m above the bed (ice >3460 m thick) to avoid contaminating possible basal water, so reached_bed is false. Replicate cores were drilled in 2012 (Zenodo rows). WD2014 chronology reaches 67.8 ka BP (Buizert et al. 2015); NSF-ICF says 68,000 years. Elevation 1766 m (NSF-ICF; Mulvaney et al. 2021). NCEI gives 1806 m for the WDC06A site and 1766–1797 m for other WAIS Divide entries, and one NCEI entry (site 60389) has the longitude sign wrong (+112.086). Mulvaney et al. 2021 quote 3404 m."
+    },
+    {
+      "name": "South Pole (SPICEcore)",
+      "aliases": [
+        "SPICEcore",
+        "SPICE",
+        "SPC14",
+        "South Pole Ice Core",
+        "SP19"
+      ],
+      "region": "antarctica",
+      "core_type": "deep",
+      "project": "South Pole Ice Core (SPICEcore)",
+      "operator": "NSF, IDDO (USA)",
+      "drilled": "2014–2016",
+      "depth_m": 1751,
+      "reached_bed": false,
+      "oldest_ka": 54.3,
+      "elevation_m": 2835,
+      "lat": -89.98,
+      "lon": -98.15,
+      "coordinate_sources": [
+        {
+          "url": "https://icecores.org/inventory/south-pole",
+          "lat": -89.98,
+          "lon": -98.15,
+          "what": "NSF-ICF inventory table, SPICE (SPC14)"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/27610",
+          "lat": -89.99,
+          "lon": -99.16,
+          "what": "NCEI paleo site 'South Pole Ice Core (SPICEcore)'"
+        }
+      ],
+      "reference": {
+        "citation": "Winski et al. 2019, Climate of the Past 15, 1793–1808",
+        "doi": "10.5194/cp-15-1793-2019"
+      },
+      "fact_sources": [
+        "https://icecores.org/inventory/south-pole",
+        "https://cp.copernicus.org/articles/15/1793/2019/"
+      ],
+      "notes": "Drilled with the US Intermediate Depth Drill: 0–736 m in 2014/15 and 736–1751 m in 2015/16; final depth reached 23 Jan 2016 (NSF-ICF archive bottom 1751.11 m). Bottom age 54,302 ± 519 yr BP (SP19; Winski et al. 2019). The core stopped far above the bed; the ~2700 m ice thickness at the Pole is cited from Casey et al. 2014 in secondary text only, not fetched. Site is 2.7 km from Amundsen–Scott station (Winski et al.); the two coordinate sources agree to ~1 km and give only two decimals."
+    },
+    {
+      "name": "Roosevelt Island (RICE)",
+      "aliases": [
+        "RICE",
+        "Roosevelt Island Climate Evolution",
+        "RICE Deep",
+        "Roosevelt Island"
+      ],
+      "region": "antarctica",
+      "core_type": "intermediate",
+      "project": "Roosevelt Island Climate Evolution (RICE)",
+      "operator": "New Zealand-led (GNS Science, Victoria Univ. of Wellington), multinational",
+      "drilled": "2011–2013",
+      "depth_m": 764.6,
+      "reached_bed": true,
+      "oldest_ka": 64.6,
+      "elevation_m": 550,
+      "lat": -79.364,
+      "lon": -161.706,
+      "coordinate_sources": [
+        {
+          "url": "https://cp.copernicus.org/articles/14/193/2018/cp-14-193-2018.pdf",
+          "lat": -79.364,
+          "lon": -161.706,
+          "what": "Bertler et al. 2018, Clim. Past 14, Sect. 2 text and Table 1 (RICE Deep)"
+        },
+        {
+          "url": "https://cp.copernicus.org/articles/16/1691/2020/",
+          "lat": -79.36,
+          "lon": -161.71,
+          "what": "Lee et al. 2020, Clim. Past 16, Introduction (Roosevelt Island summit area)"
+        }
+      ],
+      "reference": {
+        "citation": "Lee et al. 2020, Climate of the Past 16, 1691–1713",
+        "doi": "10.5194/cp-16-1691-2020"
+      },
+      "fact_sources": [
+        "https://cp.copernicus.org/articles/16/1691/2020/",
+        "https://cp.copernicus.org/articles/14/193/2018/cp-14-193-2018.pdf"
+      ],
+      "notes": "Drilled to bedrock near the summit: 0–130 m in 2011/12 and 130–764.60 m in 2012/13 (Bertler et al. 2018, Table 1; ice 764 m thick, grounded 214 m below sea level). Lee et al. 2020 round the core to 763 m; the Zenodo row gives 764.6 m. oldest_ka follows the 'continuous record' rule: RICE17 is continuous and monotonic to at least 64.6 ka (~746 m); below that folding makes it segmented, and the deepest dated ice is 83 ± 2 ka at 752.95 m (the 83 ka of the paper title and the Zenodo row)."
+    },
+    {
+      "name": "Berkner Island",
+      "aliases": [
+        "Berkner",
+        "Berkner Island south dome",
+        "Thyssenhöhe"
+      ],
+      "region": "antarctica",
+      "core_type": "intermediate",
+      "project": "Berkner Island ice-core drilling project",
+      "operator": "BAS (UK), LGGE (France)",
+      "drilled": "2002–2005",
+      "depth_m": 948,
+      "reached_bed": true,
+      "oldest_ka": null,
+      "elevation_m": 890,
+      "lat": -79.5483,
+      "lon": -45.6783,
+      "coordinate_sources": [
+        {
+          "url": "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/FAA58E2B73678BB0F374ED0A9B0DCB6E/S0260305500253445a.pdf/the-berkner-island-antarctica-ice-core-drilling-project.pdf",
+          "lat": -79.5483,
+          "lon": -45.6783,
+          "what": "Mulvaney et al. 2007, Ann. Glaciol. 47, Table 1"
+        },
+        {
+          "url": "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/02625B439634E5998F40CB81992EB23E/S0260305521000070a.pdf/ice-drilling-on-skytrain-ice-rise-and-sherman-island-antarctica.pdf",
+          "lat": -79.5483,
+          "lon": -45.6783,
+          "what": "Mulvaney et al. 2021, Ann. Glaciol. 62, Table 1"
+        },
+        {
+          "url": "https://doi.org/10.5281/zenodo.7076469",
+          "lat": -79.55,
+          "lon": -45.68,
+          "what": "Davidge et al. 2022 Zenodo row"
+        }
+      ],
+      "reference": {
+        "citation": "Mulvaney, Alemany & Possenti 2007, Annals of Glaciology 47, 115–124",
+        "doi": "10.3189/172756407786857758"
+      },
+      "fact_sources": [
+        "https://www.cambridge.org/core/product/identifier/S0260305500253445/type/journal_article",
+        "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/FAA58E2B73678BB0F374ED0A9B0DCB6E/S0260305500253445a.pdf/the-berkner-island-antarctica-ice-core-drilling-project.pdf",
+        "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/02625B439634E5998F40CB81992EB23E/S0260305521000070a.pdf/ice-drilling-on-skytrain-ice-rise-and-sherman-island-antarctica.pdf"
+      ],
+      "notes": "South dome (Thyssenhöhe). Pilot hole and casing 2002/03, 526 m by end of 2003/04, bed reached 14 Jan 2005 at 948 m (ice thickness 947 ± 1 m); ~0.5–1 m of subglacial sediment recovered in 2005/06. Zenodo row gives 950 m and elevation 1000 m (sources say 890 m) and a bottom age of 120 ky; Mulvaney et al. 2021 cite only unpublished analysis placing the Last Interglacial (~120 ka) at ~900 m, 50 m above the bed, so oldest_ka is null. The two BAS coordinate sources are the same group; the Zenodo value agrees to ~0.3 km."
+    },
+    {
+      "name": "Fletcher Promontory",
+      "aliases": [
+        "Fletcher",
+        "Fletcher Promontory ice core"
+      ],
+      "region": "antarctica",
+      "core_type": "intermediate",
+      "project": "Fletcher Promontory ice-core drilling project",
+      "operator": "BAS (UK), LGGE (France)",
+      "drilled": "2011–2012",
+      "depth_m": 654.3,
+      "reached_bed": true,
+      "oldest_ka": null,
+      "elevation_m": 873,
+      "lat": -77.9017,
+      "lon": -82.605,
+      "coordinate_sources": [
+        {
+          "url": "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/60D439B8E74988B6CB5E5477DD158117/S0260305500258965a.pdf/the-james-ross-island-and-the-fletcher-promontory-ice-core-drilling-projects.pdf",
+          "lat": -77.9017,
+          "lon": -82.605,
+          "what": "Mulvaney et al. 2014, Ann. Glaciol. 55(68), Table 1"
+        },
+        {
+          "url": "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/02625B439634E5998F40CB81992EB23E/S0260305521000070a.pdf/ice-drilling-on-skytrain-ice-rise-and-sherman-island-antarctica.pdf",
+          "lat": -77.9017,
+          "lon": -82.605,
+          "what": "Mulvaney et al. 2021, Ann. Glaciol. 62, Table 1"
+        },
+        {
+          "url": "https://doi.org/10.5281/zenodo.7076469",
+          "lat": -77.9,
+          "lon": -82.6,
+          "what": "Davidge et al. 2022 Zenodo row"
+        }
+      ],
+      "reference": {
+        "citation": "Mulvaney, Triest & Alemany 2014, Annals of Glaciology 55(68), 179–188",
+        "doi": "10.3189/2014AoG68A044"
+      },
+      "fact_sources": [
+        "https://www.cambridge.org/core/product/identifier/S0260305500258965/type/journal_article",
+        "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/60D439B8E74988B6CB5E5477DD158117/S0260305500258965a.pdf/the-james-ross-island-and-the-fletcher-promontory-ice-core-drilling-projects.pdf",
+        "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/02625B439634E5998F40CB81992EB23E/S0260305521000070a.pdf/ice-drilling-on-skytrain-ice-rise-and-sherman-island-antarctica.pdf"
+      ],
+      "notes": "Single season: production drilling from 10 Dec 2011, bed reached 17 Jan 2012 at 654.3 m (Table 1 ice thickness 654 m). The bottom was a hard contact 'presumed to be the bedrock' that a rock cutter could not penetrate; no rock core. The Zenodo row gives elevation 654 m, which duplicates the depth (sources give 873 m), and a bottom age of 140 ky that no fetched publication supports; Mulvaney et al. 2021 cite only unpublished analysis with the Last Interglacial ~6 m above the bed, so oldest_ka is null."
+    },
+    {
+      "name": "Skytrain Ice Rise",
+      "aliases": [
+        "Skytrain",
+        "WACSWAIN",
+        "ST22"
+      ],
+      "region": "antarctica",
+      "core_type": "intermediate",
+      "project": "WACSWAIN (WArm Climate Stability of the West Antarctic ice sheet in the last INterglacial)",
+      "operator": "BAS, Univ. of Cambridge (UK)",
+      "drilled": "2018–2019",
+      "depth_m": 651,
+      "reached_bed": true,
+      "oldest_ka": 108,
+      "elevation_m": 784,
+      "lat": -79.741,
+      "lon": -78.5448,
+      "coordinate_sources": [
+        {
+          "url": "https://cp.copernicus.org/articles/18/1831/2022/cp-18-1831-2022.pdf",
+          "lat": -79.741,
+          "lon": -78.5448,
+          "what": "Hoffmann et al. 2022, Clim. Past 18, Sect. 2.1"
+        },
+        {
+          "url": "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/02625B439634E5998F40CB81992EB23E/S0260305521000070a.pdf/ice-drilling-on-skytrain-ice-rise-and-sherman-island-antarctica.pdf",
+          "lat": -79.7417,
+          "lon": -78.545,
+          "what": "Mulvaney et al. 2021, Ann. Glaciol. 62, Table 1"
+        }
+      ],
+      "reference": {
+        "citation": "Mulvaney et al. 2021, Annals of Glaciology 62, 311–323",
+        "doi": "10.1017/aog.2021.7"
+      },
+      "fact_sources": [
+        "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/02625B439634E5998F40CB81992EB23E/S0260305521000070a.pdf/ice-drilling-on-skytrain-ice-rise-and-sherman-island-antarctica.pdf",
+        "https://cp.copernicus.org/articles/18/1831/2022/cp-18-1831-2022.pdf",
+        "https://cp.copernicus.org/articles/19/851/2023/"
+      ],
+      "notes": "Drilled to the bed at 651 m between Nov 2018 and late Jan 2019. oldest_ka follows the 'continuous record' rule: ST22 'provides a good outcome to about 108 ka (~605 m)' (Mulvaney et al. 2023, Clim. Past 19, 851–864). Below that the stratigraphy is disturbed, though Last Interglacial ice of ~117–126 ka (617–627 m) is present in order, and ice below 631 m appears older than 150 ka. Not in the NCEI or Zenodo files. The two coordinate sources are from the same BAS group (agree to <0.1 km)."
+    },
+    {
+      "name": "James Ross Island",
+      "aliases": [
+        "JRI",
+        "Mount Haddington",
+        "JRI 2008"
+      ],
+      "region": "antarctica",
+      "core_type": "intermediate",
+      "project": "James Ross Island ice-core drilling project",
+      "operator": "BAS (UK), LGGE (France)",
+      "drilled": "2008",
+      "depth_m": 363,
+      "reached_bed": true,
+      "oldest_ka": null,
+      "elevation_m": 1542,
+      "lat": -64.2017,
+      "lon": -57.685,
+      "coordinate_sources": [
+        {
+          "url": "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/60D439B8E74988B6CB5E5477DD158117/S0260305500258965a.pdf/the-james-ross-island-and-the-fletcher-promontory-ice-core-drilling-projects.pdf",
+          "lat": -64.2017,
+          "lon": -57.685,
+          "what": "Mulvaney et al. 2014, Ann. Glaciol. 55(68), Table 1"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/13954",
+          "lat": -64.2017,
+          "lon": -57.685,
+          "what": "NCEI study 13954 (Mulvaney et al. 2012 data) site"
+        }
+      ],
+      "reference": {
+        "citation": "Mulvaney et al. 2012, Nature 489, 141–144",
+        "doi": "10.1038/nature11391"
+      },
+      "fact_sources": [
+        "https://www.cambridge.org/core/product/identifier/S0260305500258965/type/journal_article",
+        "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/60D439B8E74988B6CB5E5477DD158117/S0260305500258965a.pdf/the-james-ross-island-and-the-fletcher-promontory-ice-core-drilling-projects.pdf",
+        "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/02625B439634E5998F40CB81992EB23E/S0260305521000070a.pdf/ice-drilling-on-skytrain-ice-rise-and-sherman-island-antarctica.pdf",
+        "https://www.ncei.noaa.gov/access/paleo-search/study/13954"
+      ],
+      "notes": "Near the summit of Mount Haddington. Production drilling 22 Jan 2008, bed reached 8 Feb 2008 at 363 m (basal sediment, no rock core); the same paper also says 'full length of 364 m'. NCEI lists a 359 m core length. The dated deuterium record archived at NCEI from Mulvaney et al. 2012 reaches 14,263 cal yr BP; the glacial transition is ~6 m above the bed and the lowest 6 m (much of the last glacial, no Last Interglacial) is not dated in a fetched source, so oldest_ka is null. The Thomas et al. 2017 JRI entry (-64.22, -57.68, 1640 m) is a different, earlier core (Aristarain et al.)."
+    },
+    {
+      "name": "Bruce Plateau",
+      "aliases": [
+        "Bruce Plateau",
+        "LARISSA Site Beta",
+        "BP Core B"
+      ],
+      "region": "antarctica",
+      "core_type": "intermediate",
+      "project": "LARISSA (LARsen Ice Shelf System, Antarctica)",
+      "operator": "Ohio State Univ. BPCRC (USA)",
+      "drilled": "2009–2010",
+      "depth_m": 447.73,
+      "reached_bed": true,
+      "oldest_ka": null,
+      "elevation_m": 1975.5,
+      "lat": -66.0333,
+      "lon": -64.0667,
+      "coordinate_sources": [
+        {
+          "url": "https://tc.copernicus.org/articles/6/675/2012/",
+          "lat": -66.0333,
+          "lon": -64.0667,
+          "what": "Zagorodnov et al. 2012, The Cryosphere 6 (LARISSA Site Beta, 66°02'S, 64°04'W)"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/20350",
+          "lat": -66.038,
+          "lon": -64.078,
+          "what": "NCEI paleo site 'Bruce Plateau'"
+        },
+        {
+          "url": "https://cp.copernicus.org/articles/13/1491/2017/cp-13-1491-2017.pdf",
+          "lat": -66.04,
+          "lon": -64.08,
+          "what": "Thomas et al. 2017, Clim. Past 13, Table 1"
+        }
+      ],
+      "reference": {
+        "citation": "Zagorodnov et al. 2012, The Cryosphere 6, 675–686",
+        "doi": "10.5194/tc-6-675-2012"
+      },
+      "fact_sources": [
+        "https://tc.copernicus.org/articles/6/675/2012/",
+        "https://cp.copernicus.org/articles/13/1491/2017/cp-13-1491-2017.pdf"
+      ],
+      "notes": "Two boreholes drilled in the 2009–2010 austral summer: 143.18 m and 447.73 m (to bedrock). The Zenodo rows (Core A 143.18 m, Core B 448.12 m) give -66.050, -64.117, about 3 km from the published site. No bottom age in a fetched source (published accumulation record covers 1900–2009 only)."
+    },
+    {
+      "name": "Ferrigno",
+      "aliases": [
+        "F10",
+        "Ferrigno ice core",
+        "Bryan Coast"
+      ],
+      "region": "antarctica",
+      "core_type": "shallow",
+      "project": "BAS Ellsworth Land ice cores",
+      "operator": "BAS (UK)",
+      "drilled": "2010–2011",
+      "depth_m": 136,
+      "reached_bed": null,
+      "oldest_ka": null,
+      "elevation_m": 1354,
+      "lat": -74.5772,
+      "lon": -86.9046,
+      "coordinate_sources": [
+        {
+          "url": "https://data.bas.ac.uk/full-record.php?id=GB/NERC/BAS/PDC/00941",
+          "lat": -74.5772,
+          "lon": -86.9046,
+          "what": "BAS Polar Data Centre record GB/NERC/BAS/PDC/00941"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/pub/data/paleo/icecore/antarctica/ferrigno/ferrigno2013dd.txt",
+          "lat": -74.57,
+          "lon": -86.9,
+          "what": "NCEI data file header (Thomas et al. 2013)"
+        },
+        {
+          "url": "https://cp.copernicus.org/articles/13/1491/2017/cp-13-1491-2017.pdf",
+          "lat": -74.57,
+          "lon": -86.9,
+          "what": "Thomas et al. 2017, Clim. Past 13, Table 1"
+        }
+      ],
+      "reference": {
+        "citation": "Thomas et al. 2013, Geophysical Research Letters 40, 5492–5496",
+        "doi": "10.1002/2013GL057782"
+      },
+      "fact_sources": [
+        "https://data.bas.ac.uk/full-record.php?id=GB/NERC/BAS/PDC/00941",
+        "https://www.ncei.noaa.gov/pub/data/paleo/icecore/antarctica/ferrigno/ferrigno2013dd.txt",
+        "https://cp.copernicus.org/articles/13/1491/2017/cp-13-1491-2017.pdf"
+      ],
+      "notes": "136 m core (F10) on a three-way ice divide between the Ferrigno and Pine Island glaciers, drilled in the 2010/11 austral summer (BAS PDC). The 308-year record covers AD 1703–2010 (NCEI; BAS PDC says 1702–2010), but no source says that date is at the core bottom, so oldest_ka is null. Bed not reached / ice thickness not stated. Not in the Zenodo file."
+    },
+    {
+      "name": "Dyer Plateau",
+      "aliases": [
+        "Dyer",
+        "Dyer Plateau core 2"
+      ],
+      "region": "antarctica",
+      "core_type": "shallow",
+      "project": "Dyer Plateau ice-core programme",
+      "operator": "Ohio State Univ. BPRC (USA), BAS (UK)",
+      "drilled": "1989–1990",
+      "depth_m": 235.2,
+      "reached_bed": null,
+      "oldest_ka": null,
+      "elevation_m": 2002,
+      "lat": -70.6711,
+      "lon": -64.875,
+      "coordinate_sources": [
+        {
+          "url": "https://www.cambridge.org/core/journals/annals-of-glaciology/article/climate-since-ad-1510-on-dyer-plateau-antarctic-peninsula-evidence-for-recent-climate-change/8999C8182E6E0D6EE2EC4EAD7B791515",
+          "lat": -70.6711,
+          "lon": -64.875,
+          "what": "Thompson et al. 1994, Ann. Glaciol. 20 (70°40'16\"S, 64°52'30\"W)"
+        },
+        {
+          "url": "https://cp.copernicus.org/articles/13/1491/2017/cp-13-1491-2017.pdf",
+          "lat": -70.68,
+          "lon": -64.87,
+          "what": "Thomas et al. 2017, Clim. Past 13, Table 1"
+        },
+        {
+          "url": "https://doi.org/10.5281/zenodo.7076469",
+          "lat": -70.671,
+          "lon": -64.875,
+          "what": "Davidge et al. 2022 Zenodo row"
+        }
+      ],
+      "reference": {
+        "citation": "Thompson et al. 1994, Annals of Glaciology 20, 420–426",
+        "doi": "10.3189/1994AoG20-1-420-426"
+      },
+      "fact_sources": [
+        "https://www.cambridge.org/core/journals/annals-of-glaciology/article/climate-since-ad-1510-on-dyer-plateau-antarctic-peninsula-evidence-for-recent-climate-change/8999C8182E6E0D6EE2EC4EAD7B791515",
+        "https://cp.copernicus.org/articles/13/1491/2017/cp-13-1491-2017.pdf"
+      ],
+      "notes": "Two cores drilled 1 m apart on the divide crest in 1989–90: core 1 233.8 m, core 2 235.2 m (depth_m is core 2). The co-operative programme ran 1988–92; shallower 1988–89 cores are not included here. Ice quality was very poor below 190 m; the dated record (core 2, 112–190 m) reaches AD 1504, but the bottom ~45 m is undated, so oldest_ka is null. Bed not stated. Zenodo dates core 1 to 1990 and core 2 to 1991."
+    },
+    {
+      "name": "Siple Station",
+      "aliases": [
+        "Siple",
+        "Siple Station CO2 core"
+      ],
+      "region": "antarctica",
+      "core_type": "shallow",
+      "project": "Siple Station ice core (CO2 record)",
+      "operator": "Univ. of Bern (Switzerland), PICO (USA)",
+      "drilled": "1983–1984",
+      "depth_m": 200,
+      "reached_bed": null,
+      "oldest_ka": null,
+      "elevation_m": 1054,
+      "lat": -75.9167,
+      "lon": -84.25,
+      "coordinate_sources": [
+        {
+          "url": "https://byrd.osu.edu/research/groups/ice-core-paleoclimatology/projects/antarctica/siple-station",
+          "lat": -75.9167,
+          "lon": -84.25,
+          "what": "OSU Byrd Center Siple Station page (75°55'S, 84°15'W, 1054 m)"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/22501",
+          "lat": -75.92,
+          "lon": -84.25,
+          "what": "NCEI paleo site 'Siple Station'"
+        }
+      ],
+      "reference": {
+        "citation": "Neftel et al. 1985, Nature 315, 45–47",
+        "doi": "10.1038/315045a0"
+      },
+      "fact_sources": [
+        "https://www.osti.gov/dataexplorer/biblio/dataset/1394153",
+        "https://byrd.osu.edu/research/groups/ice-core-paleoclimatology/projects/antarctica/siple-station",
+        "https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=noaa-icecore-22501"
+      ],
+      "notes": "Reported core is the 200 m core drilled in the 1983–84 summer by PICO and the Univ. of Bern and used for the pre-industrial CO2 record (OSTI/CDIAC dataset, 1734–1983). It was dated by layer counting to 144 m (AD 1834) and by extrapolation below, so no bottom age is published as such. A second, deeper core (302 m, Ohio State, 1985/86; Mosley-Thompson et al. 1991) exists at the station; the coordinates are for Siple Station (exact positions of the two drill holes not given). The NCEI landing page gives -84.15 longitude, ~2.7 km from the -84.25 of the OSU page and NCEI site record. Bed not stated."
+    },
+    {
+      "name": "Patriot Hills",
+      "aliases": [
+        "Patriot Hills BIA",
+        "Patriot Hills blue ice",
+        "Horseshoe Valley"
+      ],
+      "region": "antarctica",
+      "core_type": "blue_ice",
+      "project": "Patriot Hills blue-ice horizontal ice core",
+      "operator": "UNSW Sydney, CSIRO (Australia), international partners",
+      "drilled": null,
+      "depth_m": null,
+      "reached_bed": null,
+      "oldest_ka": 134,
+      "elevation_m": 800,
+      "lat": -80.3,
+      "lon": -81.35,
+      "coordinate_sources": [
+        {
+          "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC7049167/fullTextXML",
+          "lat": -80.3,
+          "lon": -81.35,
+          "what": "Turney et al. 2020, PNAS 117, Methods (80°18'S, 81°21'W)"
+        },
+        {
+          "url": "https://blogs.ed.ac.uk/rbingham/wp-content/uploads/sites/971/2025/07/20160316_Winter_GRL_PatriotHills.pdf",
+          "lat": -80.3,
+          "lon": -81.35,
+          "what": "Winter et al. 2016, GRL 43, Introduction"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/pub/data/paleo/icecore/antarctica/patriot/patriot2020iso.txt",
+          "lat": -80.3,
+          "lon": -81.35,
+          "what": "NCEI data file header (Turney et al. 2020)"
+        }
+      ],
+      "reference": {
+        "citation": "Turney et al. 2020, PNAS 117, 3996–4006",
+        "doi": "10.1073/pnas.1902469117"
+      },
+      "fact_sources": [
+        "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC7049167/fullTextXML",
+        "https://www.ncei.noaa.gov/pub/data/paleo/icecore/antarctica/patriot/patriot2020iso.txt",
+        "https://blogs.ed.ac.uk/rbingham/wp-content/uploads/sites/971/2025/07/20160316_Winter_GRL_PatriotHills.pdf"
+      ],
+      "notes": "Blue-ice area in Horseshoe Valley, Ellsworth Mountains, sampled along a surface transect with short (1–2 m) Kovacs cores, not a drilled vertical core, so depth_m is null. The 'horizontal ice core' spans 0–80 ka and 130–134 ka with a hiatus between; the oldest section starts at 134.1 ± 2.2 ka, from a Bayesian age model of trace gases (CO2, CH4, N2O) and geochemically identified tephra on AICC2012 (Turney et al. 2020). NCEI lists 135 ka. Sampling years not given in the fetched text: Turney et al. 2013 transect sampled in 2012 (Winter et al. 2016); NCEI notes 'PH2015' for the 2020 data. Elevation 800 m is from NCEI only. NCEI 'core lengths' 200 and 1556 m are transect lengths."
+    },
+    {
+      "name": "Mount Johns",
+      "aliases": [
+        "Mt Johns",
+        "Mount Johns ice core"
+      ],
+      "region": "antarctica",
+      "core_type": "shallow",
+      "project": "Deserto de Cristal expedition (Brazilian Antarctic Programme)",
+      "operator": "Brazil (UFRGS Polar and Climate Center), Univ. of Maine CCI (USA)",
+      "drilled": "2008–2009",
+      "depth_m": 92.26,
+      "reached_bed": false,
+      "oldest_ka": null,
+      "elevation_m": 2100,
+      "lat": -79.9244,
+      "lon": -94.3883,
+      "coordinate_sources": [
+        {
+          "url": "https://www.scielo.br/j/bjgeo/a/wJrzXwh6jtfSpjgCYBzvVtz/?lang=en",
+          "lat": -79.9244,
+          "lon": -94.3883,
+          "what": "Schwanck et al. 2016, Braz. J. Geol. 46, Methods (79°55'28\"S, 94°23'18\"W, 2100 m)"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/22271",
+          "lat": -79.9167,
+          "lon": -94.3833,
+          "what": "NCEI paleo site 'Mount Johns'"
+        }
+      ],
+      "reference": {
+        "citation": "Schwanck et al. 2016, Brazilian Journal of Geology 46, 29–40",
+        "doi": "10.1590/2317-4889201620150035"
+      },
+      "fact_sources": [
+        "https://www.scielo.br/j/bjgeo/a/wJrzXwh6jtfSpjgCYBzvVtz/?lang=en",
+        "https://www.ncei.noaa.gov/access/paleo-search/study/22271"
+      ],
+      "notes": "92.26 m core drilled in the 2008/09 austral summer near the West Antarctic ice divide (Pine Island Glacier basin); ice thickness there exceeds 2400 m (BEDMAP2, as cited), so the bed was not reached. Only the upper 45 m is dated (AD 1883–2008), so oldest_ka is null. NCEI lists a 91 m core length. Not in the Zenodo file."
+    },
+    {
+      "name": "J-9 (Ross Ice Shelf)",
+      "aliases": [
+        "J-9",
+        "J9",
+        "RISP",
+        "Ross Ice Shelf Project",
+        "Camp J-9"
+      ],
+      "region": "antarctica",
+      "core_type": "intermediate",
+      "project": "Ross Ice Shelf Project (RISP)",
+      "operator": "NSF (USA); drilled by a Soviet team",
+      "drilled": "1978",
+      "depth_m": 416,
+      "reached_bed": null,
+      "oldest_ka": null,
+      "elevation_m": 60,
+      "lat": -82.3833,
+      "lon": -168.6333,
+      "coordinate_sources": [
+        {
+          "url": "https://icecores.org/inventory/j9",
+          "lat": -82.3833333,
+          "lon": -168.6333333,
+          "what": "NSF-ICF inventory table, J-9 (1978 core)"
+        },
+        {
+          "url": "https://jm.copernicus.org/articles/43/187/2024/",
+          "lat": -82.375,
+          "lon": -168.625,
+          "what": "Dameron et al. 2024, J. Micropalaeontol. 43 (Site J-9, 82°22.5'S, 168°37.5'W)"
+        }
+      ],
+      "reference": {
+        "citation": "Zotikov, Zagorodnov & Raikovsky 1980, Science 207, 1463–1465",
+        "doi": "10.1126/science.207.4438.1463"
+      },
+      "fact_sources": [
+        "https://icecores.org/inventory/j9",
+        "https://pubmed.ncbi.nlm.nih.gov/17779616/",
+        "https://jm.copernicus.org/articles/43/187/2024/"
+      ],
+      "notes": "Floating ice shelf, so 'bed' does not apply: a Soviet electrothermal drill (ethanol antifreeze) recovered continuous core through the full ice-shelf thickness to the ocean in the 1978/79 season; the bottom 6 m is marine (frozen-on) ice. Zotikov et al. 1980 give the thickness as 416 m (NSF-ICF archive bottom 416.07 m); NSF-ICF text and Dameron et al. 2024 give 420 m. An earlier 1976/77 PICO wireline core (J-9 Bern, top 104 m archived) is not this core. Elevation 60 m from NSF-ICF only. Not a Siple Coast site."
+    },
+    {
+      "name": "Mount Erebus Saddle",
+      "aliases": [
+        "MES",
+        "Mt Erebus Saddle",
+        "Mt. Erebus Saddle"
+      ],
+      "region": "antarctica",
+      "core_type": "shallow",
+      "project": "Mt. Erebus Saddle ice core",
+      "operator": "Victoria Univ. of Wellington, GNS Science (New Zealand)",
+      "drilled": "2006",
+      "depth_m": 168,
+      "reached_bed": false,
+      "oldest_ka": null,
+      "elevation_m": 1600,
+      "lat": -77.515,
+      "lon": 167.6765,
+      "coordinate_sources": [
+        {
+          "url": "https://cp.copernicus.org/articles/8/1223/2012/cp-8-1223-2012.pdf",
+          "lat": -77.515,
+          "lon": 167.6765,
+          "what": "Rhodes et al. 2012, Clim. Past 8, Sect. 2.1 (77°30.900'S, 167°40.590'E)"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/13176",
+          "lat": -77.515,
+          "lon": 167.6765,
+          "what": "NCEI paleo site 'Mt. Erebus Saddle'"
+        }
+      ],
+      "reference": {
+        "citation": "Rhodes et al. 2012, Climate of the Past 8, 1223–1238",
+        "doi": "10.5194/cp-8-1223-2012"
+      },
+      "fact_sources": [
+        "https://cp.copernicus.org/articles/8/1223/2012/cp-8-1223-2012.pdf",
+        "https://www.ncei.noaa.gov/access/paleo-search/study/13176"
+      ],
+      "notes": "168 m core drilled in December 2006 (AWI drill lent) on the snow-accumulation saddle between Mt. Erebus and Mt. Terra Nova, Ross Island; radar gave a bedrock depth of 220 m, so the bed was not reached. Layers counted to 61.1 m (AD 1816, Tambora tie); a flow model gives AD 1473 at 120 m; the bottom is not dated, so oldest_ka is null. NCEI coordinates are the paper's converted to decimals (not independent). Not in the Zenodo file."
+    },
+    {
+      "name": "Camp Century",
+      "aliases": [
+        "CC",
+        "Camp Century 1966",
+        "CC 63-66",
+        "CRREL Camp Century core"
+      ],
+      "region": "greenland",
+      "core_type": "deep",
+      "project": "US Army CRREL deep core drilling at Camp Century",
+      "operator": "US Army Cold Regions Research and Engineering Laboratory (CRREL), USA",
+      "drilled": "1963–1966",
+      "depth_m": 1387.4,
+      "reached_bed": true,
+      "oldest_ka": null,
+      "elevation_m": 1887,
+      "lat": 77.1667,
+      "lon": -61.1333,
+      "coordinate_sources": [
+        {
+          "url": "https://icedrill.org/sites/default/files/Hansen-Langway_1966_Deep-core-drilling-in-ice-and-core-analysis-at-Camp-Century-Greenland-1961-66.pdf",
+          "lat": 77.1667,
+          "lon": -61.1333,
+          "what": "Hansen & Langway 1966, Antarctic Journal of the US 1: '77°10'N, 61°08'W' (converted)"
+        },
+        {
+          "url": "https://icecores.org/inventory/camp-century",
+          "lat": 77.1666667,
+          "lon": -61.1333333,
+          "what": "NSF Ice Core Facility inventory, CC 63-66 core"
+        },
+        {
+          "url": "https://doi.pangaea.de/10.1594/PANGAEA.983903",
+          "lat": 77.166,
+          "lon": -61.133,
+          "what": "PANGAEA event Camp_Century"
+        },
+        {
+          "url": "https://github.com/GEUS-Glaciology-and-Climate/greenland_ice_borehole_temperature_profiles/blob/8b28d0e7333426426ac377615663ba735e5623f9/boreholes/CampCentury/meta.bsv",
+          "lat": 77.1797,
+          "lon": -61.1097,
+          "what": "GEUS borehole temperature database (location source: Colgan 2021); ~1.6 km from the others"
+        }
+      ],
+      "reference": {
+        "citation": "Dansgaard et al. 1969, Science 166, 377–381",
+        "doi": "10.1126/science.166.3903.377"
+      },
+      "fact_sources": [
+        "https://icedrill.org/sites/default/files/Hansen-Langway_1966_Deep-core-drilling-in-ice-and-core-analysis-at-Camp-Century-Greenland-1961-66.pdf",
+        "https://icedrill.org/sites/default/files/Langway_2008_Early_polar_ice_cores.pdf",
+        "https://icedrill.org/sites/default/files/drilling_to_the_beds_of_the_greenland_and_antarctic_ice_sheets_a_review.pdf",
+        "https://icecores.org/inventory/camp-century",
+        "https://www.ncei.noaa.gov/access/paleo-search/study/2429",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC8020747/"
+      ],
+      "notes": "depth_m is the ice-bed interface: silty ice reached at 1370.5 m on 2 July 1966 and the bed at 1387.4 m on 4 July 1966; 3.55 m of frozen till was then cored, total hole depth 1391 m (Hansen & Langway 1966). Other published figures: 1387 m (Langway 2008), 1388 m (Jouzel 2013), 1390 m (Dansgaard et al. 1969 abstract; ICF), 1391 m (NCEI core length = total hole); Christ et al. 2021 give 1368 m glacial ice + 14 m silty ice above 3.44 m of sediment. Earlier holes: 186 m (1961), 238 m (1962); the bedrock hole was begun in 1963 (thermal drill to 535 m by 1964, electrodrill 1965–66). Elevation: 1887 m (ICF), 1885 m (NCEI), 1890 m (Christ et al. 2021). oldest_ka left null: the 1969 '~100,000 years' age scale has been superseded and the basal ice is not a continuous dated record. Zenodo (Davidge et al. 2022) PICE row puts Camp Century at 71.167N with a positive (west) longitude, i.e. wrong by 6 degrees of latitude; its NSF-ICF row (77.167, -61.130; bottom 1377 m = archived core bottom) is consistent."
+    },
+    {
+      "name": "Dye-3",
+      "aliases": [
+        "Dye 3",
+        "DYE-3",
+        "DYE3",
+        "GISP Dye 3"
+      ],
+      "region": "greenland",
+      "core_type": "deep",
+      "project": "Greenland Ice Sheet Program (GISP)",
+      "operator": "USA, Denmark, Switzerland (GISP: NSF/CRREL, SUNY Buffalo; University of Copenhagen; University of Bern)",
+      "drilled": "1979–1981",
+      "depth_m": 2037,
+      "reached_bed": true,
+      "oldest_ka": null,
+      "elevation_m": 2480,
+      "lat": 65.1833,
+      "lon": -43.8167,
+      "coordinate_sources": [
+        {
+          "url": "https://github.com/GEUS-Glaciology-and-Climate/greenland_ice_borehole_temperature_profiles/blob/8b28d0e7333426426ac377615663ba735e5623f9/boreholes/DYE-3/meta.bsv",
+          "lat": 65.1833,
+          "lon": -43.8167,
+          "what": "GEUS borehole database (Gundestrup & Hansen 1984 borehole survey)"
+        },
+        {
+          "url": "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/6F94246C31A5A388A2088572FAD0F402/S0022143000021183a.pdf/dating_of_greenland_ice_cores_by_flow_models_isotopes_volcanic_debris_and_continental_dust.pdf",
+          "lat": 65.1833,
+          "lon": -43.8167,
+          "what": "Hammer et al. 1978 J. Glaciol.: 'lat. 65°11'N., long. 43°49'W.' (converted; Dye 3 station)"
+        },
+        {
+          "url": "https://essd.copernicus.org/articles/15/3351/2023/",
+          "lat": 65.18,
+          "lon": -43.83,
+          "what": "Rasmussen et al. 2023 ESSD, Sect. 2"
+        },
+        {
+          "url": "https://icecores.org/inventory/dye-3",
+          "lat": 65.18,
+          "lon": -43.82,
+          "what": "NSF Ice Core Facility inventory"
+        }
+      ],
+      "reference": {
+        "citation": "Dansgaard et al. 1982, Science 218, 1273–1277",
+        "doi": "10.1126/science.218.4579.1273"
+      },
+      "fact_sources": [
+        "https://icedrill.org/sites/default/files/Langway_2008_Early_polar_ice_cores.pdf",
+        "https://icedrill.org/sites/default/files/drilling_to_the_beds_of_the_greenland_and_antarctic_ice_sheets_a_review.pdf",
+        "https://icecores.org/inventory/dye-3",
+        "https://essd.copernicus.org/articles/15/3351/2023/",
+        "https://www.ncei.noaa.gov/access/paleo-search/study/2430"
+      ],
+      "notes": "Bed reached at 2037 m in August 1981 (Langway 2008: 15 Aug 1981; Bentley & Koci 2007: 225 m in 1979, 901 m in 1980, bed 2037 m in 1981; silty ice from 2013 m). Rasmussen et al. 2023 and NCEI 'byDepth' file give 2035 m; Zenodo NSF-ICF row 2037.62 m; GEUS ice thickness 2038 m. Elevation 2480 m (Rasmussen et al. 2023; PANGAEA) vs 2477 m (ICF, NCEI) vs 2490 m (Simonsen et al. 2019). oldest_ka null: Dansgaard et al. 1982 claimed a continuous record to ~90 ka, but the lowest part (Eemian) is disturbed (Johnsen et al. 1997). PANGAEA's DYE-3 event (65.0N, 43.0W) is ~40 km off; the same PANGAEA record's comment gives the main-core position as 65.18N, 43.83W. Zenodo PICE row gives longitude +43.8 (sign error). A separate 372 m (Langway) / 401 m (Hammer et al. 1978) thermal core was drilled at Dye 3 in 1971."
+    },
+    {
+      "name": "GRIP",
+      "aliases": [
+        "Greenland Ice Core Project",
+        "GRIP Summit",
+        "Summit (GRIP)",
+        "GRIP89"
+      ],
+      "region": "greenland",
+      "core_type": "deep",
+      "project": "Greenland Ice Core Project (GRIP)",
+      "operator": "European multinational consortium; drilling led by University of Copenhagen (Denmark)",
+      "drilled": "1990–1992",
+      "depth_m": 3028.8,
+      "reached_bed": true,
+      "oldest_ka": 105,
+      "elevation_m": 3232,
+      "lat": 72.57,
+      "lon": -37.62,
+      "coordinate_sources": [
+        {
+          "url": "https://backend.orbit.dtu.dk/ws/files/130112185/Johnsen_et_al_1997_Journal_of_Geophysical_Research_Oceans_1978_2012_.pdf",
+          "lat": 72.5667,
+          "lon": -37.6167,
+          "what": "Johnsen et al. 1997 JGR: 'Summit (72°34'N; 37°37'W; elevation 3232 m)' (converted)"
+        },
+        {
+          "url": "https://essd.copernicus.org/articles/15/3351/2023/",
+          "lat": 72.57,
+          "lon": -37.62,
+          "what": "Rasmussen et al. 2023 ESSD, Sect. 2"
+        },
+        {
+          "url": "https://doi.pangaea.de/10.1594/PANGAEA.786354",
+          "lat": 72.57,
+          "lon": -37.62,
+          "what": "PANGAEA event GRIP (Vinther et al. 2010 supplement)"
+        },
+        {
+          "url": "https://github.com/GEUS-Glaciology-and-Climate/greenland_ice_borehole_temperature_profiles/blob/8b28d0e7333426426ac377615663ba735e5623f9/boreholes/GRIP/meta.bsv",
+          "lat": 72.58,
+          "lon": -37.64,
+          "what": "GEUS borehole database (location from Vinther 2008)"
+        }
+      ],
+      "reference": {
+        "citation": "Dansgaard et al. 1993, Nature 364, 218–220",
+        "doi": "10.1038/364218a0"
+      },
+      "fact_sources": [
+        "https://backend.orbit.dtu.dk/ws/files/130112185/Johnsen_et_al_1997_Journal_of_Geophysical_Research_Oceans_1978_2012_.pdf",
+        "https://icedrill.org/sites/default/files/drilling_to_the_beds_of_the_greenland_and_antarctic_ice_sheets_a_review.pdf",
+        "https://icedrill.org/sites/default/files/Langway_2008_Early_polar_ice_cores.pdf",
+        "https://essd.copernicus.org/articles/15/3351/2023/",
+        "https://epic.awi.de/id/eprint/10226/1/Nor2004a.pdf",
+        "https://doi.pangaea.de/10.1594/PANGAEA.786354"
+      ],
+      "notes": "Core 3028.8 m long, reaching into the silty ice immediately above bedrock (Johnsen et al. 1997); Bentley & Koci 2007: bed reached at 3029 m in July 1992, lowest 6.3 m silty, bed itself not cored. Years: deep drilling June 1990–July 1992 (Johnsen et al. 1997; Bentley & Koci 2007); 1989–1992 in Langway 2008, Rasmussen et al. 2023 and PANGAEA includes the 1989 set-up season. oldest_ka = limit of the undisturbed record: NGRIP members 2004 state GRIP and GISP2 'have disturbed chronologies for ice older than 105 kyr BP'; older (Eemian and older) folded ice lies below, and Dansgaard et al. 1993's '250-kyr' record is not continuous. Zenodo PICE row: 72.6N, +37.6 (sign error) and end date 1995 (drilling ended 1992)."
+    },
+    {
+      "name": "GISP2",
+      "aliases": [
+        "GISP-2",
+        "GISP2 D",
+        "GISP2D",
+        "Greenland Ice Sheet Project 2"
+      ],
+      "region": "greenland",
+      "core_type": "deep",
+      "project": "Greenland Ice Sheet Project 2 (GISP2)",
+      "operator": "USA (NSF; Science Management Office, University of New Hampshire; drilling by PICO)",
+      "drilled": "1989–1993",
+      "depth_m": 3053.44,
+      "reached_bed": true,
+      "oldest_ka": 110,
+      "elevation_m": 3203,
+      "lat": 72.5833,
+      "lon": -38.4667,
+      "coordinate_sources": [
+        {
+          "url": "https://icecores.org/inventory/gisp2",
+          "lat": 72.5833333,
+          "lon": -38.466667,
+          "what": "NSF Ice Core Facility inventory, GISP2 D"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/pub/data/paleo/icecore/greenland/summit/gisp2/gisp2-info.txt",
+          "lat": 72.6,
+          "lon": -38.5,
+          "what": "NCEI GISP2 info file after Mayewski & Bender 1995: '72o 36' N, 38o 30' W; 3200 masl' (~2 km from ICF)"
+        },
+        {
+          "url": "https://doi.pangaea.de/10.1594/PANGAEA.786299",
+          "lat": 72.588,
+          "lon": -38.457,
+          "what": "PANGAEA event GISP2-D (Vinther et al. 2010 supplement)"
+        },
+        {
+          "url": "https://github.com/GEUS-Glaciology-and-Climate/greenland_ice_borehole_temperature_profiles/blob/8b28d0e7333426426ac377615663ba735e5623f9/boreholes/GISP2/meta.bsv",
+          "lat": 72.5833,
+          "lon": -38.4667,
+          "what": "GEUS borehole database"
+        }
+      ],
+      "reference": {
+        "citation": "Grootes et al. 1993, Nature 366, 552–554",
+        "doi": "10.1038/366552a0"
+      },
+      "fact_sources": [
+        "https://icecores.org/inventory/gisp2",
+        "https://www.ncei.noaa.gov/pub/data/paleo/icecore/greenland/summit/gisp2/gisp2-info.txt",
+        "https://icedrill.org/sites/default/files/drilling_to_the_beds_of_the_greenland_and_antarctic_ice_sheets_a_review.pdf",
+        "https://icedrill.org/sites/default/files/Langway_2008_Early_polar_ice_cores.pdf",
+        "https://epic.awi.de/id/eprint/10226/1/Nor2004a.pdf"
+      ],
+      "notes": "On 1 July 1993 drilling went through the base of the ice and 1.55 m into bedrock; ice core to 3053.44 m (ICF; Mayewski & Bender 1995). Bentley & Koci 2007: bed at 3053.4 m, plus a 1.5 m rock core. Langway 2008 appendix lists 0–3057 m (likely includes the rock core). oldest_ka = limit of the undisturbed record: Mayewski & Bender 1995 say the GISP2 and GRIP records agree down to 2790 m (~110 kyr BP); NGRIP members 2004 put the onset of disturbance at 105 kyr BP; disturbed older ice lies below. Elevation 3203 m (ICF, PANGAEA GISP2-D) vs 3200 m (Mayewski & Bender 1995; NCEI). ~28–30 km west of GRIP. PANGAEA's 'GISP2' event used by the Grootes & Stuiver datasets (72.97N, 38.8W) is ~43 km off and should not be used."
+    },
+    {
+      "name": "NorthGRIP",
+      "aliases": [
+        "NGRIP",
+        "North GRIP",
+        "NGRIP2",
+        "NGRIP1",
+        "North Greenland Ice Core Project"
+      ],
+      "region": "greenland",
+      "core_type": "deep",
+      "project": "North Greenland Ice Core Project (NorthGRIP)",
+      "operator": "Multinational, led by University of Copenhagen (Denmark)",
+      "drilled": "1999–2003",
+      "depth_m": 3085,
+      "reached_bed": true,
+      "oldest_ka": 123,
+      "elevation_m": 2917,
+      "lat": 75.1,
+      "lon": -42.32,
+      "coordinate_sources": [
+        {
+          "url": "https://epic.awi.de/id/eprint/10226/1/Nor2004a.pdf",
+          "lat": 75.1,
+          "lon": -42.32,
+          "what": "NGRIP members 2004 Nature, text: '75.10°N and 42.32°W with an elevation of 2,917 m'"
+        },
+        {
+          "url": "https://essd.copernicus.org/articles/15/3351/2023/",
+          "lat": 75.1,
+          "lon": -42.32,
+          "what": "Rasmussen et al. 2023 ESSD, Sect. 2"
+        },
+        {
+          "url": "https://doi.pangaea.de/10.1594/PANGAEA.984827",
+          "lat": 75.1,
+          "lon": -42.32,
+          "what": "PANGAEA events NGRIP1 and NGRIP2"
+        }
+      ],
+      "reference": {
+        "citation": "North Greenland Ice Core Project members 2004, Nature 431, 147–151",
+        "doi": "10.1038/nature02805"
+      },
+      "fact_sources": [
+        "https://epic.awi.de/id/eprint/10226/1/Nor2004a.pdf",
+        "https://icedrill.org/sites/default/files/drilling_to_the_beds_of_the_greenland_and_antarctic_ice_sheets_a_review.pdf",
+        "https://doi.pangaea.de/10.1594/PANGAEA.984827",
+        "https://essd.copernicus.org/articles/15/3351/2023/"
+      ],
+      "notes": "Reported core is NGRIP2: restarted in 1999 (PANGAEA event dates May 1999–Aug 2003), bedrock reached July 2003 at 3085 m when subglacial water flooded the hole (Bentley & Koci 2007; NGRIP members 2004, ice thickness 3085 m); in 2004 the lowest ~40 m were re-drilled a few metres deeper, recovering refrozen basal water. NGRIP1 (1996–1997) reached 1371 m before the drill stuck (Bentley & Koci 2007). Basal age 123 kyr BP (NGRIP members 2004). NCEI lists the site twice ('NGRIP' with short-core lengths and 'North GRIP' with 3085 m); Zenodo PICE row gives longitude +42.3 (sign error)."
+    },
+    {
+      "name": "NEEM",
+      "aliases": [
+        "North Greenland Eemian Ice Drilling",
+        "NEEM main core"
+      ],
+      "region": "greenland",
+      "core_type": "deep",
+      "project": "North Greenland Eemian Ice Drilling (NEEM)",
+      "operator": "International consortium directed by Centre for Ice and Climate, University of Copenhagen (Denmark), and US NSF",
+      "drilled": "2008–2010",
+      "depth_m": 2537.36,
+      "reached_bed": true,
+      "oldest_ka": 108.2,
+      "elevation_m": 2450,
+      "lat": 77.45,
+      "lon": -51.06,
+      "coordinate_sources": [
+        {
+          "url": "https://essd.copernicus.org/articles/15/3351/2023/",
+          "lat": 77.45,
+          "lon": -51.06,
+          "what": "Rasmussen et al. 2023 ESSD, Sect. 2"
+        },
+        {
+          "url": "https://cp.copernicus.org/articles/9/2713/2013/cp-9-2713-2013.pdf",
+          "lat": 77.45,
+          "lon": -51.07,
+          "what": "Rasmussen et al. 2013 Clim. Past, Introduction"
+        },
+        {
+          "url": "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/F8C5628BB68763256A95E02E1999BCD6/S0260305500259053a.pdf/new_intermediatedepth_icecore_drilling_system.pdf",
+          "lat": 77.45,
+          "lon": -51.06,
+          "what": "Sheldon et al. 2014 Ann. Glaciol., 2012 NEEM field tests"
+        },
+        {
+          "url": "https://github.com/GEUS-Glaciology-and-Climate/greenland_ice_borehole_temperature_profiles/blob/8b28d0e7333426426ac377615663ba735e5623f9/boreholes/NEEM/meta.bsv",
+          "lat": 77.45,
+          "lon": -51.06,
+          "what": "GEUS borehole database"
+        }
+      ],
+      "reference": {
+        "citation": "NEEM community members 2013, Nature 493, 489–494",
+        "doi": "10.1038/nature11789"
+      },
+      "fact_sources": [
+        "https://api.crossref.org/works/10.3189/2014aog68a042",
+        "https://www.awi.de/en/about-us/service/press/single-view/neem-eiskernbohrung-in-groenland-erreicht-felsbett-forscher-wollen-rueckschluesse-auf-klimabedingungen-und-hoehe-des-meeresspiegels-in-der-letzten-warmzeit-ziehen.html",
+        "https://cp.copernicus.org/articles/9/2713/2013/cp-9-2713-2013.pdf",
+        "https://essd.copernicus.org/articles/15/3351/2023/",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC6776541/",
+        "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/F8C5628BB68763256A95E02E1999BCD6/S0260305500259053a.pdf/new_intermediatedepth_icecore_drilling_system.pdf"
+      ],
+      "notes": "Drilling in the main borehole was terminated at 2537.36 m when a stone embedded in the ice stopped the drill; drilling was completed in summer 2010 after three seasons including set-up (Popp et al. 2014, Ann. Glaciol. 55(68), 53–64). AWI press release: bedrock reached 27 July 2010 at 2537.36 m. Rasmussen et al. 2013 describe a '2540 m long' core drilled 2008–2010; Rasmussen et al. 2023 give 2008–2012. oldest_ka = base of the continuous dated record: GICC05modelext transferred to 2203.597 m (108.2 ka b2k), below which the core is stratigraphically compromised (Rasmussen et al. 2013); folded Eemian ice below was used to reconstruct the last interglacial (NEEM community members 2013). Elevation disagrees: 2450 m (Rasmussen et al. 2023; Simonsen et al. 2019), 2479 m (Rasmussen et al. 2013), 2484 m (NCEI) - unresolved, possibly orthometric vs ellipsoidal heights. NCEI's NEEM site record lists only a 499 m core length (not the main core). Zenodo PICE row: 77.42, +51.16 (sign error, ~4 km off)."
+    },
+    {
+      "name": "EastGRIP",
+      "aliases": [
+        "EGRIP",
+        "East GRIP",
+        "East Greenland Ice-core Project",
+        "NEGIS ice core"
+      ],
+      "region": "greenland",
+      "core_type": "deep",
+      "project": "East Greenland Ice-core Project (EastGRIP)",
+      "operator": "University of Copenhagen (Denmark)-led international consortium, incl. AWI (Germany)",
+      "drilled": "2016–2023",
+      "depth_m": 2666.7,
+      "reached_bed": true,
+      "oldest_ka": null,
+      "elevation_m": 2708,
+      "lat": 75.63,
+      "lon": -36.0,
+      "coordinate_sources": [
+        {
+          "url": "https://essd.copernicus.org/articles/15/5079/2023/",
+          "lat": 75.63,
+          "lon": -36.0,
+          "what": "Erhardt et al. 2023 ESSD: 'EGRIP drill camp ... at 75.63°N, 36.00°W and an altitude of 2708 m a.s.l.'"
+        },
+        {
+          "url": "https://doi.pangaea.de/10.1594/PANGAEA.984827",
+          "lat": 75.63,
+          "lon": -35.98,
+          "what": "PANGAEA event EGRIP (Rasmussen & Sinnl 2025 chronology)"
+        },
+        {
+          "url": "https://doi.pangaea.de/10.1594/PANGAEA.962310",
+          "lat": 75.633,
+          "lon": -35.99,
+          "what": "PANGAEA event EGRIP_camp"
+        },
+        {
+          "url": "https://essd.copernicus.org/articles/15/3351/2023/",
+          "lat": 75.6,
+          "lon": -36.0,
+          "what": "Rasmussen et al. 2023 ESSD (position at start of drilling, 2016)"
+        }
+      ],
+      "reference": {
+        "citation": "Mojtabavi et al. 2020, Climate of the Past 16, 2359–2380",
+        "doi": "10.5194/cp-16-2359-2020"
+      },
+      "fact_sources": [
+        "https://tc.copernicus.org/articles/19/3623/2025/",
+        "https://www.eurekalert.org/news-releases/997163",
+        "https://www.awi.de/en/about-us/service/press/single-view/default-1bf6cf2466.html",
+        "https://essd.copernicus.org/articles/15/5079/2023/",
+        "https://doi.pangaea.de/10.1594/PANGAEA.984827",
+        "https://doi.pangaea.de/10.1594/PANGAEA.962755"
+      ],
+      "notes": "Final depth: 'drilling finished in 2023 by reaching the subglacial environment, i.e., a water-saturated mud layer, at a depth of approx. 2666.7 m' (Westhoff et al. 2025, The Cryosphere 19, 3623). University of Copenhagen/AWI press releases (July 2023) give 2670 m ice thickness; first cores 21 July 2016, last core 21 July 2023, 2020–2021 seasons cancelled (COVID), last ~4 m drilled with a rock-coring set-up because of pebbles. The site sits on the NEGIS ice stream moving ~55 m/a (Erhardt et al. 2023), so the drill site moved ~0.4 km during drilling. Elevation 2708 m (Erhardt et al. 2023) vs 2704 m (PANGAEA density dataset). oldest_ka null: press releases say ice near the base is >120,000 years old, but the published chronology currently extends to 108.3 ka b2k (Rasmussen & Sinnl 2025, PANGAEA). Zenodo (Davidge et al. 2022) depth 2418 m is a 2022 field-season value and its longitude +35.98 has the sign error. Reference chosen is the first EGRIP chronology paper; there is no single core-description publication yet."
+    },
+    {
+      "name": "Renland (RECAP)",
+      "aliases": [
+        "RECAP",
+        "Renland",
+        "Renland ice cap",
+        "REnland ice CAP project",
+        "Renland 2015"
+      ],
+      "region": "greenland",
+      "core_type": "intermediate",
+      "project": "REnland ice CAP project (RECAP)",
+      "operator": "Denmark (Centre for Ice and Climate, University of Copenhagen) with international partners",
+      "drilled": "2015",
+      "depth_m": 584,
+      "reached_bed": true,
+      "oldest_ka": 120,
+      "elevation_m": 2315,
+      "lat": 71.3037,
+      "lon": -26.7131,
+      "coordinate_sources": [
+        {
+          "url": "https://doi.pangaea.de/10.1594/PANGAEA.898768",
+          "lat": 71.303667,
+          "lon": -26.713111,
+          "what": "PANGAEA event RECAP ('drilled May to June 2015')"
+        },
+        {
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6776541/",
+          "lat": 71.3,
+          "lon": -26.72,
+          "what": "Simonsen et al. 2019 Nat. Commun., Results"
+        }
+      ],
+      "reference": {
+        "citation": "Simonsen et al. 2019, Nature Communications 10, 4494",
+        "doi": "10.1038/s41467-019-12546-2"
+      },
+      "fact_sources": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC6776541/",
+        "https://doi.pangaea.de/10.1594/PANGAEA.898768",
+        "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/F8C5628BB68763256A95E02E1999BCD6/S0260305500259053a.pdf/new_intermediatedepth_icecore_drilling_system.pdf",
+        "https://github.com/GEUS-Glaciology-and-Climate/greenland_ice_borehole_temperature_profiles/blob/8b28d0e7333426426ac377615663ba735e5623f9/boreholes/Renland88/meta.bsv"
+      ],
+      "notes": "Simonsen et al. 2019: drilled June 2015, 'reaches 584 m to bedrock, and contains a complete climate record back to 120 ka b2k', less than 2 km from the 1988 Renland core. Elevation 2315 m a.s.l. (Simonsen et al. 2019) vs 2340 m (PANGAEA event). The earlier Renland core (1988) was drilled to bedrock at ~324 m (ice thickness 324 m per Vinther et al. 2008, as compiled in the GEUS borehole database; GEUS position 71.306N, 26.768W; NCEI/PANGAEA 'Renland' 71.27N, 26.73W refers to that core). Zenodo PICE row gives longitude +26.7 (sign error)."
+    },
+    {
+      "name": "Hans Tausen Iskappe",
+      "aliases": [
+        "Hans Tausen",
+        "Hans Tausen Ice Cap",
+        "HT95",
+        "MC95"
+      ],
+      "region": "greenland",
+      "core_type": "intermediate",
+      "project": "Nordic Hans Tausen project (1993–1997)",
+      "operator": "University of Copenhagen (Denmark), with Nordic partners",
+      "drilled": "1995",
+      "depth_m": 345,
+      "reached_bed": true,
+      "oldest_ka": null,
+      "elevation_m": 1270.5,
+      "lat": 82.4918,
+      "lon": -37.4724,
+      "coordinate_sources": [
+        {
+          "url": "https://tidsskrift.dk/meddrgroenland_geosci/article/download/140227/184220",
+          "lat": 82.4918,
+          "lon": -37.4724,
+          "what": "Keller et al. 2001 MoG Geosci. 39: strain-net reference pole at the drill site '82°29'30.6\"N; 37°28'20.6\"W; H=1270.54 m a.s.l.' (converted)"
+        },
+        {
+          "url": "https://tidsskrift.dk/meddrgroenland_geosci/article/download/140221/184213",
+          "lat": 82.51,
+          "lon": -37.47,
+          "what": "Clausen et al. 2001 MoG Geosci. 39, Table 1 (1995 main core MC95); ~2 km from Keller"
+        },
+        {
+          "url": "https://github.com/GEUS-Glaciology-and-Climate/greenland_ice_borehole_temperature_profiles/blob/8b28d0e7333426426ac377615663ba735e5623f9/boreholes/HansTausen_Dome/meta.bsv",
+          "lat": 82.51,
+          "lon": -37.47,
+          "what": "GEUS borehole database"
+        }
+      ],
+      "reference": {
+        "citation": "Hammer et al. 2001, Meddelelser om Grønland Geoscience 39, 87–95",
+        "doi": "10.7146/moggeosci.v39i.140226"
+      },
+      "fact_sources": [
+        "https://tidsskrift.dk/meddrgroenland_geosci/article/download/140226/184219",
+        "https://tidsskrift.dk/meddrgroenland_geosci/article/download/140229/184222",
+        "https://tidsskrift.dk/meddrgroenland_geosci/article/download/140221/184213",
+        "https://tidsskrift.dk/meddrgroenland_geosci/article/download/140216/184209",
+        "https://tidsskrift.dk/meddrgroenland_geosci/article/download/140227/184220",
+        "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/F8C5628BB68763256A95E02E1999BCD6/S0260305500259053a.pdf/new_intermediatedepth_icecore_drilling_system.pdf"
+      ],
+      "notes": "345 m core drilled to bedrock on the southern (south-east) dome in summer 1995 (Hammer et al. 2001; Madsen & Thorsteinsson 2001; radar ice thickness 345 m, Gundestrup et al. 2001). Other lengths in print: 346 m (Clausen et al. 2001 abstract), 360 m (Clausen et al. 2001 Table 1, apparently an error), 344 m (Sheldon et al. 2014). Position/elevation used are Keller et al.'s strain-net reference pole (taken to be the dome-top drill site; their abstract places the drill site at the top of the dome, 82.5N 37.5W); elevation 1270.5 m (Keller et al. 2001 GPS) vs 1275 m (Clausen et al. 2001). Bottom ice is Holocene; 'no glacial ice is present in the bottom ice' (Hammer et al. 2001) - no numeric basal age, so oldest_ka null. Zenodo PICE row: 82.5, +37.5 (sign error) and bottom depth 325 m (contradicts 345 m)."
+    },
+    {
+      "name": "Milcent",
+      "aliases": [
+        "MILCENT",
+        "Camp Milcent",
+        "Milcent 1973"
+      ],
+      "region": "greenland",
+      "core_type": "intermediate",
+      "project": "Greenland Ice Sheet Program (GISP)",
+      "operator": "USA (CRREL), within GISP (USA, Denmark, Switzerland)",
+      "drilled": "1973",
+      "depth_m": 398,
+      "reached_bed": false,
+      "oldest_ka": null,
+      "elevation_m": 2449,
+      "lat": 70.3,
+      "lon": -44.5833,
+      "coordinate_sources": [
+        {
+          "url": "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/6F94246C31A5A388A2088572FAD0F402/S0022143000021183a.pdf/dating_of_greenland_ice_cores_by_flow_models_isotopes_volcanic_debris_and_continental_dust.pdf",
+          "lat": 70.3,
+          "lon": -44.5833,
+          "what": "Hammer et al. 1978 J. Glaciol.: 'Milcent (lat. 70°18'N., long. 44°35'W.)' (converted)"
+        },
+        {
+          "url": "https://icecores.org/inventory/milcent",
+          "lat": 70.3,
+          "lon": -44.5833333,
+          "what": "NSF Ice Core Facility inventory"
+        },
+        {
+          "url": "https://doi.pangaea.de/10.1594/PANGAEA.786299",
+          "lat": 70.3,
+          "lon": -44.58333,
+          "what": "PANGAEA event Milcent (Vinther et al. 2010 supplement)"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/2428",
+          "lat": 70.3,
+          "lon": -44.58,
+          "what": "NCEI study 2428"
+        }
+      ],
+      "reference": {
+        "citation": "Hammer et al. 1978, Journal of Glaciology 20(82), 3–26",
+        "doi": "10.3189/S0022143000021183"
+      },
+      "fact_sources": [
+        "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/6F94246C31A5A388A2088572FAD0F402/S0022143000021183a.pdf/dating_of_greenland_ice_cores_by_flow_models_isotopes_volcanic_debris_and_continental_dust.pdf",
+        "https://icedrill.org/sites/default/files/Langway_2008_Early_polar_ice_cores.pdf",
+        "https://icecores.org/inventory/milcent",
+        "https://www.ncei.noaa.gov/access/paleo-search/study/2428",
+        "https://doi.pangaea.de/10.1594/PANGAEA.786299"
+      ],
+      "notes": "398 m thermal core drilled by CRREL in 1973 (Hammer et al. 1978; Langway 2008; NCEI core length 398 m). ICF text says '404 m long' and lists archived core bottom 394.98 m; Zenodo NSF-ICF row 399.62 m. Elevation 2449 m (ICF) vs 2451 m (PANGAEA/Vinther et al. 2010) vs 2410 m (NCEI, likely wrong). Ice sheet not penetrated."
+    },
+    {
+      "name": "Crête",
+      "aliases": [
+        "Crete",
+        "Station Crête",
+        "CRETE74",
+        "Crete 1974"
+      ],
+      "region": "greenland",
+      "core_type": "intermediate",
+      "project": "Greenland Ice Sheet Program (GISP)",
+      "operator": "USA (CRREL), within GISP (USA, Denmark, Switzerland)",
+      "drilled": "1974",
+      "depth_m": 404,
+      "reached_bed": false,
+      "oldest_ka": null,
+      "elevation_m": 3174,
+      "lat": 71.1167,
+      "lon": -37.3167,
+      "coordinate_sources": [
+        {
+          "url": "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/6F94246C31A5A388A2088572FAD0F402/S0022143000021183a.pdf/dating_of_greenland_ice_cores_by_flow_models_isotopes_volcanic_debris_and_continental_dust.pdf",
+          "lat": 71.1167,
+          "lon": -37.3167,
+          "what": "Hammer et al. 1978 J. Glaciol.: 'Station Crete (lat 71°07'N., long. 37°19'W.)' (converted)"
+        },
+        {
+          "url": "https://icecores.org/inventory/crete",
+          "lat": 71.1166667,
+          "lon": -37.3166667,
+          "what": "NSF Ice Core Facility inventory"
+        },
+        {
+          "url": "https://doi.pangaea.de/10.1594/PANGAEA.786299",
+          "lat": 71.116666666667,
+          "lon": -37.316666666667,
+          "what": "PANGAEA event CRETE_1974"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/2428",
+          "lat": 71.12,
+          "lon": -37.32,
+          "what": "NCEI study 2428"
+        }
+      ],
+      "reference": {
+        "citation": "Hammer et al. 1978, Journal of Glaciology 20(82), 3–26",
+        "doi": "10.3189/S0022143000021183"
+      },
+      "fact_sources": [
+        "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/6F94246C31A5A388A2088572FAD0F402/S0022143000021183a.pdf/dating_of_greenland_ice_cores_by_flow_models_isotopes_volcanic_debris_and_continental_dust.pdf",
+        "https://icedrill.org/sites/default/files/Langway_2008_Early_polar_ice_cores.pdf",
+        "https://icecores.org/inventory/crete",
+        "https://www.ncei.noaa.gov/access/paleo-search/study/2428",
+        "https://doi.pangaea.de/10.1594/PANGAEA.786299"
+      ],
+      "notes": "'A 404 m long core was drilled by GISP in 1974', with a δ18O record back to AD 548 (Hammer et al. 1978); 405 m in Langway 2008 and NCEI; ICF text '404 m long' (archived bottom 392.31 m); Zenodo NSF-ICF row 404.64 m. Thermal drill (CRREL: Hansen, Rand, Bigl). Elevation 3174 m (ICF, NCEI, PANGAEA). Ice sheet not penetrated."
+    },
+    {
+      "name": "Site J",
+      "aliases": [
+        "JAGE-89",
+        "Site J core"
+      ],
+      "region": "greenland",
+      "core_type": "shallow",
+      "project": "Japanese Arctic Glaciological Expedition 1989 (JAGE-89)",
+      "operator": "Japan (Japanese Arctic Glaciological Expedition, PI O. Watanabe)",
+      "drilled": "1989",
+      "depth_m": 206.6,
+      "reached_bed": false,
+      "oldest_ka": null,
+      "elevation_m": 2030,
+      "lat": 66.865,
+      "lon": -46.265,
+      "coordinate_sources": [
+        {
+          "url": "https://api.crossref.org/works/10.3189/S0260305500015597",
+          "lat": 66.865,
+          "lon": -46.265,
+          "what": "Kameda et al. 1995 Ann. Glaciol. abstract: 'Site J (66°51.9'N, 46°15.9'W, 2030 m a.s.l.)' (converted)"
+        },
+        {
+          "url": "https://doaj.org/api/search/articles/id:e4dbcd896bb5457dafbea5dce957634f",
+          "lat": 66.865,
+          "lon": -46.265,
+          "what": "Shoji et al. 1991 Antarctic Record 35 (doi:10.15094/00008716) abstract: '66°51.9'N, 46°15.9'W'"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/2478",
+          "lat": 66.865,
+          "lon": -46.265,
+          "what": "NCEI study 2478"
+        }
+      ],
+      "reference": {
+        "citation": "Kameda et al. 1995, Annals of Glaciology 21, 51–58",
+        "doi": "10.3189/S0260305500015597"
+      },
+      "fact_sources": [
+        "https://api.crossref.org/works/10.3189/S0260305500015597",
+        "https://www.ncei.noaa.gov/access/paleo-search/study/2478",
+        "https://doaj.org/api/search/articles/id:e4dbcd896bb5457dafbea5dce957634f"
+      ],
+      "notes": "Two cores 1 m apart, 206.6 m and 101.5 m (Kameda et al. 1995; NCEI gives 101.8 m for the short core; Shoji et al. 1991 '101 m and 206 m'), drilled May–June 1989. All coordinate sources trace back to the JAGE-89 field position, so they are not fully independent. Melt-feature record spans AD 1550–1989 (Kameda et al. 1995)."
+    },
+    {
+      "name": "Tunu",
+      "aliases": [
+        "Tunu2013",
+        "TUNU 2013",
+        "Tunu13",
+        "Tunu-N"
+      ],
+      "region": "greenland",
+      "core_type": "shallow",
+      "project": "Tunu 2013 ice core (Desert Research Institute)",
+      "operator": "USA (Desert Research Institute, J. R. McConnell)",
+      "drilled": "2013",
+      "depth_m": 213.39,
+      "reached_bed": false,
+      "oldest_ka": null,
+      "elevation_m": 2105,
+      "lat": 78.04,
+      "lon": -33.88,
+      "coordinate_sources": [
+        {
+          "url": "https://cp.copernicus.org/articles/14/1625/2018/cp-14-1625-2018.pdf",
+          "lat": 78.04,
+          "lon": -33.88,
+          "what": "Grieman et al. 2018 Clim. Past, Sect. 2.1"
+        },
+        {
+          "url": "https://icecores.org/inventory/tunu",
+          "lat": 78.0,
+          "lon": -33.9,
+          "what": "NSF Ice Core Facility inventory, Tunu2013 (~4.5 km from Grieman, low precision)"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/33773",
+          "lat": 78.03,
+          "lon": -33.87,
+          "what": "NCEI site 'TUNU' (from ncei_sites.json input)"
+        }
+      ],
+      "reference": {
+        "citation": "Sigl et al. 2015, Nature 523, 543–549",
+        "doi": "10.1038/nature14565"
+      },
+      "fact_sources": [
+        "https://icecores.org/inventory/tunu",
+        "https://cp.copernicus.org/articles/14/1625/2018/cp-14-1625-2018.pdf"
+      ],
+      "notes": "Core length 213.39 m (ICF archive, 10.4 cm core); Grieman et al. 2018 say 'drilled in 2013 to a depth of 212 m'. Elevation disagrees: 2105 m (ICF), 2000 m (Grieman et al. 2018), 2120 m (NCEI); the Tunu-N AWS ~3 km away is at 2113 m (Grieman et al. 2018), so 2000 m looks low. Record spans 268–2013 CE (Grieman et al. 2018). Reference: Sigl et al. 2015 is cited by Grieman et al. 2018 for the site accumulation rate and the Tunu timescale; its inclusion of Tunu2013 was not checked directly (paywalled). Distinct from the 1996 Tunu firn cores (~15 m)."
+    },
+    {
+      "name": "SE-Dome II",
+      "aliases": [
+        "SE-Dome",
+        "SE Dome",
+        "Southeast Dome",
+        "SE-Dome 2",
+        "SE-Dome II 2021"
+      ],
+      "region": "greenland",
+      "core_type": "shallow",
+      "project": "SE-Dome ice core project (Hokkaido University)",
+      "operator": "Japan (Institute of Low Temperature Science, Hokkaido University)",
+      "drilled": "2021",
+      "depth_m": 250.51,
+      "reached_bed": false,
+      "oldest_ka": null,
+      "elevation_m": 3160.7,
+      "lat": 67.1917,
+      "lon": -36.4702,
+      "coordinate_sources": [
+        {
+          "url": "https://www.jstage.jst.go.jp/article/bgr/39/0/39_21R01/_pdf",
+          "lat": 67.191706,
+          "lon": -36.470214,
+          "what": "Iizuka et al. 2021 Bull. Glaciol. Res. 39, Sect. 2: '67°11'30.14328\"N, 36°28'12.77075\"W, 3160.7 m a.s.l.' (converted)"
+        },
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/38404",
+          "lat": 67.1917,
+          "lon": -36.47,
+          "what": "NCEI study 38404 (Kawakami et al. 2023 data)"
+        }
+      ],
+      "reference": {
+        "citation": "Iizuka et al. 2021, Bulletin of Glaciological Research 39, 1–12",
+        "doi": "10.5331/bgr.21R01"
+      },
+      "fact_sources": [
+        "https://www.jstage.jst.go.jp/article/bgr/39/0/39_21R01/_pdf",
+        "https://www.ncei.noaa.gov/access/paleo-search/study/38404",
+        "https://api.crossref.org/works/10.1029/2023JD038874"
+      ],
+      "notes": "Entry is SE-Dome II (2021) because it is the deeper, longer record: 250.51 m drilled May–June 2021 (drilling stopped 28 May at 250.5 m), dated 1799–2020 CE (Kawakami et al. 2023). It lies 5 km west of the original SE-Dome site, whose 2015 core was 90.45 m long and covered ~60 years (Iizuka et al. 2021). Kawakami et al. 2023 (JGR Atmos.) abstract prints the site as '67°19'17\"N, 36°47'03\"W', which is ~20 km from the drilling-report position and looks like decimal degrees written as DMS - do not use it. Zenodo ILTS row (67.192, -36.470, 3160 m, 250 m) agrees with Iizuka et al. 2021."
+    },
+    {
+      "name": "Flade Isblink",
+      "aliases": [
+        "Flade Isblink ice cap",
+        "FIIC",
+        "FladeIsblink06",
+        "Flade Isblink 2006"
+      ],
+      "region": "greenland",
+      "core_type": "intermediate",
+      "project": "Flade Isblink ice-core drilling 2006 (IPICS 2k array)",
+      "operator": "University of Copenhagen (Niels Bohr Institute), Denmark",
+      "drilled": "2006",
+      "depth_m": 423,
+      "reached_bed": false,
+      "oldest_ka": null,
+      "elevation_m": null,
+      "lat": 81.2926,
+      "lon": -15.7029,
+      "coordinate_sources": [
+        {
+          "url": "https://github.com/GEUS-Glaciology-and-Climate/greenland_ice_borehole_temperature_profiles/blob/8b28d0e7333426426ac377615663ba735e5623f9/boreholes/FladeIsblink06/meta.bsv",
+          "lat": 81.2926,
+          "lon": -15.7029,
+          "what": "GEUS borehole database (location source doi:10.5194/essd-2021-290)"
+        },
+        {
+          "url": "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/F8C5628BB68763256A95E02E1999BCD6/S0260305500259053a.pdf/new_intermediatedepth_icecore_drilling_system.pdf",
+          "lat": 81.3,
+          "lon": -15.7,
+          "what": "Sheldon et al. 2014 Ann. Glaciol., Introduction ('81.3°N, 15.7°W')"
+        }
+      ],
+      "reference": {
+        "citation": "Sheldon et al. 2014, Annals of Glaciology 55(68), 271–284",
+        "doi": "10.3189/2014AoG68A038"
+      },
+      "fact_sources": [
+        "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/F8C5628BB68763256A95E02E1999BCD6/S0260305500259053a.pdf/new_intermediatedepth_icecore_drilling_system.pdf",
+        "https://github.com/GEUS-Glaciology-and-Climate/greenland_ice_borehole_temperature_profiles/blob/8b28d0e7333426426ac377615663ba735e5623f9/boreholes/FladeIsblink06/meta.bsv"
+      ],
+      "notes": "Goal was a core to bedrock at ~540 m, but weather and winch limits shortened the season and '423 m of ice core was recovered' (Sheldon et al. 2014). GEUS borehole metadata (Dahl-Jensen/Colgan emails; Lemark 2010 MSc thesis) give 425 m reached, deepest temperature at 420 m, ice thickness 540 m. Bed not reached (~115 m short). No published surface elevation found. Reference is the drilling-system paper; no dedicated core-record publication found."
+    },
+    {
+      "name": "D4",
+      "aliases": [
+        "Site D4",
+        "D4 core",
+        "D4i"
+      ],
+      "region": "greenland",
+      "core_type": "shallow",
+      "project": "Central Greenland 2003–2004 ice-core array (D4, D5, Sandy, Katie)",
+      "operator": "USA (Desert Research Institute, J. R. McConnell)",
+      "drilled": "2003",
+      "depth_m": 145,
+      "reached_bed": false,
+      "oldest_ka": null,
+      "elevation_m": 2730,
+      "lat": 71.4,
+      "lon": -43.9,
+      "coordinate_sources": [
+        {
+          "url": "https://www.ncei.noaa.gov/access/paleo-search/study/6075",
+          "lat": 71.4,
+          "lon": -43.9,
+          "what": "NCEI study 6075 (Banta & McConnell 2007 data)"
+        },
+        {
+          "url": "https://doi.pangaea.de/10.1594/PANGAEA.960977",
+          "lat": 71.4,
+          "lon": -43.9,
+          "what": "PANGAEA event D4 (Sigl & McConnell 2023; 'Drilling year: 2003')"
+        }
+      ],
+      "reference": {
+        "citation": "Banta & McConnell 2007, Journal of Geophysical Research: Atmospheres 112(D10)",
+        "doi": "10.1029/2006JD007887"
+      },
+      "fact_sources": [
+        "https://www.ncei.noaa.gov/access/paleo-search/study/6075",
+        "https://www.ncei.noaa.gov/access/paleo-search/study/26691",
+        "https://doi.pangaea.de/10.1594/PANGAEA.960977",
+        "https://api.crossref.org/works/10.1029/2006JD007887"
+      ],
+      "notes": "Coordinates are only given to 0.1° (all sources trace to the McConnell group), so position uncertainty is up to ~5 km. Depth 145 m (NCEI Osman et al. 2019 dataset; PANGAEA D4i covers 66–145 m); Zenodo NSF-ICF row gives 146.38 m (ICF D4 page returned HTTP 403, not checked directly). Elevation 2730 m (NCEI, McConnell et al. 2007 data) vs 2766 m (PANGAEA; Zenodo NSF-ICF). Bottom dated to 1738 CE (Banta & McConnell 2007). The fetched sources describe D4 as a 2003 NSF/DRI core; none of them ties it to PARCA, so 'PARCA' is not used here."
+    },
+    {
+      "name": "Crawford Point",
+      "aliases": [
+        "CP",
+        "Crawford Point 2007",
+        "CP core"
+      ],
+      "region": "greenland",
+      "core_type": "shallow",
+      "project": "CReSIS 2007 field campaign (Crawford Point ice core)",
+      "operator": "USA (Byrd Polar and Climate Research Center, Ohio State University; CReSIS)",
+      "drilled": "2007",
+      "depth_m": 152,
+      "reached_bed": false,
+      "oldest_ka": null,
+      "elevation_m": 2000,
+      "lat": 69.9,
+      "lon": -47.0,
+      "coordinate_sources": [
+        {
+          "url": "https://byrd.osu.edu/sites/default/files/2020-12/Porter_Mosley-Thompson_J_Glaciol_2014.pdf",
+          "lat": 69.9,
+          "lon": -47.0,
+          "what": "Porter & Mosley-Thompson 2014 J. Glaciol., Data and Methods (core site)"
+        },
+        {
+          "url": "https://doi.org/10.5281/zenodo.7076469",
+          "lat": 69.9,
+          "lon": -47.0,
+          "what": "Davidge, Brooks & Mah (2022) archive table, Crawford Point Core A row (supplied by the Byrd Polar and Climate Research Center)"
+        }
+      ],
+      "reference": {
+        "citation": "Porter & Mosley-Thompson 2014, Journal of Glaciology 60(224), 1065–1074",
+        "doi": "10.3189/2014JoG13J233"
+      },
+      "fact_sources": [
+        "https://byrd.osu.edu/sites/default/files/2020-12/Porter_Mosley-Thompson_J_Glaciol_2014.pdf"
+      ],
+      "notes": "'In 2007 a long (152 m) multi-century ice core was drilled at CP (69.90°N, 47.00°W; ~2000 m a.s.l.)' as part of a CReSIS field campaign; dated back to AD 1766 (Porter & Mosley-Thompson 2014). Elevation is approximate ('~2000 m'). Second coordinate is the CP weather station from the same paper; the Zenodo Byrd Polar row (69.9, -47.0, 2007, 152 m) agrees but is not independent. Not a PARCA core. 3D ICE review: the second position is the Zenodo archive row rather than the paper's weather-station coordinate; both records come from the Byrd Polar and Climate Research Center."
+    },
+    {
+      "name": "Humboldt",
+      "aliases": [
+        "Humboldt Glacier site",
+        "HumB2",
+        "Humboldt BII",
+        "Humboldt B"
+      ],
+      "region": "greenland",
+      "core_type": "shallow",
+      "project": "Program for Arctic Regional Climate Assessment (PARCA)",
+      "operator": "USA (PARCA, NASA/NSF; PI K. Steffen, University of Colorado, per ICF)",
+      "drilled": "1995",
+      "depth_m": 146,
+      "reached_bed": false,
+      "oldest_ka": null,
+      "elevation_m": 1985,
+      "lat": 78.53,
+      "lon": -56.83,
+      "coordinate_sources": [
+        {
+          "url": "https://api.crossref.org/works/10.1029/98JD02718",
+          "lat": 78.53,
+          "lon": -56.83,
+          "what": "Anklin et al. 1998 JGR abstract: '78.53°N, 56.83°W (Humboldt glacier site)'"
+        },
+        {
+          "url": "https://icecores.org/inventory/humboldt",
+          "lat": 78.5269444,
+          "lon": -56.8322222,
+          "what": "NSF Ice Core Facility inventory, HUMBOLDT B firn core at the same site"
+        },
+        {
+          "url": "https://arcticdata.io/metacat/d1/mn/v2/object/doi%3A10.18739%2FA23T9D689",
+          "lat": 78.5,
+          "lon": -56.8,
+          "what": "Arctic Data Center, Humboldt ice core aerosol dataset"
+        }
+      ],
+      "reference": {
+        "citation": "Anklin et al. 1998, Journal of Geophysical Research: Atmospheres 103(D22), 28775–28783",
+        "doi": "10.1029/98JD02718"
+      },
+      "fact_sources": [
+        "https://icecores.org/inventory/humboldt",
+        "https://api.crossref.org/works/10.1029/98JD02718"
+      ],
+      "notes": "ICF: '10.2 cm diameter, 146 m long ice core drilled in 1995 for PARCA called Humboldt BII (HumB2)', now entirely consumed; Anklin et al. 1998 describe '150-m firn and ice cores' drilled in summer 1995 with an 852-year record. Elevation 1985 m is ICF's value for the HUMBOLDT B firn core at the same site; NCEI's 1998 m elevation field looks copied. Several ~20 m firn cores were drilled around the site (Humboldt East/South/West)."
+    },
+    {
+      "name": "Site 2",
+      "aliases": [
+        "Site II",
+        "SIPRE Site 2",
+        "SIPRE Test Site",
+        "Site-2"
+      ],
+      "region": "greenland",
+      "core_type": "intermediate",
+      "project": "SIPRE deep core drilling, International Geophysical Year preparations",
+      "operator": "US Army Snow, Ice and Permafrost Research Establishment (SIPRE), USA",
+      "drilled": "1957",
+      "depth_m": 411,
+      "reached_bed": false,
+      "oldest_ka": null,
+      "elevation_m": 2134,
+      "lat": 76.9833,
+      "lon": -56.0667,
+      "coordinate_sources": [
+        {
+          "url": "https://erdc-library.erdc.dren.mil/items/81b728f7-6c38-4ef8-e053-411ac80adeb3",
+          "lat": 76.9833,
+          "lon": -56.0667,
+          "what": "Langway 1967, CRREL Research Report 77 (hdl:11681/5934) abstract: 'Site 2 on the Greenland ice sheet (76°59'N, 56°04'W)' (converted)"
+        },
+        {
+          "url": "https://github.com/GEUS-Glaciology-and-Climate/greenland_ice_borehole_temperature_profiles/blob/8b28d0e7333426426ac377615663ba735e5623f9/boreholes/SiteII/meta.bsv",
+          "lat": 76.98,
+          "lon": -56.07,
+          "what": "GEUS borehole database, SiteII (location source doi:10.5194/essd-2021-290)"
+        }
+      ],
+      "reference": {
+        "citation": "Langway 1970, Geological Society of America Special Paper 125, 1–180",
+        "doi": "10.1130/SPE125-p1"
+      },
+      "fact_sources": [
+        "https://erdc-library.erdc.dren.mil/items/81b728f7-6c38-4ef8-e053-411ac80adeb3",
+        "https://www.cambridge.org/core/journals/journal-of-glaciology/article/400-meter-deep-ice-core-in-greenland-preliminary-report/46FE4A0B490CCDEC08B0F7BC85FF6FA0",
+        "https://icedrill.org/sites/default/files/Langway_2008_Early_polar_ice_cores.pdf",
+        "https://icedrill.org/sites/default/files/drilling_to_the_beds_of_the_greenland_and_antarctic_ice_sheets_a_review.pdf",
+        "https://github.com/GEUS-Glaciology-and-Climate/greenland_ice_borehole_temperature_profiles/blob/8b28d0e7333426426ac377615663ba735e5623f9/boreholes/SiteII/meta.bsv"
+      ],
+      "notes": "1957 hole cored to 411 m (Langway 1958 J. Glaciol. 3, 217; Langway 1967; Langway 2008); a 1956 hole reached 305 m (Langway 2008). Bentley & Koci 2007 give 296 m (27 Aug 1956) and 407 m (1957) instead. Elevation 2134 m = '7000 ft' in Langway 1958 ('approximately 320 km east of Thule'); the EGU Cryospheric Sciences blog gives 2130 m for Site II. Ice thickness ~1850 m (GEUS, from BedMachine), so the bed was not reached. Langway 1970 (GSA Special Paper 125) is the published version of CRREL RR 77; record back to c. AD 934."
+    }
+  ],
+  "excluded": [
+    {
+      "name": "Taylor Glacier",
+      "region": "antarctica",
+      "reason": "A blue-ice sampling area tens of kilometres long; the NCEI nominal point and the USAP-DC box centre are 5.6 km apart."
+    },
+    {
+      "name": "Plateau Remote",
+      "region": "antarctica",
+      "reason": "Published only to whole degrees (84°S, 43°E), which is tens of kilometres of uncertainty."
+    },
+    {
+      "name": "Mount Moulton",
+      "region": "antarctica",
+      "reason": "The two positions found (NSF-ICF best estimate; USAP-DC project point) are 12 km apart."
+    },
+    {
+      "name": "Little America V",
+      "region": "antarctica",
+      "reason": "No reference with a DOI (Gow 1968, CRREL Research Report), and its depth is given as 255 m or 264 m."
+    },
+    {
+      "name": "Hercules Dome",
+      "region": "antarctica",
+      "reason": "Not drilled yet; the first drilling season is planned for 2029/30."
+    },
+    {
+      "name": "Sherman Island",
+      "region": "antarctica",
+      "reason": "Ice chips from a rapid-access borehole (323 m), not a recovered core."
+    },
+    {
+      "name": "Dye-2",
+      "region": "greenland",
+      "reason": "Only NCEI gives a position, and its drilling year is unclear."
+    },
+    {
+      "name": "Gomez",
+      "region": "antarctica",
+      "reason": "BedMachine Antarctica v4 gives a 760 m surface at the published position (73.59°S, 70.36°W) against the published 1400 m, and no ice within 40 km reaches 1400 m; both sources come from the same group, so the position or the elevation is wrong."
+    }
+  ]
+}

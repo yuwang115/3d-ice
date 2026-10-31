@@ -8,6 +8,24 @@ All notable changes to 3D ICE are recorded here. The format follows
 
 ### Added
 
+- Ice-core sites in *Places & Geographic Features* (research edition): 35 Antarctic and 19
+  Greenland drilling sites, from Vostok, EPICA Dome C, WAIS Divide and Beyond EPICA – Little
+  Dome C to Camp Century, GRIP, GISP2, NorthGRIP, NEEM and EastGRIP, plus intermediate,
+  shallow and blue-ice sites. *Show ice-core sites* draws them as rings, with labels stacked
+  above any station at the same place, and place search finds them by name or core ID. A
+  site's card gives its project, drilling years, core depth (and whether it reached the bed),
+  the span of its continuous record (for a blue-ice site, its oldest dated ice), surface
+  elevation and position, and links the publication of the core.
+  - The source of record is `scripts/data/ice_core_sites.json`, compiled from the publication
+    of each core. Every position comes from two independent sources and was checked against
+    the NOAA NCEI ice-core archive and Davidge, Brooks & Mah (2022, Zenodo, CC BY 4.0); both
+    hold errors that the table's notes record, such as positive western longitudes and a
+    Dome Fuji 25 km off. Sites that could not be checked, or were never drilled, are listed
+    with the reason under `excluded`.
+  - `scripts/prepare_ice_cores.py` writes `antarctica_ice_cores.json` and
+    `greenland_ice_cores.json`, and refuses a site whose sources disagree by more than 5 km.
+    A test checks that every site lies on BedMachine ice within 350 m of its own elevation.
+  - The details card and its text move to `static/tools/js/polar-feature-details.js`.
 - Observed elevation change in the research edition: CPOM's record of Antarctic surface
   elevation change from multi-mission radar altimetry (ERS-2, Envisat, CryoSat-2; product
   version 1.0, CC BY 4.0; Shepherd et al., 2019), drawn as a colour on today's ice surface

@@ -12,9 +12,20 @@ import {
   createPolarLabelCanvas,
   getPolarFeatureLabelStyle,
   getPolarFeatureMarkerMaterialOptions,
+  getPolarFeatureMarkerShape,
   getPolarFeatureMarkerStyle,
   POLAR_LABEL_STYLES,
 } from "../../static/tools/js/polar-feature-label-style.js";
+import {
+  formatCoreDepth,
+  formatElevation,
+  formatOldestIce,
+  POLAR_FEATURE_TEXT,
+  polarFeatureDetailRows,
+  polarFeatureTypeLabel,
+  renderPolarFeatureDetails,
+  safeSourceUrl,
+} from "../../static/tools/js/polar-feature-details.js";
 import {
   fetchRefinedBasinJson,
   MAX_REFINED_BASIN_RESPONSE_BYTES,
@@ -440,4 +451,182 @@ test("fetchRefinedBasinJson enforces response byte limits before parsing", async
     }),
     /bounded streaming/i,
   );
+});
+
+const ICE_CORE = {
+  id: "antarctica-ice-core-wais-divide",
+  region: "antarctica",
+  layer: "ice_cores",
+  kind: "ice_core",
+  core_type: "deep",
+  feature_type: "Deep ice core",
+  name: "WAIS Divide",
+  name_zh: "",
+  aliases: ["WDC06A", "冰芯"],
+  project: "WAIS Divide Ice Core Project",
+  operator: "United States",
+  drilled: "2006–2011",
+  depth_m: 3405,
+  reached_bed: false,
+  oldest_ka: 68,
+  elevation_m: 1766,
+  lat: -79.468,
+  lon: -112.086,
+  citation: "WAIS Divide Project Members 2013, Nature 500, 440–444",
+  source_url: "https://doi.org/10.1038/nature12376",
+  display_priority: 1,
+};
+
+test("ice cores are found by name, core ID, kind and the Chinese term", () => {
+  const features = [...FEATURES, ICE_CORE];
+  assert.equal(searchPolarFeatures(features, "WDC06A")[0]?.id, ICE_CORE.id);
+  assert.equal(searchPolarFeatures(features, "ice core")[0]?.id, ICE_CORE.id);
+  assert.equal(searchPolarFeatures(features, "deep ice core")[0]?.id, ICE_CORE.id);
+  assert.equal(searchPolarFeatures(features, "冰芯")[0]?.id, ICE_CORE.id);
+});
+
+test("ice-core details give depth, age and elevation in each locale", () => {
+  const en = POLAR_FEATURE_TEXT.en;
+  const zh = POLAR_FEATURE_TEXT.zh;
+  assert.equal(formatCoreDepth(ICE_CORE, en, "en-US"), "3,405 m");
+  assert.equal(formatCoreDepth({ ...ICE_CORE, reached_bed: true }, en, "en-US"), "3,405 m, to the bed");
+  assert.equal(formatCoreDepth({ ...ICE_CORE, reached_bed: true }, zh, "zh-CN"), "3,405 米（钻至冰床）");
+  assert.equal(formatCoreDepth({ ...ICE_CORE, depth_m: null }, en, "en-US"), "");
+  assert.equal(formatCoreDepth({ ...ICE_CORE, depth_m: 0 }, en, "en-US"), "");
+  assert.equal(formatOldestIce(ICE_CORE, en, "en-US"), "≈68,000 years");
+  assert.equal(formatOldestIce({ ...ICE_CORE, oldest_ka: 800 }, en, "en-US"), "≈800,000 years");
+  assert.equal(formatOldestIce({ ...ICE_CORE, oldest_ka: 2700 }, en, "en-US"), "≈2.7 million years");
+  assert.equal(formatOldestIce({ ...ICE_CORE, oldest_ka: 800 }, zh, "zh-CN"), "约 80 万年");
+  assert.equal(formatOldestIce({ ...ICE_CORE, oldest_ka: 68 }, zh, "zh-CN"), "约 6.8 万年");
+  assert.equal(formatOldestIce({ ...ICE_CORE, oldest_ka: 2.5 }, zh, "zh-CN"), "约 2,500 年");
+  assert.equal(formatOldestIce({ ...ICE_CORE, oldest_ka: null }, en, "en-US"), "");
+  assert.equal(formatElevation(ICE_CORE, en, "en-US"), "1,766 m");
+  assert.equal(formatElevation({ ...ICE_CORE, elevation_m: "" }, en, "en-US"), "");
+});
+
+test("detail rows list an ice core's project, drilling and record before its position", () => {
+  const rows = polarFeatureDetailRows(ICE_CORE, POLAR_FEATURE_TEXT.en, "en-US");
+  assert.deepEqual(rows.map(([term]) => term), [
+    "Project",
+    "Operator",
+    "Drilled",
+    "Core depth",
+    "Continuous record",
+    "Surface elevation",
+    "Coordinates",
+  ]);
+  assert.deepEqual(rows.at(-1), ["Coordinates", "-79.468°, -112.086°"]);
+  assert.deepEqual(
+    polarFeatureDetailRows({ ...ICE_CORE, core_type: "blue_ice", oldest_ka: 134 }, POLAR_FEATURE_TEXT.zh, "zh-CN")[4],
+    ["最老定年冰", "约 13.4 万年"],
+  );
+
+  const station = polarFeatureDetailRows(
+    { ...FEATURES[0], status: "temporarily_closed", lat: -90, lon: 0, area_km2: 12.4 },
+    POLAR_FEATURE_TEXT.en,
+    "en-US",
+  );
+  assert.deepEqual(station.map(([term]) => term), ["Operator", "Country", "Status", "Coordinates", "Area"]);
+  assert.deepEqual(station[2], ["Status", "Temporarily closed"]);
+  assert.deepEqual(station[4], ["Area", "12 km²"]);
+});
+
+test("an ice core is typed by its kind of core, other features by their kind", () => {
+  assert.equal(polarFeatureTypeLabel(ICE_CORE, POLAR_FEATURE_TEXT.en), "Deep ice core");
+  assert.equal(polarFeatureTypeLabel({ ...ICE_CORE, core_type: "blue_ice" }, POLAR_FEATURE_TEXT.zh), "蓝冰区钻探点");
+  assert.equal(polarFeatureTypeLabel({ ...ICE_CORE, core_type: "unknown" }, POLAR_FEATURE_TEXT.en), "Ice core");
+  assert.equal(polarFeatureTypeLabel(FEATURES[2], POLAR_FEATURE_TEXT.en), "Mountain range");
+  assert.equal(polarFeatureTypeLabel({ kind: "glacier" }, POLAR_FEATURE_TEXT.en), "glacier");
+});
+
+test("source links accept DOIs and the catalogue hosts only", () => {
+  assert.equal(safeSourceUrl("https://doi.org/10.1038/nature12376"), "https://doi.org/10.1038/nature12376");
+  assert.equal(safeSourceUrl("https://placenames.aq/information"), "https://placenames.aq/information");
+  assert.equal(safeSourceUrl("http://doi.org/10.1038/nature12376"), "");
+  assert.equal(safeSourceUrl("https://example.org/"), "");
+  assert.equal(safeSourceUrl("javascript:alert(1)"), "");
+  assert.equal(safeSourceUrl(""), "");
+});
+
+function createDetailsHarness() {
+  const createElement = (tagName) => {
+    const element = {
+      tagName,
+      children: [],
+      textContent: "",
+      append(...nodes) {
+        this.children.push(...nodes);
+      },
+      replaceChildren(...nodes) {
+        this.children = nodes;
+      },
+    };
+    return element;
+  };
+  const container = createElement("div");
+  container.ownerDocument = { createElement };
+  container.hidden = true;
+  return container;
+}
+
+test("the details card names the core's publication and hides when nothing is selected", () => {
+  const container = createDetailsHarness();
+  const options = { labels: POLAR_FEATURE_TEXT.en, locale: "en-US", getLabel: getPolarFeatureLabel };
+  renderPolarFeatureDetails(container, ICE_CORE, options);
+  assert.equal(container.hidden, false);
+  const [heading, eyebrow, list, link] = container.children;
+  assert.equal(heading.textContent, "WAIS Divide");
+  assert.equal(eyebrow.textContent, "Deep ice core · Antarctica");
+  assert.equal(list.children.length, 14);
+  assert.equal(link.href, "https://doi.org/10.1038/nature12376");
+  assert.equal(link.rel, "noopener noreferrer");
+  assert.equal(link.textContent, "Reference: WAIS Divide Project Members 2013, Nature 500, 440–444");
+
+  renderPolarFeatureDetails(container, ICE_CORE, { ...options, labels: POLAR_FEATURE_TEXT.zh, locale: "zh-CN" });
+  assert.equal(container.children.at(-1).textContent, "参考文献：WAIS Divide Project Members 2013, Nature 500, 440–444");
+  assert.equal(container.children[1].textContent, "深冰芯 · 南极洲");
+
+  renderPolarFeatureDetails(container, { ...FEATURES[0], source_url: "https://www.comnap.aq/x" }, options);
+  assert.equal(container.children.at(-1).textContent, "Source");
+
+  renderPolarFeatureDetails(container, { ...ICE_CORE, source_url: "https://example.org/" }, options);
+  assert.equal(container.children.length, 3);
+
+  renderPolarFeatureDetails(container, null, options);
+  assert.equal(container.hidden, true);
+  assert.equal(container.children.length, 0);
+});
+
+test("ice-core markers are pale lilac rings, distinct from station and place dots", () => {
+  const coreStyle = getPolarFeatureMarkerStyle("ice_cores");
+  const coreColor = hexSaturationAndLightness(coreStyle.color);
+  assert.equal(coreStyle.color, POLAR_LABEL_STYLES.ice_cores.textColor);
+  assert.ok(coreColor.saturation <= 0.45 && coreColor.lightness >= 0.68);
+  assert.ok(coreColor.hue >= 250 && coreColor.hue <= 290);
+  for (const other of ["research_stations", "geographic_names"]) {
+    const otherHue = hexSaturationAndLightness(getPolarFeatureMarkerStyle(other).color).hue;
+    const distance = Math.min(Math.abs(coreColor.hue - otherHue), 360 - Math.abs(coreColor.hue - otherHue));
+    assert.ok(distance >= 50, `${other} is too close in hue`);
+  }
+  assert.ok(contrastRatio(coreStyle.color, "#07111a") >= 3);
+  assert.ok(coreStyle.size > getPolarFeatureMarkerStyle("research_stations").size);
+  assert.equal(getPolarFeatureMarkerShape("ice_cores"), "ring");
+  assert.equal(getPolarFeatureMarkerShape("research_stations"), "dot");
+  assert.equal(getPolarFeatureMarkerShape("unknown"), "dot");
+
+  const calls = [];
+  const context = {
+    clearRect: () => calls.push("clearRect"),
+    beginPath: () => calls.push("beginPath"),
+    arc: (...args) => calls.push(["arc", ...args]),
+    fill: () => calls.push("fill"),
+    stroke: () => calls.push("stroke"),
+  };
+  const canvas = createPolarMarkerCanvas({ createElement: () => ({ getContext: () => context }) }, { shape: "ring" });
+  assert.equal(canvas.width, 64);
+  assert.deepEqual(calls.map((call) => (Array.isArray(call) ? call[0] : call)), ["clearRect", "beginPath", "arc", "stroke"]);
+  // The ring's outer edge stays inside the canvas and leaves a hole at least a third wide.
+  const [, , , radius] = calls.find((call) => Array.isArray(call));
+  assert.ok(radius + context.lineWidth / 2 <= 31);
+  assert.ok((radius - context.lineWidth / 2) * 2 >= 64 / 3);
 });

@@ -54,6 +54,13 @@ you reuse the data; the references are below and in [paper.bib](paper.bib).
   states no licence. It is shown here with attribution to the article; contact the authors
   before reusing it.
 - **Natural Earth** labels are in the public domain.
+- **Ice-core sites**, in `antarctica_ice_cores.json` and `greenland_ice_cores.json`: the
+  positions, depths, drilling years and ages are compiled by 3D ICE in
+  `scripts/data/ice_core_sites.json` from the publication each site links, and checked
+  against the NOAA NCEI Paleoclimatology ice-core archive (a U.S. Government work) and
+  Davidge, Brooks & Mah (2022), "Global ice drilling and archive location data for select ice
+  cores", [doi:10.5281/zenodo.7076469](https://doi.org/10.5281/zenodo.7076469) (CC BY 4.0).
+  Cite a site's linked publication when you reuse its facts.
 - **Greenland Place Names Register** (NunaGIS), in `greenland_geographic_names.json`, the
   **INTERACT** station directory, in `greenland_research_stations.json`, and the **IHO-IOC
   GEBCO Gazetteer of Undersea Feature Names**, for undersea feature labels, are used under those

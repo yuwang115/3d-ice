@@ -66,7 +66,7 @@ class _IdStructureParser(HTMLParser):
 def test_both_locales_wire_search_and_independent_feature_layers() -> None:
     for explorer in EXPLORERS:
         html = explorer_source(explorer)
-        for control_id in ("polarSearchInput", "showResearchStations", "showGeographicNames", "polarSearchResults"):
+        for control_id in ("polarSearchInput", "showResearchStations", "showGeographicNames", "showIceCores", "polarSearchResults"):
             assert f'id="{control_id}"' in html
         assert "js/polar-features.js" in html
 
@@ -78,6 +78,8 @@ def test_runtime_references_all_four_catalogues() -> None:
         "greenland_research_stations.json",
         "antarctica_geographic_names.json",
         "greenland_geographic_names.json",
+        "antarctica_ice_cores.json",
+        "greenland_ice_cores.json",
         "antarctica_refined_basins_search.json",
         "greenland_refined_basins_search.json",
     ):
@@ -124,6 +126,7 @@ def test_places_and_geographic_features_sits_between_ice_opacity_and_bed_in_both
         "polarSearchInput",
         "showResearchStations",
         "showGeographicNames",
+        "showIceCores",
         "showRefinedBasins",
         "showBed",
     )
@@ -138,6 +141,7 @@ def test_places_and_geographic_features_sits_between_ice_opacity_and_bed_in_both
             "polarSearchInput",
             "showResearchStations",
             "showGeographicNames",
+            "showIceCores",
             "showRefinedBasins",
         ):
             assert "polarFeatureSection" in parser.ancestors[element_id]
@@ -146,3 +150,18 @@ def test_places_and_geographic_features_sits_between_ice_opacity_and_bed_in_both
         assert [parser.positions[element_id] for element_id in ordered_ids] == sorted(
             parser.positions[element_id] for element_id in ordered_ids
         )
+
+
+def test_ice_core_sites_are_a_research_page_layer_with_localized_toggles() -> None:
+    expected_labels = ("Show ice-core sites", "显示冰芯钻探点")
+    for explorer, label in zip(EXPLORERS, expected_labels, strict=True):
+        html = explorer.read_text(encoding="utf-8")
+        assert f'<input id="showIceCores" type="checkbox" /> {label}</label>' in html
+
+    public_pages = (ROOT / "static/explore/index.html", ROOT / "static/zh/explore/index.html")
+    for page in public_pages:
+        assert 'id="showIceCores"' not in page.read_text(encoding="utf-8")
+
+    # tests/js/editions.test.mjs checks that the public profile disables the layer.
+    runtime = (ROOT / "static/tools/js/explorer-app.js").read_text(encoding="utf-8")
+    assert 'disabledCapabilities.includes("iceCores")' in runtime

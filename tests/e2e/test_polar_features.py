@@ -2,13 +2,21 @@
 
 from __future__ import annotations
 
+import json
 import re
+from pathlib import Path
 
 import pytest
 from playwright.sync_api import expect
 
 
 pytestmark = pytest.mark.e2e
+
+DATA_DIR = Path(__file__).resolve().parents[2] / "static" / "tools" / "data"
+
+
+def _ice_core_count(region: str) -> int:
+    return json.loads((DATA_DIR / f"{region}_ice_cores.json").read_text(encoding="utf-8"))["feature_count"]
 
 
 @pytest.fixture
@@ -40,6 +48,23 @@ def test_feature_layers_can_be_toggled_independently(page):
     )
     state = page.evaluate("JSON.parse(window.render_game_to_text())")
     assert state["featureLayers"]["geographicNames"]["totalCount"] == 160
+    assert not state["featureLayers"]["iceCores"]["enabled"]
+
+    page.get_by_label("Show ice-core sites").check()
+    page.wait_for_function(
+        "() => JSON.parse(window.render_game_to_text()).featureLayers.iceCores.visibleCount > 0",
+        timeout=30_000,
+    )
+    layer = page.evaluate("JSON.parse(window.render_game_to_text())")["featureLayers"]["iceCores"]
+    assert layer["offered"]
+    assert layer["totalCount"] == layer["visibleCount"] == layer["renderedLabelCount"] == _ice_core_count("antarctica")
+
+    page.get_by_label("Show research stations").uncheck()
+    page.wait_for_function(
+        "() => JSON.parse(window.render_game_to_text()).featureLayers.researchStations.visibleCount === 0",
+        timeout=30_000,
+    )
+    assert page.evaluate("JSON.parse(window.render_game_to_text())")["featureLayers"]["iceCores"]["visibleCount"] > 0
 
 
 def test_search_selects_feature_enables_layer_and_moves_camera(page):
@@ -174,3 +199,41 @@ def test_chinese_explorer_searches_localized_feature_names(playwright_browser, s
         )
     finally:
         context.close()
+
+
+def test_search_opens_an_ice_core_site_and_its_publication(page):
+    before = page.evaluate("JSON.parse(window.render_game_to_text()).camera.target")
+    search = page.get_by_role("combobox", name="Search places and features")
+    search.fill("WAIS Divide")
+    page.get_by_role("option", name=re.compile("WAIS Divide.*Deep ice core", re.IGNORECASE)).click()
+    page.wait_for_function(
+        """() => {
+          const state = JSON.parse(window.render_game_to_text());
+          return state.selectedFeature?.layer === 'ice_cores' && state.featureLayers.iceCores.enabled;
+        }""",
+        timeout=30_000,
+    )
+    state = page.evaluate("JSON.parse(window.render_game_to_text())")
+    assert state["toggles"]["showIceCores"]
+    assert state["focusedExistingLabelId"] == state["selectedFeature"]["id"]
+    assert state["camera"]["target"] != before
+    details = page.locator("#polarFeatureDetails")
+    expect(details).to_contain_text("Deep ice core · Antarctica")
+    expect(details).to_contain_text("Core depth")
+    link = details.get_by_role("link", name=re.compile("^Reference: "))
+    expect(link).to_have_attribute("href", re.compile(r"^https://doi\.org/10\."))
+
+
+def test_ice_core_search_switches_to_greenland(page):
+    search = page.get_by_role("combobox", name="Search places and features")
+    search.fill("NGRIP")
+    page.get_by_role("option", name=re.compile("Deep ice core · Greenland")).first.click()
+    page.wait_for_function(
+        """() => {
+          const state = JSON.parse(window.render_game_to_text());
+          return state.ready && state.region === 'greenland' && state.selectedFeature?.layer === 'ice_cores';
+        }""",
+        timeout=90_000,
+    )
+    layer = page.evaluate("JSON.parse(window.render_game_to_text())")["featureLayers"]["iceCores"]
+    assert layer["renderedLabelCount"] == _ice_core_count("greenland")

@@ -54,6 +54,7 @@ by 250 m, and hybridising a bed product with another product's surface and mask.
 | `prepare_cpom_land_ice.py` | CPOM Antarctic surface elevation change from multi-mission radar altimetry (1995–2026 rate, 81 cumulative epochs, mass-change series of the ice sheet, its regions and its 18 IMBIE basins) | `cpom_antarctica_dhdt_{480,741}`, `cpom_antarctica_dh_480` |
 | `prepare_nsidc_sea_ice.py` | NOAA/NSIDC monthly sea-ice concentration CDR, Version 6 (passive microwave, November 1978 onwards), both hemispheres | `nsidc_sea_ice_antarctica`, `nsidc_sea_ice_greenland` |
 | `prepare_polar_features.py` | Research-station and place-name catalogues | `*_research_stations.json`, `*_geographic_names.json` |
+| `prepare_ice_cores.py` | The hand-checked ice-core site table, `scripts/data/ice_core_sites.json` | `*_ice_cores.json` |
 | `prepare_refined_basin_search.mjs` | MEaSUREs Antarctic Boundaries v2 refined basins; the Greenland basins above | `*_refined_basins_search.json` |
 
 The `480`/`10km` and `741`/`4km` suffixes are the Antarctic Balanced (667 × 667 cells at
@@ -96,7 +97,7 @@ bibliography.
 | `static/tools/js/surface-change.js` | Observed surface elevation change: package decoding, epoch interpolation, the extrapolated polar cap, significance against the uncertainty, regional readout and colour scale, basin selection and the basin chart's geometry |
 | `static/tools/js/sea-ice.js` | Observed sea ice: package decoding, months and the frames that show them, blending between months across months without data, the median ice edge, the hemisphere's extent readout and rank, the extent chart's geometry and the ice colours |
 | `static/tools/js/ice-projection.js` | Ice-sheet projection playback: package decoding, keyframe interpolation, flotation geometry from the level the ice rests on (the lake over Lake Vostok), scale-corrected cell areas, triangles, normals, speed change along the flowlines and colour scale |
-| `static/tools/js/polar-feature-search.js`, `polar-feature-label-style.js`, `polar-refined-basins.js`, `polar-features.js` | Place and feature search, label styling, refined-basin validation, and the controller that binds them to the scene |
+| `static/tools/js/polar-feature-search.js`, `polar-feature-label-style.js`, `polar-feature-details.js`, `polar-refined-basins.js`, `polar-features.js` | Place and feature search, label and marker styling, the details card and its text, refined-basin validation, and the controller that binds them to the scene |
 | `static/js/3d-ice-locale.js` | English and Chinese strings, published as `window.__3dIceLocale` |
 | `static/tools/vendor/three/` | Three.js r161 and `OrbitControls`, vendored so the runtime has no install step |
 
@@ -242,7 +243,8 @@ current Chrome, Edge, Firefox and Safari (Chrome and Edge 89+, Firefox 114+, Saf
 | Projection decoding, interpolation, flotation (including over Lake Vostok), cell areas, triangles, normals, speed change; the ISMIP6 packer's frames, sea-level series and package layout | node:test, pytest | `tests/js/ice-projection.test.mjs`, `tests/test_prepare_ismip6_projection.py` | JavaScript and Python unit tests |
 | Observed elevation change: decoding, epoch interpolation, the extrapolated polar cap, significance, readout and colours, basin selection and chart geometry; the CPOM packer's row flip, area-weighted resampling, CryoSat-2 detection, basin names and series, and package layout | node:test, pytest | `tests/js/surface-change.test.mjs`, `tests/test_prepare_cpom_land_ice.py` | JavaScript and Python unit tests |
 | Observed sea ice: decoding, months and frames, blending across empty months, the median edge, the readout and rank, chart geometry and colours; the NSIDC packer's projections against NSIDC's own cell positions, resampling, coastal fill, hemisphere totals, reference frequency, trends and package layout | node:test, pytest | `tests/js/sea-ice.test.mjs`, `tests/test_prepare_nsidc_sea_ice.py` | JavaScript and Python unit tests |
-| Place search, label styling, refined-basin validation | node:test | `tests/js/polar-features.test.mjs` | JavaScript unit tests |
+| Place search, label styling, the details card, refined-basin validation | node:test | `tests/js/polar-features.test.mjs` | JavaScript unit tests |
+| The ice-core site table: per-site validation, the two-source position check, and that the committed catalogues are its build | pytest | `tests/test_prepare_ice_cores.py` | Python unit and integration tests |
 | Edition profiles, polar projections against every catalogue position, tour framing and flights, and copy parity across locales | node:test | `tests/js/editions.test.mjs`, `polar-projection.test.mjs`, `explore-tour.test.mjs`, `explore-content.test.mjs` | JavaScript unit tests |
 | Every localisation key used at runtime resolves in both locales | node:test | `tests/js/locale-coverage.test.mjs` | JavaScript unit tests |
 | True vertical exaggeration in labels and copy; Data Snapshot statistics over the drawn cells; the cells each overlay may be drawn on; source lines | node:test | `tests/js/vertical-scale.test.mjs`, `tests/js/layer-stats.test.mjs`, `tests/js/overlay-cells.test.mjs`, `tests/js/source-links.test.mjs` | JavaScript unit tests |

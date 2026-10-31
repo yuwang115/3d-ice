@@ -266,3 +266,8 @@ test("every Antarctic dataset in the runtime offers the light ocean package", ()
   assert.ok(fullRefs.length >= 4);
   assert.equal(lightRefs.length, fullRefs.length);
 });
+
+test("ice-core sites are a research-page place layer", () => {
+  assert.ok(getEditionProfile(EDITION_KEYS.public).disabledCapabilities.includes("iceCores"));
+  assert.ok(!getEditionProfile(EDITION_KEYS.research).disabledCapabilities.includes("iceCores"));
+});

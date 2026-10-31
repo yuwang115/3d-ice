@@ -6,13 +6,25 @@ const REGION_LABEL_METRICS = Object.freeze({
 export const POLAR_LABEL_STYLES = Object.freeze({
   research_stations: Object.freeze({ textColor: "#d8cfad" }),
   geographic_names: Object.freeze({ textColor: "#aec6d1" }),
+  ice_cores: Object.freeze({ textColor: "#cfc3e0" }),
   refined_basins: Object.freeze({ textColor: "#ffe8a3" }),
 });
 
 const POLAR_MARKER_SIZES = Object.freeze({
   research_stations: 3.75,
   geographic_names: 2.75,
+  // A ring needs a few more pixels than a dot to read as one.
+  ice_cores: 7,
 });
+
+// Ice cores are drawn as rings, a borehole seen from above; everything else as dots.
+const POLAR_MARKER_SHAPES = Object.freeze({
+  ice_cores: "ring",
+});
+
+export function getPolarFeatureMarkerShape(layer) {
+  return POLAR_MARKER_SHAPES[layer] || "dot";
+}
 
 export function getPolarFeatureMarkerStyle(layer) {
   const normalizedLayer = Object.hasOwn(POLAR_MARKER_SIZES, layer) ? layer : "geographic_names";
@@ -37,13 +49,21 @@ export function getPolarFeatureMarkerMaterialOptions(layer, map = null) {
   };
 }
 
-export function createPolarMarkerCanvas(documentRef) {
+export function createPolarMarkerCanvas(documentRef, { shape = "dot" } = {}) {
   const canvas = documentRef.createElement("canvas");
   canvas.width = 64;
   canvas.height = 64;
   const context = canvas.getContext("2d");
   if (!context) return null;
   context.clearRect(0, 0, canvas.width, canvas.height);
+  if (shape === "ring") {
+    context.strokeStyle = "#ffffff";
+    context.lineWidth = 14;
+    context.beginPath();
+    context.arc(32, 32, 23, 0, Math.PI * 2);
+    context.stroke();
+    return canvas;
+  }
   context.fillStyle = "#ffffff";
   context.beginPath();
   context.arc(32, 32, 30, 0, Math.PI * 2);
