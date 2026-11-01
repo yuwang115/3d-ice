@@ -3,7 +3,7 @@
 The repository has no generic en/zh parity test: parity is enforced per feature by
 asserting the same control ids and module references exist in both HTML files. These
 tests do that for the rebound layer, and additionally pin the control ordering so the
-layer cannot drift out of the interactive-scenarios section in one locale only.
+layer cannot drift out of the Change over time group in one locale only.
 """
 
 from __future__ import annotations
@@ -30,7 +30,8 @@ SOLVER_MODULES = (
 )
 REBOUND_WORKER = REPO_ROOT / "static" / "tools" / "gia-rebound-worker.js"
 
-# The section the rebound shares with the future projection: both are interactive scenarios.
+# The panel group the rebound shares with the future projection and the observed records:
+# Change over time, which keeps the id of the section it replaced.
 SCENARIOS_SECTION = "interactiveScenariosSection"
 
 CONTROL_IDS = (
@@ -115,41 +116,42 @@ def test_rebound_control_ids_are_unique(explorer_ids: _IdCollector) -> None:
     assert duplicates == [], f"ids appearing other than exactly once: {duplicates}"
 
 
-def test_rebound_controls_sit_in_the_interactive_scenarios_section(explorer_ids: _IdCollector) -> None:
+def test_rebound_controls_sit_in_the_change_over_time_group(explorer_ids: _IdCollector) -> None:
     for control_id in CONTROL_IDS:
-        if control_id == "reboundLegendNote":
-            assert "bedLegendSection" in explorer_ids.ancestors[control_id]
-            continue
         assert SCENARIOS_SECTION in explorer_ids.ancestors[control_id], control_id
         assert "viewControlsSection" not in explorer_ids.ancestors[control_id], control_id
-    for control_id in CONTROL_IDS[2:-1]:
+    # The legend note reads with the rebound's own controls, which show only while it is on.
+    for control_id in CONTROL_IDS[2:]:
         assert "isostaticReboundControls" in explorer_ids.ancestors[control_id], control_id
 
 
-def test_the_scenarios_section_follows_the_view_controls(explorer_ids: _IdCollector) -> None:
-    """The future projection and the ice-free rebound share a section of their own, after the
-    layer and display toggles: the projection first, then the rebound, then the legends."""
+def test_change_over_time_follows_the_layer_groups(explorer_ids: _IdCollector) -> None:
+    """The observed records, the future projection and the ice-free rebound share a group of
+    their own, after the scene and layer groups and before the place and display groups:
+    the projection first, then the rebound."""
     order = explorer_ids.order
     assert order.index("showBed") < order.index("showSubglacialChannels") < order.index("showOceanCurrents")
-    assert order.index("showSea") < order.index("animateFlow") < order.index("wireframe")
-    assert order.index("wireframe") < order.index(SCENARIOS_SECTION)
+    assert order.index("showOceanCurrents") < order.index(SCENARIOS_SECTION)
     assert order.index(SCENARIOS_SECTION) < order.index("iceProjectionRow") < order.index("showIceProjection")
     assert order.index("iceProjectionControls") < order.index("showIsostaticRebound")
     assert order.index("showIsostaticRebound") < order.index("isostaticReboundControls")
-    assert order.index("isostaticReboundControls") < order.index("bedLegendSection")
-    for control_id in ("showIceProjection", "iceProjectionControls", "projectionFlowline"):
+    assert order.index("isostaticReboundControls") < order.index("polarFeatureSection") < order.index("animateFlow")
+    for control_id in ("showIceProjection", "iceProjectionControls"):
         assert SCENARIOS_SECTION in explorer_ids.ancestors[control_id], control_id
+    # Ice flow > Flowlines is the one flowline switch on the research page.
+    assert "projectionFlowline" not in explorer_ids.counts
 
 
-def test_the_scenarios_section_is_titled_in_each_locale() -> None:
+def test_the_change_over_time_group_is_titled_in_each_locale() -> None:
     english, chinese = (path.read_text(encoding="utf-8") for path in EXPLORERS)
-    assert '<h2 id="interactiveScenariosHeading" class="section-title">Interactive Scenarios</h2>' in english
-    assert '<h2 id="interactiveScenariosHeading" class="section-title">交互式情景</h2>' in chinese
+    assert '<span id="interactiveScenariosHeading" class="rp-group__title">Change over time</span>' in english
+    assert '<span id="interactiveScenariosHeading" class="rp-group__title">随时间的变化</span>' in chinese
 
 
 def test_rebound_controls_start_in_the_headline_scenario(explorer: str) -> None:
     """Enabling the layer should land on 'ice gone, rebound complete' with no extra clicks."""
-    assert 'id="showIsostaticRebound" type="checkbox" />' in explorer, "must default to off"
+    toggle = re.search(r'<input id="showIsostaticRebound" [^>]*/>', explorer)
+    assert toggle and " checked" not in toggle.group(0), "must default to off"
     assert 'id="reboundProgress" type="range" min="0" max="100" step="1" value="100"' in explorer
     assert 'id="reboundSeaLevel" type="range" min="0" max="70" step="1" value="0"' in explorer
     assert 'id="highlightEmergentLand" type="checkbox" checked />' in explorer

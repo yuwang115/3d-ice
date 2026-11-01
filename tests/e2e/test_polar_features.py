@@ -9,6 +9,8 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import expect
 
+from tests.e2e.panel import open_group
+
 
 pytestmark = pytest.mark.e2e
 
@@ -31,7 +33,8 @@ def page(playwright_browser, explorer_url):
 
 
 def test_feature_layers_can_be_toggled_independently(page):
-    page.get_by_label("Show research stations").check()
+    open_group(page, "places")
+    page.get_by_label("Research stations").check()
     page.wait_for_function(
         "() => JSON.parse(window.render_game_to_text()).featureLayers.researchStations.visibleCount > 0",
         timeout=30_000,
@@ -41,7 +44,7 @@ def test_feature_layers_can_be_toggled_independently(page):
     assert state["featureLayers"]["researchStations"]["totalCount"] == 82
     assert not state["featureLayers"]["geographicNames"]["enabled"]
 
-    page.get_by_label("Show geographic names").check()
+    page.get_by_label("Place names").check()
     page.wait_for_function(
         "() => JSON.parse(window.render_game_to_text()).featureLayers.geographicNames.visibleCount > 0",
         timeout=30_000,
@@ -50,7 +53,7 @@ def test_feature_layers_can_be_toggled_independently(page):
     assert state["featureLayers"]["geographicNames"]["totalCount"] == 160
     assert not state["featureLayers"]["iceCores"]["enabled"]
 
-    page.get_by_label("Show ice-core sites").check()
+    page.get_by_label("Ice-core sites").check()
     page.wait_for_function(
         "() => JSON.parse(window.render_game_to_text()).featureLayers.iceCores.visibleCount > 0",
         timeout=30_000,
@@ -59,7 +62,7 @@ def test_feature_layers_can_be_toggled_independently(page):
     assert layer["offered"]
     assert layer["totalCount"] == layer["visibleCount"] == layer["renderedLabelCount"] == _ice_core_count("antarctica")
 
-    page.get_by_label("Show research stations").uncheck()
+    page.get_by_label("Research stations").uncheck()
     page.wait_for_function(
         "() => JSON.parse(window.render_game_to_text()).featureLayers.researchStations.visibleCount === 0",
         timeout=30_000,
@@ -130,8 +133,8 @@ def test_search_selects_refined_basin_enables_layer_and_moves_camera(page):
 
 
 def test_refined_basin_search_restores_a_visible_surface(page):
-    page.get_by_label("Show bed topography").uncheck()
-    page.get_by_label("Show ice surface", exact=True).uncheck()
+    page.get_by_label("Bed", exact=True).uncheck()
+    page.get_by_label("Ice surface", exact=True).uncheck()
     search = page.get_by_role("combobox", name="Search places and features")
     search.fill("Abbot refined basin")
     page.get_by_role("option", name=re.compile("Abbot", re.IGNORECASE)).click()
@@ -261,7 +264,8 @@ def test_clicking_a_marker_shows_its_details_without_moving_the_camera(page):
     )
     page.wait_for_timeout(1_500)
     # Switching the layer off clears the card; switching it back on redraws the markers.
-    toggle = page.get_by_label("Show ice-core sites")
+    open_group(page, "places")
+    toggle = page.get_by_label("Ice-core sites")
     toggle.uncheck()
     expect(page.locator("#polarFeatureDetails")).to_be_hidden()
     toggle.check()

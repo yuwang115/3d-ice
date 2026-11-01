@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import pytest
 
+from tests.e2e.panel import choose_dataset, choose_region, reveal
+
 pytestmark = pytest.mark.e2e
 
 
@@ -43,7 +45,7 @@ class TestExplorerLoads:
 
     def test_flow_animation_can_be_toggled(self, page):
         """Users can pause the directional ice and ocean flow-light effect."""
-        flow_animation = page.locator("#animateFlow")
+        flow_animation = reveal(page, "#animateFlow")
         assert flow_animation.is_checked()
 
         initial_state = page.evaluate("JSON.parse(window.render_game_to_text())")
@@ -57,7 +59,7 @@ class TestExplorerLoads:
 
     def test_enabling_flow_animation_reveals_ice_flowlines_when_no_flow_layer_is_visible(self, page):
         """The animation control avoids an invisible-on-first-use state."""
-        flow_animation = page.locator("#animateFlow")
+        flow_animation = reveal(page, "#animateFlow")
         assert not page.locator("#showFlowline").is_checked()
         assert not page.locator("#showOceanCurrents").is_checked()
 
@@ -85,7 +87,7 @@ class TestExplorerLoads:
             page = context.new_page()
             page.goto(explorer_url, wait_until="networkidle", timeout=30_000)
 
-            flow_animation = page.locator("#animateFlow")
+            flow_animation = reveal(page, "#animateFlow")
             assert not flow_animation.is_checked()
             state = page.evaluate("JSON.parse(window.render_game_to_text())")
             assert state["flowAnimation"] == {
@@ -117,7 +119,7 @@ class TestExplorerLoads:
         )
 
         page.emulate_media(reduced_motion="no-preference")
-        page.locator("#animateFlow").check()
+        reveal(page, "#animateFlow").check()
         page.wait_for_function(
             """() => {
                 const state = JSON.parse(window.render_game_to_text());
@@ -133,7 +135,7 @@ class TestExplorerLoads:
         assert "3D" in title or "ICE" in title or "Cryosphere" in title
 
     def test_can_switch_to_the_bedmap3_terrain_package(self, page):
-        page.select_option("#resolutionPreset", "bedmap3")
+        choose_dataset(page, "bedmap3")
         page.wait_for_function(
             """() => {
                 const state = JSON.parse(window.render_game_to_text());
@@ -159,7 +161,7 @@ class TestExplorerLoads:
         assert "Bedmap3" in (page.text_content("#metaList") or "")
 
     def test_can_switch_to_the_bedmap3_hd_terrain_package(self, page):
-        page.select_option("#resolutionPreset", "bedmap3-hd")
+        choose_dataset(page, "bedmap3-hd")
         page.wait_for_function(
             """() => {
                 const state = JSON.parse(window.render_game_to_text());
@@ -184,7 +186,7 @@ class TestExplorerLoads:
             assert not page.locator(control).is_disabled(), control
 
     def test_bedmap3_balanced_loads_each_enabled_overlay(self, page):
-        page.select_option("#resolutionPreset", "bedmap3")
+        choose_dataset(page, "bedmap3")
         page.wait_for_function(
             """() => {
                 const state = JSON.parse(window.render_game_to_text());
@@ -201,7 +203,7 @@ class TestExplorerLoads:
             ("#showSubglacialChannels", "hydrology"),
             ("#showOceanCurrents", "oceanCurrents"),
         ):
-            page.locator(control).check()
+            reveal(page, control).check()
             page.wait_for_function(
                 f"""() => {{
                     const state = JSON.parse(window.render_game_to_text());
@@ -221,8 +223,8 @@ class TestExplorerLoads:
         (("qrf", 511, 918, 3000), ("qrf-hd", 1533, 2752, 1000)),
     )
     def test_can_switch_to_the_qrf_greenland_terrain_package(self, page, dataset, nx, ny, spacing):
-        page.select_option("#regionPreset", "greenland")
-        page.select_option("#resolutionPreset", dataset)
+        choose_region(page, "greenland")
+        choose_dataset(page, dataset)
         timeout = 90_000 if dataset == "qrf-hd" else 30_000
         page.wait_for_function(
             f"""() => {{
@@ -242,8 +244,8 @@ class TestExplorerLoads:
         assert "QRF bed for" in meta_text
 
     def test_qrf_balanced_loads_the_reused_greenland_overlays(self, page):
-        page.select_option("#regionPreset", "greenland")
-        page.select_option("#resolutionPreset", "qrf")
+        choose_region(page, "greenland")
+        choose_dataset(page, "qrf")
         page.wait_for_function(
             """() => {
                 const state = JSON.parse(window.render_game_to_text());
@@ -259,7 +261,7 @@ class TestExplorerLoads:
             ("#showOceanCurrents", "oceanCurrents"),
         ):
             assert not page.locator(control).is_disabled(), control
-            page.locator(control).check()
+            reveal(page, control).check()
             page.wait_for_function(
                 f"""() => {{
                     const state = JSON.parse(window.render_game_to_text());

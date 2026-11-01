@@ -68,6 +68,32 @@ All notable changes to 3D ICE are recorded here. The format follows
   edition, such as its language switch, is not an entry. Pages report events through
   `window.__3dIceAnalytics.event()`, which sends them on 3d-ice.com only.
 
+### Changed
+
+- The research edition's panel is rebuilt as one column of collapsible groups: Scene, Ice
+  flow, Beneath the ice, Ocean and ice shelves, Change over time, Places and labels, Display,
+  and Data and sources (`docs/research-panel-redesign.md`, phase 1). With nothing switched
+  on it is 959 px tall in a 1440 × 900 window, against 2,135 px before. The public edition
+  is unchanged.
+  - A one-row masthead (the 3D ICE wordmark, a Research tag, the language switch and an ⓘ
+    menu holding the region's introduction and the guided tour) replaces the logo image,
+    which the page no longer fetches.
+  - Region is a two-way switch, and the dataset picker splits into Terrain (BedMachine v4 or
+    Bedmap3; BedMachine v6 or QRF 2025) and Grid (10 or 4 km; 3 or 1 km). The place search
+    and its card sit above the groups, so a closed group never hides them.
+  - Scene, Ice flow and Change over time start open. A group otherwise opens as the reader
+    last left it, opens by itself when a layer in it is switched on, and counts the layers
+    on in it.
+  - Each legend sits under the layer that draws it, with its unit in its caption, so no tick
+    row wraps.
+  - A layer the terrain lacks keeps its row, switched off, and says why: "Antarctica only",
+    "BedMachine v4 only", "BedMachine v4 10 km only". Before, Greenland hid some of these
+    rows and greyed out others without a reason.
+  - Labels drop "Show": *Surface speed*, *Flowlines*, *Ice-core sites*.
+  - Reset view joins the viewer's buttons, the panel's second fullscreen button goes, and
+    the projection's own flowline switch gives way to Ice flow → Flowlines. Until a flowline
+    is picked, one line says how to pick one, in place of a 220–330 px placeholder.
+
 ### Fixed
 
 - Google Analytics records 3d-ice.com again. Since mid-April 2026 the site had loaded

@@ -13,6 +13,8 @@ import json
 
 import pytest
 
+from tests.e2e.panel import choose_dataset, choose_region, reveal
+
 pytestmark = pytest.mark.e2e
 
 SOLVE_TIMEOUT_MS = 90_000
@@ -71,7 +73,7 @@ def _select_model(page, model: str) -> dict:
 
 def _select_dataset(page, dataset: str) -> None:
     """Switch terrain in the panel; the URL's `preset` names a view, not a dataset."""
-    page.locator("#resolutionPreset").select_option(dataset)
+    choose_dataset(page, dataset)
     page.wait_for_function(
         f"() => {{ const s = JSON.parse(window.render_game_to_text()); return s.ready && s.dataset === '{dataset}'; }}",
         timeout=READY_TIMEOUT_MS,
@@ -229,7 +231,7 @@ class TestIsostaticRebound:
 
     def test_selecting_a_bed_draped_overlay_clears_the_rebound_layer(self, page):
         _enable_rebound(page)
-        page.locator("#showBasalFriction").check()
+        reveal(page, "#showBasalFriction").check()
         page.wait_for_function(
             "() => !JSON.parse(window.render_game_to_text()).toggles.showIsostaticRebound",
             timeout=SOLVE_TIMEOUT_MS,
@@ -255,7 +257,7 @@ class TestIsostaticRebound:
 
     def test_the_layer_re_solves_for_greenland(self, page):
         _enable_rebound(page)
-        page.locator("#regionPreset").select_option("greenland")
+        choose_region(page, "greenland")
         page.wait_for_function(
             """() => {
                 const s = JSON.parse(window.render_game_to_text());
@@ -283,7 +285,7 @@ class TestIsostaticRebound:
         assert abs(rebound["maxUpliftMeters"] - 1030.8) < 0.2
 
     def test_qrf_borrows_the_bedmachine_response_and_says_so(self, page):
-        page.locator("#regionPreset").select_option("greenland")
+        choose_region(page, "greenland")
         page.wait_for_function(
             "() => { const s = JSON.parse(window.render_game_to_text()); return s.ready && s.region === 'greenland'; }",
             timeout=READY_TIMEOUT_MS,

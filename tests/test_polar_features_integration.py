@@ -101,34 +101,29 @@ def test_both_locales_wire_refined_basins_into_search_without_replacing_the_boun
     assert (ROOT / "static/tools/js/polar-refined-basins.js").is_file()
 
 
-def test_places_and_geographic_features_heading_is_localized() -> None:
-    expected_headings = (
-        "Places &amp; Geographic Features",
-        "地点与地理特征",
-    )
+def test_places_and_labels_heading_is_localized() -> None:
+    expected_headings = ("Places and labels", "地点与标注")
 
     for explorer, expected_heading in zip(EXPLORERS, expected_headings, strict=True):
         html = explorer.read_text(encoding="utf-8")
-        assert (
-            f'<h3 id="polarFeatureHeading" class="section-title">{expected_heading}</h3>'
-            in html
-        )
+        assert f'<span id="polarFeatureHeading" class="rp-group__title">{expected_heading}</span>' in html
 
 
-def test_places_and_geographic_features_sits_between_ice_opacity_and_bed_in_both_locales() -> None:
+def test_place_search_sits_in_where_and_the_place_layers_in_their_own_group_in_both_locales() -> None:
+    """The search box and its feature card stay in view above the groups, so a collapsed
+    group never hides a picked place; the place layers have a group of their own."""
+    search_ids = ("polarSearchInput", "polarSearchResults", "polarSearchStatus", "polarFeatureDetails")
+    layer_ids = ("showResearchStations", "showGeographicNames", "showIceCores", "showRefinedBasins")
     ordered_ids = (
         "viewControlsSection",
         "regionPreset",
+        *search_ids,
         "resolutionPreset",
-        "exaggeration",
-        "iceOpacity",
-        "polarFeatureSection",
-        "polarSearchInput",
-        "showResearchStations",
-        "showGeographicNames",
-        "showIceCores",
-        "showRefinedBasins",
         "showBed",
+        "interactiveScenariosSection",
+        "polarFeatureSection",
+        *layer_ids,
+        "animateFlow",
     )
 
     for explorer in EXPLORERS:
@@ -136,16 +131,11 @@ def test_places_and_geographic_features_sits_between_ice_opacity_and_bed_in_both
         parser.feed(explorer.read_text(encoding="utf-8"))
 
         assert all(parser.counts.get(element_id) == 1 for element_id in ordered_ids)
-        assert "viewControlsSection" in parser.ancestors["polarFeatureSection"]
-        for element_id in (
-            "polarSearchInput",
-            "showResearchStations",
-            "showGeographicNames",
-            "showIceCores",
-            "showRefinedBasins",
-        ):
-            assert "polarFeatureSection" in parser.ancestors[element_id]
-        assert "viewControlsSection" in parser.ancestors["showBed"]
+        for element_id in search_ids:
+            assert "viewControlsSection" in parser.ancestors[element_id], element_id
+            assert "polarFeatureSection" not in parser.ancestors[element_id], element_id
+        for element_id in layer_ids:
+            assert "polarFeatureSection" in parser.ancestors[element_id], element_id
         assert "polarFeatureSection" not in parser.ancestors["showBed"]
         assert [parser.positions[element_id] for element_id in ordered_ids] == sorted(
             parser.positions[element_id] for element_id in ordered_ids
@@ -153,15 +143,10 @@ def test_places_and_geographic_features_sits_between_ice_opacity_and_bed_in_both
 
 
 def test_ice_core_sites_are_a_research_page_layer_with_localized_toggles() -> None:
-    expected_labels = ("Show ice-core sites", "显示冰芯钻探点")
+    expected_labels = ("Ice-core sites", "冰芯钻探点")
     for explorer, label in zip(EXPLORERS, expected_labels, strict=True):
         html = explorer.read_text(encoding="utf-8")
-        assert f'<input id="showIceCores" type="checkbox" /> {label}</label>' in html
-
-    public_pages = (ROOT / "static/explore/index.html", ROOT / "static/zh/explore/index.html")
-    for page in public_pages:
-        assert 'id="showIceCores"' not in page.read_text(encoding="utf-8")
-
-    # tests/js/editions.test.mjs checks that the public profile disables the layer.
-    runtime = (ROOT / "static/tools/js/explorer-app.js").read_text(encoding="utf-8")
-    assert 'disabledCapabilities.includes("iceCores")' in runtime
+        assert (
+            f'<input id="showIceCores" type="checkbox" data-layer /> <span class="rp-row__label">{label}</span></label>'
+            in html
+        )

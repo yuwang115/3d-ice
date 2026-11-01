@@ -271,3 +271,13 @@ test("ice-core sites are a research-page place layer", () => {
   assert.ok(getEditionProfile(EDITION_KEYS.public).disabledCapabilities.includes("iceCores"));
   assert.ok(!getEditionProfile(EDITION_KEYS.research).disabledCapabilities.includes("iceCores"));
 });
+
+test("the research panel gives a legend's unit in its caption, the public panel on a tick", () => {
+  assert.equal(getEditionProfile(EDITION_KEYS.research).legendUnits, "caption");
+  assert.equal(getEditionProfile(EDITION_KEYS.public).legendUnits, "ticks");
+});
+
+test("a layer the terrain lacks keeps a disabled row with a reason on the research page, and is hidden on the public one", () => {
+  assert.equal(getEditionProfile(EDITION_KEYS.research).unavailableLayers, "explain");
+  assert.equal(getEditionProfile(EDITION_KEYS.public).unavailableLayers, "hide");
+});

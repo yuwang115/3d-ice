@@ -16,7 +16,10 @@ const assetUrl = (relativePath) =>
   assetBaseApi && typeof assetBaseApi.assetUrl === "function"
     ? assetBaseApi.assetUrl(relativePath)
     : new URL(String(relativePath || "").replace(/^\/+/, ""), new URL("/tools/", window.location.href)).toString();
-// Fetched together: none of these modules depends on another.
+// Only the research page has the grouped panel, so only it fetches the panel's modules.
+// The edition is read as editions.js resolves it: "public", or else the research edition.
+const hasResearchPanel = document.documentElement.dataset.edition !== "public";
+// Fetched together: none of these modules needs another to load first.
 const [
   { createPolarFeaturesController },
   { fetchRefinedBasinJson },
@@ -28,6 +31,8 @@ const [
   { summariseMasked },
   { isInOpenWater, OCEAN_STREAMLINE_BED_CLEARANCE_M, OCEAN_STREAMLINE_ICE_CLEARANCE_M },
   { escapeHtml, renderSourceLine },
+  { describeUnavailability },
+  { createResearchPanel },
 ] = await Promise.all([
   import(assetUrl("js/polar-features.js")),
   import(assetUrl("js/polar-refined-basins.js")),
@@ -39,8 +44,14 @@ const [
   import(assetUrl("js/layer-stats.js")),
   import(assetUrl("js/overlay-cells.js")),
   import(assetUrl("js/source-links.js")),
+  hasResearchPanel ? import(assetUrl("js/panel-state.js")) : {},
+  hasResearchPanel ? import(assetUrl("js/research-panel.js")) : {},
 ]);
 const editionProfile = getEditionProfile(document.documentElement.dataset.edition);
+// The research panel gives each legend's unit in its caption, and keeps the row of a layer
+// the terrain lacks, disabled, with the reason; the public panel does neither.
+const legendUnitsOnTicks = editionProfile.legendUnits !== "caption";
+const explainsUnavailableLayers = editionProfile.unavailableLayers === "explain";
 // An edition without the basin layer leaves basins out of place search as well, and one
 // without the ice-core layer leaves out the ice-core sites.
 const searchesRefinedBasins = !editionProfile.disabledCapabilities.includes("refinedBasins");
@@ -171,7 +182,7 @@ const ALL_REGIONS = {
     intro:
       "Explore Antarctica from every angle. Rotate, zoom, and peel back the ice to uncover a hidden world in interactive 3D.",
     refinedBasinsUrl: assetUrl("data/imbie_refined_basins_v2.json"),
-    basinToggleLabel: "Show refined basins",
+    basinToggleLabel: "Refined basins",
     basinStatusLabel: "refined basins",
     defaultDatasetKey: "balanced",
     capabilities: {
@@ -281,6 +292,11 @@ const ALL_REGIONS = {
         id: "balanced",
         label: "BedMachine v4 — Balanced",
         summary: "10 km grid; ~3.0 MB",
+        // The research panel offers each dataset as a terrain and a grid, and names a heavy grid's size.
+        terrain: "bedmachine",
+        terrainLabel: "BedMachine v4",
+        grid: "10km",
+        gridLabel: "10 km",
         metaUrl: assetUrl("data/bedmachine_antarctica_v4_480.meta.json"),
         binUrl: assetUrl("data/bedmachine_antarctica_v4_480.bin"),
         reboundMetaUrl: assetUrl("data/antarctica_isostatic_response_480.meta.json"),
@@ -310,7 +326,12 @@ const ALL_REGIONS = {
       hd: {
         id: "hd",
         label: "BedMachine v4 — HD",
-        summary: "4 km grid; ~18.6 MB",
+        summary: "4 km grid; ~18.6 MB, desktop recommended",
+        terrain: "bedmachine",
+        terrainLabel: "BedMachine v4",
+        grid: "4km",
+        gridLabel: "4 km",
+        desktopRecommended: true,
         metaUrl: assetUrl("data/bedmachine_antarctica_v4_741.meta.json"),
         binUrl: assetUrl("data/bedmachine_antarctica_v4_741.bin"),
         reboundMetaUrl: assetUrl("data/antarctica_isostatic_response_741.meta.json"),
@@ -337,6 +358,10 @@ const ALL_REGIONS = {
         id: "bedmap3",
         label: "Bedmap3 — Balanced",
         summary: "10 km grid; ~3.0 MB",
+        terrain: "bedmap3",
+        terrainLabel: "Bedmap3",
+        grid: "10km",
+        gridLabel: "10 km",
         metaUrl: assetUrl("data/bedmap3_antarctica_10km.meta.json"),
         binUrl: assetUrl("data/bedmap3_antarctica_10km.bin"),
         reboundMetaUrl: assetUrl("data/bedmap3_antarctica_isostatic_response_10km.meta.json"),
@@ -372,6 +397,11 @@ const ALL_REGIONS = {
         id: "bedmap3-hd",
         label: "Bedmap3 — HD",
         summary: "4 km grid; ~18.6 MB, desktop recommended",
+        terrain: "bedmap3",
+        terrainLabel: "Bedmap3",
+        grid: "4km",
+        gridLabel: "4 km",
+        desktopRecommended: true,
         metaUrl: assetUrl("data/bedmap3_antarctica_4km.meta.json"),
         binUrl: assetUrl("data/bedmap3_antarctica_4km.bin"),
         reboundMetaUrl: assetUrl("data/bedmap3_antarctica_isostatic_response_4km.meta.json"),
@@ -411,7 +441,7 @@ const ALL_REGIONS = {
     intro:
       "Explore Greenland from every angle. Rotate, zoom, and peel back the ice to uncover a hidden world in interactive 3D.",
     refinedBasinsUrl: assetUrl("data/greenland_basins_ps_v1_4_2.json"),
-    basinToggleLabel: "Show basins",
+    basinToggleLabel: "Basins",
     basinStatusLabel: "basins",
     defaultDatasetKey: "3km",
     capabilities: {
@@ -495,6 +525,10 @@ const ALL_REGIONS = {
         id: "3km",
         label: "Balanced",
         summary: "3 km grid; ~3.1 MB",
+        terrain: "bedmachine",
+        terrainLabel: "BedMachine v6",
+        grid: "3km",
+        gridLabel: "3 km",
         metaUrl: assetUrl("data/bedmachine_greenland_v6_3km.meta.json"),
         binUrl: assetUrl("data/bedmachine_greenland_v6_3km.bin"),
         reboundMetaUrl: assetUrl("data/greenland_isostatic_response_3km.meta.json"),
@@ -509,7 +543,12 @@ const ALL_REGIONS = {
       "1km": {
         id: "1km",
         label: "HD",
-        summary: "1 km grid; ~28.2 MB",
+        summary: "1 km grid; ~28.2 MB, desktop recommended",
+        terrain: "bedmachine",
+        terrainLabel: "BedMachine v6",
+        grid: "1km",
+        gridLabel: "1 km",
+        desktopRecommended: true,
         metaUrl: assetUrl("data/bedmachine_greenland_v6_1km.meta.json"),
         binUrl: assetUrl("data/bedmachine_greenland_v6_1km.bin"),
         reboundMetaUrl: assetUrl("data/greenland_isostatic_response_1km.meta.json"),
@@ -527,6 +566,10 @@ const ALL_REGIONS = {
         id: "qrf",
         label: "QRF 2025 — Balanced",
         summary: "3 km grid; ~3.1 MB",
+        terrain: "qrf",
+        terrainLabel: "QRF 2025",
+        grid: "3km",
+        gridLabel: "3 km",
         metaUrl: assetUrl("data/greenland_qrf_2025_3km.meta.json"),
         binUrl: assetUrl("data/greenland_qrf_2025_3km.bin"),
         // QRF shares BedMachine v6's grid; the published response was computed for the
@@ -552,6 +595,11 @@ const ALL_REGIONS = {
         id: "qrf-hd",
         label: "QRF 2025 — HD",
         summary: "1 km grid; ~28.2 MB, desktop recommended",
+        terrain: "qrf",
+        terrainLabel: "QRF 2025",
+        grid: "1km",
+        gridLabel: "1 km",
+        desktopRecommended: true,
         metaUrl: assetUrl("data/greenland_qrf_2025_1km.meta.json"),
         binUrl: assetUrl("data/greenland_qrf_2025_1km.bin"),
         reboundMetaUrl: assetUrl("data/greenland_isostatic_response_1km.meta.json"),
@@ -1077,6 +1125,31 @@ const controlsUI = {
   captureManualButtons: Array.from(document.querySelectorAll("[data-capture-manual]")),
 };
 
+function getLocalStorage() {
+  try {
+    return window.localStorage;
+  } catch (_error) {
+    // Reading the property itself throws where storage is blocked.
+    return null;
+  }
+}
+
+// The research page's grouped panel (js/research-panel.js); inert on the public page,
+// which neither has it nor loads its modules. A group the reader opens lays out its tick
+// legends again, because a closed group has no width to measure them by.
+const researchPanel = createResearchPanel
+  ? createResearchPanel({
+      panel: panelEl,
+      regionSelect: controlsUI.regionPreset,
+      datasetSelect: controlsUI.resolutionPreset,
+      storage: getLocalStorage(),
+      formatCount: (count) => t("explorer.panel.layersOn", { count }),
+      onGroupToggle: (group) => {
+        if (group.open) relayoutTickLegends(group);
+      },
+    })
+  : Object.freeze({ syncWhere() {}, setReason() {} });
+
 const RECORDING_AUTO_ORBIT_RAD_PER_SEC = 0.18;
 const RECORDING_AUTO_ZOOM_HZ = 0.12;
 const RECORDING_MANUAL_RESPONSE_SEC = 0.12;
@@ -1399,6 +1472,79 @@ function getLoadingStatusText(region, dataset) {
   return t("explorer.status.loadingCoreTerrain", { region: region.label, dataset: dataset.label });
 }
 
+/**
+ * What each layer needs of a terrain dataset. The research panel asks the registry where
+ * a layer it cannot show can be found, and gives that as the reason it is off.
+ */
+const LAYER_REQUIREMENTS = Object.freeze({
+  showVelocity: (dataset) => dataset.capabilities.velocity,
+  showFlowline: (dataset) => dataset.capabilities.velocity && dataset.capabilities.flowline,
+  showBasalFriction: (dataset) =>
+    dataset.capabilities.basalFriction && dataset.basalFrictionMetaUrl && dataset.basalFrictionBinUrl,
+  showEffectivePressure: (dataset) => dataset.capabilities.hydrology,
+  showSubglacialChannels: (dataset) => dataset.capabilities.hydrology,
+  showOceanCurrents: (dataset) =>
+    dataset.capabilities.oceanCurrents && dataset.oceanCurrentsMetaUrl && dataset.oceanCurrentsBinUrl,
+  showBasalMelt: (dataset) => dataset.capabilities.rise && dataset.riseMetaUrl && dataset.riseBinUrl,
+  showThermalDriving: (dataset) => dataset.capabilities.rise && dataset.riseMetaUrl && dataset.riseBinUrl,
+  showSurfaceChange: (dataset) => isSurfaceChangeAvailable(dataset),
+  showSeaIce: (dataset) => isSeaIceAvailable(dataset),
+  showIceProjection: (dataset) => dataset.capabilities.iceProjection,
+  showIsostaticRebound: (dataset) => dataset.capabilities.isostaticRebound,
+  showRefinedBasins: (dataset) => dataset.capabilities.refinedBasins && dataset.refinedBasinsUrl,
+});
+
+function formatUnavailability(reason) {
+  if (!reason) return "";
+  switch (reason.kind) {
+    case "region":
+      return t("explorer.panel.onlyInRegion", { region: getRegionConfig(reason.region).label });
+    case "terrain":
+      return t("explorer.panel.onlyOnTerrain", { terrain: reason.terrain });
+    case "dataset":
+      return t("explorer.panel.onlyOnDataset", { terrain: reason.terrain, grid: reason.grid });
+    case "grid":
+      return t("explorer.panel.onlyOnGrid", { grid: reason.grid });
+    default:
+      return t("explorer.panel.unavailable");
+  }
+}
+
+/** Layers this terrain offers whose data did not arrive, which say only that they are off. */
+const LAYER_FAILURES = Object.freeze({
+  showIceProjection: () => iceProjectionProbeSettled && !getAvailableIceProjectionScenarios().length,
+  showRefinedBasins: (dataset) => getDatasetBasinUnavailable(dataset),
+});
+
+/**
+ * Why a layer is off, as the research panel says it: where it can be found when the
+ * terrain shown lacks it ("Antarctica only", "BedMachine v4 only"), or "Unavailable" when
+ * its data did not arrive. Empty for a layer that is only waiting for its data.
+ */
+function describeLayerUnavailability(controlId, regionKey) {
+  const requirement = LAYER_REQUIREMENTS[controlId];
+  if (!requirement) return "";
+  const region = getRegionConfig(regionKey);
+  const datasetKey = datasetSelectionByRegion[region.key] || getDefaultDatasetKey(region.key);
+  const offers = (key, candidateKey) => {
+    const dataset = getDatasetConfig(key, candidateKey);
+    return Boolean(dataset && requirement(dataset));
+  };
+  const reason = describeUnavailability(REGIONS, region.key, datasetKey, offers);
+  if (reason) return formatUnavailability(reason);
+  return LAYER_FAILURES[controlId]?.(getDatasetConfig(region.key, datasetKey)) ? t("explorer.panel.unavailable") : "";
+}
+
+/** Give each disabled layer row the reason it is off, on the research page only. */
+function syncLayerReasons(regionKey = currentRegionKey) {
+  if (!explainsUnavailableLayers || isShowcaseMode || isPreviewMode) return;
+  for (const controlId of Object.keys(LAYER_REQUIREMENTS)) {
+    const control = controlsUI[controlId];
+    if (!control) continue;
+    researchPanel.setReason(control, control.disabled ? describeLayerUnavailability(controlId, regionKey) : "");
+  }
+}
+
 function setToggleAvailability(control, enabled) {
   if (!control) return;
   control.disabled = !enabled;
@@ -1497,7 +1643,8 @@ function updateOceanCurrentLayerControls() {
   const splitInfo = getOceanCurrentLayerSplitInfo(currentOceanCurrentMeta);
   const showControls = Boolean(oceanCurrentAvailable && splitInfo.enabled);
   if (controlsUI.oceanCurrentLayerControls) {
-    controlsUI.oceanCurrentLayerControls.hidden = !showControls;
+    // The depth bands are options of the streamlines, shown only while they are on.
+    controlsUI.oceanCurrentLayerControls.hidden = !(showControls && controlsUI.showOceanCurrents.checked);
   }
   for (const layer of OCEAN_CURRENT_LAYER_ORDER) {
     const control = getOceanCurrentLayerControl(layer);
@@ -1546,11 +1693,18 @@ function updateResolutionControlAvailability({ isLoading = false } = {}) {
   const region = getRegionConfig(currentRegionKey);
   const datasetCount = Object.keys(region.datasets).length;
   controlsUI.resolutionPreset.disabled = Boolean(isLoading || lockedDatasetKey || datasetCount < 2);
+  researchPanel.syncWhere();
 }
 
 function updateRegionControlAvailability({ isLoading = false } = {}) {
   if (!controlsUI.regionPreset) return;
   controlsUI.regionPreset.disabled = Boolean(isLoading || lockedRegionKey);
+  researchPanel.syncWhere();
+}
+
+/** Hide a layer's row where the terrain lacks it, unless the panel says why instead. */
+function setUnavailableRowHidden(row, unavailable) {
+  if (row) row.hidden = unavailable && !explainsUnavailableLayers;
 }
 
 function syncRiseToggleRowVisibility(capabilities) {
@@ -1559,12 +1713,8 @@ function syncRiseToggleRowVisibility(capabilities) {
     controlsUI.showBasalMelt.checked = false;
     controlsUI.showThermalDriving.checked = false;
   }
-  if (controlsUI.showBasalMeltRow) {
-    controlsUI.showBasalMeltRow.hidden = !showRiseRows;
-  }
-  if (controlsUI.showThermalDrivingRow) {
-    controlsUI.showThermalDrivingRow.hidden = !showRiseRows;
-  }
+  setUnavailableRowHidden(controlsUI.showBasalMeltRow, !showRiseRows);
+  setUnavailableRowHidden(controlsUI.showThermalDrivingRow, !showRiseRows);
 }
 
 function updateRegionLayerAvailability(regionKey) {
@@ -1601,6 +1751,7 @@ function updateRegionLayerAvailability(regionKey) {
   updateSurfaceChangeAvailability();
   updateSeaIceAvailability();
   updateOceanCurrentLayerControls();
+  syncLayerReasons(region.key);
   updateLegendVisibility();
 }
 
@@ -1653,24 +1804,28 @@ function updateLegendVisibility() {
   if (controlsUI.channelLegendSection) {
     controlsUI.channelLegendSection.hidden = !(hydrologyAvailable && controlsUI.showSubglacialChannels.checked);
   }
-  // Tick labels can only be laid out while their section is visible (a hidden one has no
-  // width), so lay these out again whenever their sections may just have been shown.
-  if (controlsUI.effectivePressureLegendSection && !controlsUI.effectivePressureLegendSection.hidden) {
-    scheduleTickLegendLayout(controlsUI.effectivePressureLegendLabels);
-  }
-  if (controlsUI.channelLegendSection && !controlsUI.channelLegendSection.hidden) {
-    scheduleTickLegendLayout(controlsUI.channelLegendLabels);
-  }
   if (controlsUI.projectionLegendSection) {
     controlsUI.projectionLegendSection.hidden = !(isIceProjectionActive() && getIceProjectionColorMode() === "change");
   }
   if (controlsUI.surfaceChangeLegendSection) {
     controlsUI.surfaceChangeLegendSection.hidden = !isSurfaceChangeShown();
-    if (!controlsUI.surfaceChangeLegendSection.hidden) scheduleTickLegendLayout(controlsUI.surfaceChangeLegendLabels);
   }
   if (controlsUI.seaIceLegendSection) {
     controlsUI.seaIceLegendSection.hidden = !isSeaIceShown();
-    if (!controlsUI.seaIceLegendSection.hidden) scheduleTickLegendLayout(controlsUI.seaIceLegendLabels);
+  }
+  // Tick labels can only be laid out while their section is visible (a hidden one has no
+  // width), so lay out again every tick legend whose section may just have been shown.
+  for (const section of [
+    controlsUI.velocityLegendSection,
+    controlsUI.basalFrictionLegendSection,
+    controlsUI.basalMeltLegendSection,
+    controlsUI.effectivePressureLegendSection,
+    controlsUI.channelLegendSection,
+    controlsUI.projectionLegendSection,
+    controlsUI.surfaceChangeLegendSection,
+    controlsUI.seaIceLegendSection,
+  ]) {
+    if (section?.isConnected && !section.hidden) relayoutTickLegends(section);
   }
 }
 
@@ -1702,6 +1857,7 @@ function refreshRegionUi(regionKey, preferredDatasetKey = null) {
     controlsUI.regionPreset.value = region.key;
   }
   const resolvedDatasetKey = populateResolutionPreset(region.key, preferredDatasetKey);
+  researchPanel.syncWhere({ datasets: region.datasets });
   updateRegionLayerAvailability(region.key);
   updateRegionControlAvailability();
   updateResolutionControlAvailability();
@@ -2930,13 +3086,21 @@ function basalFrictionScaleT(valueMpa) {
   return clamp01(scaled);
 }
 
+/**
+ * A legend tick, with its unit where the edition puts units on ticks rather than in the
+ * caption (see legendUnitsOnTicks).
+ */
+function withTickUnit(text, unit) {
+  return legendUnitsOnTicks ? `${text} ${unit}` : text;
+}
+
 function formatVelocityTick(value) {
-  if (value === 0) return "0 m/yr";
+  if (value === 0) return withTickUnit("0", "m/yr");
   return formatCoord(value, 0);
 }
 
 function formatBasalFrictionTick(value) {
-  if (value === 0) return "0 MPa";
+  if (value === 0) return withTickUnit("0", "MPa");
   if (Math.abs(value) < 0.1) return formatCoord(value, 2);
   if (Math.abs(value) < 1) {
     const roundedToTenth = Number(value.toFixed(1));
@@ -3013,7 +3177,17 @@ function renderTickLegendLabels(targetEl, ticks, scaleFn, formatFn, layoutOption
       )}%;transform:${translate};">${formatFn(value)}</span>`;
     })
     .join("");
+  // Kept with the labels for relayoutTickLegends(), which lays them out again later.
+  if (layoutOptions.minGapPx !== undefined) targetEl.dataset.minGapPx = String(layoutOptions.minGapPx);
   scheduleTickLegendLayout(targetEl, layoutOptions);
+}
+
+/** Lay out every tick legend under `root` again, with the gap each was drawn with. */
+function relayoutTickLegends(root) {
+  for (const labels of root.querySelectorAll(".legend-labels--ticks")) {
+    const { minGapPx } = labels.dataset;
+    scheduleTickLegendLayout(labels, minGapPx ? { minGapPx: Number(minGapPx) } : undefined);
+  }
 }
 
 function renderVelocityLegendTicks() {
@@ -3035,7 +3209,7 @@ function renderBasalFrictionLegendTicks() {
 }
 
 function formatBasalMeltTick(value) {
-  if (value === getBasalMeltVisualizationConfig().ticks[0]) return `${formatCoord(value, 0)} m/yr`;
+  if (value === getBasalMeltVisualizationConfig().ticks[0]) return withTickUnit(formatCoord(value, 0), "m/yr");
   if (value === 0) return "0";
   if (Math.abs(value) >= 10) return formatCoord(value, 0);
   if (Math.abs(value) >= 1) return formatCoord(value, 0);
@@ -3141,9 +3315,9 @@ function updateThermalDrivingLegend() {
   updateContinuousLegend(controlsUI.thermalDrivingLegendBar, (t) => thermalDrivingColor(lerp(range[0], range[1], t)));
   const mid = (range[0] + range[1]) * 0.5;
   controlsUI.thermalDrivingLegendLabels.innerHTML = `
-    <span>${formatCoord(range[0], 2)} °C</span>
+    <span>${withTickUnit(formatCoord(range[0], 2), "°C")}</span>
     <span>${formatCoord(mid, 2)}</span>
-    <span>${formatCoord(range[1], 2)} °C</span>
+    <span>${withTickUnit(formatCoord(range[1], 2), "°C")}</span>
   `;
 }
 
@@ -3151,14 +3325,14 @@ const EFFECTIVE_PRESSURE_LEGEND_TICKS_PA = [0, 1e6, 2e6, 3e6, 4e6, EFFECTIVE_PRE
 const CHANNEL_LEGEND_TICKS_M3_PER_S = [1e-3, 1e-2, 1e-1, 1, 10, CHANNEL_DISCHARGE_MAX];
 
 function formatEffectivePressureTick(pressurePa) {
-  if (pressurePa === 0) return "0 MPa";
+  if (pressurePa === 0) return withTickUnit("0", "MPa");
   const megapascals = formatCoord(pressurePa / 1e6, 0);
   // Colours saturate at the reference pressure, which some cells exceed.
   return pressurePa >= EFFECTIVE_PRESSURE_REFERENCE_PA ? `≥${megapascals}` : megapascals;
 }
 
 function formatChannelDischargeTick(discharge) {
-  if (discharge === CHANNEL_DISCHARGE_MIN) return "0.001 m³/s";
+  if (discharge === CHANNEL_DISCHARGE_MIN) return withTickUnit("0.001", "m³/s");
   if (discharge >= CHANNEL_DISCHARGE_MAX) return `≥${formatCoord(discharge, 0)}`;
   return discharge < 1 ? String(discharge) : formatCoord(discharge, 0);
 }
@@ -6628,46 +6802,6 @@ function renderMetaSection(sectionId, title, items, options = {}) {
   `;
 }
 
-function createFlowlineEmptyStateSvgMarkup(flowlinesVisible) {
-  const lineStroke = flowlinesVisible ? "rgba(62, 142, 176, 0.96)" : "rgba(104, 126, 139, 0.58)";
-  const lineGlow = flowlinesVisible ? "rgba(166, 226, 248, 0.38)" : "rgba(195, 208, 217, 0.22)";
-  const previewOpacity = flowlinesVisible ? "1" : "0.6";
-  return `
-    <svg class="meta-flowline-empty-graphic" viewBox="0 0 220 92" aria-hidden="true">
-      <rect x="0" y="0" width="220" height="92" rx="10" fill="rgba(223, 241, 249, 0.52)"></rect>
-      <path d="M 64 55 C 86 37, 101 31, 124 34" fill="none" stroke="${lineGlow}" stroke-width="10" stroke-linecap="round"></path>
-      <path d="M 64 55 C 86 37, 101 31, 124 34" fill="none" stroke="${lineStroke}" stroke-width="3.5" stroke-linecap="round"></path>
-      <path d="M 38 24 L 54 38 L 46 40 L 52 56 L 44 59 L 38 43 L 31 49 Z" fill="rgba(245, 252, 255, 0.96)" stroke="rgba(50, 77, 95, 0.48)" stroke-width="1.4"></path>
-      <path d="M 54 30 C 79 30, 97 27, 126 27" fill="none" stroke="rgba(72, 110, 132, 0.4)" stroke-width="1.9" stroke-linecap="round" stroke-dasharray="4.5 5"></path>
-      <path d="M 123 23 L 132 27 L 123 31" fill="none" stroke="rgba(72, 110, 132, 0.4)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
-      <g opacity="${previewOpacity}">
-        <rect x="144" y="17" width="54" height="54" rx="8" fill="rgba(255, 255, 255, 0.76)" stroke="rgba(133, 178, 201, 0.5)" stroke-width="1.5"></rect>
-        <path d="M 150 59 L 190 59 L 190 63 L 150 63 Z" fill="rgba(143, 101, 58, 0.3)"></path>
-        <path d="M 150 55 C 160 50, 172 52, 190 46 L 190 59 L 150 59 Z" fill="rgba(143, 101, 58, 0.34)"></path>
-        <path d="M 150 55 C 160 50, 172 52, 190 46" fill="none" stroke="rgba(120, 78, 36, 0.94)" stroke-width="1.8" stroke-linecap="round"></path>
-        <path d="M 150 43 C 161 34, 174 38, 190 29 L 190 46 C 172 52, 160 50, 150 55 Z" fill="rgba(133, 193, 221, 0.5)"></path>
-        <path d="M 150 43 C 161 34, 174 38, 190 29" fill="none" stroke="rgba(246, 252, 255, 0.98)" stroke-width="2.2" stroke-linecap="round"></path>
-      </g>
-    </svg>
-  `;
-}
-
-function renderFlowlineEmptyStateCard(flowlinesVisible) {
-  const title = flowlinesVisible
-    ? t("explorer.meta.selectedFlowlineEmptyTitle")
-    : t("explorer.meta.selectedFlowlineDisabledTitle");
-  const body = flowlinesVisible
-    ? t("explorer.meta.selectedFlowlineEmptyBody")
-    : t("explorer.meta.selectedFlowlineDisabledBody");
-  return `
-    <div class="meta-flowline-empty" role="note">
-      <div class="meta-flowline-empty-title">${escapeHtml(title)}</div>
-      <div class="meta-flowline-empty-body">${escapeHtml(body)}</div>
-      ${createFlowlineEmptyStateSvgMarkup(flowlinesVisible)}
-    </div>
-  `;
-}
-
 function buildSvgPath(points) {
   return points
     .map((point, index) => `${index === 0 ? "M" : "L"} ${formatCoord(point.x, 2)} ${formatCoord(point.y, 2)}`)
@@ -6799,8 +6933,9 @@ function createFlowlineProfileSvgMarkup(flowlineSummary) {
 }
 
 function renderSelectedFlowlineCard(selectedFlowline) {
+  // Until a flowline is picked, one line under the layer says how to pick one.
   if (!selectedFlowline) {
-    return renderFlowlineEmptyStateCard(Boolean(controlsUI.showFlowline?.checked));
+    return `<p class="flowline-hint">${escapeHtml(t("explorer.panel.flowlineHint"))}</p>`;
   }
   const profileSvg = createFlowlineProfileSvgMarkup(selectedFlowline);
   if (!profileSvg) return "";
@@ -7743,6 +7878,7 @@ function bindUI() {
     controlsUI.resolutionPreset.addEventListener("change", () => {
       currentDatasetKey = controlsUI.resolutionPreset.value;
       datasetSelectionByRegion[currentRegionKey] = currentDatasetKey;
+      researchPanel.syncWhere();
       loadAndBuildMeshes(currentDatasetKey).catch(reportLoadError);
     });
   }
@@ -9520,9 +9656,13 @@ function populateIceProjectionScenarios() {
   if (Array.from(select.options).some((option) => option.value === preferred)) select.value = preferred;
 }
 
+function isIceProjectionAvailable() {
+  return isIceProjectionCapable() && getAvailableIceProjectionScenarios().length > 0;
+}
+
 function updateIceProjectionAvailability() {
-  const available = isIceProjectionCapable() && getAvailableIceProjectionScenarios().length > 0;
-  if (controlsUI.iceProjectionRow) controlsUI.iceProjectionRow.hidden = !available;
+  const available = isIceProjectionAvailable();
+  setUnavailableRowHidden(controlsUI.iceProjectionRow, !available);
   if (controlsUI.showIceProjection) {
     controlsUI.showIceProjection.disabled = !available;
     // Until the probe answers, keep a preset's request alive rather than dropping it.
@@ -9532,6 +9672,8 @@ function updateIceProjectionAvailability() {
     }
   }
   updateIceProjectionControlsUi();
+  // The scenario probe settles after the terrain is drawn, so the reason can change then.
+  syncLayerReasons();
 }
 
 function formatSignedFixed(value, digits) {
@@ -9547,8 +9689,10 @@ function formatSignedFixed(value, digits) {
 function formatThicknessChangeTick(value) {
   if (value === 0) return "0";
   const magnitude = Math.abs(value).toLocaleString(numberLocale);
-  const unit = Math.abs(value) === ICE_PROJECTION_LEGEND_TICKS[ICE_PROJECTION_LEGEND_TICKS.length - 1] ? " m" : "";
-  return `${value > 0 ? "+" : "−"}${magnitude}${unit}`;
+  const text = `${value > 0 ? "+" : "−"}${magnitude}`;
+  return Math.abs(value) === ICE_PROJECTION_LEGEND_TICKS[ICE_PROJECTION_LEGEND_TICKS.length - 1]
+    ? withTickUnit(text, "m")
+    : text;
 }
 
 function sampleIceProjectionSeries(values) {
@@ -10547,7 +10691,7 @@ function collectIceProjectionState() {
   }
   const sle = projection?.series ? sampleIceProjectionSeries(projection.series.seaLevel) : Number.NaN;
   return {
-    available: Boolean(controlsUI.iceProjectionRow && !controlsUI.iceProjectionRow.hidden),
+    available: isIceProjectionAvailable(),
     probed: iceProjectionProbeSettled,
     enabled: Boolean(controlsUI.showIceProjection?.checked),
     active: iceProjectionActive,
@@ -12370,7 +12514,7 @@ function isSurfaceChangeShown() {
 function updateSurfaceChangeAvailability() {
   const options = getSurfaceChangeOptions();
   const available = Boolean(options.rate || options.cumulative);
-  if (controlsUI.surfaceChangeRow) controlsUI.surfaceChangeRow.hidden = !available;
+  setUnavailableRowHidden(controlsUI.surfaceChangeRow, !available);
   setToggleAvailability(controlsUI.showSurfaceChange, available);
   const select = controlsUI.surfaceChangeView;
   if (select?.options) {
@@ -13264,7 +13408,7 @@ function updateSurfaceChangeNote() {
 
 /** A legend label: the unit rides on zero, as on the velocity legend, so the ends stay short. */
 function formatSurfaceChangeTick(value, view) {
-  if (value === 0) return view === "rate" ? "0 m/yr" : "0 m";
+  if (value === 0) return withTickUnit("0", view === "rate" ? "m/yr" : "m");
   const magnitude = Math.abs(value).toLocaleString(numberLocale);
   return `${value > 0 ? "+" : "−"}${magnitude}`;
 }
@@ -13552,7 +13696,7 @@ function isSeaIceShown() {
 
 function updateSeaIceAvailability() {
   const available = isSeaIceAvailable();
-  if (controlsUI.seaIceRow) controlsUI.seaIceRow.hidden = !available;
+  setUnavailableRowHidden(controlsUI.seaIceRow, !available);
   setToggleAvailability(controlsUI.showSeaIce, available);
   if (!available) stopSeaIcePlayback();
   syncSeaIceVisibility();
@@ -14168,7 +14312,7 @@ function renderSeaIceLegend() {
   if (!module) return;
   updateContinuousLegend(controlsUI.seaIceLegendBar, (position) => module.seaIceRampColor(position));
   renderTickLegendLabels(controlsUI.seaIceLegendLabels, module.SEA_ICE_LEGEND_TICKS, module.seaIceScaleT, (value) =>
-    value === module.EXTENT_THRESHOLD_PERCENT ? `${value}%` : String(value)
+    value === module.EXTENT_THRESHOLD_PERCENT && legendUnitsOnTicks ? `${value}%` : String(value)
   );
   if (controlsUI.seaIceLegendNote) controlsUI.seaIceLegendNote.textContent = t("explorer.seaIce.legendNote");
 }
