@@ -174,10 +174,6 @@ def test_region_terrain_and_grid_drive_the_runtime_and_a_missing_layer_says_why(
     assert page.locator("#showBasalMelt").is_disabled() and _reason(page, "showBasalMelt") == "BedMachine v4 only"
     assert _reason(page, "showVelocity") == ""
 
-    page.locator('#gridPreset [data-value="4km"]').click()
-    _wait_ready(page, "s.dataset === 'bedmap3-hd'")
-    assert page.locator("#terrainHint").inner_text() == "4 km grid; ~18.6 MB, desktop recommended"
-
     choose_region(page, "greenland")
     state = _wait_ready(page, "s.region === 'greenland'")
     assert state["dataset"] == "3km"
@@ -191,6 +187,14 @@ def test_region_terrain_and_grid_drive_the_runtime_and_a_missing_layer_says_why(
     for row in ("showBasalMeltRow", "showThermalDrivingRow", "surfaceChangeRow", "iceProjectionRow"):
         assert page.locator(f"#{row}").is_visible(), row
     assert page.locator("#showRefinedBasinsLabel").text_content() == "Basins"
+
+    # Back in Antarctica the terrain chosen there is kept. The 4 km grid comes last: while
+    # headless WebGL draws it, the page is too busy for Playwright to finish a click.
+    choose_region(page, "antarctica")
+    _wait_ready(page, "s.region === 'antarctica' && s.dataset === 'bedmap3'")
+    page.locator('#gridPreset [data-value="4km"]').click()
+    _wait_ready(page, "s.dataset === 'bedmap3-hd'")
+    assert page.locator("#terrainHint").text_content() == "4 km grid; ~18.6 MB, desktop recommended"
     assert errors == []
 
 
