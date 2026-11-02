@@ -1,9 +1,11 @@
 @charset "UTF-8";
 
-/* The research edition's panel: a one-row masthead, where to look, and collapsible
-   groups with each legend under its layer. Only the two research pages load this file,
-   after explorer.css, so the public edition never sees it. Class names starting rp- are
-   this panel's own; the rest restyle shared explorer classes inside it. */
+/* The explorer's side panel, in both editions: the masthead with the edition and language
+   switches, where to look, groups with each legend under its layer, and the research
+   edition's own controls (collapsible groups, one-of choices, Change over time, data and
+   sources), whose classes the public page does not use. Every explorer page loads this
+   file after explorer.css; the public pages load explore.css after it. Class names
+   starting rp- are this panel's own; the rest restyle shared explorer classes inside it. */
 
 :root {
   --rp-active-bg: linear-gradient(135deg, rgba(15, 126, 168, 0.16) 0%, rgba(31, 159, 136, 0.16) 100%);
@@ -11,6 +13,7 @@
   --rp-hover: rgba(92, 150, 179, 0.08);
   --rp-count-bg: rgba(15, 126, 168, 0.12);
   --rp-count-text: #0f5976;
+  --rp-wordmark-3d: #0f7ea8;
 }
 
 :root[data-theme="dark"] {
@@ -19,6 +22,7 @@
   --rp-hover: rgba(83, 149, 178, 0.12);
   --rp-count-bg: rgba(121, 214, 255, 0.14);
   --rp-count-text: #b7ecff;
+  --rp-wordmark-3d: #79d6ff;
 }
 
 .panel {
@@ -32,42 +36,90 @@
 
 /* ------------------------------------------------------------------ masthead */
 
+/* Two rows: the icon and wordmark with the ⓘ button, then the edition and the language. */
 .rp-masthead {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: grid;
+  gap: 10px;
   padding: 0 0 12px;
 }
 
+.rp-masthead__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .rp-wordmark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 0;
   color: var(--ink);
-  font-size: 1.34rem;
+  font-size: 1.3rem;
   font-weight: 700;
-  letter-spacing: 0.03em;
+  letter-spacing: 0;
   line-height: 1;
   white-space: nowrap;
 }
 
+/* The site's icon, drawn as an app icon in front of the name. */
+.rp-wordmark__icon {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+}
+
+/* Both words are solid. 3D takes the accent colour, lightened on the dark theme, where the
+   accent itself is too dark to read. */
 .rp-wordmark__3d {
-  color: transparent;
-  -webkit-text-stroke: 1.2px var(--accent);
+  color: var(--rp-wordmark-3d);
 }
 
-.rp-edition-tag {
-  padding: 3px 7px;
-  border: 1px solid var(--section-border);
+/* The two editions, drawn like the language switch beside them: the page's own edition
+   is marked, and the other one is a link to it. */
+.rp-editions {
+  display: inline-flex;
+  flex: none;
+  border: 1px solid var(--meta-border);
   border-radius: 999px;
-  color: var(--section-title);
-  font-size: 0.64rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  white-space: nowrap;
+  background: var(--meta-details-bg);
+  box-shadow: var(--meta-details-shadow);
+  overflow: hidden;
 }
 
-/* The locale switcher shrinks to its two links; the group keeps its "Language" name. */
+.rp-editions__option {
+  padding: 6px 11px;
+  color: var(--meta-text);
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+.rp-editions a.rp-editions__option:hover,
+.rp-editions a.rp-editions__option:focus-visible {
+  background: var(--meta-summary-hover-bg);
+  color: var(--meta-strong);
+  outline: none;
+}
+
+.rp-editions__option[aria-current="page"] {
+  background: linear-gradient(135deg, rgba(15, 126, 168, 0.16) 0%, rgba(31, 159, 136, 0.16) 100%);
+  color: var(--meta-strong);
+}
+
+/* The ⓘ button ends the first row and the language switch the second. The switch shrinks
+   to its two links; its group keeps the "Language" name. */
+.rp-masthead .rp-info-button {
+  margin-left: auto;
+}
+
 .rp-masthead .panel-locale-switcher {
   display: block;
   margin: 0 0 0 auto;
@@ -237,11 +289,19 @@
   border-top: 1px solid var(--section-border);
 }
 
-.rp-group__summary {
+/* A group's title row: a summary that folds the group in the research edition, a plain
+   heading in the public one, whose groups all stay open. */
+.rp-group__summary,
+.rp-group__heading {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin: 0;
   padding: 8px 2px;
+  font: inherit;
+}
+
+.rp-group__summary {
   border-radius: 6px;
   list-style: none;
   cursor: pointer;

@@ -137,8 +137,6 @@
         assetBase,
         assetUrl,
         storageKey: STORAGE_KEY,
-        lightLogoSrc: assetUrl("3d-ice-logo-light.jpg"),
-        darkLogoSrc: assetUrl("3d-ice-logo.jpg"),
         currentTheme: null,
         getTopThemeClass,
         getStoredTheme,
@@ -157,6 +155,7 @@
     })();
   </script>
   <link rel="stylesheet" href="../tools/css/explorer.css" />
+  <link rel="stylesheet" href="../tools/css/panel.css" />
   <link rel="stylesheet" href="../tools/css/explore.css" />
 </head>
 <body>
@@ -166,30 +165,35 @@
         <div class="panel-grab" aria-hidden="true"></div>
         <button id="panelCloseButton" class="panel-close-btn" type="button">Layers and places</button>
       </div>
-      <h1 class="visually-hidden">3D ICE: Explore Antarctica and Greenland in 3D</h1>
-      <div class="panel-brand">
-        <img
-          class="panel-brand-logo"
-          data-src="3d-ice-logo-light.jpg"
-          alt="3D ICE Interactive Cryosphere Explorer"
-          width="2631"
-          height="1166"
-          decoding="async"
-        />
-        <script>
-          (() => {
-            const logoEl = document.currentScript.previousElementSibling;
-            const runtimeTheme = window.__iceRuntimeTheme;
-            if (!logoEl || !runtimeTheme) return;
-            logoEl.src = document.documentElement.dataset.theme === "dark" ? runtimeTheme.darkLogoSrc : runtimeTheme.lightLogoSrc;
-          })();
-        </script>
-      </div>
-      <p id="panelSubtitle" class="subtitle">
-        Explore Antarctica from every angle. Rotate, zoom, and peel back
-        the ice to uncover a hidden world in interactive 3D.
-      </p>
-      <div id="panelLocaleSwitcher" class="panel-locale-switcher"></div>
+
+      <!-- The public panel: the masthead with the edition and language switches, the tour,
+           where to look, and four groups that stay open, each legend under its layer
+           (css/panel.css, css/explore.css, js/panel-masthead.js). Every control keeps
+           the id the runtime, the tour and the tests address it by. -->
+      <header class="rp-masthead">
+        <div class="rp-masthead__row">
+          <h1 class="rp-wordmark"><img class="rp-wordmark__icon" src="../tools/3d-ice-icon.png" alt="" width="28" height="28" /><span class="rp-wordmark__name"><span class="rp-wordmark__3d">3D</span> ICE<span class="visually-hidden">: Explore Antarctica and Greenland in 3D</span></span></h1>
+          <button id="panelInfoButton" class="rp-info-button" type="button" aria-expanded="false" aria-controls="panelInfoMenu" aria-label="About this explorer">i</button>
+        </div>
+        <div class="rp-masthead__row">
+          <nav class="rp-editions" aria-label="Edition">
+            <span class="rp-editions__option" aria-current="page">Public</span>
+            <a class="rp-editions__option" href="../tools/3D-interactive-cryosphere-explorer.html" data-edition-link>Research</a>
+          </nav>
+          <div id="panelLocaleSwitcher" class="panel-locale-switcher"></div>
+        </div>
+        <div id="panelInfoMenu" class="rp-info-menu" hidden>
+          <p id="panelSubtitle" class="subtitle">
+            Explore Antarctica from every angle. Rotate, zoom, and peel back
+            the ice to uncover a hidden world in interactive 3D.
+          </p>
+          <p class="rp-info-menu__about">
+            Everything you see is built from published measurements and models: maps of the ice
+            and the bedrock beneath it, ice speeds measured from satellites, ocean models, projections from eight ice-sheet
+            models, and a published calculation of how the land rebounds. Tap the i beside a layer for its source.
+          </p>
+        </div>
+      </header>
 
       <section id="tourLauncher" class="tour-launcher" aria-labelledby="tourLauncherTitle">
         <h2 id="tourLauncherTitle" class="tour-launcher__title">New here? Take the guided tour</h2>
@@ -201,23 +205,17 @@
       </section>
       <section id="tourCard" class="tour-card" hidden></section>
 
-      <section id="viewControlsSection" class="section" aria-labelledby="whereHeading">
-        <h2 id="whereHeading" class="section-title">Where to look</h2>
-        <div class="control">
-          <label for="regionPreset">Region</label>
-          <select id="regionPreset">
-            <option value="antarctica" selected>Antarctica</option>
-            <option value="greenland">Greenland</option>
-          </select>
+      <section id="viewControlsSection" class="rp-where" aria-label="Where to look">
+        <div class="rp-segmented" role="group" aria-label="Region" data-segmented-for="regionPreset">
+          <button type="button" class="rp-segmented__option" data-value="antarctica" aria-pressed="true">Antarctica</button>
+          <button type="button" class="rp-segmented__option" data-value="greenland" aria-pressed="false">Greenland</button>
         </div>
-        <section id="polarFeatureSection" class="view-control-subsection" aria-labelledby="polarFeatureHeading">
-          <div class="control-heading">
-            <h3 id="polarFeatureHeading" class="section-title">Places</h3>
-            <button class="info-toggle" type="button" data-info="places">i</button>
-          </div>
-          <div class="info-card" data-info-card="places" hidden></div>
-          <div class="control">
-            <label for="polarSearchInput">Search for a place</label>
+        <select id="regionPreset" aria-label="Region" hidden>
+          <option value="antarctica" selected>Antarctica</option>
+          <option value="greenland">Greenland</option>
+        </select>
+        <div id="polarFeatureSection" class="rp-places">
+          <div class="rp-places__search">
             <div class="polar-search-combobox">
               <input
                 id="polarSearchInput"
@@ -228,171 +226,161 @@
                 aria-controls="polarSearchResults"
                 aria-label="Search for a place"
                 autocomplete="off"
-                placeholder="South Pole, station, glacier…"
+                placeholder="Search for a place…"
               />
               <ul id="polarSearchResults" class="polar-search-results" role="listbox" hidden></ul>
             </div>
-            <div id="polarSearchStatus" class="polar-search-status" role="status" aria-live="polite"></div>
+            <button class="info-toggle" type="button" data-info="places">i</button>
           </div>
-          <label class="toggle"><input id="showResearchStations" type="checkbox" /> Research stations</label>
-          <label class="toggle"><input id="showGeographicNames" type="checkbox" /> Place names</label>
+          <div id="polarSearchStatus" class="polar-search-status" role="status" aria-live="polite"></div>
+          <div class="info-card" data-info-card="places" hidden></div>
+          <div class="rp-places__toggles">
+            <label class="toggle"><input id="showResearchStations" type="checkbox" /> Research stations</label>
+            <label class="toggle"><input id="showGeographicNames" type="checkbox" /> Place names</label>
+          </div>
           <div id="polarFeatureDetails" class="polar-feature-details" aria-label="Place details" hidden></div>
-        </section>
+        </div>
       </section>
 
-      <section class="section" aria-labelledby="iceHeading">
-        <h2 id="iceHeading" class="section-title">The ice and the land beneath</h2>
-        <div class="control">
-          <div class="control-heading">
-            <label for="iceOpacity">See through the ice</label>
-            <button class="info-toggle" type="button" data-info="seeThrough">i</button>
-          </div>
-          <input id="iceOpacity" type="range" min="0" max="1" step="0.01" value="1" />
-          <div class="range-ends" aria-hidden="true"><span>See-through</span><span>Solid</span></div>
-        </div>
-        <div class="info-card" data-info-card="seeThrough" hidden></div>
-        <div class="control">
-          <div class="control-heading">
-            <label for="exaggeration">Stretch the heights <span id="exaggerationValue" class="mono">66×</span></label>
-            <button class="info-toggle" type="button" data-info="exaggeration">i</button>
-          </div>
-          <input id="exaggeration" type="range" min="0.5" max="8" step="0.1" value="4.8" />
-        </div>
-        <div class="info-card" data-info-card="exaggeration" hidden></div>
-        <div class="toggle-row">
-          <label class="toggle"><input id="showIce" type="checkbox" checked /> Ice sheet</label>
-          <button class="info-toggle" type="button" data-info="iceSheet">i</button>
-        </div>
-        <div class="info-card" data-info-card="iceSheet" hidden></div>
-        <div class="toggle-row">
-          <label class="toggle"><input id="showBed" type="checkbox" checked /> Bedrock</label>
-          <button class="info-toggle" type="button" data-info="bedrock">i</button>
-        </div>
-        <div class="info-card" data-info-card="bedrock" hidden></div>
-      </section>
-
-      <section class="section" aria-labelledby="motionHeading">
-        <h2 id="motionHeading" class="section-title">Ice and ocean on the move</h2>
-        <div class="toggle-row">
-          <label class="toggle"><input id="showFlowline" type="checkbox" /> Ice flow</label>
-          <button class="info-toggle" type="button" data-info="iceFlow">i</button>
-        </div>
-        <div class="info-card" data-info-card="iceFlow" hidden></div>
-        <div class="toggle-row">
-          <label class="toggle"><input id="showOceanCurrents" type="checkbox" /> Ocean currents</label>
-          <button class="info-toggle" type="button" data-info="oceanCurrents">i</button>
-        </div>
-        <div class="info-card" data-info-card="oceanCurrents" hidden></div>
-        <div class="toggle-row">
-          <label class="toggle"><input id="showSea" type="checkbox" /> Sea level</label>
-          <button class="info-toggle" type="button" data-info="seaLevel">i</button>
-        </div>
-        <div class="info-card" data-info-card="seaLevel" hidden></div>
-      </section>
-
-      <section id="iceProjectionRow" class="section" aria-labelledby="futureHeading" hidden>
-        <h2 id="futureHeading" class="section-title">Antarctica's future</h2>
-        <div class="toggle-row">
-          <label class="toggle"><input id="showIceProjection" type="checkbox" /> The future, to 2300</label>
-          <button class="info-toggle" type="button" data-info="projection">i</button>
-        </div>
-        <div class="info-card" data-info-card="projection" hidden></div>
-        <div id="iceProjectionControls" class="toggle-group" hidden>
+      <section class="rp-group" aria-labelledby="iceHeading">
+        <h2 id="iceHeading" class="rp-group__heading"><span class="rp-group__title">The ice and the land beneath</span></h2>
+        <div class="rp-group__body">
           <div class="control">
-            <label for="projectionScenario">Future</label>
-            <select id="projectionScenario"></select>
-          </div>
-          <div class="control">
-            <label for="projectionYear">Year <span id="projectionYearValue" class="mono">2015</span></label>
-            <div class="projection-timeline">
-              <button id="projectionPlay" type="button" class="projection-play" aria-label="Play">Play</button>
-              <input id="projectionYear" type="range" min="2015" max="2300" step="1" value="2015" />
+            <div class="control-heading">
+              <label for="iceOpacity">See through the ice</label>
+              <button class="info-toggle" type="button" data-info="seeThrough">i</button>
             </div>
-            <div id="projectionReadout" class="projection-readout" aria-live="polite"></div>
-            <svg id="projectionChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="Sea-level change from Antarctica against time"></svg>
-            <div id="projectionNote" class="legend-note"></div>
+            <input id="iceOpacity" type="range" min="0" max="1" step="0.01" value="1" />
+            <div class="range-ends" aria-hidden="true"><span>See-through</span><span>Solid</span></div>
           </div>
-          <label class="toggle toggle--sub"><input id="projectionFlowline" type="checkbox" /> Ice flow</label>
-        </div>
-      </section>
-
-      <section class="section" aria-labelledby="meltHeading">
-        <h2 id="meltHeading" class="section-title">A world without ice</h2>
-        <div class="toggle-row">
-          <label class="toggle"><input id="showIsostaticRebound" type="checkbox" /> Remove the ice</label>
-          <button class="info-toggle" type="button" data-info="rebound">i</button>
-        </div>
-        <div class="info-card" data-info-card="rebound" hidden></div>
-        <div id="isostaticReboundControls" class="toggle-group" hidden>
+          <div class="info-card" data-info-card="seeThrough" hidden></div>
           <div class="control">
-            <label for="reboundProgress">Ice melted <span id="reboundProgressValue" class="mono">100%</span></label>
-            <input id="reboundProgress" type="range" min="0" max="100" step="0.5" value="100" />
+            <div class="control-heading">
+              <label for="exaggeration">Stretch the heights <span id="exaggerationValue" class="mono">66×</span></label>
+              <button class="info-toggle" type="button" data-info="exaggeration">i</button>
+            </div>
+            <input id="exaggeration" type="range" min="0.5" max="8" step="0.1" value="4.8" />
+          </div>
+          <div class="info-card" data-info-card="exaggeration" hidden></div>
+          <div class="toggle-row">
+            <label class="toggle"><input id="showIce" type="checkbox" checked /> Ice sheet</label>
+            <button class="info-toggle" type="button" data-info="iceSheet">i</button>
+          </div>
+          <div class="info-card" data-info-card="iceSheet" hidden></div>
+          <div class="toggle-row">
+            <label class="toggle"><input id="showBed" type="checkbox" checked /> Bedrock</label>
+            <button class="info-toggle" type="button" data-info="bedrock">i</button>
+          </div>
+          <div class="info-card" data-info-card="bedrock" hidden></div>
+          <div id="bedLegendSection" class="rp-legend">
+            <p class="rp-legend__caption">Bedrock height</p>
+            <div id="legendBar" class="legend" aria-hidden="true"></div>
+            <div class="legend-labels">
+              <span>-7000 m</span>
+              <span>0</span>
+              <span>+3500 m</span>
+            </div>
+            <div class="legend-note" data-rebound-legend hidden></div>
           </div>
         </div>
       </section>
 
-      <section class="section section--actions">
-        <button id="resetView" type="button">Reset view</button>
-        <button id="fullscreenToggle" type="button">Enter Fullscreen</button>
-      </section>
-
-      <section id="bedLegendSection" class="section legend-section">
-        <h2 class="section-title">Bedrock height</h2>
-        <div id="legendBar" class="legend" aria-hidden="true"></div>
-        <div class="legend-labels">
-          <span>-7000 m</span>
-          <span>0</span>
-          <span>+3500 m</span>
-        </div>
-        <div class="legend-note" data-rebound-legend hidden></div>
-      </section>
-
-      <section id="projectionLegendSection" class="section legend-section" hidden>
-        <h2 class="section-title">Ice thickness change</h2>
-        <div id="projectionLegendBar" class="legend" aria-hidden="true"></div>
-        <div id="projectionLegendLabels" class="legend-labels"></div>
-        <div id="projectionLegendNote" class="legend-note"></div>
-      </section>
-
-      <section id="velocityLegendSection" class="section legend-section">
-        <h2 class="section-title">Ice speed</h2>
-        <div id="velocityLegendBar" class="legend" aria-hidden="true"></div>
-        <div id="velocityLegendLabels" class="legend-labels">
-          <span>0 m/yr</span>
-          <span>50</span>
-          <span>200</span>
-          <span>500</span>
-          <span>1000</span>
-          <span>3000</span>
-        </div>
-      </section>
-
-      <section id="oceanLegendSection" class="section legend-section" hidden>
-        <h2 class="section-title">Water temperature and saltiness</h2>
-        <div class="ocean-legend-wrap">
-          <div class="ocean-legend-y-axis">
-            <span id="oceanLegendWarmLabel"><strong>Warm</strong>8.0 °C</span>
-            <span id="oceanLegendColdLabel"><strong>Cold</strong>-2.0 °C</span>
+      <section class="rp-group" aria-labelledby="motionHeading">
+        <h2 id="motionHeading" class="rp-group__heading"><span class="rp-group__title">Ice and ocean on the move</span></h2>
+        <div class="rp-group__body">
+          <div class="toggle-row">
+            <label class="toggle"><input id="showFlowline" type="checkbox" /> Ice flow</label>
+            <button class="info-toggle" type="button" data-info="iceFlow">i</button>
           </div>
-          <canvas id="oceanLegendCanvas" class="ocean-legend-canvas" width="184" height="126" aria-hidden="true"></canvas>
-        </div>
-        <div class="ocean-legend-x-axis">
-          <span id="oceanLegendFreshLabel"><strong>Fresh</strong>30.0 PSU</span>
-          <span id="oceanLegendSaltyLabel"><strong>Salty</strong>35.0 PSU</span>
+          <div class="info-card" data-info-card="iceFlow" hidden></div>
+          <div id="velocityLegendSection" class="rp-legend">
+            <p class="rp-legend__caption">Ice speed</p>
+            <div id="velocityLegendBar" class="legend" aria-hidden="true"></div>
+            <div id="velocityLegendLabels" class="legend-labels">
+              <span>0 m/yr</span>
+              <span>50</span>
+              <span>200</span>
+              <span>500</span>
+              <span>1000</span>
+              <span>3000</span>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <label class="toggle"><input id="showOceanCurrents" type="checkbox" /> Ocean currents</label>
+            <button class="info-toggle" type="button" data-info="oceanCurrents">i</button>
+          </div>
+          <div class="info-card" data-info-card="oceanCurrents" hidden></div>
+          <div id="oceanLegendSection" class="rp-legend" hidden>
+            <p class="rp-legend__caption">Water temperature and saltiness</p>
+            <div class="ocean-legend-wrap">
+              <div class="ocean-legend-y-axis">
+                <span id="oceanLegendWarmLabel"><strong>Warm</strong>8.0 °C</span>
+                <span id="oceanLegendColdLabel"><strong>Cold</strong>-2.0 °C</span>
+              </div>
+              <canvas id="oceanLegendCanvas" class="ocean-legend-canvas" width="184" height="126" aria-hidden="true"></canvas>
+            </div>
+            <div class="ocean-legend-x-axis">
+              <span id="oceanLegendFreshLabel"><strong>Fresh</strong>30.0 PSU</span>
+              <span id="oceanLegendSaltyLabel"><strong>Salty</strong>35.0 PSU</span>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <label class="toggle"><input id="showSea" type="checkbox" /> Sea level</label>
+            <button class="info-toggle" type="button" data-info="seaLevel">i</button>
+          </div>
+          <div class="info-card" data-info-card="seaLevel" hidden></div>
         </div>
       </section>
 
-      <section class="section about-edition" aria-labelledby="aboutHeading">
-        <h2 id="aboutHeading" class="section-title">About 3D ICE</h2>
-        <p>
-          Everything you see is built from published measurements and models: maps of the ice
-          and the bedrock beneath it, ice speeds measured from satellites, ocean models, projections from eight ice-sheet
-          models, and a published calculation of how the land rebounds. Tap the i beside a layer for its source.
-        </p>
-        <p>
-          <a class="about-edition__link" href="../tools/3D-interactive-cryosphere-explorer.html">Open the research edition</a>
-          for every dataset, resolution and layer in 3D ICE.
-        </p>
+      <section id="iceProjectionRow" class="rp-group" aria-labelledby="futureHeading" hidden>
+        <h2 id="futureHeading" class="rp-group__heading"><span class="rp-group__title">Antarctica's future</span></h2>
+        <div class="rp-group__body">
+          <div class="toggle-row">
+            <label class="toggle"><input id="showIceProjection" type="checkbox" /> The future, to 2300</label>
+            <button class="info-toggle" type="button" data-info="projection">i</button>
+          </div>
+          <div class="info-card" data-info-card="projection" hidden></div>
+          <div id="iceProjectionControls" class="toggle-group" hidden>
+            <div class="control">
+              <label for="projectionScenario">Future</label>
+              <select id="projectionScenario"></select>
+            </div>
+            <div class="control">
+              <label for="projectionYear">Year <span id="projectionYearValue" class="mono">2015</span></label>
+              <div class="projection-timeline">
+                <button id="projectionPlay" type="button" class="projection-play" aria-label="Play">Play</button>
+                <input id="projectionYear" type="range" min="2015" max="2300" step="1" value="2015" />
+              </div>
+              <div id="projectionReadout" class="projection-readout" aria-live="polite"></div>
+              <svg id="projectionChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="Sea-level change from Antarctica against time"></svg>
+              <div id="projectionNote" class="legend-note"></div>
+            </div>
+            <label class="toggle toggle--sub"><input id="projectionFlowline" type="checkbox" /> Ice flow</label>
+          </div>
+          <div id="projectionLegendSection" class="rp-legend" hidden>
+            <p class="rp-legend__caption">Ice thickness change</p>
+            <div id="projectionLegendBar" class="legend" aria-hidden="true"></div>
+            <div id="projectionLegendLabels" class="legend-labels"></div>
+            <div id="projectionLegendNote" class="legend-note"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="rp-group" aria-labelledby="meltHeading">
+        <h2 id="meltHeading" class="rp-group__heading"><span class="rp-group__title">A world without ice</span></h2>
+        <div class="rp-group__body">
+          <div class="toggle-row">
+            <label class="toggle"><input id="showIsostaticRebound" type="checkbox" /> Remove the ice</label>
+            <button class="info-toggle" type="button" data-info="rebound">i</button>
+          </div>
+          <div class="info-card" data-info-card="rebound" hidden></div>
+          <div id="isostaticReboundControls" class="toggle-group" hidden>
+            <div class="control">
+              <label for="reboundProgress">Ice melted <span id="reboundProgressValue" class="mono">100%</span></label>
+              <input id="reboundProgress" type="range" min="0" max="100" step="0.5" value="100" />
+            </div>
+          </div>
+        </div>
       </section>
     </aside>
 
@@ -419,6 +407,7 @@
       <div class="viewer-toolbar">
         <button id="viewerTourButton" class="viewer-tool-btn viewer-tool-btn--tour" type="button" aria-expanded="false" disabled>Guided tour</button>
         <button id="interactionToggle" class="viewer-tool-btn is-hidden" type="button">Enable 3D</button>
+        <button id="resetView" class="viewer-tool-btn" type="button">Reset view</button>
         <button id="viewerFullscreenToggle" class="viewer-tool-btn" type="button">Enter Fullscreen</button>
       </div>
       <div class="hud">

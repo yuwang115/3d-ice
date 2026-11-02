@@ -4,6 +4,30 @@ All notable changes to 3D ICE are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- An edition switch in the panel of both editions, beside the language switch: *Public |
+  Research* (*科普版 | 专业版*). It opens the other edition in the same language and at the
+  region on screen, and the analytics counts it as an entry to that edition.
+- The site's icon in front of the 3D ICE wordmark.
+
+### Changed
+
+- The public edition's panel takes the research panel's look. The logo banner gives way to a
+  two-row masthead, and the intro and what the explorer is built from move into its ⓘ menu.
+  Antarctica and Greenland become two buttons. The four groups stay open, each legend sits
+  under the layer that draws it, and *Reset view* joins the viewer's buttons. With nothing
+  on, the panel is 979 px tall in a 1440 × 900 window, against 1,877 px in 0.4.0. Its copy
+  and its explainers are unchanged.
+- The research masthead gains a second row for the two switches, and the *Research* tag
+  beside the wordmark goes, as the switch names the edition.
+- The wordmark is solid in both words: *3D* in the accent colour, lighter on the dark
+  theme, where the outlined *3D* was hard to read, and *ICE* in the text colour.
+- `css/research-panel.css` becomes `css/panel.css`, which every explorer page loads, and the
+  ⓘ menu and region buttons move from `js/research-panel.js` to `js/panel-masthead.js`.
+
 ## [0.4.0] — 2026-11-01
 
 Two observed records, ice-core sites and a rebuilt panel for the research edition, and

@@ -137,8 +137,6 @@
         assetBase,
         assetUrl,
         storageKey: STORAGE_KEY,
-        lightLogoSrc: assetUrl("3d-ice-logo-light.jpg"),
-        darkLogoSrc: assetUrl("3d-ice-logo.jpg"),
         currentTheme: null,
         getTopThemeClass,
         getStoredTheme,
@@ -157,6 +155,7 @@
     })();
   </script>
   <link rel="stylesheet" href="../../tools/css/explorer.css" />
+  <link rel="stylesheet" href="../../tools/css/panel.css" />
   <link rel="stylesheet" href="../../tools/css/explore.css" />
 </head>
 <body>
@@ -166,29 +165,29 @@
         <div class="panel-grab" aria-hidden="true"></div>
         <button id="panelCloseButton" class="panel-close-btn" type="button">图层与地点</button>
       </div>
-      <h1 class="visually-hidden">3D ICE：在 3D 中探索南极与格陵兰</h1>
-      <div class="panel-brand">
-        <img
-          class="panel-brand-logo"
-          data-src="3d-ice-logo-light.jpg"
-          alt="3D ICE 冰冻圈交互探索平台"
-          width="2631"
-          height="1166"
-          decoding="async"
-        />
-        <script>
-          (() => {
-            const logoEl = document.currentScript.previousElementSibling;
-            const runtimeTheme = window.__iceRuntimeTheme;
-            if (!logoEl || !runtimeTheme) return;
-            logoEl.src = document.documentElement.dataset.theme === "dark" ? runtimeTheme.darkLogoSrc : runtimeTheme.lightLogoSrc;
-          })();
-        </script>
-      </div>
-      <p id="panelSubtitle" class="subtitle">
-        全方位，探秘南极。旋转、缩放、穿透重重冰盖，在 3D 交互中，唤醒沉睡的冰下世界。
-      </p>
-      <div id="panelLocaleSwitcher" class="panel-locale-switcher"></div>
+
+      <!-- See the en variant: same groups, same ids, same order. -->
+      <header class="rp-masthead">
+        <div class="rp-masthead__row">
+          <h1 class="rp-wordmark"><img class="rp-wordmark__icon" src="../../tools/3d-ice-icon.png" alt="" width="28" height="28" /><span class="rp-wordmark__name"><span class="rp-wordmark__3d">3D</span> ICE<span class="visually-hidden">：在 3D 中探索南极与格陵兰</span></span></h1>
+          <button id="panelInfoButton" class="rp-info-button" type="button" aria-expanded="false" aria-controls="panelInfoMenu" aria-label="关于本平台">i</button>
+        </div>
+        <div class="rp-masthead__row">
+          <nav class="rp-editions" aria-label="版本">
+            <span class="rp-editions__option" aria-current="page">科普版</span>
+            <a class="rp-editions__option" href="../tools/3D-interactive-cryosphere-explorer.html" data-edition-link>专业版</a>
+          </nav>
+          <div id="panelLocaleSwitcher" class="panel-locale-switcher"></div>
+        </div>
+        <div id="panelInfoMenu" class="rp-info-menu" hidden>
+          <p id="panelSubtitle" class="subtitle">
+            全方位，探秘南极。旋转、缩放、穿透重重冰盖，在 3D 交互中，唤醒沉睡的冰下世界。
+          </p>
+          <p class="rp-info-menu__about">
+            你看到的一切都来自已发表的观测和模式：冰层及其下方基岩的地图、卫星测得的冰速、海洋模式、八个冰盖模型的未来预估，以及已发表的陆地回弹计算。点击图层旁的 i 可查看资料来源。
+          </p>
+        </div>
+      </header>
 
       <section id="tourLauncher" class="tour-launcher" aria-labelledby="tourLauncherTitle">
         <h2 id="tourLauncherTitle" class="tour-launcher__title">第一次来？跟着导览看看</h2>
@@ -199,23 +198,17 @@
       </section>
       <section id="tourCard" class="tour-card" hidden></section>
 
-      <section id="viewControlsSection" class="section" aria-labelledby="whereHeading">
-        <h2 id="whereHeading" class="section-title">去哪里看</h2>
-        <div class="control">
-          <label for="regionPreset">区域</label>
-          <select id="regionPreset">
-            <option value="antarctica" selected>南极洲</option>
-            <option value="greenland">格陵兰</option>
-          </select>
+      <section id="viewControlsSection" class="rp-where" aria-label="去哪里看">
+        <div class="rp-segmented" role="group" aria-label="区域" data-segmented-for="regionPreset">
+          <button type="button" class="rp-segmented__option" data-value="antarctica" aria-pressed="true">南极洲</button>
+          <button type="button" class="rp-segmented__option" data-value="greenland" aria-pressed="false">格陵兰</button>
         </div>
-        <section id="polarFeatureSection" class="view-control-subsection" aria-labelledby="polarFeatureHeading">
-          <div class="control-heading">
-            <h3 id="polarFeatureHeading" class="section-title">地点</h3>
-            <button class="info-toggle" type="button" data-info="places">i</button>
-          </div>
-          <div class="info-card" data-info-card="places" hidden></div>
-          <div class="control">
-            <label for="polarSearchInput">搜索地点</label>
+        <select id="regionPreset" aria-label="区域" hidden>
+          <option value="antarctica" selected>南极洲</option>
+          <option value="greenland">格陵兰</option>
+        </select>
+        <div id="polarFeatureSection" class="rp-places">
+          <div class="rp-places__search">
             <div class="polar-search-combobox">
               <input
                 id="polarSearchInput"
@@ -226,168 +219,161 @@
                 aria-controls="polarSearchResults"
                 aria-label="搜索地点"
                 autocomplete="off"
-                placeholder="南极点、科考站、冰川…"
+                placeholder="搜索地点…"
               />
               <ul id="polarSearchResults" class="polar-search-results" role="listbox" hidden></ul>
             </div>
-            <div id="polarSearchStatus" class="polar-search-status" role="status" aria-live="polite"></div>
+            <button class="info-toggle" type="button" data-info="places">i</button>
           </div>
-          <label class="toggle"><input id="showResearchStations" type="checkbox" /> 科考站</label>
-          <label class="toggle"><input id="showGeographicNames" type="checkbox" /> 地名</label>
+          <div id="polarSearchStatus" class="polar-search-status" role="status" aria-live="polite"></div>
+          <div class="info-card" data-info-card="places" hidden></div>
+          <div class="rp-places__toggles">
+            <label class="toggle"><input id="showResearchStations" type="checkbox" /> 科考站</label>
+            <label class="toggle"><input id="showGeographicNames" type="checkbox" /> 地名</label>
+          </div>
           <div id="polarFeatureDetails" class="polar-feature-details" aria-label="地点详情" hidden></div>
-        </section>
+        </div>
       </section>
 
-      <section class="section" aria-labelledby="iceHeading">
-        <h2 id="iceHeading" class="section-title">冰层与冰下的大地</h2>
-        <div class="control">
-          <div class="control-heading">
-            <label for="iceOpacity">透视冰层</label>
-            <button class="info-toggle" type="button" data-info="seeThrough">i</button>
-          </div>
-          <input id="iceOpacity" type="range" min="0" max="1" step="0.01" value="1" />
-          <div class="range-ends" aria-hidden="true"><span>透明</span><span>不透明</span></div>
-        </div>
-        <div class="info-card" data-info-card="seeThrough" hidden></div>
-        <div class="control">
-          <div class="control-heading">
-            <label for="exaggeration">拉伸高度 <span id="exaggerationValue" class="mono">66×</span></label>
-            <button class="info-toggle" type="button" data-info="exaggeration">i</button>
-          </div>
-          <input id="exaggeration" type="range" min="0.5" max="8" step="0.1" value="4.8" />
-        </div>
-        <div class="info-card" data-info-card="exaggeration" hidden></div>
-        <div class="toggle-row">
-          <label class="toggle"><input id="showIce" type="checkbox" checked /> 冰盖</label>
-          <button class="info-toggle" type="button" data-info="iceSheet">i</button>
-        </div>
-        <div class="info-card" data-info-card="iceSheet" hidden></div>
-        <div class="toggle-row">
-          <label class="toggle"><input id="showBed" type="checkbox" checked /> 基岩</label>
-          <button class="info-toggle" type="button" data-info="bedrock">i</button>
-        </div>
-        <div class="info-card" data-info-card="bedrock" hidden></div>
-      </section>
-
-      <section class="section" aria-labelledby="motionHeading">
-        <h2 id="motionHeading" class="section-title">流动的冰与海洋</h2>
-        <div class="toggle-row">
-          <label class="toggle"><input id="showFlowline" type="checkbox" /> 冰的流动</label>
-          <button class="info-toggle" type="button" data-info="iceFlow">i</button>
-        </div>
-        <div class="info-card" data-info-card="iceFlow" hidden></div>
-        <div class="toggle-row">
-          <label class="toggle"><input id="showOceanCurrents" type="checkbox" /> 洋流</label>
-          <button class="info-toggle" type="button" data-info="oceanCurrents">i</button>
-        </div>
-        <div class="info-card" data-info-card="oceanCurrents" hidden></div>
-        <div class="toggle-row">
-          <label class="toggle"><input id="showSea" type="checkbox" /> 海平面</label>
-          <button class="info-toggle" type="button" data-info="seaLevel">i</button>
-        </div>
-        <div class="info-card" data-info-card="seaLevel" hidden></div>
-      </section>
-
-      <section id="iceProjectionRow" class="section" aria-labelledby="futureHeading" hidden>
-        <h2 id="futureHeading" class="section-title">南极的未来</h2>
-        <div class="toggle-row">
-          <label class="toggle"><input id="showIceProjection" type="checkbox" /> 未来，直到 2300 年</label>
-          <button class="info-toggle" type="button" data-info="projection">i</button>
-        </div>
-        <div class="info-card" data-info-card="projection" hidden></div>
-        <div id="iceProjectionControls" class="toggle-group" hidden>
+      <section class="rp-group" aria-labelledby="iceHeading">
+        <h2 id="iceHeading" class="rp-group__heading"><span class="rp-group__title">冰层与冰下的大地</span></h2>
+        <div class="rp-group__body">
           <div class="control">
-            <label for="projectionScenario">未来情景</label>
-            <select id="projectionScenario"></select>
-          </div>
-          <div class="control">
-            <label for="projectionYear">年份 <span id="projectionYearValue" class="mono">2015</span></label>
-            <div class="projection-timeline">
-              <button id="projectionPlay" type="button" class="projection-play" aria-label="播放">播放</button>
-              <input id="projectionYear" type="range" min="2015" max="2300" step="1" value="2015" />
+            <div class="control-heading">
+              <label for="iceOpacity">透视冰层</label>
+              <button class="info-toggle" type="button" data-info="seeThrough">i</button>
             </div>
-            <div id="projectionReadout" class="projection-readout" aria-live="polite"></div>
-            <svg id="projectionChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="南极造成的海平面变化随时间的变化"></svg>
-            <div id="projectionNote" class="legend-note"></div>
+            <input id="iceOpacity" type="range" min="0" max="1" step="0.01" value="1" />
+            <div class="range-ends" aria-hidden="true"><span>透明</span><span>不透明</span></div>
           </div>
-          <label class="toggle toggle--sub"><input id="projectionFlowline" type="checkbox" /> 冰的流动</label>
-        </div>
-      </section>
-
-      <section class="section" aria-labelledby="meltHeading">
-        <h2 id="meltHeading" class="section-title">没有冰的世界</h2>
-        <div class="toggle-row">
-          <label class="toggle"><input id="showIsostaticRebound" type="checkbox" /> 移除冰层</label>
-          <button class="info-toggle" type="button" data-info="rebound">i</button>
-        </div>
-        <div class="info-card" data-info-card="rebound" hidden></div>
-        <div id="isostaticReboundControls" class="toggle-group" hidden>
+          <div class="info-card" data-info-card="seeThrough" hidden></div>
           <div class="control">
-            <label for="reboundProgress">冰融化程度 <span id="reboundProgressValue" class="mono">100%</span></label>
-            <input id="reboundProgress" type="range" min="0" max="100" step="0.5" value="100" />
+            <div class="control-heading">
+              <label for="exaggeration">拉伸高度 <span id="exaggerationValue" class="mono">66×</span></label>
+              <button class="info-toggle" type="button" data-info="exaggeration">i</button>
+            </div>
+            <input id="exaggeration" type="range" min="0.5" max="8" step="0.1" value="4.8" />
+          </div>
+          <div class="info-card" data-info-card="exaggeration" hidden></div>
+          <div class="toggle-row">
+            <label class="toggle"><input id="showIce" type="checkbox" checked /> 冰盖</label>
+            <button class="info-toggle" type="button" data-info="iceSheet">i</button>
+          </div>
+          <div class="info-card" data-info-card="iceSheet" hidden></div>
+          <div class="toggle-row">
+            <label class="toggle"><input id="showBed" type="checkbox" checked /> 基岩</label>
+            <button class="info-toggle" type="button" data-info="bedrock">i</button>
+          </div>
+          <div class="info-card" data-info-card="bedrock" hidden></div>
+          <div id="bedLegendSection" class="rp-legend">
+            <p class="rp-legend__caption">基岩高度</p>
+            <div id="legendBar" class="legend" aria-hidden="true"></div>
+            <div class="legend-labels">
+              <span>-7000 m</span>
+              <span>0</span>
+              <span>+3500 m</span>
+            </div>
+            <div class="legend-note" data-rebound-legend hidden></div>
           </div>
         </div>
       </section>
 
-      <section class="section section--actions">
-        <button id="resetView" type="button">视角重置</button>
-        <button id="fullscreenToggle" type="button">进入全屏</button>
-      </section>
-
-      <section id="bedLegendSection" class="section legend-section">
-        <h2 class="section-title">基岩高度</h2>
-        <div id="legendBar" class="legend" aria-hidden="true"></div>
-        <div class="legend-labels">
-          <span>-7000 m</span>
-          <span>0</span>
-          <span>+3500 m</span>
-        </div>
-        <div class="legend-note" data-rebound-legend hidden></div>
-      </section>
-
-      <section id="projectionLegendSection" class="section legend-section" hidden>
-        <h2 class="section-title">冰厚变化</h2>
-        <div id="projectionLegendBar" class="legend" aria-hidden="true"></div>
-        <div id="projectionLegendLabels" class="legend-labels"></div>
-        <div id="projectionLegendNote" class="legend-note"></div>
-      </section>
-
-      <section id="velocityLegendSection" class="section legend-section">
-        <h2 class="section-title">冰速</h2>
-        <div id="velocityLegendBar" class="legend" aria-hidden="true"></div>
-        <div id="velocityLegendLabels" class="legend-labels">
-          <span>0 m/yr</span>
-          <span>50</span>
-          <span>200</span>
-          <span>500</span>
-          <span>1000</span>
-          <span>3000</span>
-        </div>
-      </section>
-
-      <section id="oceanLegendSection" class="section legend-section" hidden>
-        <h2 class="section-title">海水温度与咸度</h2>
-        <div class="ocean-legend-wrap">
-          <div class="ocean-legend-y-axis">
-            <span id="oceanLegendWarmLabel"><strong>暖</strong>8.0 °C</span>
-            <span id="oceanLegendColdLabel"><strong>冷</strong>-2.0 °C</span>
+      <section class="rp-group" aria-labelledby="motionHeading">
+        <h2 id="motionHeading" class="rp-group__heading"><span class="rp-group__title">流动的冰与海洋</span></h2>
+        <div class="rp-group__body">
+          <div class="toggle-row">
+            <label class="toggle"><input id="showFlowline" type="checkbox" /> 冰的流动</label>
+            <button class="info-toggle" type="button" data-info="iceFlow">i</button>
           </div>
-          <canvas id="oceanLegendCanvas" class="ocean-legend-canvas" width="184" height="126" aria-hidden="true"></canvas>
-        </div>
-        <div class="ocean-legend-x-axis">
-          <span id="oceanLegendFreshLabel"><strong>淡</strong>30.0 PSU</span>
-          <span id="oceanLegendSaltyLabel"><strong>咸</strong>35.0 PSU</span>
+          <div class="info-card" data-info-card="iceFlow" hidden></div>
+          <div id="velocityLegendSection" class="rp-legend">
+            <p class="rp-legend__caption">冰速</p>
+            <div id="velocityLegendBar" class="legend" aria-hidden="true"></div>
+            <div id="velocityLegendLabels" class="legend-labels">
+              <span>0 m/yr</span>
+              <span>50</span>
+              <span>200</span>
+              <span>500</span>
+              <span>1000</span>
+              <span>3000</span>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <label class="toggle"><input id="showOceanCurrents" type="checkbox" /> 洋流</label>
+            <button class="info-toggle" type="button" data-info="oceanCurrents">i</button>
+          </div>
+          <div class="info-card" data-info-card="oceanCurrents" hidden></div>
+          <div id="oceanLegendSection" class="rp-legend" hidden>
+            <p class="rp-legend__caption">海水温度与咸度</p>
+            <div class="ocean-legend-wrap">
+              <div class="ocean-legend-y-axis">
+                <span id="oceanLegendWarmLabel"><strong>暖</strong>8.0 °C</span>
+                <span id="oceanLegendColdLabel"><strong>冷</strong>-2.0 °C</span>
+              </div>
+              <canvas id="oceanLegendCanvas" class="ocean-legend-canvas" width="184" height="126" aria-hidden="true"></canvas>
+            </div>
+            <div class="ocean-legend-x-axis">
+              <span id="oceanLegendFreshLabel"><strong>淡</strong>30.0 PSU</span>
+              <span id="oceanLegendSaltyLabel"><strong>咸</strong>35.0 PSU</span>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <label class="toggle"><input id="showSea" type="checkbox" /> 海平面</label>
+            <button class="info-toggle" type="button" data-info="seaLevel">i</button>
+          </div>
+          <div class="info-card" data-info-card="seaLevel" hidden></div>
         </div>
       </section>
 
-      <section class="section about-edition" aria-labelledby="aboutHeading">
-        <h2 id="aboutHeading" class="section-title">关于 3D ICE</h2>
-        <p>
-          你看到的一切都来自已发表的观测和模式：冰层及其下方基岩的地图、卫星测得的冰速、海洋模式、八个冰盖模型的未来预估，以及已发表的陆地回弹计算。点击图层旁的 i 可查看资料来源。
-        </p>
-        <p>
-          <a class="about-edition__link" href="../tools/3D-interactive-cryosphere-explorer.html">打开专业版</a>，查看 3D ICE 的全部数据集、分辨率和图层。
-        </p>
+      <section id="iceProjectionRow" class="rp-group" aria-labelledby="futureHeading" hidden>
+        <h2 id="futureHeading" class="rp-group__heading"><span class="rp-group__title">南极的未来</span></h2>
+        <div class="rp-group__body">
+          <div class="toggle-row">
+            <label class="toggle"><input id="showIceProjection" type="checkbox" /> 未来，直到 2300 年</label>
+            <button class="info-toggle" type="button" data-info="projection">i</button>
+          </div>
+          <div class="info-card" data-info-card="projection" hidden></div>
+          <div id="iceProjectionControls" class="toggle-group" hidden>
+            <div class="control">
+              <label for="projectionScenario">未来情景</label>
+              <select id="projectionScenario"></select>
+            </div>
+            <div class="control">
+              <label for="projectionYear">年份 <span id="projectionYearValue" class="mono">2015</span></label>
+              <div class="projection-timeline">
+                <button id="projectionPlay" type="button" class="projection-play" aria-label="播放">播放</button>
+                <input id="projectionYear" type="range" min="2015" max="2300" step="1" value="2015" />
+              </div>
+              <div id="projectionReadout" class="projection-readout" aria-live="polite"></div>
+              <svg id="projectionChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="南极造成的海平面变化随时间的变化"></svg>
+              <div id="projectionNote" class="legend-note"></div>
+            </div>
+            <label class="toggle toggle--sub"><input id="projectionFlowline" type="checkbox" /> 冰的流动</label>
+          </div>
+          <div id="projectionLegendSection" class="rp-legend" hidden>
+            <p class="rp-legend__caption">冰厚变化</p>
+            <div id="projectionLegendBar" class="legend" aria-hidden="true"></div>
+            <div id="projectionLegendLabels" class="legend-labels"></div>
+            <div id="projectionLegendNote" class="legend-note"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="rp-group" aria-labelledby="meltHeading">
+        <h2 id="meltHeading" class="rp-group__heading"><span class="rp-group__title">没有冰的世界</span></h2>
+        <div class="rp-group__body">
+          <div class="toggle-row">
+            <label class="toggle"><input id="showIsostaticRebound" type="checkbox" /> 移除冰层</label>
+            <button class="info-toggle" type="button" data-info="rebound">i</button>
+          </div>
+          <div class="info-card" data-info-card="rebound" hidden></div>
+          <div id="isostaticReboundControls" class="toggle-group" hidden>
+            <div class="control">
+              <label for="reboundProgress">冰融化程度 <span id="reboundProgressValue" class="mono">100%</span></label>
+              <input id="reboundProgress" type="range" min="0" max="100" step="0.5" value="100" />
+            </div>
+          </div>
+        </div>
       </section>
     </aside>
 
@@ -414,6 +400,7 @@
       <div class="viewer-toolbar">
         <button id="viewerTourButton" class="viewer-tool-btn viewer-tool-btn--tour" type="button" aria-expanded="false" disabled>导览</button>
         <button id="interactionToggle" class="viewer-tool-btn is-hidden" type="button">启用 3D</button>
+        <button id="resetView" class="viewer-tool-btn" type="button">视角重置</button>
         <button id="viewerFullscreenToggle" class="viewer-tool-btn" type="button">进入全屏</button>
       </div>
       <div class="hud">

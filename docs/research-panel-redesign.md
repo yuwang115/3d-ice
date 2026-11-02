@@ -445,3 +445,33 @@ Done when:
 4. Whether to keep the "Research" tag in the header.
 5. The Chinese labels, for the author to review.
 6. When ISMIP7 can leave research-only.
+
+## Follow-up: the public edition and the edition switch
+
+On 2026-11-02 the author asked for three things: the site's icon in front of the wordmark, a public panel redesigned to match this one, and a switch between the two editions. That request lifts the rule above that the public edition must not change. It also settles open question 4: the switch names the edition, so the *Research* tag goes.
+
+The author's choices:
+
+- **Edition switch.** It sits on a second masthead row. The first row holds the icon, the wordmark and the ⓘ button. The second holds *Public | Research* (*科普版 | 专业版*) beside the language switch, in the same style. The page's own edition is marked, and the other one is a link to its page in the same language. That link carries the region on screen (`?region=`), so the reader lands on the same ice sheet.
+- **Public panel.** It takes this panel's look, with every group open and none folding.
+  - The logo banner goes, and the intro and what the explorer is built from move into the ⓘ menu. The tour card stays on top.
+  - Antarctica and Greenland become two buttons, and each legend sits under the layer that draws it.
+  - *Reset view* joins the viewer's buttons.
+  - The copy and the explainers are the reviewed ones, moved.
+
+Built on `feat/public-panel`. Measured in headless Chromium at 1440 × 900, with nothing on:
+
+| Panel | 0.4.0 | Now |
+| --- | --- | --- |
+| Public, English / Chinese | 1,877 / 1,796 px | 979 / 992 px |
+| Research, English | 945 px | 981 px |
+
+The estimate offered with the choice was about 850 px, short enough to fit a 1440 × 900 window. It left out the masthead's second row and undercounted the tour card, so the last group sits about 110 px below the fold.
+
+How it is built:
+
+- **Styles.** `css/research-panel.css` is now `css/panel.css`, and every explorer page loads it after `explorer.css`. The research edition's own rules find nothing on the public page. The public pages load `explore.css` after it.
+- **Script.** `js/panel-masthead.js` holds the ⓘ menu, the region buttons and the switch's link for both editions. `js/research-panel.js` keeps the groups, the terrain and grid controls, the one-of choices and Change over time, and is still fetched by the research page only.
+- **Tour.** While the tour plays, the public panel holds the card and the legends of the stop, as before. The groups give up their headings and rows for that time.
+- **Wordmark.** The author found the outlined *3D* weak and chose, of four options rendered in the panel, a solid two-tone name: *3D* in the accent colour (`--rp-wordmark-3d`, lighter on the dark theme) and *ICE* in ink, with the icon at 28 px. The other options were a gradient *3D*, the name over the line *Interactive Cryosphere Explorer*, and one colour in two weights.
+- **Logo.** No explorer page draws the logo banner now, so its styles, the runtime's theme swap of its `src` and the two logo addresses in each page's theme script are gone. The logo images stay: the home page and the README show them.
