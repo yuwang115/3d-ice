@@ -5,21 +5,21 @@
  *   last left it (localStorage), opens by itself when a layer in it is switched on, and
  *   counts the layers on in a pill beside its title. The panel watches its layer toggles
  *   (input[data-layer]) itself, including script writes to `checked`.
- * - Where: segmented buttons over the region <select>, and a terrain <select> and grid
- *   buttons over the dataset <select>. The selects stay the runtime's source of truth: a
- *   choice here sets one and dispatches its change event, and syncWhere() mirrors back
- *   whatever the runtime wrote.
+ * - Where: a terrain <select> and grid buttons over the dataset <select>. The select stays
+ *   the runtime's source of truth: a choice here sets it and dispatches its change event,
+ *   and syncWhere() mirrors back whatever the runtime wrote. The region buttons, like the
+ *   masthead, are js/panel-masthead.js's, on both editions.
  * - One-of choices ([data-choice]): a surface's colourings as pills over their layer
  *   checkboxes, with a first pill (Elevation, Off) that switches them all off.
  * - Notes on a layer's row: the reason a disabled layer gives, and the time feature that
  *   switched it off; a row in a one-of choice says it on the choice's note line.
  * - Change over time, one feature at a time (js/research-time.js).
- * - The ⓘ menu in the masthead.
  *
  * The public page has no groups, so there the panel is inert. The panel takes every
  * string it shows from its caller, so all localisation stays in the runtime's t().
  */
 
+import { chooseOption, closestButton } from "./panel-masthead.js";
 import { bindTimeFeatures } from "./research-time.js";
 import {
   findDatasetForChoice,
@@ -54,16 +54,6 @@ function writeStorage(storage, value) {
   } catch (_error) {
     // As above: the panel still works, it just forgets.
   }
-}
-
-function closestButton(event) {
-  return event.target instanceof Element ? event.target.closest("button[data-value]") : null;
-}
-
-function chooseOption(select, value) {
-  if (!select || select.value === value) return;
-  select.value = value;
-  select.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
 function createSegment(value, label) {
@@ -171,8 +161,7 @@ function bindGroups({ panel, groups, storage, formatCount, onGroupToggle, onSync
   syncGroups();
 }
 
-function bindWhere({ panel, regionSelect, datasetSelect }) {
-  const regionSegments = panel.querySelector('[data-segmented-for="regionPreset"]');
+function bindWhere({ panel, datasetSelect }) {
   const terrainSelect = panel.querySelector("#terrainPreset");
   const gridSegments = panel.querySelector("#gridPreset");
   const terrainHint = panel.querySelector("#terrainHint");
@@ -184,10 +173,6 @@ function bindWhere({ panel, regionSelect, datasetSelect }) {
     if (key) chooseOption(datasetSelect, key);
   };
 
-  regionSegments?.addEventListener("click", (event) => {
-    const button = closestButton(event);
-    if (button && !button.disabled) chooseOption(regionSelect, button.dataset.value);
-  });
   terrainSelect?.addEventListener("change", () => chooseDataset({ ...shownChoice(), terrain: terrainSelect.value }));
   gridSegments?.addEventListener("click", (event) => {
     const button = closestButton(event);
@@ -198,14 +183,6 @@ function bindWhere({ panel, regionSelect, datasetSelect }) {
     const { terrains, grids } = listTerrainChoices(datasets);
     terrainSelect?.replaceChildren(...terrains.map(({ key, label }) => new Option(label, key)));
     gridSegments?.replaceChildren(...grids.map(({ key, label }) => createSegment(key, label)));
-  };
-
-  const syncRegion = () => {
-    if (!regionSegments || !regionSelect) return;
-    for (const button of regionSegments.querySelectorAll("button[data-value]")) {
-      button.setAttribute("aria-pressed", String(button.dataset.value === regionSelect.value));
-      button.disabled = regionSelect.disabled;
-    }
   };
 
   const syncDataset = () => {
@@ -234,29 +211,8 @@ function bindWhere({ panel, regionSelect, datasetSelect }) {
       datasets = nextDatasets;
       renderChoices();
     }
-    syncRegion();
     syncDataset();
   };
-}
-
-function bindInfoMenu(panel) {
-  const button = panel.querySelector("#panelInfoButton");
-  const menu = panel.querySelector("#panelInfoMenu");
-  if (!button || !menu) return;
-  const setOpen = (open) => {
-    menu.hidden = !open;
-    button.setAttribute("aria-expanded", String(open));
-  };
-  button.addEventListener("click", () => setOpen(menu.hidden));
-  document.addEventListener("click", (event) => {
-    if (menu.hidden || !(event.target instanceof Node)) return;
-    if (!menu.contains(event.target) && !button.contains(event.target)) setOpen(false);
-  });
-  document.addEventListener("keydown", (event) => {
-    if (event.key !== "Escape" || menu.hidden) return;
-    setOpen(false);
-    button.focus();
-  });
 }
 
 function optionLabel(input) {
@@ -328,7 +284,6 @@ function bindChoices(panel) {
 /**
  * @param {{
  *   panel: HTMLElement | null,
- *   regionSelect: HTMLSelectElement | null,
  *   datasetSelect: HTMLSelectElement | null,
  *   storage?: Storage | null,
  *   formatCount?: (count: number) => string,
@@ -343,7 +298,6 @@ function bindChoices(panel) {
  */
 export function createResearchPanel({
   panel,
-  regionSelect,
   datasetSelect,
   storage = null,
   formatCount = String,
@@ -354,9 +308,8 @@ export function createResearchPanel({
   if (!groups.length) return INERT_PANEL;
   let time = null;
   bindGroups({ panel, groups, storage, formatCount, onGroupToggle, onSynced: () => time?.sync() });
-  const syncWhere = bindWhere({ panel, regionSelect, datasetSelect });
+  const syncWhere = bindWhere({ panel, datasetSelect });
   bindChoices(panel);
-  bindInfoMenu(panel);
   return {
     syncWhere,
     setReason: (control, text) => setRowNote(control, "reason", text, formatOptionNote),

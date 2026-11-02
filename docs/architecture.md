@@ -80,12 +80,13 @@ bibliography.
 | `static/zh/tools/3D-interactive-cryosphere-explorer.html` | Research edition, Chinese page: the same shell with translated markup |
 | `static/explore/index.html`, `static/zh/explore/index.html` | Public edition, English and Chinese: a smaller control set, the tour card and the explainer slots |
 | `static/tools/css/explorer.css` | Styles shared by every explorer page |
-| `static/tools/css/explore.css` | Public-edition additions: tour card, explainers |
-| `static/tools/css/research-panel.css` | Research-edition panel: masthead, where to look, collapsible groups, one-of choices, Change over time, inline legends |
+| `static/tools/css/panel.css` | The panel in both editions: masthead with the edition and language switches, where to look, group headings and inline legends; and the research edition's collapsible groups, one-of choices and Change over time |
+| `static/tools/css/explore.css` | Public-edition additions, loaded after `panel.css`: tour launcher and card, explainers, place search, the panel while the tour plays |
 | `static/tools/js/explorer-app.js` | Runtime shared by every explorer page: dataset registry, loading, scene graph, UI wiring, legends, metadata panel, camera flights |
 | `static/tools/js/explore-guide.js` | The public edition's tour and explainers, which drive the explorer through its guide interface |
 | `static/tools/js/editions.js` | Edition profiles: the datasets, layers and runtime behaviours each edition offers |
-| `static/tools/js/research-panel.js`, `research-time.js` | The research panel over the runtime's controls: groups that remember, count and open themselves, the region, terrain and grid controls, one-of choices, the notes on a layer's row, and Change over time one feature at a time, putting back what a feature switched off |
+| `static/tools/js/panel-masthead.js` | Both editions: the ⓘ menu, the region buttons over the region select, and the edition switch's link, which carries the region on screen |
+| `static/tools/js/research-panel.js`, `research-time.js` | The research panel over the runtime's controls: groups that remember, count and open themselves, the terrain and grid controls, one-of choices, the notes on a layer's row, and Change over time one feature at a time, putting back what a feature switched off |
 | `static/tools/js/panel-state.js` | The research panel's decisions with no DOM: terrain and grid choices, why a layer is off on a terrain, stored group state, the one-of choices, and what a time feature changes and puts back |
 | `static/tools/js/view-presets.js` | Named views: the home page's showcase heroes and the research page's `?preset=` views |
 | `static/tools/js/explore-content.js`, `explore-tour.js` | Tour stops and public-edition copy in both locales; camera framing, flights and toggle ordering for the tour |

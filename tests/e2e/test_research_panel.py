@@ -31,7 +31,7 @@ ONE_LINE = """(element) => {
     return !rects.length || Math.max(...rects.map((r) => r.top)) < Math.min(...rects.map((r) => r.bottom));
 }"""
 LABELS = (
-    ".rp-masthead, .rp-segmented__option, .rp-field__label, .rp-group__title, .rp-group__hint, .rp-chip,"
+    ".rp-masthead__row, .rp-segmented__option, .rp-field__label, .rp-group__title, .rp-group__hint, .rp-chip,"
     " .rp-choice__opt, .rp-row__label, .rp-row__meta, .rp-reason, .rp-legend__caption, .rp-group .control > label,"
     " .rp-group .toggle, .rp-about > summary"
 )
@@ -272,6 +272,22 @@ def test_the_info_menu_holds_the_intro_and_the_tour(page):
     page.locator("#panelInfoButton").click()
     page.locator("#viewer").click(position={"x": 40, "y": 300})
     assert menu.is_hidden()
+    assert errors == []
+
+
+def test_the_masthead_shows_the_icon_and_switches_edition_at_the_region_on_screen(page):
+    page, errors = page
+    assert page.locator(".rp-wordmark__icon").evaluate("(img) => img.complete && img.naturalWidth > 0")
+    switch = page.locator(".rp-editions")
+    assert switch.locator('[aria-current="page"]').inner_text() == "Research"
+    link = switch.locator("a[data-edition-link]")
+    assert (link.inner_text(), link.get_attribute("href")) == ("Public", "../explore/")
+    choose_region(page, "greenland")
+    _wait_ready(page, "s.region === 'greenland'")
+    assert link.get_attribute("href") == "../explore/?region=greenland"
+    choose_region(page, "antarctica")
+    _wait_ready(page, "s.region === 'antarctica'")
+    assert link.get_attribute("href") == "../explore/"
     assert errors == []
 
 

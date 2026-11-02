@@ -98,9 +98,6 @@
         return new URL(cleanRelativePath, new URL(assetBase, window.location.href)).toString();
       }
 
-      const LIGHT_LOGO_SRC = assetUrl("3d-ice-logo-light.jpg");
-      const DARK_LOGO_SRC = assetUrl("3d-ice-logo.jpg");
-
       function getTopThemeClass() {
         try {
           if (window.top && window.top !== window) {
@@ -140,8 +137,6 @@
         assetBase,
         assetUrl,
         storageKey: STORAGE_KEY,
-        lightLogoSrc: LIGHT_LOGO_SRC,
-        darkLogoSrc: DARK_LOGO_SRC,
         currentTheme: null,
         getTopThemeClass,
         getStoredTheme,
@@ -160,7 +155,7 @@
     })();
   </script>
   <link rel="stylesheet" href="css/explorer.css" />
-  <link rel="stylesheet" href="css/research-panel.css" />
+  <link rel="stylesheet" href="css/panel.css" />
 </head>
 <body>
   <div class="app">
@@ -170,14 +165,22 @@
         <button id="panelCloseButton" class="panel-close-btn" type="button">Layers and places</button>
       </div>
 
-      <!-- The research panel: a one-row masthead, where to look, and themed groups that
-           open and close (css/research-panel.css, js/research-panel.js). Every control
-           keeps the id the runtime, its presets and the tests address it by. -->
+      <!-- The research panel: a masthead with the edition and language switches, where to
+           look, and themed groups that open and close (css/panel.css, js/panel-masthead.js,
+           js/research-panel.js). Every control keeps the id the runtime, its presets and
+           the tests address it by. -->
       <header class="rp-masthead">
-        <h1 class="rp-wordmark"><span class="rp-wordmark__3d">3D</span> ICE</h1>
-        <span class="rp-edition-tag">Research</span>
-        <div id="panelLocaleSwitcher" class="panel-locale-switcher"></div>
-        <button id="panelInfoButton" class="rp-info-button" type="button" aria-expanded="false" aria-controls="panelInfoMenu" aria-label="About this explorer">i</button>
+        <div class="rp-masthead__row">
+          <h1 class="rp-wordmark"><img class="rp-wordmark__icon" src="3d-ice-icon.png" alt="" width="28" height="28" /><span class="rp-wordmark__name"><span class="rp-wordmark__3d">3D</span> ICE</span></h1>
+          <button id="panelInfoButton" class="rp-info-button" type="button" aria-expanded="false" aria-controls="panelInfoMenu" aria-label="About this explorer">i</button>
+        </div>
+        <div class="rp-masthead__row">
+          <nav class="rp-editions" aria-label="Edition">
+            <a class="rp-editions__option" href="../explore/" data-edition-link>Public</a>
+            <span class="rp-editions__option" aria-current="page">Research</span>
+          </nav>
+          <div id="panelLocaleSwitcher" class="panel-locale-switcher"></div>
+        </div>
         <div id="panelInfoMenu" class="rp-info-menu" hidden>
           <p id="panelSubtitle" class="subtitle">
             Explore Antarctica from every angle. Rotate, zoom, and peel back

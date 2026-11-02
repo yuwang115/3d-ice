@@ -1,7 +1,7 @@
 """The research edition's panel: its groups, what each holds, and the two locale shells.
 
 The panel is one scrolling column of collapsible groups (docs/research-panel-redesign.md):
-a one-row masthead, where to look, then Scene, Ice flow, Beneath the ice, Ocean and ice
+the masthead, where to look, then Scene, Ice flow, Beneath the ice, Ocean and ice
 shelves, Change over time, Places and labels, Display, and Data and sources. Every
 control keeps the id the runtime, its presets and the tests address it by, and each
 legend sits under the layer that draws it.
@@ -227,7 +227,7 @@ def test_the_page_names_the_research_edition_and_loads_the_panel_styles_after_th
     html = EXPLORERS[locale].read_text(encoding="utf-8")
     assert re.search(r'<html lang="[^"]+" data-locale="[^"]+" data-edition="research">', html)
     stylesheets = re.findall(r'<link rel="stylesheet" href="([^"]+)" />', html)
-    assert [Path(href).name for href in stylesheets] == ["explorer.css", "research-panel.css"]
+    assert [Path(href).name for href in stylesheets] == ["explorer.css", "panel.css"]
 
 
 def test_the_groups_come_in_the_agreed_order_with_scene_flow_and_time_open(locale, pages) -> None:
@@ -272,7 +272,13 @@ def test_the_masthead_is_one_wordmark_with_the_intro_and_the_tour_in_its_menu(lo
     html = EXPLORERS[locale].read_text(encoding="utf-8")
     elements = pages[locale].elements
     assert pages[locale].h1_count == 1
-    assert '<h1 class="rp-wordmark"><span class="rp-wordmark__3d">3D</span> ICE</h1>' in html
+    assert re.search(
+        r'<h1 class="rp-wordmark"><img class="rp-wordmark__icon" src="[^"]+" alt="" width="28" height="28" />'
+        r'<span class="rp-wordmark__name"><span class="rp-wordmark__3d">3D</span> ICE</span></h1>',
+        html,
+    )
+    # The edition switch names the edition now, so the tag beside the wordmark has gone.
+    assert "rp-edition-tag" not in html
     # The logo images are no longer fetched on this page.
     assert "panel-brand-logo" not in html
     button = elements["panelInfoButton"].attrs
@@ -319,11 +325,15 @@ def test_no_layer_label_starts_with_show(locale, pages) -> None:
     assert [label for label in labels if label.startswith(prefix)] == []
 
 
-def test_the_public_pages_keep_their_own_panel(locale) -> None:
+def test_the_public_pages_share_the_panel_styles_but_not_the_collapsible_groups(locale) -> None:
+    """The public pages have the same masthead and look, and groups that stay open: with no
+    <details> group, js/research-panel.js is never loaded there and stays inert."""
     for page in PUBLIC_PAGES:
         html = page.read_text(encoding="utf-8")
-        assert "research-panel.css" not in html
-        assert 'class="rp-' not in html
+        stylesheets = re.findall(r'<link rel="stylesheet" href="([^"]+)" />', html)
+        assert [Path(href).name for href in stylesheets] == ["explorer.css", "panel.css", "explore.css"]
+        assert '<details class="rp-group"' not in html
+        assert "data-group=" not in html
 
 
 # ------------------------------------------------ phase 2: choices, time, data

@@ -66,7 +66,8 @@ EDITION_ENTRIES = {
     ),
     "home-preview": ("/", "#greenland-features a[href^='./explore/']", "open-public-edition:home-greenland-features"),
     "research-to-tour": ("/tools/3D-interactive-cryosphere-explorer.html", "a[href='../explore/?tour=1']", "open-public-edition:research-edition"),
-    "public-zh-to-research": ("/zh/explore/", "a.about-edition__link", "open-research-edition:public-edition"),
+    "research-switch": ("/tools/3D-interactive-cryosphere-explorer.html", "a[data-edition-link]", "open-public-edition:research-edition"),
+    "public-zh-switch": ("/zh/explore/", "a[data-edition-link]", "open-research-edition:public-edition"),
 }
 CLICK_NEW_LINK = """href => {
     const link = Object.assign(document.createElement("a"), { href, textContent: "link" });

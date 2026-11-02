@@ -210,6 +210,65 @@ class TestPublicEditionCore:
         assert page.evaluate("document.activeElement.dataset.info") == "iceFlow"
 
 
+class TestPublicPanel:
+    """The research panel's look, with every group open and each legend under its layer."""
+
+    def test_every_group_stays_open_in_a_panel_half_its_old_height(self, public_page):
+        page, errors = public_page
+        assert page.locator("aside.panel details").count() == 0
+        # 1,877 px before the redesign, with the logo, the language row and the legends apart.
+        assert page.evaluate("() => document.querySelector('.panel').scrollHeight") <= 1000
+        assert errors == []
+
+    def test_the_info_menu_holds_the_intro_and_what_the_explorer_is_built_from(self, public_page):
+        page, errors = public_page
+        menu = page.locator("#panelInfoMenu")
+        assert menu.is_hidden()
+        page.locator("#panelInfoButton").click()
+        assert menu.is_visible()
+        assert "Explore Antarctica" in page.locator("#panelSubtitle").inner_text()
+        assert "published measurements" in menu.inner_text()
+        page.keyboard.press("Escape")
+        assert menu.is_hidden()
+        assert errors == []
+
+    def test_a_legend_shows_under_the_layer_that_draws_it(self, public_page):
+        page, errors = public_page
+        legend = page.locator("#velocityLegendSection")
+        assert legend.is_hidden()
+        page.locator("#showFlowline").check()
+        legend.wait_for(state="visible", timeout=30_000)
+        flow = page.locator("label:has(#showFlowline)").bounding_box()
+        ocean = page.locator("label:has(#showOceanCurrents)").bounding_box()
+        box = legend.bounding_box()
+        assert flow["y"] + flow["height"] <= box["y"] and box["y"] + box["height"] <= ocean["y"]
+        assert errors == []
+
+    def test_the_edition_switch_takes_the_region_on_screen_along(self, playwright_browser, explore_url):
+        context, page, errors = _open(playwright_browser, explore_url)
+        try:
+            switch = page.locator(".rp-editions")
+            assert switch.locator('[aria-current="page"]').inner_text() == "Public"
+            link = switch.locator("a[data-edition-link]")
+            assert (link.inner_text(), link.get_attribute("href")) == ("Research", "../tools/3D-interactive-cryosphere-explorer.html")
+            page.locator('[data-segmented-for="regionPreset"] [data-value="greenland"]').click()
+            page.wait_for_function(
+                "() => JSON.parse(window.render_game_to_text()).region === 'greenland'", timeout=READY_TIMEOUT_MS
+            )
+            assert link.get_attribute("href") == "../tools/3D-interactive-cryosphere-explorer.html?region=greenland"
+            link.click()
+            page.wait_for_url("**/tools/3D-interactive-cryosphere-explorer.html?region=greenland", timeout=30_000)
+            page.wait_for_function(
+                "() => window.render_game_to_text && JSON.parse(window.render_game_to_text()).region === 'greenland'",
+                timeout=READY_TIMEOUT_MS,
+            )
+            assert page.locator('[data-segmented-for="regionPreset"] [aria-pressed="true"]').get_attribute("data-value") == "greenland"
+            assert page.locator("a[data-edition-link]").get_attribute("href") == "../explore/?region=greenland"
+            assert errors == []
+        finally:
+            context.close()
+
+
 class TestGuidedTour:
     def test_every_stop_sets_its_region_and_layers(self, playwright_browser, explore_url):
         requests: list[str] = []
@@ -709,6 +768,26 @@ class TestPublicEditionOnAPhone:
         finally:
             context.close()
 
+    def test_the_viewer_buttons_share_one_row_on_a_narrow_phone(self, playwright_browser, explore_url):
+        # Reset view joined Guided tour and Fullscreen here, and at 360 px the third button wrapped.
+        context = playwright_browser.new_context(
+            viewport={"width": 360, "height": 780}, is_mobile=True, has_touch=True, reduced_motion="reduce"
+        )
+        try:
+            page = context.new_page()
+            page.goto(explore_url, wait_until="domcontentloaded", timeout=30_000)
+            _wait_ready(page)
+            boxes = [
+                page.locator(f"#{button_id}").bounding_box()
+                for button_id in ("viewerTourButton", "resetView", "viewerFullscreenToggle")
+            ]
+            assert all(box is not None for box in boxes), boxes
+            assert len({round(box["y"]) for box in boxes}) == 1, boxes
+            assert max(box["x"] + box["width"] for box in boxes) <= 360, boxes
+        finally:
+            context.close()
+
+
 class TestAssetBase:
     def test_a_cross_origin_asset_base_in_the_url_is_ignored(self, playwright_browser, explore_url):
         requests: list[str] = []
@@ -746,7 +825,7 @@ class TestChinesePublicEdition:
         try:
             english = page.locator('#panelLocaleSwitcher a[data-3d-ice-locale="en-US"]').get_attribute("href")
             assert english.endswith("/explore/?tour=1")
-            research = page.locator(".about-edition__link").get_attribute("href")
+            research = page.locator("a[data-edition-link]").get_attribute("href")
             assert page.evaluate(f"new URL({json.dumps(research)}, location.href).pathname") == (
                 "/zh/tools/3D-interactive-cryosphere-explorer.html"
             )

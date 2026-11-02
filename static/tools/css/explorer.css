@@ -21,8 +21,6 @@
   --panel-close-bg: #eef7fc;
   --panel-close-text: #17425c;
   --viewer-shell-bg: linear-gradient(180deg, #05253d 0%, #0d3851 56%, #14465f 100%);
-  --brand-logo-border: rgba(116, 163, 190, 0.28);
-  --brand-logo-shadow: 0 10px 24px rgba(9, 30, 46, 0.16);
   --section-border: #d8e5ec;
   --section-title: #3c5868;
   --control-label: #1c3748;
@@ -104,8 +102,6 @@
   --panel-close-bg: rgba(10, 25, 36, 0.92);
   --panel-close-text: #dff4ff;
   --viewer-shell-bg: linear-gradient(180deg, #04121d 0%, #0a2436 56%, #0d3149 100%);
-  --brand-logo-border: rgba(103, 168, 198, 0.22);
-  --brand-logo-shadow: 0 12px 28px rgba(1, 8, 13, 0.36);
   --section-border: rgba(117, 174, 201, 0.12);
   --section-title: #84adc3;
   --control-label: #dff2ff;
@@ -350,20 +346,6 @@ body {
   100% {
     background-position: -20% 0;
   }
-}
-
-.panel-brand {
-  margin: 0 0 10px;
-}
-
-.panel-brand-logo {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  height: auto;
-  border-radius: 14px;
-  border: 1px solid var(--brand-logo-border);
-  box-shadow: var(--brand-logo-shadow);
 }
 
 .panel-locale-switcher {

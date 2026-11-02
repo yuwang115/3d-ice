@@ -33,6 +33,7 @@ const [
   { escapeHtml, renderSourceLine },
   { describeUnavailability, TIME_FEATURE_TOGGLES = [] },
   { createResearchPanel },
+  { bindMasthead },
   { SHOWCASE_PRESETS, getExplorerPreset, getShowcasePreset },
 ] = await Promise.all([
   import(assetUrl("js/polar-features.js")),
@@ -47,6 +48,7 @@ const [
   import(assetUrl("js/source-links.js")),
   hasResearchPanel ? import(assetUrl("js/panel-state.js")) : {},
   hasResearchPanel ? import(assetUrl("js/research-panel.js")) : {},
+  import(assetUrl("js/panel-masthead.js")),
   import(assetUrl("js/view-presets.js")),
 ]);
 const editionProfile = getEditionProfile(document.documentElement.dataset.edition);
@@ -72,8 +74,6 @@ const polarFeatureDataUrls = Object.freeze({
     ...(searchesRefinedBasins ? { refined_basins: assetUrl("data/greenland_refined_basins_search.json") } : {}),
   }),
 });
-const lightLogoUrl = assetUrl("3d-ice-logo-light.jpg");
-const darkLogoUrl = assetUrl("3d-ice-logo.jpg");
 const pageLocale = localeApi
   ? localeApi.normalizeLocale(document.documentElement.dataset.locale || document.documentElement.lang)
   : "en-US";
@@ -703,7 +703,6 @@ const datasetSelectionByRegion = {};
 const viewerEl = document.getElementById("viewer");
 const viewerShellEl = document.getElementById("viewerShell");
 const panelEl = document.querySelector(".panel");
-const panelBrandLogoEl = document.querySelector(".panel-brand-logo");
 const panelSubtitleEl = document.getElementById("panelSubtitle");
 const panelHeaderEl = document.querySelector(".panel-header");
 const statusEl = document.getElementById("status");
@@ -748,14 +747,6 @@ function applyRuntimeTheme(theme) {
   if (!runtimeThemeApi) {
     document.documentElement.dataset.theme = nextTheme;
     document.documentElement.style.colorScheme = nextTheme;
-  }
-  /* Second writer of the brand logo's src. Skipped wherever the panel is
-     hidden, or a theme change would fetch the 244 KB logo that the markup
-     above deliberately withheld — the embed syncs its theme from the host
-     page, so this path does fire there. */
-  if (panelBrandLogoEl && !isShowcaseMode && !isPreviewMode) {
-    panelBrandLogoEl.src =
-      nextTheme === "dark" ? runtimeThemeApi?.darkLogoSrc || darkLogoUrl : runtimeThemeApi?.lightLogoSrc || lightLogoUrl;
   }
   return nextTheme;
 }
@@ -986,13 +977,15 @@ function getLocalStorage() {
   }
 }
 
+// Both editions' masthead (the ⓘ menu, the edition switch) and region buttons.
+const panelMasthead = bindMasthead({ panel: panelEl, regionSelect: controlsUI.regionPreset });
+
 // The research page's grouped panel (js/research-panel.js); inert on the public page,
 // which neither has it nor loads its modules. A group the reader opens lays out its tick
 // legends again, because a closed group has no width to measure them by.
 const researchPanel = createResearchPanel
   ? createResearchPanel({
       panel: panelEl,
-      regionSelect: controlsUI.regionPreset,
       datasetSelect: controlsUI.resolutionPreset,
       storage: getLocalStorage(),
       formatCount: (count) => t("explorer.panel.layersOn", { count }),
@@ -1555,6 +1548,7 @@ function updateResolutionControlAvailability({ isLoading = false } = {}) {
 function updateRegionControlAvailability({ isLoading = false } = {}) {
   if (!controlsUI.regionPreset) return;
   controlsUI.regionPreset.disabled = Boolean(isLoading || lockedRegionKey);
+  panelMasthead.sync();
   researchPanel.syncWhere();
 }
 
@@ -1760,6 +1754,7 @@ function refreshRegionUi(regionKey, preferredDatasetKey = null) {
   if (controlsUI.regionPreset) {
     controlsUI.regionPreset.value = region.key;
   }
+  panelMasthead.sync();
   const resolvedDatasetKey = populateResolutionPreset(region.key, preferredDatasetKey);
   researchPanel.syncWhere({ datasets: region.datasets });
   updateRegionLayerAvailability(region.key);
