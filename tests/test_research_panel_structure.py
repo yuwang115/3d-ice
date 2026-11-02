@@ -128,6 +128,20 @@ class _Element:
     ancestors: tuple[str, ...]
     group: str | None
     position: int
+    # Every enclosing element, outermost first, as (tag, attributes).
+    chain: tuple[tuple[str, dict[str, str]], ...] = ()
+
+    def inside(self, tag: str | None = None, **attrs: str) -> bool:
+        """Whether an enclosing element has the tag and attributes (class matches one class)."""
+        for ancestor_tag, ancestor_attrs in self.chain:
+            if tag and ancestor_tag != tag:
+                continue
+            if all(
+                value in ancestor_attrs.get(key, "").split() if key == "class" else ancestor_attrs.get(key) == value
+                for key, value in attrs.items()
+            ):
+                return True
+        return False
 
 
 @dataclass
@@ -171,6 +185,7 @@ class _PanelParser(HTMLParser):
                 ancestors=tuple(a["id"] for _, a in self._stack if a.get("id")),
                 group=self._group(),
                 position=len(self.page.order),
+                chain=tuple((ancestor_tag, dict(ancestor_attrs)) for ancestor_tag, ancestor_attrs in self._stack),
             )
             self.page.order.append(element_id)
         if tag == "label":
@@ -309,3 +324,64 @@ def test_the_public_pages_keep_their_own_panel(locale) -> None:
         html = page.read_text(encoding="utf-8")
         assert "research-panel.css" not in html
         assert 'class="rp-' not in html
+
+
+# ------------------------------------------------ phase 2: choices, time, data
+
+PANEL_STATE = (ROOT / "static/tools/js/panel-state.js").read_text(encoding="utf-8")
+
+
+def _js_list(name: str) -> list[str]:
+    """The ids of a frozen list in panel-state.js, such as `bed: Object.freeze([...])`."""
+    match = re.search(rf"\b{name}\s*[:=]\s*Object\.freeze\(\[([^\]]*)\]\)", PANEL_STATE)
+    assert match, name
+    return re.findall(r'"([^"]+)"', match.group(1))
+
+
+@pytest.mark.parametrize("choice", ["bed", "shelf"])
+def test_each_one_of_choice_holds_its_layers_and_a_first_pill_for_none(locale, choice, pages) -> None:
+    elements = pages[locale].elements
+    html = EXPLORERS[locale].read_text(encoding="utf-8")
+    for layer_id in _js_list(choice):
+        assert elements[layer_id].inside("div", **{"data-choice": choice}), layer_id
+        assert elements[layer_id].inside("label", **{"class": "rp-choice__opt"}), layer_id
+    field = html[html.index(f'data-choice="{choice}"') :]
+    field = field[: field.index("</div>\n          </div>")]
+    assert field.count("data-choice-none") == 1
+    assert 'aria-pressed="true"' in field
+
+
+def test_change_over_time_is_one_at_a_time_from_the_present_day(locale, pages) -> None:
+    elements = pages[locale].elements
+    html = EXPLORERS[locale].read_text(encoding="utf-8")
+    toggles = _js_list("TIME_FEATURE_TOGGLES")
+    assert [element_id for element_id in pages[locale].order if element_id in toggles] == toggles
+    keys = [elements[toggle].attrs.get("data-time") for toggle in toggles]
+    assert keys == ["surfaceChange", "seaIce", "projection", "rebound"]
+    time_group = html[html.index('data-group="time"') : html.index('data-group="places"')]
+    assert time_group.count("data-time-none") == 1
+    assert time_group.index("data-time-none") < time_group.index('id="showSurfaceChange"')
+    assert 'class="rp-group__hint"' in time_group
+
+
+@pytest.mark.parametrize(
+    ("controls", "notes"),
+    [
+        ("surfaceChangeControls", ("surfaceChangeLegendNote", "surfaceChangeNote")),
+        ("seaIceControls", ("seaIceLegendNote", "seaIceNote")),
+        ("iceProjectionControls", ("projectionLegendNote", "projectionNote")),
+    ],
+)
+def test_a_record_s_longer_notes_wait_in_its_about_box(locale, controls, notes, pages) -> None:
+    elements = pages[locale].elements
+    for note in notes:
+        assert controls in elements[note].ancestors, note
+        assert elements[note].inside("details", **{"class": "rp-about"}), note
+
+
+def test_data_and_sources_offers_every_dataset_from_a_switch_under_the_list(locale, pages) -> None:
+    elements = pages[locale].elements
+    switch = elements["metaShowAll"]
+    assert switch.group == "data" and switch.tag == "button"
+    assert switch.position > elements["metaList"].position
+    assert switch.attrs.get("aria-expanded") == "false" and "hidden" in switch.attrs

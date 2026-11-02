@@ -219,8 +219,12 @@ recolour and speed up with today's speed plus the mean change, and drop out wher
 is gone. Switching the projection on switches the flowlines on, and switching it off
 switches them off again unless they were changed in between. On the research pages *Ice flow →
 Flowlines* is the one switch for them, and the projection, the isostatic rebound and the
-observed records share the panel's *Change over time* group. The public page keeps a switch
-at the end of the projection's controls, the same layer as its *Ice flow* toggle.
+observed records share the panel's *Change over time* group, one at a time. Each switches off
+the layers drawn against today's ice or bed that it replaces, says so on their rows, and puts
+them back, with the sea plane and flowlines as they were, when the reader returns to the
+present day or moves straight to another; switching one of those layers on instead ends it,
+and nothing else comes back. The public page keeps a switch at the end of the projection's
+controls, the same layer as its *Ice flow* toggle.
 
 The sea-level number and chart are the mean of the models' own published results, with
 their range. Because flotation is not linear, the averaged ice on the map implies more
@@ -247,7 +251,8 @@ of 88°S throughout. The readout quotes
 CPOM's own mass change for the ice sheet and the IMBIE regions, not sums over the resampled
 grid. Clicking the ice, or the basin list, picks one of CPOM's 18 IMBIE drainage basins
 (numbered as in CPOM's `basin_id`) or a region: the map outlines it, and a chart plots its mass change since
-1995 with its 1σ band, in both views. The layer is exclusive with the projection, the rebound and the velocity colour. The
+1995 with its 1σ band, in both views. The layer is exclusive with the velocity colour and, as one of the
+features of *Change over time*, with the projection, the observed sea ice and the rebound. The
 packer (`scripts/prepare_cpom_land_ice.py`) and the browser module
 (`static/tools/js/surface-change.js`) are tested in `tests/test_prepare_cpom_land_ice.py`,
 `tests/js/surface-change.test.mjs` and `tests/e2e/test_surface_change.py`.
@@ -264,8 +269,9 @@ record (the Greenland grid holds only part of the Arctic), its departure from th
 average and its rank among the years, and a chart plots the month's extent in every year with its
 least-squares trend. NSIDC's 25 km grids are resampled onto a 25 km grid in each region's own
 projection and clipped to the terrain's ocean; near the coast, where NSIDC masks the cells as land,
-the concentration comes from the nearest observed cells. The layer is exclusive with the projection
-and the rebound. The packer (`scripts/prepare_nsidc_sea_ice.py`) and the browser module
+the concentration comes from the nearest observed cells. As one of the features of *Change over
+time*, the layer is exclusive with the projection, the observed elevation change and the rebound.
+The packer (`scripts/prepare_nsidc_sea_ice.py`) and the browser module
 (`static/tools/js/sea-ice.js`) are tested in `tests/test_prepare_nsidc_sea_ice.py`,
 `tests/js/sea-ice.test.mjs` and `tests/e2e/test_sea_ice.py`.
 

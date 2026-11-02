@@ -9,13 +9,18 @@
  *   buttons over the dataset <select>. The selects stay the runtime's source of truth: a
  *   choice here sets one and dispatches its change event, and syncWhere() mirrors back
  *   whatever the runtime wrote.
- * - The reason a disabled layer gives, on its row.
+ * - One-of choices ([data-choice]): a surface's colourings as pills over their layer
+ *   checkboxes, with a first pill (Elevation, Off) that switches them all off.
+ * - Notes on a layer's row: the reason a disabled layer gives, and the time feature that
+ *   switched it off; a row in a one-of choice says it on the choice's note line.
+ * - Change over time, one feature at a time (js/research-time.js).
  * - The ⓘ menu in the masthead.
  *
  * The public page has no groups, so there the panel is inert. The panel takes every
  * string it shows from its caller, so all localisation stays in the runtime's t().
  */
 
+import { bindTimeFeatures } from "./research-time.js";
 import {
   findDatasetForChoice,
   getTerrainChoice,
@@ -31,6 +36,7 @@ export const GROUP_STATE_STORAGE_KEY = "3d-ice-research-panel-groups";
 const INERT_PANEL = Object.freeze({
   syncWhere() {},
   setReason() {},
+  bindTimeFeatures() {},
 });
 
 function readStorage(storage) {
@@ -95,7 +101,7 @@ function watchChecked(input, onWrite) {
   });
 }
 
-function bindGroups({ panel, groups, storage, formatCount, onGroupToggle }) {
+function bindGroups({ panel, groups, storage, formatCount, onGroupToggle, onSynced }) {
   const keys = groups.map((group) => group.dataset.group);
   const byKey = new Map(groups.map((group) => [group.dataset.group, group]));
   const groupOfLayer = new Map();
@@ -137,6 +143,12 @@ function bindGroups({ panel, groups, storage, formatCount, onGroupToggle }) {
       pill.textContent = count ? formatCount(count) : "";
       pill.hidden = count === 0;
     }
+    // The pill that is not a layer (Elevation, Off, Present day) is pressed while none is on.
+    for (const none of panel.querySelectorAll("[data-choice-none]")) {
+      none.setAttribute("aria-pressed", String(!none.closest("[data-choice]")?.querySelector("input:checked")));
+    }
+    panel.querySelector("[data-time-none]")?.setAttribute("aria-pressed", String(!panel.querySelector("input[data-time]:checked")));
+    onSynced();
   };
 
   // The panel watches its own layer toggles, so the reader's clicks, presets, the place
@@ -247,25 +259,70 @@ function bindInfoMenu(panel) {
   });
 }
 
+function optionLabel(input) {
+  return input.closest(".rp-choice__opt")?.textContent.trim() || "";
+}
+
 /**
- * The reason a disabled layer gives, appended to its row; an empty reason removes it.
- * Inside the row's label it becomes part of the layer's accessible name as well.
- * @param {Element | null} control
- * @param {string} text
+ * A one-of choice's note line: one reason when every option is off for the same one (in
+ * Greenland, both ice-shelf colourings are "Antarctica only"), else a line per option
+ * that is off, with its label.
  */
-function setRowReason(control, text) {
-  const row = control instanceof Element ? control.closest(".rp-row, .rp-chip") : null;
-  if (!row) return;
-  let reason = row.querySelector(":scope > .rp-reason");
-  if (!reason && !text) return;
-  if (!reason) {
-    reason = document.createElement("span");
-    reason.className = "rp-reason";
-    row.append(reason);
+function renderChoiceNote(field, formatOptionNote) {
+  const note = field?.querySelector(".rp-choice__note");
+  if (!note) return;
+  const options = Array.from(field.querySelectorAll(".rp-choice__opt input[data-layer]"));
+  const reasons = options.map((input) => input.dataset.reason || "");
+  const lines =
+    reasons.every(Boolean) && new Set(reasons).size === 1
+      ? [reasons[0]]
+      : options.flatMap((input) => {
+          const text = input.dataset.reason || input.dataset.takeover || "";
+          return text ? [formatOptionNote(optionLabel(input), text)] : [];
+        });
+  note.textContent = lines.join("\n");
+  note.hidden = !lines.length;
+}
+
+/**
+ * What a layer's row says besides its label: the reason a disabled layer gives (`reason`),
+ * or the time feature that switched it off (`takeover`); an empty text removes it. Inside
+ * the row's label it is part of the layer's accessible name as well. An option of a one-of
+ * choice says it on the choice's note line, so each pill stays one line.
+ */
+function setRowNote(control, kind, text, formatOptionNote) {
+  if (!(control instanceof Element)) return;
+  if (control.closest(".rp-choice__opt")) {
+    if (text) control.dataset[kind] = text;
+    else delete control.dataset[kind];
+    renderChoiceNote(control.closest("[data-choice]"), formatOptionNote);
+    return;
   }
-  reason.textContent = text || "";
-  reason.hidden = !text;
-  row.classList.toggle("is-unavailable", Boolean(text));
+  const row = control.closest(".rp-row, .rp-chip");
+  if (!row) return;
+  const className = kind === "reason" ? "rp-reason" : "rp-takeover";
+  let note = row.querySelector(`:scope > .${className}`);
+  if (!note && !text) return;
+  if (!note) {
+    note = document.createElement("span");
+    note.className = className;
+    row.append(note);
+  }
+  note.textContent = text || "";
+  note.hidden = !text;
+  if (kind === "reason") row.classList.toggle("is-unavailable", Boolean(text));
+}
+
+/** The first pill of a one-of choice switches every colouring of its surface off. */
+function bindChoices(panel) {
+  for (const field of panel.querySelectorAll("[data-choice]")) {
+    field.querySelector("[data-choice-none]")?.addEventListener("click", () => {
+      for (const input of field.querySelectorAll(".rp-choice__opt input:checked")) {
+        input.checked = false;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    });
+  }
 }
 
 /**
@@ -275,9 +332,14 @@ function setRowReason(control, text) {
  *   datasetSelect: HTMLSelectElement | null,
  *   storage?: Storage | null,
  *   formatCount?: (count: number) => string,
+ *   formatOptionNote?: (layer: string, text: string) => string,
  *   onGroupToggle?: (group: HTMLDetailsElement) => void,
  * }} options
- * @returns {{ syncWhere(options?: { datasets?: object }): void, setReason(control: Element | null, text: string): void }}
+ * @returns {{
+ *   syncWhere(options?: { datasets?: object }): void,
+ *   setReason(control: Element | null, text: string): void,
+ *   bindTimeFeatures(options: { features: readonly import("./research-time.js").TimeFeature[], layer: (id: string) => HTMLInputElement | null | undefined }): void,
+ * }}
  */
 export function createResearchPanel({
   panel,
@@ -285,12 +347,26 @@ export function createResearchPanel({
   datasetSelect,
   storage = null,
   formatCount = String,
+  formatOptionNote = (layer, text) => `${layer}: ${text}`,
   onGroupToggle = () => {},
 }) {
   const groups = panel ? Array.from(panel.querySelectorAll("details.rp-group[data-group]")) : [];
   if (!groups.length) return INERT_PANEL;
-  bindGroups({ panel, groups, storage, formatCount, onGroupToggle });
+  let time = null;
+  bindGroups({ panel, groups, storage, formatCount, onGroupToggle, onSynced: () => time?.sync() });
   const syncWhere = bindWhere({ panel, regionSelect, datasetSelect });
+  bindChoices(panel);
   bindInfoMenu(panel);
-  return { syncWhere, setReason: setRowReason };
+  return {
+    syncWhere,
+    setReason: (control, text) => setRowNote(control, "reason", text, formatOptionNote),
+    bindTimeFeatures: ({ features, layer }) => {
+      time = bindTimeFeatures({
+        panel,
+        features,
+        layer,
+        setTakeover: (control, text) => setRowNote(control, "takeover", text, formatOptionNote),
+      });
+    },
+  };
 }

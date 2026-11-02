@@ -1,6 +1,7 @@
 /**
  * Decisions of the research edition's panel that need no DOM: which terrain and grid a
- * dataset is, why a layer is off on the terrain shown, and which groups start open.
+ * dataset is, why a layer is off on the terrain shown, which groups start open, which
+ * layers exclude each other, and what a time feature puts back when it ends.
  *
  * The panel offers a region's datasets as two choices, a terrain (BedMachine v4, Bedmap3)
  * and a grid (10 km, 4 km), and a layer the terrain lacks names where it can be found
@@ -171,4 +172,84 @@ export function groupsToOpen(before, after, groupOf) {
     if (group) groups.add(group);
   }
   return groups;
+}
+
+// ------------------------------------------------ one-of choices and time features
+
+/**
+ * Surfaces that take one colouring at a time, by the layer toggles that colour them. With
+ * none of them on, the bed shows its elevation and the ice-shelf base nothing.
+ */
+export const ONE_OF_CHOICES = Object.freeze({
+  bed: Object.freeze(["showBasalFriction", "showEffectivePressure"]),
+  shelf: Object.freeze(["showBasalMelt", "showThermalDriving"]),
+});
+
+/** The toggles of Change over time, which take over the scene one at a time. */
+export const TIME_FEATURE_TOGGLES = Object.freeze([
+  "showSurfaceChange",
+  "showSeaIce",
+  "showIceProjection",
+  "showIsostaticRebound",
+]);
+
+/**
+ * The one-of choices a set of toggles breaks: two colourings of one surface, or two time
+ * features, switched on together. A preset or a tour stop must break none.
+ * @param {Record<string, unknown>} toggles  layer toggle id -> state
+ * @returns {{ choice: string, toggles: string[] }[]}
+ */
+export function findChoiceConflicts(toggles) {
+  const on = (id) => toggles?.[id] === true;
+  const conflicts = [];
+  for (const [choice, ids] of Object.entries(ONE_OF_CHOICES)) {
+    const chosen = ids.filter(on);
+    if (chosen.length > 1) conflicts.push({ choice, toggles: chosen });
+  }
+  const times = TIME_FEATURE_TOGGLES.filter(on);
+  if (times.length > 1) conflicts.push({ choice: "time", toggles: times });
+  return conflicts;
+}
+
+/**
+ * What changes when the reader moves from one time feature (or the present day, null) to
+ * another. While a feature shows it switches some layers off (`switchesOff`, by feature
+ * key) and others on (`switchesOn`), and remembers the ones it changed: `saved`, the layers
+ * it switched off that were on, and `raised`, the layers it switched on that were off.
+ * Call this once the feature that was on has been switched off itself.
+ *
+ * - `restore`: saved layers to switch back on, those the next feature leaves be.
+ * - `lower`: raised layers to switch back off, those the next feature leaves be and that
+ *   are still on.
+ * - `save`, `raise`: what the next feature remembers. Layers the next feature changes the
+ *   same way pass to it unchanged, so the scene does not flicker between the two.
+ *
+ * @param {{
+ *   active: string | null,
+ *   saved: readonly string[],
+ *   raised?: readonly string[],
+ *   next: string | null,
+ *   switchesOff: Record<string, readonly string[]>,
+ *   switchesOn?: Record<string, readonly string[]>,
+ *   isOn: (toggleId: string) => boolean,
+ * }} change
+ * @returns {{ restore: string[], lower: string[], save: string[], raise: string[] }}
+ */
+export function planTimeChange({ active, saved, raised = [], next, switchesOff, switchesOn = {}, isOn }) {
+  if (active === next) return { restore: [], lower: [], save: [...saved], raise: [...raised] };
+  const nextOff = new Set(next ? switchesOff[next] || [] : []);
+  const nextOn = new Set(next ? switchesOn[next] || [] : []);
+  const keptOff = saved.filter((id) => nextOff.has(id));
+  const keptOn = raised.filter((id) => nextOn.has(id));
+  const restore = saved.filter((id) => !nextOff.has(id) && !isOn(id));
+  const lower = raised.filter((id) => !nextOn.has(id) && isOn(id));
+  // What the next feature finds is the scene after those two steps: a layer that has just
+  // come back is the reader's, not one the next feature switched on.
+  const onAfter = (id) => (isOn(id) || restore.includes(id)) && !lower.includes(id);
+  return {
+    restore,
+    lower,
+    save: [...keptOff, ...[...nextOff].filter((id) => onAfter(id) && !keptOff.includes(id))],
+    raise: [...keptOn, ...[...nextOn].filter((id) => !onAfter(id) && !keptOn.includes(id))],
+  };
 }

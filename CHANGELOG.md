@@ -72,9 +72,9 @@ All notable changes to 3D ICE are recorded here. The format follows
 
 - The research edition's panel is rebuilt as one column of collapsible groups: Scene, Ice
   flow, Beneath the ice, Ocean and ice shelves, Change over time, Places and labels, Display,
-  and Data and sources (`docs/research-panel-redesign.md`, phase 1). With nothing switched
-  on it is 959 px tall in a 1440 × 900 window, against 2,135 px before. The public edition
-  is unchanged.
+  and Data and sources (`docs/research-panel-redesign.md`, phases 1 and 2). In a 1440 × 900
+  window it is 945 px tall with nothing switched on and 1,515 px with the projection on,
+  against 2,135 and 3,849 px before. The public edition is unchanged.
   - A one-row masthead (the 3D ICE wordmark, a Research tag, the language switch and an ⓘ
     menu holding the region's introduction and the guided tour) replaces the logo image,
     which the page no longer fetches.
@@ -93,6 +93,21 @@ All notable changes to 3D ICE are recorded here. The format follows
   - Reset view joins the viewer's buttons, the panel's second fullscreen button goes, and
     the projection's own flowline switch gives way to Ice flow → Flowlines. Until a flowline
     is picked, one line says how to pick one, in place of a 220–330 px placeholder.
+  - The bed and the ice-shelf base take one colouring each: *Colour the bed by* Elevation,
+    Basal friction or Effective pressure, and *Ice-shelf base* Off, Basal melt or Thermal
+    driving. Off shows the ice surface again where melt or thermal driving hid it, and so
+    does a time feature that clears the ice-shelf base.
+  - *Change over time* shows one feature at a time, from *Present day*, so the observed
+    elevation change and the observed sea ice no longer show together. A feature switches off
+    the layers drawn against today's ice or bed that it replaces, says so on their rows, and
+    puts them back, with the sea plane and flowlines as they were, when the reader returns to
+    the present day or moves straight to another feature. Switching one of those layers on
+    ends the feature instead, and nothing else comes back. For the rebound that now holds for
+    every layer it replaces, not only basal friction and effective pressure.
+  - Each record's longer notes wait in an *About* box under its controls.
+  - *Data and sources* lists the terrain and the layers on screen, with *Show all N datasets*.
+  - The view presets move to `static/tools/js/view-presets.js`, where a test holds every view
+    and every tour stop to the one-of choices.
 
 ### Fixed
 

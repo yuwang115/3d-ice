@@ -31,8 +31,9 @@ ONE_LINE = """(element) => {
     return !rects.length || Math.max(...rects.map((r) => r.top)) < Math.min(...rects.map((r) => r.bottom));
 }"""
 LABELS = (
-    ".rp-masthead, .rp-segmented__option, .rp-field__label, .rp-group__title, .rp-chip, .rp-row__label,"
-    " .rp-row__meta, .rp-reason, .rp-legend__caption, .rp-subhead, .rp-group .control > label, .rp-group .toggle"
+    ".rp-masthead, .rp-segmented__option, .rp-field__label, .rp-group__title, .rp-group__hint, .rp-chip,"
+    " .rp-choice__opt, .rp-row__label, .rp-row__meta, .rp-reason, .rp-legend__caption, .rp-group .control > label,"
+    " .rp-group .toggle, .rp-about > summary"
 )
 
 
@@ -68,8 +69,16 @@ def _open_groups(page) -> dict:
 
 
 def _reason(page, control_id: str) -> str:
+    """Why a layer is off: on its row, or on the note line of the one-of choice it is in."""
     return page.evaluate(
-        "(id) => document.getElementById(id).closest('label').querySelector('.rp-reason:not([hidden])')?.textContent || ''",
+        """(id) => {
+            const control = document.getElementById(id);
+            const choice = control.closest('[data-choice]');
+            const note = choice
+                ? choice.querySelector('.rp-choice__note:not([hidden])')
+                : control.closest('label').querySelector('.rp-reason:not([hidden])');
+            return note?.textContent || '';
+        }""",
         control_id,
     )
 
@@ -181,7 +190,10 @@ def test_region_terrain_and_grid_drive_the_runtime_and_a_missing_layer_says_why(
     assert terrain.evaluate("(select) => [...select.options].map((o) => o.textContent)") == ["BedMachine v6", "QRF 2025"]
     assert page.locator("#gridPreset button").all_inner_texts() == ["3 km", "1 km"]
     open_group(page, "bed")
-    assert _reason(page, "showEffectivePressure") == "Antarctica only"
+    # Basal friction stays on offer, so the bed's choice names the colouring that is not.
+    assert _reason(page, "showEffectivePressure") == "Effective pressure: Antarctica only"
+    open_group(page, "ocean")
+    assert _reason(page, "showBasalMelt") == "Antarctica only"
     assert _reason(page, "showIceProjection") == "Antarctica only"
     # Rows are no longer hidden per region: they stay, switched off.
     for row in ("showBasalMeltRow", "showThermalDrivingRow", "surfaceChangeRow", "iceProjectionRow"):
@@ -290,7 +302,7 @@ def test_the_chinese_page_gives_the_same_panel_in_chinese(playwright_browser, se
         choose_region(page, "greenland")
         _wait_ready(page, "s.region === 'greenland'")
         open_group(page, "bed")
-        assert _reason(page, "showEffectivePressure") == "仅限南极洲"
+        assert _reason(page, "showEffectivePressure") == "有效压力：仅限南极洲"
         page.locator("#showVelocity").check()
         page.wait_for_function("() => document.querySelector('[data-group=\"flow\"] .rp-group__count').textContent", timeout=10_000)
         assert page.locator('details[data-group="flow"] .rp-group__count').inner_text() == "已开 1"

@@ -31,8 +31,9 @@ const [
   { summariseMasked },
   { isInOpenWater, OCEAN_STREAMLINE_BED_CLEARANCE_M, OCEAN_STREAMLINE_ICE_CLEARANCE_M },
   { escapeHtml, renderSourceLine },
-  { describeUnavailability },
+  { describeUnavailability, TIME_FEATURE_TOGGLES = [] },
   { createResearchPanel },
+  { SHOWCASE_PRESETS, getExplorerPreset, getShowcasePreset },
 ] = await Promise.all([
   import(assetUrl("js/polar-features.js")),
   import(assetUrl("js/polar-refined-basins.js")),
@@ -46,6 +47,7 @@ const [
   import(assetUrl("js/source-links.js")),
   hasResearchPanel ? import(assetUrl("js/panel-state.js")) : {},
   hasResearchPanel ? import(assetUrl("js/research-panel.js")) : {},
+  import(assetUrl("js/view-presets.js")),
 ]);
 const editionProfile = getEditionProfile(document.documentElement.dataset.edition);
 // The research panel gives each legend's unit in its caption, and keeps the row of a layer
@@ -686,160 +688,6 @@ function getDatasetConfig(regionKey, datasetKey) {
   };
 }
 
-const SHOWCASE_PRESETS = {
-  "home-hero": {
-    regionKey: "antarctica",
-    datasetKey: "balanced",
-    exaggeration: 4.8,
-    iceOpacity: 1,
-    toggles: {
-      showBed: true,
-      showIce: true,
-      showIceBottom: true,
-      showVelocity: false,
-      showFlowline: false,
-      showBasalFriction: false,
-      showBasalMelt: false,
-      showThermalDriving: false,
-      showOceanCurrents: false,
-      showRefinedBasins: false,
-      showEffectivePressure: false,
-      showSubglacialChannels: false,
-      showSea: false,
-    },
-    camera: {
-      position: [11.01, 62.36, 79.95],
-      target: [4.52, -6.48, 1.43],
-      fov: 40,
-    },
-  },
-  "tools-hero": {
-    regionKey: "antarctica",
-    datasetKey: "balanced",
-    exaggeration: 4.8,
-    iceOpacity: 1,
-    toggles: {
-      showBed: true,
-      showIce: true,
-      showIceBottom: false,
-      showVelocity: false,
-      showFlowline: false,
-      showBasalFriction: false,
-      showBasalMelt: false,
-      showThermalDriving: false,
-      showOceanCurrents: false,
-      showRefinedBasins: false,
-      showEffectivePressure: false,
-      showSubglacialChannels: false,
-      showSea: false,
-    },
-    camera: {
-      position: [7.2, 102.3, 99.53],
-      target: [6.12, -7.82, 3.69],
-      fov: 45,
-    },
-  },
-};
-
-function getShowcasePreset(presetKey) {
-  return SHOWCASE_PRESETS[presetKey] || SHOWCASE_PRESETS["home-hero"];
-}
-
-const EXPLORER_PRESETS = {
-  "antarctica-velocity-flowlines": {
-    regionKey: "antarctica",
-    datasetKey: "balanced",
-    exaggeration: 4.8,
-    iceOpacity: 1,
-    toggles: {
-      showBed: true,
-      showIce: true,
-      showIceBottom: true,
-      showVelocity: true,
-      showFlowline: true,
-    },
-  },
-  "antarctica-basin-boundary": {
-    regionKey: "antarctica",
-    datasetKey: "balanced",
-    exaggeration: 4.8,
-    iceOpacity: 1,
-    toggles: {
-      showBed: true,
-      showIce: true,
-      showIceBottom: true,
-      showRefinedBasins: true,
-    },
-  },
-  "antarctica-subglacial-features": {
-    regionKey: "antarctica",
-    datasetKey: "balanced",
-    exaggeration: 4.8,
-    iceOpacity: 1,
-    toggles: {
-      showBed: true,
-      showIce: false,
-      showIceBottom: false,
-      showEffectivePressure: true,
-      showSubglacialChannels: true,
-    },
-  },
-  "antarctica-ocean-circulations": {
-    regionKey: "antarctica",
-    datasetKey: "balanced",
-    exaggeration: 4.8,
-    iceOpacity: 1,
-    toggles: {
-      showBed: true,
-      showIce: true,
-      showIceBottom: true,
-      showOceanCurrents: true,
-      showSea: true,
-    },
-    oceanLayers: {
-      surface: true,
-      upper: true,
-      mid: true,
-      lower: true,
-    },
-  },
-  "greenland-velocity-flowlines": {
-    regionKey: "greenland",
-    datasetKey: "3km",
-    exaggeration: 4.2,
-    iceOpacity: 1,
-    toggles: {
-      showBed: true,
-      showIce: true,
-      showIceBottom: true,
-      showVelocity: true,
-      showFlowline: true,
-    },
-  },
-  "greenland-ocean-circulations": {
-    regionKey: "greenland",
-    datasetKey: "3km",
-    exaggeration: 4.2,
-    iceOpacity: 1,
-    toggles: {
-      showBed: true,
-      showIce: true,
-      showIceBottom: true,
-      showOceanCurrents: true,
-      showSea: true,
-    },
-    oceanLayers: {
-      surface: true,
-      upper: true,
-      mid: true,
-      lower: true,
-    },
-  },
-};
-
-function getExplorerPreset(presetKey) {
-  return EXPLORER_PRESETS[presetKey] || null;
-}
 
 const initialExplorerPreset = isShowcaseMode ? getShowcasePreset(presetParam) : getExplorerPreset(presetParam);
 const previewRegionKey = initialExplorerPreset?.regionKey || (REGIONS[regionParam] ? regionParam : "antarctica");
@@ -862,6 +710,8 @@ const statusEl = document.getElementById("status");
 const metaListEl = document.getElementById("metaList") || (editionProfile.standInControls ? document.createElement("ul") : null);
 const fieldStatsEl = document.getElementById("fieldStats");
 const metaSectionOpenState = new Map();
+// Data and sources lists what is on screen until the reader asks for every dataset.
+let metaListsEveryDataset = false;
 const interactionHintEl = document.getElementById("interactionHint");
 const loadingOverlayEl = document.getElementById("loadingOverlay");
 const loadingStageEl = document.getElementById("loadingStage");
@@ -1123,6 +973,8 @@ const controlsUI = {
   captureZoomAmount: resolveControl("captureZoomAmount"),
   captureZoomAmountValue: resolveControl("captureZoomAmountValue"),
   captureManualButtons: Array.from(document.querySelectorAll("[data-capture-manual]")),
+  // The research panel's own; the public page has none.
+  metaShowAll: document.getElementById("metaShowAll"),
 };
 
 function getLocalStorage() {
@@ -1144,11 +996,12 @@ const researchPanel = createResearchPanel
       datasetSelect: controlsUI.resolutionPreset,
       storage: getLocalStorage(),
       formatCount: (count) => t("explorer.panel.layersOn", { count }),
+      formatOptionNote: (layer, text) => t("explorer.panel.optionNote", { layer, text }),
       onGroupToggle: (group) => {
         if (group.open) relayoutTickLegends(group);
       },
     })
-  : Object.freeze({ syncWhere() {}, setReason() {} });
+  : Object.freeze({ syncWhere() {}, setReason() {}, bindTimeFeatures() {} });
 
 const RECORDING_AUTO_ORBIT_RAD_PER_SEC = 0.18;
 const RECORDING_AUTO_ZOOM_HZ = 0.12;
@@ -1249,6 +1102,8 @@ let iceProjectionFrame = null;
 let iceProjectionChartGeometry = null;
 // Whether switching the projection on raised the sea plane, so switching it off can lower it.
 let iceProjectionRaisedSea = false;
+// Set when basal melt or thermal driving unticked the ice surface, which comes back with Off.
+let iceSurfaceHiddenForRise = false;
 // The same for the flowlines, which the projection shows by default.
 let iceProjectionRaisedFlowlines = false;
 // Observed surface elevation change (see the "observed surface change" section), declared up
@@ -1700,6 +1555,54 @@ function updateRegionControlAvailability({ isLoading = false } = {}) {
   if (!controlsUI.regionPreset) return;
   controlsUI.regionPreset.disabled = Boolean(isLoading || lockedRegionKey);
   researchPanel.syncWhere();
+}
+
+/**
+ * Change over time on the research page: one feature at a time, each switching off the
+ * layers drawn against today's ice or bed that it replaces and switching on what it needs,
+ * all of which the panel puts back when the reader leaves it. The lists are the runtime's
+ * own: leaveLayersForSurfaceChange(), leaveLayersForSeaIce(), ICE_PROJECTION_EXCLUSIVE_TOGGLES
+ * and REBOUND_EXCLUSIVE_TOGGLES, less the time features themselves, which go one at a time
+ * anyway; and the sea plane and flowlines that raiseSeaForSeaIce(), activateIceProjection(),
+ * raiseFlowlinesForProjection() and the rebound's own change handler switch on.
+ */
+function bindResearchTimeFeatures() {
+  const timeToggles = new Set(TIME_FEATURE_TOGGLES);
+  const ownLayers = (toggles) => toggles.filter((id) => !timeToggles.has(id));
+  const features = [
+    {
+      key: "surfaceChange",
+      toggle: controlsUI.showSurfaceChange,
+      switchesOff: ["showVelocity"],
+      switchesOn: [],
+      takeoverText: t("explorer.panel.offWhileSurfaceChange"),
+    },
+    {
+      key: "seaIce",
+      toggle: controlsUI.showSeaIce,
+      switchesOff: [],
+      switchesOn: ["showSea"],
+      takeoverText: t("explorer.panel.offWhileSeaIce"),
+    },
+    {
+      key: "projection",
+      toggle: controlsUI.showIceProjection,
+      switchesOff: ownLayers(ICE_PROJECTION_EXCLUSIVE_TOGGLES),
+      switchesOn: ["showFlowline", "showSea"],
+      takeoverText: t("explorer.panel.offWhileProjection"),
+    },
+    {
+      key: "rebound",
+      toggle: controlsUI.showIsostaticRebound,
+      switchesOff: ownLayers(REBOUND_EXCLUSIVE_TOGGLES),
+      switchesOn: ["showSea"],
+      takeoverText: t("explorer.panel.offWhileRebound"),
+    },
+  ];
+  researchPanel.bindTimeFeatures({
+    features: features.filter((feature) => feature.toggle),
+    layer: (id) => controlsUI[id],
+  });
 }
 
 /** Hide a layer's row where the terrain lacks it, unless the panel says why instead. */
@@ -6684,6 +6587,16 @@ function syncIceSurfaceVisibilityFromControls() {
 function hideIceSurfaceForRiseOverlay() {
   if (!controlsUI.showIce.checked) return;
   controlsUI.showIce.checked = false;
+  iceSurfaceHiddenForRise = true;
+  syncIceSurfaceVisibilityFromControls();
+}
+
+/** Show the ice surface again once neither ice-shelf base colouring is on, if one hid it. */
+function restoreIceSurfaceAfterRiseOverlay() {
+  if (!iceSurfaceHiddenForRise || controlsUI.showBasalMelt.checked || controlsUI.showThermalDriving.checked) return;
+  iceSurfaceHiddenForRise = false;
+  if (controlsUI.showIce.checked) return;
+  controlsUI.showIce.checked = true;
   syncIceSurfaceVisibilityFromControls();
 }
 
@@ -6781,6 +6694,17 @@ function formatCoord(value, digits = 2) {
   const text = Number(value).toFixed(digits);
   if (digits <= 0) return text;
   return text.replace(/\.?0+$/, "");
+}
+
+/** The research panel's switch between the datasets on screen and every one on offer. */
+function syncMetaShowAllButton(offeredCount, listedCount) {
+  const button = controlsUI.metaShowAll;
+  if (!button) return;
+  button.hidden = !metaListsEveryDataset && listedCount >= offeredCount;
+  button.textContent = metaListsEveryDataset
+    ? t("explorer.panel.dataOnScreen")
+    : t("explorer.panel.dataShowAll", { count: offeredCount });
+  button.setAttribute("aria-expanded", String(metaListsEveryDataset));
 }
 
 function renderMetaSection(sectionId, title, items, options = {}) {
@@ -7920,6 +7844,8 @@ function bindUI() {
     updateLegendVisibility();
   });
   controlsUI.showIce.addEventListener("change", () => {
+    // A visitor's own choice wins over the ice-shelf base's.
+    iceSurfaceHiddenForRise = false;
     syncIceSurfaceVisibilityFromControls();
     updateMetaFromCurrentState();
   });
@@ -7977,6 +7903,8 @@ function bindUI() {
     }
     if (controlsUI.showBasalMelt.checked) {
       hideIceSurfaceForRiseOverlay();
+    } else {
+      restoreIceSurfaceAfterRiseOverlay();
     }
     updateLegendVisibility();
     if (controlsUI.showBasalMelt.checked && !basalMeltMesh) {
@@ -7993,6 +7921,8 @@ function bindUI() {
     }
     if (controlsUI.showThermalDriving.checked) {
       hideIceSurfaceForRiseOverlay();
+    } else {
+      restoreIceSurfaceAfterRiseOverlay();
     }
     updateLegendVisibility();
     if (controlsUI.showThermalDriving.checked && !thermalDrivingMesh) {
@@ -8177,6 +8107,7 @@ function bindUI() {
   });
   bindSurfaceChangeControls();
   bindSeaIceControls();
+  bindResearchTimeFeatures();
   // Turning on a layer drawn against the present-day ice or bed hands the scene back.
   for (const key of ICE_PROJECTION_EXCLUSIVE_TOGGLES) {
     controlsUI[key]?.addEventListener("change", () => {
@@ -8203,6 +8134,11 @@ function bindUI() {
 
   controlsUI.resetView.addEventListener("click", () => {
     resetCameraToDefaultPose();
+  });
+
+  controlsUI.metaShowAll?.addEventListener("click", () => {
+    metaListsEveryDataset = !metaListsEveryDataset;
+    updateMetaFromCurrentState();
   });
 
   if (controlsUI.fullscreenToggle) {
@@ -8537,18 +8473,39 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
       ]
     : [`<li><strong>${t("explorer.meta.status")}:</strong> ${t("explorer.meta.notYetAdded", { region: region.label })}</li>`];
 
-  const sourceLines = [renderSourceLine(t("explorer.meta.sourceBedIceGeometry"), dataset.sources.geometry)];
+  // The terrain and the layers on screen, with their sources, unless the reader asked for
+  // every dataset this terrain offers. A time feature's record is listed while it shows.
+  const onScreen = {
+    basins: controlsUI.showRefinedBasins.checked,
+    velocity: controlsUI.showVelocity.checked || controlsUI.showFlowline.checked,
+    basalFriction: controlsUI.showBasalFriction.checked,
+    hydrology: controlsUI.showEffectivePressure.checked || controlsUI.showSubglacialChannels.checked,
+    oceanCurrents: controlsUI.showOceanCurrents.checked,
+    rise: controlsUI.showBasalMelt.checked || controlsUI.showThermalDriving.checked,
+    isostaticResponse: Boolean(controlsUI.showIsostaticRebound?.checked),
+  };
+  const listed = (layer) => !layer || metaListsEveryDataset || onScreen[layer];
+  const sourceLines = [];
+  let offeredSourceCount = 0;
+  let listedSourceCount = 0;
+  const addSource = (layer, line) => {
+    offeredSourceCount += 1;
+    if (!listed(layer)) return;
+    listedSourceCount += 1;
+    sourceLines.push(line);
+  };
+  addSource(null, renderSourceLine(t("explorer.meta.sourceBedIceGeometry"), dataset.sources.geometry));
   if (capabilities.refinedBasins && dataset.sources.basins) {
-    sourceLines.push(renderSourceLine(t("explorer.meta.sourceBasinBoundaries"), dataset.sources.basins));
+    addSource("basins", renderSourceLine(t("explorer.meta.sourceBasinBoundaries"), dataset.sources.basins));
   }
   if (capabilities.velocity && dataset.sources.velocity) {
-    sourceLines.push(renderSourceLine(t("explorer.meta.sourceSurfaceVelocity"), dataset.sources.velocity));
+    addSource("velocity", renderSourceLine(t("explorer.meta.sourceSurfaceVelocity"), dataset.sources.velocity));
   }
   if (capabilities.basalFriction && dataset.sources.basalFriction) {
-    sourceLines.push(renderSourceLine(t("explorer.meta.sourceBasalFriction"), dataset.sources.basalFriction));
+    addSource("basalFriction", renderSourceLine(t("explorer.meta.sourceBasalFriction"), dataset.sources.basalFriction));
   }
   if (capabilities.hydrology && dataset.sources.hydrology) {
-    sourceLines.push(renderSourceLine(t("explorer.meta.sourceSubglacialHydrology"), dataset.sources.hydrology));
+    addSource("hydrology", renderSourceLine(t("explorer.meta.sourceSubglacialHydrology"), dataset.sources.hydrology));
   }
   if (capabilities.oceanCurrents && dataset.sources.oceanCurrents) {
     const oceanSuffix =
@@ -8559,17 +8516,17 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
       oceanCurrentCoverage?.counts_by_depth
         ? t("explorer.meta.streamlineCountSuffix", { count: fmtInt(oceanStreamlineCount) })
         : "";
-    sourceLines.push(renderSourceLine(t("explorer.meta.sourceOceanCirculation"), dataset.sources.oceanCurrents, oceanSuffix));
+    addSource("oceanCurrents", renderSourceLine(t("explorer.meta.sourceOceanCirculation"), dataset.sources.oceanCurrents, oceanSuffix));
   }
   if (capabilities.rise && dataset.sources.rise) {
     const iceShelfCellCount = Number(riseCoverage?.iceshelf_cell_count);
     const riseSuffix = Number.isFinite(iceShelfCellCount)
       ? t("explorer.meta.iceShelfCellCount", { count: fmtInt(iceShelfCellCount) })
       : "";
-    sourceLines.push(renderSourceLine(t("explorer.meta.sourceMeltDrivers"), dataset.sources.rise, riseSuffix));
+    addSource("rise", renderSourceLine(t("explorer.meta.sourceMeltDrivers"), dataset.sources.rise, riseSuffix));
   }
   if (capabilities.isostaticRebound && dataset.sources.isostaticResponse) {
-    sourceLines.push(renderSourceLine(t("explorer.meta.sourceIsostaticResponse"), dataset.sources.isostaticResponse));
+    addSource("isostaticResponse", renderSourceLine(t("explorer.meta.sourceIsostaticResponse"), dataset.sources.isostaticResponse));
   }
   if (!capabilities.velocity && !capabilities.basalFriction && !capabilities.hydrology && !capabilities.refinedBasins) {
     sourceLines.push(
@@ -8695,15 +8652,15 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
 
   const projectionItems = buildIceProjectionMetaItems();
   if (projectionItems.length && dataset.sources.iceProjection) {
-    sourceLines.push(renderSourceLine(t("explorer.meta.sourceIceProjection"), dataset.sources.iceProjection));
+    addSource(null, renderSourceLine(t("explorer.meta.sourceIceProjection"), dataset.sources.iceProjection));
   }
   const surfaceChangeItems = buildSurfaceChangeMetaItems();
   if (surfaceChangeItems.length && dataset.sources.surfaceChange) {
-    sourceLines.push(renderSourceLine(t("explorer.meta.sourceSurfaceChange"), dataset.sources.surfaceChange));
+    addSource(null, renderSourceLine(t("explorer.meta.sourceSurfaceChange"), dataset.sources.surfaceChange));
   }
   const seaIceItems = buildSeaIceMetaItems();
   if (seaIceItems.length && dataset.sources.seaIce) {
-    sourceLines.push(renderSourceLine(t("explorer.meta.sourceSeaIce"), dataset.sources.seaIce));
+    addSource(null, renderSourceLine(t("explorer.meta.sourceSeaIce"), dataset.sources.seaIce));
   }
 
   const selectedFlowlineCard =
@@ -8718,11 +8675,11 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
 
   const sections = [
     renderMetaSection("geometry-grid", t("explorer.meta.geometrySection"), geometryItems),
-    renderMetaSection("surface-velocity", t("explorer.meta.velocitySection"), velocityItems),
-    renderMetaSection("basal-friction", t("explorer.meta.basalFrictionSection"), basalFrictionItems),
-    renderMetaSection("subglacial-hydrology", t("explorer.meta.hydrologySection"), hydrologyItems),
-    renderMetaSection("ocean-circulation", t("explorer.meta.oceanSection"), oceanCurrentItems),
-    renderMetaSection("basal-melt", t("explorer.meta.riseSection"), riseItems),
+    renderMetaSection("surface-velocity", t("explorer.meta.velocitySection"), listed("velocity") ? velocityItems : []),
+    renderMetaSection("basal-friction", t("explorer.meta.basalFrictionSection"), listed("basalFriction") ? basalFrictionItems : []),
+    renderMetaSection("subglacial-hydrology", t("explorer.meta.hydrologySection"), listed("hydrology") ? hydrologyItems : []),
+    renderMetaSection("ocean-circulation", t("explorer.meta.oceanSection"), listed("oceanCurrents") ? oceanCurrentItems : []),
+    renderMetaSection("basal-melt", t("explorer.meta.riseSection"), listed("rise") ? riseItems : []),
     renderMetaSection("isostatic-rebound", t("explorer.meta.isostaticReboundSection"), reboundItems, {
       defaultOpen: true,
     }),
@@ -8740,6 +8697,7 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
 
   metaListEl.innerHTML = sections.join("");
   bindMetaSectionToggles();
+  syncMetaShowAllButton(offeredSourceCount, listedSourceCount);
   if (fieldStatsEl) {
     const fieldParts = [
       `${region.label}`,
@@ -9086,24 +9044,26 @@ function updateReboundSeaPlane() {
     (seaLevelMeters / currentCoreContext.baseConfig.verticalMetersPerUnit) * exaggeration;
 }
 
+// Every one of these overlays is baked onto the present-day bed or ice surface, so it would
+// float or sink once the rebound moves the bed. Ocean streamlines are placed against the
+// present bathymetry for the same reason.
+const REBOUND_EXCLUSIVE_TOGGLES = [
+  "showVelocity",
+  "showBasalFriction",
+  "showEffectivePressure",
+  "showSubglacialChannels",
+  "showBasalMelt",
+  "showThermalDriving",
+  "showOceanCurrents",
+  "showFlowline",
+  "showRefinedBasins",
+  "showSurfaceChange",
+  "showSeaIce",
+];
+
 function hideOverlaysForRebound() {
-  // Every one of these overlays is baked onto the present-day bed or ice surface, so
-  // it would float or sink once the bed moves. Ocean streamlines are placed against
-  // the present bathymetry for the same reason.
   let changed = false;
-  for (const key of [
-    "showVelocity",
-    "showBasalFriction",
-    "showEffectivePressure",
-    "showSubglacialChannels",
-    "showBasalMelt",
-    "showThermalDriving",
-    "showOceanCurrents",
-    "showFlowline",
-    "showRefinedBasins",
-    "showSurfaceChange",
-    "showSeaIce",
-  ]) {
+  for (const key of REBOUND_EXCLUSIVE_TOGGLES) {
     const control = controlsUI[key];
     if (control?.checked) {
       control.checked = false;
@@ -9120,6 +9080,8 @@ function hideOverlaysForRebound() {
   if (effectivePressureMesh) effectivePressureMesh.visible = false;
   if (subglacialChannelMesh) subglacialChannelMesh.visible = false;
   updateRiseOverlayVisibility();
+  // The ice-shelf base colouring is gone, so the ice surface it hid comes back.
+  restoreIceSurfaceAfterRiseOverlay();
   updateOceanCurrentLayerControls();
   updateOceanCurrentLayerVisibility();
   updateRefinedBasinVisibility();
@@ -10180,6 +10142,8 @@ function hideOverlaysForIceProjection() {
   updateSurfaceChangeControlsUi();
   leaveSeaIce();
   updateRiseOverlayVisibility();
+  // The ice-shelf base colouring is gone, so the ice surface it hid comes back.
+  restoreIceSurfaceAfterRiseOverlay();
   updateOceanCurrentLayerControls();
   updateOceanCurrentLayerVisibility();
   updateRefinedBasinVisibility();

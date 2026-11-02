@@ -1,6 +1,6 @@
 # Research-edition panel redesign
 
-**Status:** agreed with the author on 2026-11-01. Phase 1 is built on `feat/research-panel` (see [Phase 1](#phase-1-structure)); phases 2 and 3 are not.
+**Status:** agreed with the author on 2026-11-01. Phases 1 and 2 are built on `feat/research-panel` (see [Phase 1](#phase-1-structure) and [Phase 2](#phase-2-behaviour)); phase 3 is not.
 
 **Scope:** the left panel of the research edition, which has two hand-written locale shells:
 
@@ -386,12 +386,45 @@ Done when:
 
 Then release v0.4.0 and re-render JOSS Figure 1(a).
 
+#### Built
+
+On `feat/research-panel`, after phase 1. Measured in headless Chromium at 1440 × 900:
+
+| Measure | Before | Phase 1 | Phase 2 | Target |
+| --- | --- | --- | --- | --- |
+| Panel height, nothing on (English) | 2,135 px | 959 px | 945 px | ≤ 1,000 px |
+| Panel height, nothing on (Chinese) | | 981 px | 962 px | ≤ 1,000 px |
+| Panel height, ISMIP6 projection on (English) | 3,849 px | 1,726 px | 1,515 px | ≤ 1,300 px |
+
+**The 1,300 px target needs the dock, so it moves to phase 3.** With the projection on, its year slider, readout and chart take 268 px of the panel, and they leave it only for the timeline dock. Phase 2 saved 211 px: the About boxes, and group headings 4 px shorter on a mouse-driven screen (touch keeps the taller ones). The prototype's 1,295 px was measured with its dock.
+
+How it is built:
+
+- **One-of choices.** Each surface is a `[data-choice]` field. The layers keep their checkboxes, drawn as round markers inside pills; the first pill (`[data-choice-none]`: Elevation, Off) is a button that switches them all off. Its pressed look comes from CSS (`:not(:has(input:checked))`), and the panel keeps its `aria-pressed` in step. A choice gives its reasons and the time feature's notes on one line under the pills: a single reason when every option shares it ("Antarctica only"), otherwise one line per option ("Effective pressure: Antarctica only").
+- **Ice surface.** Off brings the ice surface back if basal melt or thermal driving hid it, and so does a time feature that clears the ice-shelf base, whose ice would otherwise stay hidden.
+- **Change over time.** `static/tools/js/research-time.js`. The four feature toggles stay checkboxes, drawn with round markers under a *Present day* option. They keep checkbox semantics, so a click on the feature that is on also returns to the present day. The panel stops the reader's click on a feature and makes the change itself, in order, each step as the toggle's own change event:
+  1. the feature that was on goes, so the runtime lowers what it raised;
+  2. the layers it switched off come back;
+  3. the next feature starts.
+- **What a feature changes.** `planTimeChange()` in `panel-state.js` keeps two lists per feature: the layers it switched off that were on, and the layers it switched on that were off. Moving straight to another feature carries over what that feature changes the same way, so nothing flickers. The lists come from the runtime's own rules (`ICE_PROJECTION_EXCLUSIVE_TOGGLES`, the new `REBOUND_EXCLUSIVE_TOGGLES`, `leaveLayersForSurfaceChange()`, `leaveLayersForSeaIce()`), and a layer the reader sets by hand drops out of them.
+- **Conflicting layers.** Switching on a layer the feature replaced ends it, and nothing else comes back. The runtime already did this for the projection, for velocity against CPOM and for friction and effective pressure against the rebound. The panel now does it for every layer the rebound replaces, on the research page only.
+- **About boxes.** The legend note and the longer note of the observed elevation change, the observed sea ice and the projection sit in a closed *About* box. The rebound's notes stay beside the control each one explains.
+- **Data and sources.** The terrain and the layers on screen, with their sections and sources; *Show all N datasets* lists everything the terrain offers.
+- **Presets.** `SHOWCASE_PRESETS` and `EXPLORER_PRESETS` move to `static/tools/js/view-presets.js`, so a node test can hold every view, and every tour stop, to `findChoiceConflicts()`.
+
+Tests:
+
+- `tests/e2e/test_panel_exclusivity.py`: one case per row of the exclusivity table, restore included, on the real packages except the ocean streamlines.
+- `tests/js/panel-state.test.mjs` covers `planTimeChange()` and `findChoiceConflicts()`; `tests/js/view-presets.test.mjs` fails any view or tour stop that would switch on two layers of one choice.
+- `tests/test_research_panel_structure.py` pins the choices, the time list, the About boxes and the data switch in both shells.
+
 ### Phase 3: timeline dock
 
 Work: the dock, wide charts, the phone row, and the mode handling.
 
 Done when:
 
+- The panel is at most 1,300 px tall with the ISMIP6 projection on (moved from phase 2).
 - The projection slider is at least 800 px long at 1440 × 900.
 - Readouts stay on one line.
 - Chart labels are legible at 1280 × 720.

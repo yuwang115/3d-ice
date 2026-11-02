@@ -241,7 +241,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 2px;
+  padding: 8px 2px;
   border-radius: 6px;
   list-style: none;
   cursor: pointer;
@@ -301,7 +301,7 @@
 .rp-group__body {
   display: grid;
   gap: 8px;
-  padding: 0 0 13px;
+  padding: 0 0 10px;
 }
 
 .rp-feature {
@@ -315,18 +315,15 @@
   margin-bottom: 0;
 }
 
+.rp-group .control > label {
+  margin-bottom: 2px;
+}
+
 .rp-group .toggle-group {
   display: grid;
   gap: 8px;
   margin: 0 0 2px 7px;
   padding-left: 14px;
-}
-
-.rp-subhead {
-  margin: 2px 0 -2px;
-  color: var(--control-label);
-  font-size: 0.78rem;
-  font-weight: 600;
 }
 
 /* ------------------------------------------------------------------ rows and chips */
@@ -447,6 +444,197 @@
   font-size: 0.78rem;
 }
 
+/* ------------------------------------------------------------------ one-of choices */
+
+/* A surface's colourings as one row of pills. The layers keep their checkboxes, drawn as
+   round markers; the first pill, which is not a layer, reads as chosen while none is on. */
+.rp-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}
+
+.rp-choice__opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  height: auto;
+  min-height: 28px;
+  margin: 0;
+  padding: 3px 11px 3px 8px;
+  border: 1px solid var(--select-border);
+  border-radius: 999px;
+  background: var(--select-bg);
+  color: var(--select-text);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.rp-choice__opt input,
+.rp-choice__none::before {
+  appearance: none;
+  flex: 0 0 auto;
+  width: 11px;
+  height: 11px;
+  margin: 0;
+  border: 1.5px solid var(--select-border);
+  border-radius: 50%;
+  background: var(--select-bg);
+}
+
+.rp-choice__none::before {
+  content: "";
+}
+
+.rp-choice__opt:has(input:checked),
+.rp-choice:not(:has(input:checked)) .rp-choice__none {
+  border-color: var(--rp-active-ring);
+  background: var(--rp-active-bg);
+  color: var(--meta-strong);
+  font-weight: 600;
+}
+
+.rp-choice__opt input:checked,
+.rp-choice:not(:has(input:checked)) .rp-choice__none::before {
+  border-color: var(--accent);
+  background: radial-gradient(circle, var(--accent) 0 2.5px, var(--select-bg) 3px);
+}
+
+.rp-choice__none:hover {
+  filter: none;
+}
+
+.rp-choice__opt:has(input:disabled) {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.rp-choice__opt:has(input:focus-visible),
+.rp-choice__none:focus-visible {
+  outline: 2px solid var(--select-focus-border);
+  outline-offset: 1px;
+}
+
+/* Why an option is off: one line for the whole choice, or one line per option. */
+.rp-choice__note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+/* ------------------------------------------------------------------ change over time */
+
+.rp-group__hint {
+  color: var(--muted);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+/* One feature at a time, so the rows wear round markers, and Present day is the first. */
+.rp-row--time input[type="checkbox"],
+.rp-time__dot {
+  appearance: none;
+  display: block;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  border: 1.5px solid var(--select-border);
+  border-radius: 50%;
+  background: var(--select-bg);
+}
+
+.rp-row--time input[type="checkbox"]:checked,
+.rp-group:not(:has(input[data-time]:checked)) .rp-time__dot {
+  border-color: var(--accent);
+  background: radial-gradient(circle, var(--accent) 0 3.5px, var(--select-bg) 4px);
+}
+
+.rp-row--time input[type="checkbox"]:disabled {
+  opacity: 0.5;
+}
+
+.rp-row--time input[type="checkbox"]:focus-visible,
+.rp-time__none:focus-visible {
+  outline: 2px solid var(--select-focus-border);
+  outline-offset: 2px;
+}
+
+.rp-time__none {
+  width: 100%;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--toggle-text);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-align: left;
+}
+
+.rp-time__none:hover {
+  filter: none;
+}
+
+.rp-group:not(:has(input[data-time]:checked)) .rp-time__none {
+  color: var(--meta-strong);
+  font-weight: 600;
+}
+
+/* A layer a time feature has switched off says so, under its label. */
+.rp-takeover {
+  grid-column: 2 / -1;
+  justify-self: start;
+  padding-left: 8px;
+  border-left: 2px solid var(--rp-active-ring);
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+/* A record's longer notes, closed until asked for. */
+.rp-about > summary {
+  color: var(--meta-link);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.rp-about .legend-note {
+  margin-top: 6px;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+/* ------------------------------------------------------------------ data and sources */
+
+.rp-link {
+  justify-self: start;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--meta-link);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-decoration: underline;
+}
+
+.rp-link:hover {
+  filter: none;
+}
+
 /* ------------------------------------------------------------------ legends */
 
 /* A legend sits under the layer that draws it, indented to its label. */
@@ -485,6 +673,13 @@ body.showcase #resetView {
 }
 
 /* ------------------------------------------------------------------ phones */
+
+/* A finger needs taller group titles than a pointer does. */
+@media (pointer: coarse) {
+  .rp-group__summary {
+    padding: 11px 2px;
+  }
+}
 
 @media (max-width: 980px) {
   body.mobile-drawer .rp-masthead {

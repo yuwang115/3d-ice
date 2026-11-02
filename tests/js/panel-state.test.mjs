@@ -10,12 +10,16 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  ONE_OF_CHOICES,
+  TIME_FEATURE_TOGGLES,
   describeUnavailability,
+  findChoiceConflicts,
   findDatasetForChoice,
   getTerrainChoice,
   groupsToOpen,
   listTerrainChoices,
   offersChoice,
+  planTimeChange,
   readGroupState,
   recordGroupState,
 } from "../../static/tools/js/panel-state.js";
@@ -168,4 +172,117 @@ test("a group opens when a layer in it has just been switched on", () => {
   assert.deepEqual([...groupsToOpen(before, after, groupOf)], ["bed"]);
   assert.deepEqual([...groupsToOpen(after, after, groupOf)], []);
   assert.deepEqual([...groupsToOpen(new Set(), new Set(["showSea", "showVelocity"]), groupOf)], ["scene", "flow"]);
+});
+
+// ------------------------------------------------ one-of choices and time features
+
+test("the bed and the ice-shelf base each take one colouring, and the four time features one at a time", () => {
+  assert.deepEqual(ONE_OF_CHOICES.bed, ["showBasalFriction", "showEffectivePressure"]);
+  assert.deepEqual(ONE_OF_CHOICES.shelf, ["showBasalMelt", "showThermalDriving"]);
+  assert.deepEqual(TIME_FEATURE_TOGGLES, ["showSurfaceChange", "showSeaIce", "showIceProjection", "showIsostaticRebound"]);
+  assert.ok(Object.isFrozen(ONE_OF_CHOICES) && Object.isFrozen(ONE_OF_CHOICES.bed) && Object.isFrozen(TIME_FEATURE_TOGGLES));
+});
+
+test("a set of toggles that switches on two colourings of one surface, or two time features, is a conflict", () => {
+  assert.deepEqual(findChoiceConflicts({ showBasalFriction: true, showVelocity: true }), []);
+  assert.deepEqual(findChoiceConflicts({ showBasalFriction: true, showEffectivePressure: true }), [
+    { choice: "bed", toggles: ["showBasalFriction", "showEffectivePressure"] },
+  ]);
+  assert.deepEqual(findChoiceConflicts({ showBasalMelt: true, showThermalDriving: true, showSeaIce: true, showSurfaceChange: true }), [
+    { choice: "shelf", toggles: ["showBasalMelt", "showThermalDriving"] },
+    { choice: "time", toggles: ["showSurfaceChange", "showSeaIce"] },
+  ]);
+  // Only a true value switches a layer on.
+  assert.deepEqual(findChoiceConflicts({ showBasalFriction: "yes", showEffectivePressure: 1 }), []);
+});
+
+const SWITCHES_OFF = Object.freeze({
+  projection: ["showVelocity", "showBasalFriction", "showOceanCurrents"],
+  rebound: ["showVelocity", "showFlowline"],
+  surfaceChange: ["showVelocity"],
+  seaIce: [],
+});
+
+const SWITCHES_ON = Object.freeze({
+  projection: ["showFlowline", "showSea"],
+  rebound: ["showSea"],
+  seaIce: ["showSea"],
+});
+
+function onlyOn(...ids) {
+  const on = new Set(ids);
+  return (id) => on.has(id);
+}
+
+function plan(change) {
+  return planTimeChange({ saved: [], raised: [], switchesOff: SWITCHES_OFF, switchesOn: SWITCHES_ON, ...change });
+}
+
+test("entering a time feature from the present day remembers what it will switch off and on", () => {
+  assert.deepEqual(plan({ active: null, next: "projection", isOn: onlyOn("showVelocity", "showOceanCurrents", "showSea") }), {
+    restore: [],
+    lower: [],
+    save: ["showVelocity", "showOceanCurrents"],
+    // The sea plane is on already, so only the flowlines are the projection's to put away.
+    raise: ["showFlowline"],
+  });
+});
+
+test("returning to the present day puts back what the feature switched off, and lowers what it raised", () => {
+  assert.deepEqual(
+    plan({
+      active: "rebound",
+      saved: ["showVelocity", "showFlowline"],
+      raised: ["showSea"],
+      next: null,
+      isOn: onlyOn("showFlowline", "showSea"),
+    }),
+    { restore: ["showVelocity"], lower: ["showSea"], save: [], raise: [] }
+  );
+});
+
+test("going straight to another time feature keeps what that one switches off or on too", () => {
+  assert.deepEqual(
+    plan({
+      active: "projection",
+      saved: ["showVelocity", "showBasalFriction"],
+      raised: ["showSea"],
+      next: "rebound",
+      isOn: onlyOn("showFlowline", "showSea"),
+    }),
+    // Velocity stays off and the sea plane on, both now the rebound's; friction comes back;
+    // the flowlines are on, and the rebound switches them off.
+    { restore: ["showBasalFriction"], lower: [], save: ["showVelocity", "showFlowline"], raise: ["showSea"] }
+  );
+});
+
+test("a layer that comes back is the reader's again, even if the next feature also shows it", () => {
+  // The reader had the flowlines on; the rebound switched them off, and the projection,
+  // which shows them too, gets them back. They are not the projection's to put away.
+  assert.deepEqual(
+    plan({ active: "rebound", saved: ["showVelocity", "showFlowline"], raised: [], next: "projection", isOn: onlyOn() }),
+    { restore: ["showFlowline"], lower: [], save: ["showVelocity"], raise: ["showSea"] }
+  );
+});
+
+test("a raised layer the reader has since switched off needs no lowering", () => {
+  assert.deepEqual(plan({ active: "seaIce", raised: ["showSea"], next: null, isOn: onlyOn() }), {
+    restore: [],
+    lower: [],
+    save: [],
+    raise: [],
+  });
+});
+
+test("choosing the feature already on changes nothing", () => {
+  assert.deepEqual(plan({ active: "seaIce", saved: ["showVelocity"], raised: ["showSea"], next: "seaIce", isOn: onlyOn() }), {
+    restore: [],
+    lower: [],
+    save: ["showVelocity"],
+    raise: ["showSea"],
+  });
+  assert.deepEqual(
+    planTimeChange({ active: null, saved: [], next: "unknown", switchesOff: SWITCHES_OFF, isOn: onlyOn("showVelocity") }),
+    { restore: [], lower: [], save: [], raise: [] }
+  );
 });
