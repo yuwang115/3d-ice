@@ -72,6 +72,10 @@ const PROFILES = deepFreeze({
     recording: true,
     detailedStatus: true,
     guide: false,
+    // Each legend's caption names its unit ("Surface speed, m/yr"), so no tick carries one.
+    legendUnits: "caption",
+    // A layer the terrain lacks keeps its row, disabled, and says why ("Antarctica only").
+    unavailableLayers: "explain",
   },
   [EDITION_KEYS.public]: {
     key: EDITION_KEYS.public,
@@ -115,6 +119,10 @@ const PROFILES = deepFreeze({
     recording: false,
     detailedStatus: false,
     guide: true,
+    // The first tick names the unit ("0 m/yr"), under a plain-language heading.
+    legendUnits: "ticks",
+    // A layer the terrain lacks is left out of the panel altogether.
+    unavailableLayers: "hide",
   },
 });
 

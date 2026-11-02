@@ -223,8 +223,8 @@ and `resampling` (the method and the reason). Coverage counts, display hints
 (`visualization`) and product-specific processing notes (`hybridization`,
 `channel_filter`, `inference_note`) sit alongside.
 
-The research edition's Data Snapshot summarises these records and links the source products
-of the datasets in view; the public edition's layer explainers cite them.
+The research edition's *Data and sources* list summarises these records and links the source
+products of the datasets in view; the public edition's layer explainers cite them.
 
 ## Packages the runtime does not load
 

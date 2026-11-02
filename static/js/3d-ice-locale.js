@@ -50,14 +50,14 @@
             label: "Antarctica",
             intro:
               "Explore Antarctica from every angle. Rotate, zoom, and peel back the ice to uncover a hidden world in interactive 3D.",
-            basinToggleLabel: "Show refined basins",
+            basinToggleLabel: "Refined basins",
             basinStatusLabel: "refined basins",
           },
           greenland: {
             label: "Greenland",
             intro:
               "Explore Greenland from every angle. Rotate, zoom, and peel back the ice to uncover a hidden world in interactive 3D.",
-            basinToggleLabel: "Show basins",
+            basinToggleLabel: "Basins",
             basinStatusLabel: "basins",
           },
         },
@@ -69,7 +69,7 @@
             },
             hd: {
               label: "BedMachine v4 — HD",
-              summary: "4 km grid; ~18.6 MB",
+              summary: "4 km grid; ~18.6 MB, desktop recommended",
             },
             bedmap3: {
               label: "Bedmap3 — Balanced",
@@ -87,7 +87,7 @@
             },
             "1km": {
               label: "HD",
-              summary: "1 km grid; ~28.2 MB",
+              summary: "1 km grid; ~28.2 MB, desktop recommended",
             },
             qrf: {
               label: "QRF 2025 — Balanced",
@@ -114,6 +114,23 @@
         drawer: {
           open: "Layers and places",
           close: "Done",
+        },
+        // The research edition's grouped panel.
+        panel: {
+          layersOn: "{count} on",
+          flowlineHint: "Click a flowline for its profile.",
+          onlyInRegion: "{region} only",
+          onlyOnTerrain: "{terrain} only",
+          onlyOnDataset: "{terrain} {grid} only",
+          onlyOnGrid: "{grid} grid only",
+          unavailable: "Unavailable",
+          optionNote: "{layer}: {text}",
+          offWhileSurfaceChange: "Off while the elevation change is on",
+          offWhileSeaIce: "Off while the sea ice is on",
+          offWhileProjection: "Off while the projection is on",
+          offWhileRebound: "Off while the rebound is on",
+          dataShowAll: "Show all {count} datasets",
+          dataOnScreen: "Show only what is on screen",
         },
         capture: {
           play: "Play",
@@ -260,8 +277,8 @@
           readoutSignificant: "Cells beyond 2σ",
           noteCumulative: "Satellite radar altimetry (ERS-2, Envisat, CryoSat-2) processed by CPOM: how far the surface of the grounded ice has risen (blue) or fallen (red) since 1995, every 140 days. The totals are CPOM's own mass changes; 362.5 Gt of ice is 1 mm of global sea level. Ice shelves, islands and ice rises are not covered.",
           noteRate: "The linear rate of surface elevation change from 1995 to 2026, from CPOM's multi-mission radar altimetry. Ice shelves, islands and ice rises are not covered.",
-          legendTitleCumulative: "Surface Elevation Change Since 1995",
-          legendTitleRate: "Surface Elevation Change Rate",
+          legendTitleCumulative: "Elevation change since 1995, m",
+          legendTitleRate: "Elevation change rate, m/yr",
           legendNoteCumulative: "Change in surface elevation since 1995, on a symmetric log scale that is linear within ±{softness} m. Faded: within 2σ of no change (σ at the end of the record); south of 88°S, which is always extrapolated; and south of 81.5°S until CryoSat-2 data arrive in late 2010, after which the change there still includes the extrapolated years. Ice without colour has no data.",
           legendNoteRate: "Rate of surface elevation change, 1995–2026, on a symmetric log scale that is linear within ±{softness} m/yr. Faded: within 2σ of no change, or extrapolated south of 88°S; south of 81.5°S the years before CryoSat-2 are extrapolated too. Ice without colour has no data.",
           sheetName: "Antarctic Ice Sheet",
@@ -412,11 +429,6 @@
           speedQuantiles: "Speed Quantiles",
           selectedFlowlineSection: "Ice Flowline Profile",
           selectedFlowlineHint: "Click a visible ice flowline to preview its along-flow silhouette here.",
-          selectedFlowlineEmptyTitle: "Pick a flowline",
-          selectedFlowlineEmptyBody:
-            "Click any visible ice flowline to reveal its along-flow silhouette, including surface, ice base, and bedrock.",
-          selectedFlowlineDisabledTitle: "Flowlines are hidden",
-          selectedFlowlineDisabledBody: "Turn on Show Flowlines, then click a line to preview its profile silhouette.",
           selectedFlowlineLabel: "Flowline {index}",
           selectedFlowlineLength: "Along-flow Length",
           selectedFlowlineSpeedRange: "Flow Speed",
@@ -623,14 +635,14 @@
             label: "南极洲",
             intro:
               "全方位，探秘南极。旋转、缩放、穿透重重冰盖，在 3D 交互中，唤醒沉睡的冰下世界。",
-            basinToggleLabel: "显示细化流域",
+            basinToggleLabel: "细化流域",
             basinStatusLabel: "细化流域",
           },
           greenland: {
             label: "格陵兰",
             intro:
               "全方位，探秘格陵兰。旋转、缩放、穿透重重冰盖，在 3D 交互中，唤醒沉睡的冰下世界。",
-            basinToggleLabel: "显示流域",
+            basinToggleLabel: "流域",
             basinStatusLabel: "流域",
           },
         },
@@ -660,7 +672,7 @@
             },
             "1km": {
               label: "高清",
-              summary: "1 km 网格；约 28.2 MB",
+              summary: "1 km 网格；约 28.2 MB，推荐桌面端",
             },
             qrf: {
               label: "QRF 2025 — 标准",
@@ -687,6 +699,22 @@
         drawer: {
           open: "图层与地点",
           close: "完成",
+        },
+        panel: {
+          layersOn: "已开 {count}",
+          flowlineHint: "点击一条流线查看其剖面。",
+          onlyInRegion: "仅限{region}",
+          onlyOnTerrain: "仅限 {terrain}",
+          onlyOnDataset: "仅限 {terrain} {grid}",
+          onlyOnGrid: "仅限 {grid} 网格",
+          unavailable: "暂不可用",
+          optionNote: "{layer}：{text}",
+          offWhileSurfaceChange: "冰面高程变化开启时关闭",
+          offWhileSeaIce: "海冰开启时关闭",
+          offWhileProjection: "未来预估开启时关闭",
+          offWhileRebound: "地壳回弹开启时关闭",
+          dataShowAll: "显示全部 {count} 个数据集",
+          dataOnScreen: "只显示画面中的数据",
         },
         capture: {
           play: "播放",
@@ -833,8 +861,8 @@
           readoutSignificant: "超过 2σ 的网格",
           noteCumulative: "由 CPOM 处理的卫星雷达测高数据（ERS-2、Envisat、CryoSat-2）：自 1995 年以来，每 140 天接地冰表面升高（蓝）或降低（红）了多少。合计值是 CPOM 自己的质量变化；362.5 Gt 冰相当于全球海平面 1 mm。不含冰架、岛屿和冰隆。",
           noteRate: "CPOM 多卫星雷达测高给出的 1995–2026 年冰面高程线性变化速率。不含冰架、岛屿和冰隆。",
-          legendTitleCumulative: "相对 1995 年的冰面高程变化",
-          legendTitleRate: "冰面高程变化速率",
+          legendTitleCumulative: "相对 1995 年的冰面高程变化，m",
+          legendTitleRate: "冰面高程变化速率，m/yr",
           legendNoteCumulative: "相对 1995 年的冰面高程变化，采用对称对数色标，±{softness} m 以内为线性。淡化表示：变化在 2σ 以内（σ 取记录末期的值）；88°S 以南，那里始终是外推值；以及 2010 年末 CryoSat-2 数据到来之前的 81.5°S 以南，此后那里的变化仍包含此前外推的年份。未着色的冰面没有数据。",
           legendNoteRate: "1995–2026 年冰面高程变化速率，采用对称对数色标，±{softness} m/yr 以内为线性。淡化表示变化在 2σ 以内，或是 88°S 以南的外推值；81.5°S 以南 CryoSat-2 之前的年份同样是外推。未着色的冰面没有数据。",
           sheetName: "南极冰盖",
@@ -982,10 +1010,6 @@
           speedQuantiles: "流速分位数",
           selectedFlowlineSection: "冰流线侧剖面",
           selectedFlowlineHint: "点击任意可见冰流线，即可在此预览对应的沿流向侧剖面剪影。",
-          selectedFlowlineEmptyTitle: "选择一条流线",
-          selectedFlowlineEmptyBody: "点击任意可见冰流线，即可查看包含冰表、冰底与基岩的沿流向侧剖面。",
-          selectedFlowlineDisabledTitle: "流线图层已隐藏",
-          selectedFlowlineDisabledBody: "请先开启“显示冰流线”，再点击流线查看对应剖面剪影。",
           selectedFlowlineLabel: "第 {index} 条流线",
           selectedFlowlineLength: "沿流向长度",
           selectedFlowlineSpeedRange: "流速范围",

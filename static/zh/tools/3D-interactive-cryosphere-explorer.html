@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-locale="zh-CN">
+<html lang="zh-CN" data-locale="zh-CN" data-edition="research">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -161,370 +161,420 @@
     })();
   </script>
   <link rel="stylesheet" href="../../tools/css/explorer.css" />
+  <link rel="stylesheet" href="../../tools/css/research-panel.css" />
 </head>
 <body>
   <div class="app">
-    <aside class="panel">
+    <aside class="panel" aria-label="探索平台控制">
       <div class="panel-header">
         <div class="panel-grab" aria-hidden="true"></div>
         <button id="panelCloseButton" class="panel-close-btn" type="button">图层与地点</button>
       </div>
-      <div class="panel-brand">
-        <img
-          class="panel-brand-logo"
-          data-src="../../tools/3d-ice-logo-light.jpg"
-          alt="3D ICE 冰冻圈交互探索平台"
-          width="2631"
-          height="1166"
-          decoding="async"
-        />
-        <script>
-          (() => {
-            const logoEl = document.currentScript.previousElementSibling;
-            if (!logoEl) return;
-            /* See the en variant for why the src is gated rather than lazy. */
-            const mode = new URLSearchParams(window.location.search).get("mode");
-            if (mode === "showcase" || mode === "preview-embed") return;
-            const runtimeTheme = window.__iceRuntimeTheme;
-            const nextSrc = runtimeTheme
-              ? document.documentElement.dataset.theme === "dark"
-                ? runtimeTheme.darkLogoSrc
-                : runtimeTheme.lightLogoSrc
-              : logoEl.dataset.src;
-            if (nextSrc && logoEl.getAttribute("src") !== nextSrc) {
-              logoEl.setAttribute("src", nextSrc);
-            }
-          })();
-        </script>
-      </div>
-      <p id="panelSubtitle" class="subtitle">
-        全方位，探秘南极。旋转、缩放、穿透重重冰盖，在 3D 交互中，唤醒沉睡的冰下世界。
-      </p>
-      <p class="edition-switch">
-        初次了解冰盖？从<a href="../explore/?tour=1">科普版导览</a>开始。
-      </p>
-      <div id="panelLocaleSwitcher" class="panel-locale-switcher"></div>
 
-      <section id="viewControlsSection" class="section">
-        <h2 class="section-title">视图控制</h2>
-        <div class="control">
-          <label for="regionPreset">区域</label>
-          <select id="regionPreset">
-            <option value="antarctica" selected>南极洲</option>
-            <option value="greenland">格陵兰</option>
-          </select>
+      <!-- See the en variant: same groups, same ids, same order. -->
+      <header class="rp-masthead">
+        <h1 class="rp-wordmark"><span class="rp-wordmark__3d">3D</span> ICE</h1>
+        <span class="rp-edition-tag">研究版</span>
+        <div id="panelLocaleSwitcher" class="panel-locale-switcher"></div>
+        <button id="panelInfoButton" class="rp-info-button" type="button" aria-expanded="false" aria-controls="panelInfoMenu" aria-label="关于本平台">i</button>
+        <div id="panelInfoMenu" class="rp-info-menu" hidden>
+          <p id="panelSubtitle" class="subtitle">
+            全方位，探秘南极。旋转、缩放、穿透重重冰盖，在 3D 交互中，唤醒沉睡的冰下世界。
+          </p>
+          <p class="edition-switch">
+            初次了解冰盖？从<a href="../explore/?tour=1">科普版导览</a>开始。
+          </p>
         </div>
-        <div class="control">
-          <label for="resolutionPreset">数据集与分辨率</label>
-          <select id="resolutionPreset">
-            <option value="balanced" selected>BedMachine v4 — 标准（10 km，约 3.0 MB）</option>
-            <option value="hd">BedMachine v4 — 高清（4 km，约 18.6 MB，推荐桌面端）</option>
-            <option value="bedmap3">Bedmap3 — 标准（10 km，约 3.0 MB）</option>
-            <option value="bedmap3-hd">Bedmap3 — 高清（4 km，约 18.6 MB，推荐桌面端）</option>
-          </select>
+      </header>
+
+      <section id="viewControlsSection" class="rp-where" aria-label="查看区域">
+        <div class="rp-segmented" role="group" aria-label="区域" data-segmented-for="regionPreset">
+          <button type="button" class="rp-segmented__option" data-value="antarctica" aria-pressed="true">南极洲</button>
+          <button type="button" class="rp-segmented__option" data-value="greenland" aria-pressed="false">格陵兰</button>
         </div>
-        <div class="control">
-          <label for="exaggeration">高程缩放 <span id="exaggerationValue" class="mono">55×</span></label>
-          <input id="exaggeration" type="range" min="0.5" max="8" step="0.1" value="4" />
-        </div>
-        <div class="control">
-          <label for="iceOpacity">冰层不透明度 <span id="iceOpacityValue" class="mono">0.65</span></label>
-          <input id="iceOpacity" type="range" min="0" max="1" step="0.01" value="0.65" />
-        </div>
-        <section id="polarFeatureSection" class="view-control-subsection" aria-labelledby="polarFeatureHeading">
-          <h3 id="polarFeatureHeading" class="section-title">地点与地理特征</h3>
-          <div class="control">
-            <label for="polarSearchInput">搜索地点和地理特征</label>
-            <div class="polar-search-combobox">
-              <input
-                id="polarSearchInput"
-                class="polar-search-input"
-                type="search"
-                role="combobox"
-                aria-autocomplete="list"
-                aria-controls="polarSearchResults"
-                aria-label="搜索地点和地理特征"
-                autocomplete="off"
-                placeholder="科考站、冰芯、山脉、盆地…"
-              />
-              <ul id="polarSearchResults" class="polar-search-results" role="listbox" hidden></ul>
-            </div>
-            <div id="polarSearchStatus" class="polar-search-status" role="status" aria-live="polite"></div>
+        <select id="regionPreset" aria-label="区域" hidden>
+          <option value="antarctica" selected>南极洲</option>
+          <option value="greenland">格陵兰</option>
+        </select>
+        <div class="rp-search">
+          <div class="polar-search-combobox">
+            <input
+              id="polarSearchInput"
+              class="polar-search-input"
+              type="search"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-controls="polarSearchResults"
+              aria-label="搜索地点和地理特征"
+              autocomplete="off"
+              placeholder="搜索科考站、冰芯、冰川…"
+            />
+            <ul id="polarSearchResults" class="polar-search-results" role="listbox" hidden></ul>
           </div>
-          <label class="toggle"><input id="showResearchStations" type="checkbox" /> 显示科考站</label>
-          <label class="toggle"><input id="showGeographicNames" type="checkbox" /> 显示地理名称</label>
-          <label class="toggle"><input id="showIceCores" type="checkbox" /> 显示冰芯钻探点</label>
-          <label class="toggle"><input id="showRefinedBasins" type="checkbox" /> <span id="showRefinedBasinsLabel">显示细化流域</span></label>
+          <div id="polarSearchStatus" class="polar-search-status" role="status" aria-live="polite"></div>
           <div id="polarFeatureDetails" class="polar-feature-details" aria-label="地理信息详情" hidden></div>
-        </section>
-        <label class="toggle"><input id="showBed" type="checkbox" checked /> 显示基岩地形</label>
-        <label class="toggle"><input id="showIce" type="checkbox" checked /> 显示冰表面</label>
-        <label class="toggle"><input id="showIceBottom" type="checkbox" checked /> 显示冰底界面</label>
-        <label class="toggle"><input id="showVelocity" type="checkbox" /> 显示冰表流速</label>
-        <label class="toggle"><input id="showFlowline" type="checkbox" /> 显示冰流线</label>
-        <div id="flowlineProfileCardMount" class="flowline-inline-card-slot" hidden></div>
-        <label class="toggle"><input id="showBasalFriction" type="checkbox" /> 显示基底摩擦</label>
-        <label class="toggle"><input id="showEffectivePressure" type="checkbox" /> 显示有效压力</label>
-        <label class="toggle"><input id="showSubglacialChannels" type="checkbox" /> 显示冰下通道</label>
-        <div class="toggle-divider" aria-hidden="true"></div>
-        <label class="toggle"><input id="showOceanCurrents" type="checkbox" /> 显示海洋流线</label>
-        <div id="oceanCurrentLayerControls" class="toggle-group toggle-group--grid" hidden>
-          <label class="toggle toggle--sub"><input id="showOceanLayerSurface" type="checkbox" /> 表层</label>
-          <label class="toggle toggle--sub"><input id="showOceanLayerUpper" type="checkbox" /> 上层</label>
-          <label class="toggle toggle--sub"><input id="showOceanLayerMid" type="checkbox" /> 中层</label>
-          <label class="toggle toggle--sub"><input id="showOceanLayerLower" type="checkbox" /> 下层</label>
         </div>
-        <label id="showBasalMeltRow" class="toggle"><input id="showBasalMelt" type="checkbox" /> 显示冰架底部融化率</label>
-        <label id="showThermalDrivingRow" class="toggle"><input id="showThermalDriving" type="checkbox" /> 显示冰架底部热驱动</label>
-        <label class="toggle"><input id="showSea" type="checkbox" /> 显示海平面 (0 m)</label>
-        <div class="toggle-divider" aria-hidden="true"></div>
-        <label class="toggle"><input id="animateFlow" type="checkbox" checked /> 显示冰与海水流动的流光</label>
-        <label class="toggle"><input id="wireframe" type="checkbox" /> 线框模式</label>
-        <button id="resetView" type="button">视角重置</button>
-        <button id="fullscreenToggle" type="button">进入全屏</button>
+        <div class="rp-terrain">
+          <label class="rp-field">
+            <span class="rp-field__label">地形</span>
+            <select id="terrainPreset"></select>
+          </label>
+          <div class="rp-field">
+            <span id="gridPresetLabel" class="rp-field__label">网格</span>
+            <div id="gridPreset" class="rp-segmented rp-segmented--compact" role="group" aria-labelledby="gridPresetLabel"></div>
+          </div>
+        </div>
+        <select id="resolutionPreset" aria-label="数据集与分辨率" hidden>
+          <option value="balanced" selected>BedMachine v4 — 标准（10 km，约 3.0 MB）</option>
+          <option value="hd">BedMachine v4 — 高清（4 km，约 18.6 MB，推荐桌面端）</option>
+          <option value="bedmap3">Bedmap3 — 标准（10 km，约 3.0 MB）</option>
+          <option value="bedmap3-hd">Bedmap3 — 高清（4 km，约 18.6 MB，推荐桌面端）</option>
+        </select>
+        <p id="terrainHint" class="rp-hint" hidden></p>
       </section>
 
-      <section id="interactiveScenariosSection" class="section" aria-labelledby="interactiveScenariosHeading">
-        <h2 id="interactiveScenariosHeading" class="section-title">交互式情景</h2>
-        <div id="surfaceChangeRow" hidden>
-          <label class="toggle"><input id="showSurfaceChange" type="checkbox" /> 显示观测到的冰面高程变化（CPOM，1995–2026）</label>
-          <div id="surfaceChangeControls" class="toggle-group" hidden>
-            <div class="control">
-              <label for="surfaceChangeView">视图</label>
-              <select id="surfaceChangeView">
-                <option value="cumulative" selected>相对 1995 年的变化</option>
-                <option value="rate">1995–2026 年变化速率</option>
-              </select>
+      <details class="rp-group" data-group="scene" open>
+        <summary class="rp-group__summary"><span class="rp-group__title">场景</span><span class="rp-group__count" hidden></span></summary>
+        <div class="rp-group__body">
+          <div class="rp-chips" role="group" aria-label="表面">
+            <label class="rp-chip"><input id="showIce" type="checkbox" checked /> 冰表面</label>
+            <label class="rp-chip"><input id="showIceBottom" type="checkbox" checked /> 冰底面</label>
+            <label class="rp-chip"><input id="showBed" type="checkbox" checked /> 基岩</label>
+            <label class="rp-chip"><input id="showSea" type="checkbox" data-layer /> 海平面 (0 m)</label>
+          </div>
+          <div id="bedLegendSection" class="rp-legend rp-legend--flush">
+            <p class="rp-legend__caption">基岩高程，m</p>
+            <div id="legendBar" class="legend" aria-hidden="true"></div>
+            <div class="legend-labels">
+              <span>−7000</span>
+              <span>0</span>
+              <span>+3500</span>
             </div>
-            <div id="surfaceChangeTimeControl" class="control">
-              <label for="surfaceChangeTime">日期 <span id="surfaceChangeTimeValue" class="mono"></span></label>
-              <div class="projection-timeline">
-                <button id="surfaceChangePlay" type="button" class="projection-play" aria-label="播放">播放</button>
-                <input id="surfaceChangeTime" type="range" min="0" max="80" step="0.01" value="80" />
+          </div>
+          <div class="control">
+            <label for="iceOpacity">冰层不透明度 <span id="iceOpacityValue" class="mono">0.65</span></label>
+            <input id="iceOpacity" type="range" min="0" max="1" step="0.01" value="0.65" />
+          </div>
+          <div class="control">
+            <label for="exaggeration">高程缩放 <span id="exaggerationValue" class="mono">55×</span></label>
+            <input id="exaggeration" type="range" min="0.5" max="8" step="0.1" value="4" />
+          </div>
+        </div>
+      </details>
+
+      <details class="rp-group" data-group="flow" open>
+        <summary class="rp-group__summary"><span class="rp-group__title">冰流</span><span class="rp-group__count" hidden></span></summary>
+        <div class="rp-group__body">
+          <label class="rp-row"><input id="showVelocity" type="checkbox" data-layer /> <span class="rp-row__label">冰表流速</span></label>
+          <label class="rp-row"><input id="showFlowline" type="checkbox" data-layer /> <span class="rp-row__label">冰流线</span></label>
+          <div id="flowlineProfileCardMount" class="flowline-inline-card-slot" hidden></div>
+          <div id="velocityLegendSection" class="rp-legend" hidden>
+            <p class="rp-legend__caption">冰表流速，m/yr</p>
+            <div id="velocityLegendBar" class="legend" aria-hidden="true"></div>
+            <div id="velocityLegendLabels" class="legend-labels">
+              <span>0</span>
+              <span>50</span>
+              <span>200</span>
+              <span>500</span>
+              <span>1000</span>
+              <span>3000</span>
+            </div>
+            <div id="velocityLegendNote" class="legend-note" hidden></div>
+          </div>
+        </div>
+      </details>
+
+      <details class="rp-group" data-group="bed">
+        <summary class="rp-group__summary"><span class="rp-group__title">冰下</span><span class="rp-group__count" hidden></span></summary>
+        <div class="rp-group__body">
+          <div class="rp-field" data-choice="bed">
+            <span id="bedColourLabel" class="rp-field__label">基岩配色</span>
+            <div class="rp-choice" role="group" aria-labelledby="bedColourLabel">
+              <button type="button" class="rp-choice__opt rp-choice__none" data-choice-none aria-pressed="true">高程</button>
+              <label class="rp-choice__opt"><input id="showBasalFriction" type="checkbox" data-layer /> 基底摩擦</label>
+              <label class="rp-choice__opt"><input id="showEffectivePressure" type="checkbox" data-layer /> 有效压力</label>
+            </div>
+            <p class="rp-choice__note" hidden></p>
+          </div>
+          <div id="basalFrictionLegendSection" class="rp-legend rp-legend--flush" hidden>
+            <p class="rp-legend__caption">基底摩擦，MPa</p>
+            <div id="basalFrictionLegendBar" class="legend" aria-hidden="true"></div>
+            <div id="basalFrictionLegendLabels" class="legend-labels">
+              <span>0</span>
+              <span>0.02</span>
+              <span>0.04</span>
+              <span>0.08</span>
+              <span>0.15</span>
+              <span>0.3</span>
+            </div>
+            <div id="basalFrictionLegendNote" class="legend-note" hidden></div>
+          </div>
+          <div id="effectivePressureLegendSection" class="rp-legend rp-legend--flush" hidden>
+            <p class="rp-legend__caption">有效压力，MPa</p>
+            <div id="effectivePressureLegendBar" class="legend" aria-hidden="true"></div>
+            <div id="effectivePressureLegendLabels" class="legend-labels">
+              <span>0</span>
+              <span>1</span>
+              <span>2</span>
+              <span>3</span>
+              <span>4</span>
+              <span>≥5</span>
+            </div>
+            <div id="effectivePressureLegendNote" class="legend-note"></div>
+          </div>
+          <label class="rp-row"><input id="showSubglacialChannels" type="checkbox" data-layer /> <span class="rp-row__label">冰下通道</span></label>
+          <div id="channelLegendSection" class="rp-legend" hidden>
+            <p class="rp-legend__caption">通道流量，m³/s</p>
+            <div id="channelLegendBar" class="legend" aria-hidden="true"></div>
+            <div id="channelLegendLabels" class="legend-labels">
+              <span>0.001</span>
+              <span>0.01</span>
+              <span>0.1</span>
+              <span>1</span>
+              <span>10</span>
+              <span>≥100</span>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="rp-group" data-group="ocean">
+        <summary class="rp-group__summary"><span class="rp-group__title">海洋与冰架</span><span class="rp-group__count" hidden></span></summary>
+        <div class="rp-group__body">
+          <label class="rp-row"><input id="showOceanCurrents" type="checkbox" data-layer /> <span class="rp-row__label">海洋流线</span></label>
+          <div id="oceanCurrentLayerControls" class="rp-chips rp-chips--sub" role="group" aria-label="深度带" hidden>
+            <label class="rp-chip"><input id="showOceanLayerSurface" type="checkbox" /> 表层</label>
+            <label class="rp-chip"><input id="showOceanLayerUpper" type="checkbox" /> 上层</label>
+            <label class="rp-chip"><input id="showOceanLayerMid" type="checkbox" /> 中层</label>
+            <label class="rp-chip"><input id="showOceanLayerLower" type="checkbox" /> 下层</label>
+          </div>
+          <div id="oceanLegendSection" class="rp-legend" hidden>
+            <p class="rp-legend__caption">海水温度与盐度</p>
+            <div class="ocean-legend-wrap">
+              <div class="ocean-legend-y-axis">
+                <span id="oceanLegendWarmLabel"><strong>暖</strong>8.0 °C</span>
+                <span id="oceanLegendColdLabel"><strong>冷</strong>-2.0 °C</span>
               </div>
+              <canvas id="oceanLegendCanvas" class="ocean-legend-canvas" width="184" height="126" aria-hidden="true"></canvas>
             </div>
-            <div id="surfaceChangeReadout" class="projection-readout" aria-live="polite"></div>
-            <div id="surfaceChangeBasinControl" class="surface-change-basins" hidden>
+            <div class="ocean-legend-x-axis">
+              <span id="oceanLegendFreshLabel"><strong>淡</strong>30.0 PSU</span>
+              <span id="oceanLegendSaltyLabel"><strong>咸</strong>35.0 PSU</span>
+            </div>
+            <div class="ocean-legend-note">流线分别从当地水深的 3–18 %、18–40 %、40–70 % 和 70–95 % 四个深度带出发（表层、上层、中层、下层），然后随水流运动。</div>
+          </div>
+          <div class="rp-field" data-choice="shelf">
+            <span id="shelfBaseLabel" class="rp-field__label">冰架底部</span>
+            <div class="rp-choice" role="group" aria-labelledby="shelfBaseLabel">
+              <button type="button" class="rp-choice__opt rp-choice__none" data-choice-none aria-pressed="true">关闭</button>
+              <label id="showBasalMeltRow" class="rp-choice__opt"><input id="showBasalMelt" type="checkbox" data-layer /> 底部融化率</label>
+              <label id="showThermalDrivingRow" class="rp-choice__opt"><input id="showThermalDriving" type="checkbox" data-layer /> 热驱动</label>
+            </div>
+            <p class="rp-choice__note" hidden></p>
+          </div>
+          <div id="basalMeltLegendSection" class="rp-legend rp-legend--flush" hidden>
+            <p class="rp-legend__caption">冰架底部融化率，m/yr</p>
+            <div id="basalMeltLegendBar" class="legend" aria-hidden="true"></div>
+            <div id="basalMeltLegendLabels" class="legend-labels">
+              <span>-1</span>
+              <span>0</span>
+              <span>15</span>
+            </div>
+            <div id="basalMeltLegendNote" class="legend-note" hidden></div>
+          </div>
+          <div id="thermalDrivingLegendSection" class="rp-legend rp-legend--flush" hidden>
+            <p class="rp-legend__caption">热驱动，°C</p>
+            <div id="thermalDrivingLegendBar" class="legend" aria-hidden="true"></div>
+            <div id="thermalDrivingLegendLabels" class="legend-labels">
+              <span>0</span>
+              <span>0.4</span>
+              <span>0.8</span>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details id="interactiveScenariosSection" class="rp-group" data-group="time" open>
+        <summary class="rp-group__summary"><span id="interactiveScenariosHeading" class="rp-group__title">随时间的变化</span><span class="rp-group__hint">一次一个</span><span class="rp-group__count" hidden></span></summary>
+        <div class="rp-group__body">
+          <button type="button" class="rp-row rp-time__none" data-time-none aria-pressed="true"><span class="rp-time__dot" aria-hidden="true"></span><span class="rp-row__label">现今</span></button>
+          <div id="surfaceChangeRow" class="rp-feature">
+            <label class="rp-row rp-row--time"><input id="showSurfaceChange" type="checkbox" data-layer data-time="surfaceChange" /> <span class="rp-row__label">观测到的冰面高程变化</span> <span class="rp-row__meta">1995–2026</span></label>
+            <div id="surfaceChangeControls" class="toggle-group" hidden>
               <div class="control">
-                <label for="surfaceChangeBasin">流域</label>
-                <select id="surfaceChangeBasin">
-                  <option value="AIS" selected>整个冰盖</option>
+                <label for="surfaceChangeView">视图</label>
+                <select id="surfaceChangeView">
+                  <option value="cumulative" selected>相对 1995 年的变化</option>
+                  <option value="rate">1995–2026 年变化速率</option>
                 </select>
               </div>
-              <svg id="surfaceChangeChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="质量变化随时间的变化"></svg>
-              <div id="surfaceChangeChartNote" class="legend-note"></div>
-            </div>
-            <label class="toggle toggle--sub"><input id="surfaceChangeFade" type="checkbox" checked /> 淡化 2σ 以内的变化</label>
-            <div id="surfaceChangeNote" class="legend-note"></div>
-          </div>
-          <div class="toggle-divider" aria-hidden="true"></div>
-        </div>
-        <div id="seaIceRow" hidden>
-          <label class="toggle"><input id="showSeaIce" type="checkbox" /> 显示观测到的海冰（NSIDC，1978–2026）</label>
-          <div id="seaIceControls" class="toggle-group" hidden>
-            <div class="control">
-              <label for="seaIceMonth">月份 <span id="seaIceMonthValue" class="mono"></span></label>
-              <input id="seaIceMonth" type="range" min="1" max="12" step="1" value="9" />
-            </div>
-            <div class="control">
-              <label for="seaIceYear">年份 <span id="seaIceYearValue" class="mono"></span></label>
-              <div class="projection-timeline">
-                <button id="seaIcePlay" type="button" class="projection-play" aria-label="播放">播放</button>
-                <input id="seaIceYear" type="range" min="1978" max="2026" step="1" value="2026" />
+              <label class="toggle toggle--sub"><input id="surfaceChangeFade" type="checkbox" checked /> 淡化 2σ 以内的变化</label>
+              <div id="surfaceChangeLegendSection" class="rp-legend rp-legend--flush" hidden>
+                <p id="surfaceChangeLegendTitle" class="rp-legend__caption">相对 1995 年的冰面高程变化，m</p>
+                <div id="surfaceChangeLegendBar" class="legend" aria-hidden="true"></div>
+                <div id="surfaceChangeLegendLabels" class="legend-labels"></div>
               </div>
-            </div>
-            <div id="seaIceReadout" class="projection-readout" aria-live="polite"></div>
-            <svg id="seaIceChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="该月份历年的海冰范围"></svg>
-            <div id="seaIceChartNote" class="legend-note"></div>
-            <label class="toggle toggle--sub"><input id="seaIceMedianEdge" type="checkbox" checked /> 显示 1981–2010 年中位冰缘线</label>
-            <div id="seaIceNote" class="legend-note"></div>
-          </div>
-          <div class="toggle-divider" aria-hidden="true"></div>
-        </div>
-        <div id="iceProjectionRow" hidden>
-          <label class="toggle"><input id="showIceProjection" type="checkbox" /> 显示冰盖未来预估（ISMIP6，至 2300 年）</label>
-          <div id="iceProjectionControls" class="toggle-group" hidden>
-            <div class="control">
-              <label for="projectionScenario">情景</label>
-              <select id="projectionScenario"></select>
-            </div>
-            <div class="control">
-              <label for="projectionYear">年份 <span id="projectionYearValue" class="mono">2015</span></label>
-              <div class="projection-timeline">
-                <button id="projectionPlay" type="button" class="projection-play" aria-label="播放">播放</button>
-                <input id="projectionYear" type="range" min="2015" max="2300" step="1" value="2015" />
+              <div id="surfaceChangeTimeControl" class="control">
+                <label for="surfaceChangeTime">日期 <span id="surfaceChangeTimeValue" class="mono"></span></label>
+                <div class="projection-timeline">
+                  <button id="surfaceChangePlay" type="button" class="projection-play" aria-label="播放">播放</button>
+                  <input id="surfaceChangeTime" type="range" min="0" max="80" step="0.01" value="80" />
+                </div>
               </div>
-              <div id="projectionReadout" class="projection-readout" aria-live="polite"></div>
-              <svg id="projectionChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="海平面贡献随时间的变化"></svg>
+              <div id="surfaceChangeReadout" class="projection-readout" aria-live="polite"></div>
+              <div id="surfaceChangeBasinControl" class="surface-change-basins" hidden>
+                <div class="control">
+                  <label for="surfaceChangeBasin">流域</label>
+                  <select id="surfaceChangeBasin">
+                    <option value="AIS" selected>整个冰盖</option>
+                  </select>
+                </div>
+                <svg id="surfaceChangeChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="质量变化随时间的变化"></svg>
+                <div id="surfaceChangeChartNote" class="legend-note"></div>
+              </div>
+              <details class="rp-about">
+                <summary>关于这份记录</summary>
+                <div id="surfaceChangeLegendNote" class="legend-note"></div>
+                <div id="surfaceChangeNote" class="legend-note"></div>
+              </details>
+            </div>
+          </div>
+          <div id="seaIceRow" class="rp-feature">
+            <label class="rp-row rp-row--time"><input id="showSeaIce" type="checkbox" data-layer data-time="seaIce" /> <span class="rp-row__label">观测到的海冰</span> <span class="rp-row__meta">1978–2026</span></label>
+            <div id="seaIceControls" class="toggle-group" hidden>
+              <label class="toggle toggle--sub"><input id="seaIceMedianEdge" type="checkbox" checked /> 1981–2010 年中位冰缘线</label>
+              <div id="seaIceLegendSection" class="rp-legend rp-legend--flush" hidden>
+                <p id="seaIceLegendTitle" class="rp-legend__caption">海冰密集度，%</p>
+                <div id="seaIceLegendBar" class="legend" aria-hidden="true"></div>
+                <div id="seaIceLegendLabels" class="legend-labels"></div>
+              </div>
+              <div class="control">
+                <label for="seaIceMonth">月份 <span id="seaIceMonthValue" class="mono"></span></label>
+                <input id="seaIceMonth" type="range" min="1" max="12" step="1" value="9" />
+              </div>
+              <div class="control">
+                <label for="seaIceYear">年份 <span id="seaIceYearValue" class="mono"></span></label>
+                <div class="projection-timeline">
+                  <button id="seaIcePlay" type="button" class="projection-play" aria-label="播放">播放</button>
+                  <input id="seaIceYear" type="range" min="1978" max="2026" step="1" value="2026" />
+                </div>
+              </div>
+              <div id="seaIceReadout" class="projection-readout" aria-live="polite"></div>
+              <svg id="seaIceChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="该月份历年的海冰范围"></svg>
+              <div id="seaIceChartNote" class="legend-note"></div>
+              <details class="rp-about">
+                <summary>关于这份记录</summary>
+                <div id="seaIceLegendNote" class="legend-note"></div>
+                <div id="seaIceNote" class="legend-note"></div>
+              </details>
+            </div>
+          </div>
+          <div id="iceProjectionRow" class="rp-feature">
+            <label class="rp-row rp-row--time"><input id="showIceProjection" type="checkbox" data-layer data-time="projection" /> <span class="rp-row__label">冰盖未来预估</span> <span class="rp-row__meta">2015–2300</span></label>
+            <div id="iceProjectionControls" class="toggle-group" hidden>
+              <div class="control">
+                <label for="projectionScenario">情景</label>
+                <select id="projectionScenario"></select>
+              </div>
+              <div class="control">
+                <label for="projectionColorMode">冰面配色</label>
+                <select id="projectionColorMode">
+                  <option value="change" selected>相对 2015 年的厚度变化</option>
+                  <option value="type">接地冰与漂浮冰</option>
+                </select>
+              </div>
+              <div id="projectionLegendSection" class="rp-legend rp-legend--flush" hidden>
+                <p class="rp-legend__caption">相对 2015 年的冰厚变化，m</p>
+                <div id="projectionLegendBar" class="legend" aria-hidden="true"></div>
+                <div id="projectionLegendLabels" class="legend-labels"></div>
+              </div>
+              <div class="control">
+                <label for="projectionYear">年份 <span id="projectionYearValue" class="mono">2015</span></label>
+                <div class="projection-timeline">
+                  <button id="projectionPlay" type="button" class="projection-play" aria-label="播放">播放</button>
+                  <input id="projectionYear" type="range" min="2015" max="2300" step="1" value="2015" />
+                </div>
+                <div id="projectionReadout" class="projection-readout" aria-live="polite"></div>
+                <svg id="projectionChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="海平面贡献随时间的变化"></svg>
+              </div>
+              <details class="rp-about">
+                <summary>关于这项预估</summary>
+                <div id="projectionLegendNote" class="legend-note"></div>
+                <div id="projectionNote" class="legend-note"></div>
+              </details>
+            </div>
+          </div>
+          <label class="rp-row rp-row--time"><input id="showIsostaticRebound" type="checkbox" data-layer data-time="rebound" /> <span class="rp-row__label">无冰状态下的地壳回弹</span></label>
+          <div id="isostaticReboundControls" class="toggle-group" hidden>
+            <div class="control">
+              <label for="reboundProgress">冰消与回弹进度 <span id="reboundProgressValue" class="mono">100%</span></label>
+              <input id="reboundProgress" type="range" min="0" max="100" step="1" value="100" />
+              <div id="reboundProgressNote" class="legend-note"></div>
             </div>
             <div class="control">
-              <label for="projectionColorMode">冰面配色</label>
-              <select id="projectionColorMode">
-                <option value="change" selected>相对 2015 年的厚度变化</option>
-                <option value="type">接地冰与漂浮冰</option>
+              <label for="reboundModel">固体地球响应</label>
+              <select id="reboundModel">
+                <option value="paxman2022" selected>已发表：Paxman 等（2022）</option>
+                <option value="flexural">理想化：区域挠曲（ELRA）</option>
+                <option value="local">理想化：局地（Airy）地壳均衡</option>
               </select>
-              <div id="projectionNote" class="legend-note"></div>
+              <div id="reboundModelNote" class="legend-note"></div>
             </div>
-            <label class="toggle toggle--sub"><input id="projectionFlowline" type="checkbox" /> 显示冰流线</label>
+            <div class="control">
+              <label for="reboundSeaLevel">海平面基准 <span id="reboundSeaLevelValue" class="mono">+0 m</span></label>
+              <input id="reboundSeaLevel" type="range" min="0" max="70" step="1" value="0" />
+              <div id="reboundSeaLevelNote" class="legend-note"></div>
+            </div>
+            <label class="toggle toggle--sub"><input id="highlightEmergentLand" type="checkbox" checked /> 高亮新出露陆地</label>
+            <div id="reboundLegendNote" class="legend-note" hidden></div>
           </div>
-          <div class="toggle-divider" aria-hidden="true"></div>
         </div>
-        <label class="toggle"><input id="showIsostaticRebound" type="checkbox" /> 显示无冰状态下的地壳均衡回弹</label>
-        <div id="isostaticReboundControls" class="toggle-group" hidden>
-          <div class="control">
-            <label for="reboundProgress">冰消与回弹进度 <span id="reboundProgressValue" class="mono">100%</span></label>
-            <input id="reboundProgress" type="range" min="0" max="100" step="1" value="100" />
-            <div id="reboundProgressNote" class="legend-note"></div>
-          </div>
-          <div class="control">
-            <label for="reboundModel">固体地球响应</label>
-            <select id="reboundModel">
-              <option value="paxman2022" selected>已发表：Paxman 等（2022）</option>
-              <option value="flexural">理想化：区域挠曲（ELRA）</option>
-              <option value="local">理想化：局地（Airy）地壳均衡</option>
-            </select>
-            <div id="reboundModelNote" class="legend-note"></div>
-          </div>
-          <div class="control">
-            <label for="reboundSeaLevel">海平面基准 <span id="reboundSeaLevelValue" class="mono">+0 m</span></label>
-            <input id="reboundSeaLevel" type="range" min="0" max="70" step="1" value="0" />
-            <div id="reboundSeaLevelNote" class="legend-note"></div>
-          </div>
-          <label class="toggle toggle--sub"><input id="highlightEmergentLand" type="checkbox" checked /> 高亮新出露陆地</label>
+      </details>
+
+      <details id="polarFeatureSection" class="rp-group" data-group="places">
+        <summary class="rp-group__summary"><span id="polarFeatureHeading" class="rp-group__title">地点与标注</span><span class="rp-group__count" hidden></span></summary>
+        <div class="rp-group__body">
+          <label class="rp-row"><input id="showResearchStations" type="checkbox" data-layer /> <span class="rp-row__label">科考站</span></label>
+          <label class="rp-row"><input id="showGeographicNames" type="checkbox" data-layer /> <span class="rp-row__label">地名</span></label>
+          <label class="rp-row"><input id="showIceCores" type="checkbox" data-layer /> <span class="rp-row__label">冰芯钻探点</span></label>
+          <label class="rp-row"><input id="showRefinedBasins" type="checkbox" data-layer /> <span id="showRefinedBasinsLabel" class="rp-row__label">细化流域</span></label>
         </div>
-      </section>
+      </details>
 
-      <section id="bedLegendSection" class="section">
-        <h2 class="section-title">基岩高程配色</h2>
-        <div id="legendBar" class="legend" aria-hidden="true"></div>
-        <div class="legend-labels">
-          <span>-7000 m</span>
-          <span>0</span>
-          <span>+3500 m</span>
+      <details class="rp-group" data-group="display">
+        <summary class="rp-group__summary"><span class="rp-group__title">显示</span><span class="rp-group__count" hidden></span></summary>
+        <div class="rp-group__body">
+          <label class="rp-row"><input id="animateFlow" type="checkbox" checked /> <span class="rp-row__label">冰与海水流动动画</span></label>
+          <label class="rp-row"><input id="wireframe" type="checkbox" data-layer /> <span class="rp-row__label">线框模式</span></label>
         </div>
-        <div id="reboundLegendNote" class="legend-note" hidden></div>
-      </section>
+      </details>
 
-      <section id="projectionLegendSection" class="section" hidden>
-        <h2 class="section-title">冰厚变化配色</h2>
-        <div id="projectionLegendBar" class="legend" aria-hidden="true"></div>
-        <div id="projectionLegendLabels" class="legend-labels"></div>
-        <div id="projectionLegendNote" class="legend-note"></div>
-      </section>
-
-      <section id="surfaceChangeLegendSection" class="section" hidden>
-        <h2 id="surfaceChangeLegendTitle" class="section-title">冰面高程变化配色</h2>
-        <div id="surfaceChangeLegendBar" class="legend" aria-hidden="true"></div>
-        <div id="surfaceChangeLegendLabels" class="legend-labels"></div>
-        <div id="surfaceChangeLegendNote" class="legend-note"></div>
-      </section>
-
-      <section id="seaIceLegendSection" class="section" hidden>
-        <h2 id="seaIceLegendTitle" class="section-title">海冰密集度</h2>
-        <div id="seaIceLegendBar" class="legend" aria-hidden="true"></div>
-        <div id="seaIceLegendLabels" class="legend-labels"></div>
-        <div id="seaIceLegendNote" class="legend-note"></div>
-      </section>
-
-      <section id="velocityLegendSection" class="section">
-        <h2 class="section-title">冰表流速配色</h2>
-        <div id="velocityLegendBar" class="legend" aria-hidden="true"></div>
-        <div id="velocityLegendLabels" class="legend-labels">
-          <span>0 m/yr</span>
-          <span>50</span>
-          <span>200</span>
-          <span>500</span>
-          <span>1000</span>
-          <span>3000</span>
+      <details class="rp-group" data-group="data">
+        <summary class="rp-group__summary"><span class="rp-group__title">数据与来源</span></summary>
+        <div class="rp-group__body">
+          <ul id="metaList" class="meta-list">
+            <li>正在加载元数据...</li>
+          </ul>
+          <button id="metaShowAll" class="rp-link" type="button" aria-expanded="false" hidden>显示全部数据集</button>
         </div>
-        <div id="velocityLegendNote" class="legend-note" hidden></div>
-      </section>
-
-      <section id="basalFrictionLegendSection" class="section">
-        <h2 class="section-title">基底摩擦配色</h2>
-        <div id="basalFrictionLegendBar" class="legend" aria-hidden="true"></div>
-        <div id="basalFrictionLegendLabels" class="legend-labels">
-          <span>0 MPa</span>
-          <span>0.02</span>
-          <span>0.04</span>
-          <span>0.08</span>
-          <span>0.15</span>
-          <span>0.3</span>
-        </div>
-        <div id="basalFrictionLegendNote" class="legend-note" hidden></div>
-      </section>
-
-      <section id="basalMeltLegendSection" class="section">
-        <h2 class="section-title">底融配色</h2>
-        <div id="basalMeltLegendBar" class="legend" aria-hidden="true"></div>
-        <div id="basalMeltLegendLabels" class="legend-labels">
-          <span>-1 m/yr</span>
-          <span>0</span>
-          <span>15</span>
-        </div>
-        <div id="basalMeltLegendNote" class="legend-note" hidden></div>
-      </section>
-
-      <section id="thermalDrivingLegendSection" class="section">
-        <h2 class="section-title">热驱动配色</h2>
-        <div id="thermalDrivingLegendBar" class="legend" aria-hidden="true"></div>
-        <div id="thermalDrivingLegendLabels" class="legend-labels">
-          <span>0 °C</span>
-          <span>0.4</span>
-          <span>0.8</span>
-        </div>
-      </section>
-
-      <section id="oceanLegendSection" class="section" hidden>
-        <h2 class="section-title">海洋流线配色</h2>
-        <div class="ocean-legend-wrap">
-          <div class="ocean-legend-y-axis">
-            <span id="oceanLegendWarmLabel"><strong>暖</strong>8.0 °C</span>
-            <span id="oceanLegendColdLabel"><strong>冷</strong>-2.0 °C</span>
-          </div>
-          <canvas id="oceanLegendCanvas" class="ocean-legend-canvas" width="184" height="126" aria-hidden="true"></canvas>
-        </div>
-        <div class="ocean-legend-x-axis">
-          <span id="oceanLegendFreshLabel"><strong>淡</strong>30.0 PSU</span>
-          <span id="oceanLegendSaltyLabel"><strong>咸</strong>35.0 PSU</span>
-        </div>
-        <div class="ocean-legend-note">流线分别从当地水深的 3–18 %、18–40 %、40–70 % 和 70–95 % 四个深度带出发（表层、上层、中层、下层），然后随水流运动。</div>
-      </section>
-
-      <section id="effectivePressureLegendSection" class="section">
-        <h2 class="section-title">有效压力配色</h2>
-        <div id="effectivePressureLegendBar" class="legend" aria-hidden="true"></div>
-        <div id="effectivePressureLegendLabels" class="legend-labels">
-          <span>0 MPa</span>
-          <span>1</span>
-          <span>2</span>
-          <span>3</span>
-          <span>4</span>
-          <span>≥5</span>
-        </div>
-        <div id="effectivePressureLegendNote" class="legend-note"></div>
-      </section>
-
-      <section id="channelLegendSection" class="section">
-        <h2 class="section-title">通道流量配色</h2>
-        <div id="channelLegendBar" class="legend" aria-hidden="true"></div>
-        <div id="channelLegendLabels" class="legend-labels">
-          <span>0.001 m³/s</span>
-          <span>0.01</span>
-          <span>0.1</span>
-          <span>1</span>
-          <span>10</span>
-          <span>≥100</span>
-        </div>
-      </section>
-
-      <section class="section">
-        <h2 class="section-title">数据快照</h2>
-        <ul id="metaList" class="meta-list">
-          <li>正在加载元数据...</li>
-        </ul>
-      </section>
+      </details>
     </aside>
+    <script>
+      /* See the en variant: the groups open as the reader last left them, before the first paint. */
+      (() => {
+        let saved = null;
+        try {
+          saved = JSON.parse(window.localStorage.getItem("3d-ice-research-panel-groups"));
+        } catch (_error) {
+          return;
+        }
+        if (!saved || typeof saved !== "object") return;
+        for (const group of document.querySelectorAll("details.rp-group[data-group]")) {
+          const open = saved[group.dataset.group];
+          if (typeof open === "boolean") group.open = open;
+        }
+      })();
+    </script>
 
     <section id="viewerShell" class="viewer-shell">
       <div id="viewer"></div>
@@ -548,6 +598,7 @@
       <div id="status" class="status">正在加载数据...</div>
       <div class="viewer-toolbar">
         <button id="interactionToggle" class="viewer-tool-btn is-hidden" type="button">启用 3D</button>
+        <button id="resetView" class="viewer-tool-btn" type="button">重置视角</button>
         <button id="viewerFullscreenToggle" class="viewer-tool-btn" type="button">进入全屏</button>
       </div>
       <div id="capturePanel" class="capture-panel" hidden>

@@ -173,14 +173,17 @@ def _disable(page) -> None:
 
 
 class TestIceProjectionAbsent:
-    def test_the_layer_stays_hidden_without_packages(self, playwright_browser, explorer_url):
+    def test_the_layer_stays_switched_off_without_packages(self, playwright_browser, explorer_url):
         context, page, errors = _open(playwright_browser, explorer_url, [("**/data/ismip6_2300_*", _not_found)])
         try:
             projection = _state(page)["iceProjection"]
             assert projection["probed"] is True
             assert projection["available"] is False
             assert projection["scenarios"] == []
-            assert page.locator("#iceProjectionRow").is_hidden()
+            # The research panel keeps the row and says the layer is off.
+            assert page.locator("#iceProjectionRow").is_visible()
+            assert page.locator("#showIceProjection").is_disabled()
+            assert page.locator("#iceProjectionRow .rp-reason").inner_text() == "Unavailable"
             assert errors == []
         finally:
             context.close()
@@ -272,18 +275,17 @@ class TestIceProjection:
         assert restored["meanRate"] == pytest.approx(today["meanRate"], abs=1e-3)
         assert errors == []
 
-    def test_the_projection_has_its_own_flowline_switch(self, projection_page):
+    def test_the_projection_brings_the_flowlines_and_ice_flow_switches_them(self, projection_page):
         page, errors = projection_page
-        switch = page.locator("#projectionFlowline")
-        assert switch.is_hidden()  # it lives in the projection's controls
+        # Ice flow > Flowlines is the one flowline switch on the research page.
+        assert page.locator("#projectionFlowline").count() == 0
+        switch = page.locator("#showFlowline")
         assert _state(page)["toggles"]["showFlowline"] is False  # the page opens without flowlines
         _enable(page)
         # The projection brings them with it.
-        assert switch.is_visible() and switch.is_checked()
+        assert switch.is_checked()
         _wait_for_flowlines(page)
         state = _state(page)
-        # One layer, one state: the switch is the flowline toggle itself.
-        assert state["toggles"]["showFlowline"] is True
         assert state["iceProjection"]["flowlines"]["visible"] is True
         assert state["iceProjection"]["flowlines"]["following"] is True
 
@@ -292,9 +294,7 @@ class TestIceProjection:
         assert state["toggles"]["showFlowline"] is False
         assert state["iceProjection"]["flowlines"]["visible"] is False
 
-        # ...and follows it when the layer is switched from the main list.
-        page.locator("#showFlowline").check()
-        assert switch.is_checked() is True
+        switch.check()
         assert _state(page)["iceProjection"]["flowlines"]["visible"] is True
 
         # A choice made by hand outlasts the projection.
@@ -310,7 +310,7 @@ class TestIceProjection:
         state = _state(page)
         assert state["toggles"]["showFlowline"] is False
         assert state["iceProjection"]["flowlines"]["visible"] is False
-        assert page.locator("#projectionFlowline").is_checked() is False
+        assert page.locator("#showFlowline").is_checked() is False
         assert errors == []
 
     def test_a_scenario_change_keeps_a_flowline_choice(self, playwright_browser, explorer_url, synthetic_projection):
@@ -319,7 +319,7 @@ class TestIceProjection:
         context, page, errors = _open(playwright_browser, explorer_url, routes)
         try:
             _enable(page)
-            page.locator("#projectionFlowline").uncheck()
+            page.locator("#showFlowline").uncheck()
             page.locator("#projectionScenario").select_option("ae10")
             page.wait_for_function(
                 "() => { const p = JSON.parse(window.render_game_to_text()).iceProjection;"
@@ -327,7 +327,7 @@ class TestIceProjection:
                 timeout=READY_TIMEOUT_MS,
             )
             # Switching scenario re-activates the projection; it must not bring the flowlines back.
-            assert page.locator("#projectionFlowline").is_checked() is False
+            assert page.locator("#showFlowline").is_checked() is False
             assert _state(page)["toggles"]["showFlowline"] is False
             assert errors == []
         finally:

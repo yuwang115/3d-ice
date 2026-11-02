@@ -17,6 +17,8 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
+from tests.e2e.panel import choose_dataset, choose_region, open_group
+
 pytestmark = pytest.mark.e2e
 
 READY_TIMEOUT_MS = 60_000
@@ -186,7 +188,9 @@ def test_the_record_shows_cpoms_totals_at_the_last_epoch(page):
     assert mass_text in readout
     assert sea_level_text in readout
     assert not page.locator("#surfaceChangeLegendSection").is_hidden()
-    assert _legend_labels(page) == ["−150", "−20", "−5", "0 m", "+5", "+20", "+150"]
+    # The research panel gives the unit in the caption, so the ticks are bare numbers.
+    assert _legend_labels(page) == ["−150", "−20", "−5", "0", "+5", "+20", "+150"]
+    assert page.locator("#surfaceChangeLegendTitle").inner_text() == "Elevation change since 1995, m"
     assert _state(page)["meshes"]["surfaceChange"]
     assert errors == []
 
@@ -227,9 +231,9 @@ def test_the_legend_labels_of_both_views_fit_on_one_row(playwright_browser, expl
         )
         _wait_for_view(page, "rate")
         page.wait_for_function(
-            "() => document.getElementById('surfaceChangeLegendLabels').textContent.includes('m/yr')", timeout=10_000
+            "() => document.getElementById('surfaceChangeLegendTitle').textContent.includes('m/yr')", timeout=10_000
         )
-        assert _legend_labels(page) == ["−5", "−1", "−0.2", "0 m/yr", "+0.2", "+1", "+5"]
+        assert _legend_labels(page) == ["−5", "−1", "−0.2", "0", "+0.2", "+1", "+5"]
         assert _legend_rows(page) == {"0px"}
     finally:
         context.close()
@@ -287,6 +291,7 @@ def test_a_basin_from_the_list_is_outlined_charted_and_read_out(page):
     assert _chart_title(page) == "Basin G-H, West Antarctica"
     readout = _readout(page)
     assert "Basin G-H, West Antarctica" in readout and _basin_mass_text("9") in readout
+    open_group(page, "data")
     snapshot = page.locator("#metaList").inner_text().replace("\xa0", " ")
     assert f"Selected: Basin G-H, West Antarctica: {_basin_mass_text('9')}" in snapshot
     assert "Mass change since 1995 (CPOM): Antarctic Ice Sheet" in snapshot
@@ -381,7 +386,7 @@ def test_the_rate_view_and_the_hd_grid_keep_the_selection(page):
     first, last = int(RECORD_META["series"]["years"][0]), int(RECORD_META["series"]["years"][-1])
     assert f"Basin G-H, West Antarctica, {first}–{last}" in _readout(page)
 
-    page.locator("#resolutionPreset").select_option("hd")
+    choose_dataset(page, "hd")
     page.wait_for_function(
         f"""() => {{
             const s = JSON.parse(window.render_game_to_text());
@@ -412,7 +417,7 @@ def test_the_rate_view_fades_the_polar_cap_and_runs_on_the_hd_dataset(page):
     assert state["epochCount"] is None
     assert state["extrapolatedRadiusKm"] == round(RATE_META["pole_hole"]["radius_m"]["cryosat2"] / 1000)
 
-    page.locator("#resolutionPreset").select_option("hd")
+    choose_dataset(page, "hd")
     page.wait_for_function(
         """() => {
             const s = JSON.parse(window.render_game_to_text());
@@ -482,21 +487,24 @@ def test_the_layer_gives_way_to_velocity_and_the_rebound_and_takes_over_from_the
     assert not page.locator("#showIsostaticRebound").is_checked()
 
 
-def test_other_terrains_and_greenland_do_not_offer_the_layer(page):
+def test_other_terrains_and_greenland_say_why_they_do_not_offer_the_layer(page):
     page, _errors = page
-    page.locator("#resolutionPreset").select_option("bedmap3")
+    choose_dataset(page, "bedmap3")
     page.wait_for_function(
         "() => { const s = JSON.parse(window.render_game_to_text()); return s.ready && s.dataset === 'bedmap3'; }",
         timeout=READY_TIMEOUT_MS,
     )
-    assert page.locator("#surfaceChangeRow").is_hidden()
+    # The row stays, switched off, and says where the record can be seen.
+    assert page.locator("#showSurfaceChange").is_disabled()
+    assert page.locator("#surfaceChangeRow .rp-reason").inner_text() == "BedMachine v4 only"
     assert not _state(page)["surfaceChange"]["available"]
-    page.locator("#regionPreset").select_option("greenland")
+    choose_region(page, "greenland")
     page.wait_for_function(
         "() => { const s = JSON.parse(window.render_game_to_text()); return s.ready && s.region === 'greenland'; }",
         timeout=READY_TIMEOUT_MS,
     )
-    assert page.locator("#surfaceChangeRow").is_hidden()
+    assert page.locator("#showSurfaceChange").is_disabled()
+    assert page.locator("#surfaceChangeRow .rp-reason").inner_text() == "Antarctica only"
 
 
 def test_the_chinese_page_reads_the_record_in_chinese(playwright_browser, server):
@@ -510,6 +518,7 @@ def test_the_chinese_page_reads_the_record_in_chinese(playwright_browser, server
         page.locator("#surfaceChangeBasin").select_option(AMUNDSEN)
         _wait_for_selection(page, AMUNDSEN)
         assert _chart_title(page) == "西南极 G-H 流域"
+        open_group(page, "data")
         assert "所选范围: 西南极 G-H 流域：" in page.locator("#metaList").inner_text()
         assert errors == []
     finally:

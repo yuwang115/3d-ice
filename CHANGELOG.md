@@ -4,7 +4,10 @@ All notable changes to 3D ICE are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.4.0] — Unreleased
+
+Two observed records, ice-core sites and a rebuilt panel for the research edition, and
+analytics that record 3d-ice.com again.
 
 ### Added
 
@@ -67,6 +70,47 @@ All notable changes to 3D ICE are recorded here. The format follows
   section that holds the link, such as `home-hero` or `home-editions`. A link within an
   edition, such as its language switch, is not an entry. Pages report events through
   `window.__3dIceAnalytics.event()`, which sends them on 3d-ice.com only.
+
+### Changed
+
+- The research edition's panel is rebuilt as one column of collapsible groups: Scene, Ice
+  flow, Beneath the ice, Ocean and ice shelves, Change over time, Places and labels, Display,
+  and Data and sources (`docs/research-panel-redesign.md`, phases 1 and 2). In a 1440 × 900
+  window it is 945 px tall with nothing switched on and 1,515 px with the projection on,
+  against 2,135 and 3,849 px before. The public edition is unchanged.
+  - A one-row masthead (the 3D ICE wordmark, a Research tag, the language switch and an ⓘ
+    menu holding the region's introduction and the guided tour) replaces the logo image,
+    which the page no longer fetches.
+  - Region is a two-way switch, and the dataset picker splits into Terrain (BedMachine v4 or
+    Bedmap3; BedMachine v6 or QRF 2025) and Grid (10 or 4 km; 3 or 1 km). The place search
+    and its card sit above the groups, so a closed group never hides them.
+  - Scene, Ice flow and Change over time start open. A group otherwise opens as the reader
+    last left it, opens by itself when a layer in it is switched on, and counts the layers
+    on in it.
+  - Each legend sits under the layer that draws it, with its unit in its caption, so no tick
+    row wraps.
+  - A layer the terrain lacks keeps its row, switched off, and says why: "Antarctica only",
+    "BedMachine v4 only", "BedMachine v4 10 km only". Before, Greenland hid some of these
+    rows and greyed out others without a reason.
+  - Labels drop "Show": *Surface speed*, *Flowlines*, *Ice-core sites*.
+  - Reset view joins the viewer's buttons, the panel's second fullscreen button goes, and
+    the projection's own flowline switch gives way to Ice flow → Flowlines. Until a flowline
+    is picked, one line says how to pick one, in place of a 220–330 px placeholder.
+  - The bed and the ice-shelf base take one colouring each: *Colour the bed by* Elevation,
+    Basal friction or Effective pressure, and *Ice-shelf base* Off, Basal melt or Thermal
+    driving. Off shows the ice surface again where melt or thermal driving hid it, and so
+    does a time feature that clears the ice-shelf base.
+  - *Change over time* shows one feature at a time, from *Present day*, so the observed
+    elevation change and the observed sea ice no longer show together. A feature switches off
+    the layers drawn against today's ice or bed that it replaces, says so on their rows, and
+    puts them back, with the sea plane and flowlines as they were, when the reader returns to
+    the present day or moves straight to another feature. Switching one of those layers on
+    ends the feature instead, and nothing else comes back. For the rebound that now holds for
+    every layer it replaces, not only basal friction and effective pressure.
+  - Each record's longer notes wait in an *About* box under its controls.
+  - *Data and sources* lists the terrain and the layers on screen, with *Show all N datasets*.
+  - The view presets move to `static/tools/js/view-presets.js`, where a test holds every view
+    and every tour stop to the one-of choices.
 
 ### Fixed
 
@@ -404,6 +448,7 @@ hydrology, WAOM2 and Copernicus ocean streamlines, RISE ice-shelf basal melt and
 driving, and drainage-basin boundaries, together with the preparation scripts and the
 compatibility-bundle release workflow.
 
+[0.4.0]: https://github.com/yuwang115/3d-ice/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/yuwang115/3d-ice/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/yuwang115/3d-ice/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/yuwang115/3d-ice/compare/v0.1.2...v0.2.0

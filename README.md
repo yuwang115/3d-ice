@@ -102,7 +102,7 @@ stops and all the public edition's words, in English and Chinese, are in
 | Layered cryosphere exploration | Combine bed topography, surface velocity, basin boundaries, basal friction, subglacial hydrology, and ocean streamlines in one scene. |
 | Antarctica-specific overlays | Explore WAOM2 ocean circulation, the refined drainage basins of MEaSUREs Antarctic Boundaries v2, subglacial channels, and RISE basal melt plus thermal-driving fields. |
 | Greenland-specific overlays | Explore the ITS_LIVE V02.1 velocity mosaic, Greenland basin boundaries, basal friction fields, and clipped Arctic ocean circulation around Greenland. |
-| Research-friendly workflow | The research edition's Data Snapshot links the source products of the datasets in view, and the public edition's explainers cite them, so the visual layer stays connected to the original scientific products. |
+| Research-friendly workflow | The research edition's *Data and sources* list links the source products of the datasets in view, and the public edition's explainers cite them, so the visual layer stays connected to the original scientific products. |
 | Cross-platform delivery | Balanced presets support mobile touchscreens, while HD options target larger desktop displays. |
 | Flexible deployment | The runtime auto-detects project-path prefixes, so it works both at a site root and under GitHub Pages project paths such as `/3d-ice/tools/...`. |
 
@@ -217,10 +217,14 @@ The browser rebuilds the surface and base by flotation on the BedMachine bed. It
 ice by its thickness change and keeps the flowlines on: they ride the projected surface,
 recolour and speed up with today's speed plus the mean change, and drop out where the ice
 is gone. Switching the projection on switches the flowlines on, and switching it off
-switches them off again unless they were changed in between. A switch at the end of the
-projection's controls shows or hides them there; it is the same layer as the flowline toggle
-in the main list. On the research pages the projection and the isostatic rebound share the
-Interactive Scenarios section of the sidebar.
+switches them off again unless they were changed in between. On the research pages *Ice flow →
+Flowlines* is the one switch for them, and the projection, the isostatic rebound and the
+observed records share the panel's *Change over time* group, one at a time. Each switches off
+the layers drawn against today's ice or bed that it replaces, says so on their rows, and puts
+them back, with the sea plane and flowlines as they were, when the reader returns to the
+present day or moves straight to another; switching one of those layers on instead ends it,
+and nothing else comes back. The public page keeps a switch at the end of the projection's
+controls, the same layer as its *Ice flow* toggle.
 
 The sea-level number and chart are the mean of the models' own published results, with
 their range. Because flotation is not linear, the averaged ice on the map implies more
@@ -236,7 +240,7 @@ the pipeline (`docs/data-pipeline.md`) and the browser module
 
 The research edition shows CPOM's record of Antarctic surface elevation change from
 multi-mission radar altimetry (ERS-2, Envisat and CryoSat-2; product version 1.0, CC BY 4.0;
-Shepherd et al. 2019) as a colour on today's ice surface, under Interactive Scenarios. *Change
+Shepherd et al. 2019) as a colour on today's ice surface, under *Change over time*. *Change
 since 1995* plays the 81 cumulative 140-day epochs on the Balanced dataset; *Rate, 1995–2026*
 shows the linear trend on the Balanced and HD datasets. CPOM's 5 km cells are averaged by
 area onto each explorer cell they cover by at least half. The product covers grounded ice
@@ -247,7 +251,8 @@ of 88°S throughout. The readout quotes
 CPOM's own mass change for the ice sheet and the IMBIE regions, not sums over the resampled
 grid. Clicking the ice, or the basin list, picks one of CPOM's 18 IMBIE drainage basins
 (numbered as in CPOM's `basin_id`) or a region: the map outlines it, and a chart plots its mass change since
-1995 with its 1σ band, in both views. The layer is exclusive with the projection, the rebound and the velocity colour. The
+1995 with its 1σ band, in both views. The layer is exclusive with the velocity colour and, as one of the
+features of *Change over time*, with the projection, the observed sea ice and the rebound. The
 packer (`scripts/prepare_cpom_land_ice.py`) and the browser module
 (`static/tools/js/surface-change.js`) are tested in `tests/test_prepare_cpom_land_ice.py`,
 `tests/js/surface-change.test.mjs` and `tests/e2e/test_surface_change.py`.
@@ -256,7 +261,7 @@ packer (`scripts/prepare_cpom_land_ice.py`) and the browser module
 
 The research edition shows the NOAA/NSIDC climate data record of sea-ice concentration from
 passive microwave radiometers (G02202 Version 6; Meier et al. 2026) on the sea surface around
-Antarctica and Greenland, every month from November 1978, under Interactive Scenarios. A month
+Antarctica and Greenland, every month from November 1978, under *Change over time*. A month
 slider shows the seasons and a year slider the same month across the years; Play runs the record
 month by month. Water with less than 15 % ice is left clear, and an orange line marks the month's
 1981–2010 median ice edge. The readout quotes the extent of the whole hemisphere from the same
@@ -264,8 +269,9 @@ record (the Greenland grid holds only part of the Arctic), its departure from th
 average and its rank among the years, and a chart plots the month's extent in every year with its
 least-squares trend. NSIDC's 25 km grids are resampled onto a 25 km grid in each region's own
 projection and clipped to the terrain's ocean; near the coast, where NSIDC masks the cells as land,
-the concentration comes from the nearest observed cells. The layer is exclusive with the projection
-and the rebound. The packer (`scripts/prepare_nsidc_sea_ice.py`) and the browser module
+the concentration comes from the nearest observed cells. As one of the features of *Change over
+time*, the layer is exclusive with the projection, the observed elevation change and the rebound.
+The packer (`scripts/prepare_nsidc_sea_ice.py`) and the browser module
 (`static/tools/js/sea-ice.js`) are tested in `tests/test_prepare_nsidc_sea_ice.py`,
 `tests/js/sea-ice.test.mjs` and `tests/e2e/test_sea_ice.py`.
 
@@ -504,8 +510,8 @@ software release. The repository also includes a machine-readable
   author  = {Wang, Yu and Lin, Yucheng},
   title   = {{3D ICE}: An Interactive Browser-Based Cryosphere Explorer for Antarctica and Greenland},
   year    = {2026},
-  version = {0.3.1},
-  url     = {https://github.com/yuwang115/3d-ice/releases/tag/v0.3.1}
+  version = {0.4.0},
+  url     = {https://github.com/yuwang115/3d-ice/releases/tag/v0.4.0}
 }
 ```
 

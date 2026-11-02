@@ -16,6 +16,8 @@ from pathlib import Path
 import pytest
 from PIL import Image, ImageStat
 
+from tests.e2e.panel import choose_dataset, choose_region, open_group
+
 pytestmark = pytest.mark.e2e
 
 READY_TIMEOUT_MS = 60_000
@@ -132,7 +134,9 @@ def test_the_layer_opens_on_the_latest_month_with_the_hemisphere_extent(page):
     assert state["chartShown"]
     assert "Southern Ocean" in page.locator("#seaIceChartNote").inner_text()
     assert not page.locator("#seaIceLegendSection").is_hidden()
-    assert page.locator("#seaIceLegendLabels span").all_inner_texts() == ["15%", "40", "70", "100"]
+    # The caption gives the unit; the first tick is the 15 % extent threshold.
+    assert page.locator("#seaIceLegendLabels span").all_inner_texts() == ["15", "40", "70", "100"]
+    assert page.locator("#seaIceLegendTitle").inner_text() == "Sea-ice concentration, %"
     page.wait_for_function(
         "() => [...document.querySelectorAll('#seaIceLegendLabels span')].every((s) => s.style.top)", timeout=10_000
     )
@@ -160,6 +164,7 @@ def test_the_sliders_pick_a_month_and_the_chart_follows_the_calendar_month(page)
     assert f"{abs(trend):.1f}% per decade" in page.locator("#seaIceChart").text_content()
     # The Data Snapshot follows once the slider is let go.
     page.locator("#seaIceMonth").dispatch_event("change")
+    open_group(page, "data")
     snapshot = page.locator("#metaList").inner_text()
     assert "February 2023" in snapshot
     assert "whole Southern Ocean" in snapshot
@@ -324,7 +329,7 @@ def test_greenland_reads_the_whole_arctic_and_keeps_the_month(page):
     page, errors = page
     _show_layer(page)
     _pick(page, 2012, 9)
-    page.locator("#regionPreset").select_option("greenland")
+    choose_region(page, "greenland")
     state = _wait_for_layer(page, "greenland")
     assert (state["year"], state["month"]) == (2012, 9)
     assert state["frameCount"] == GREENLAND["frames"]["count"]
@@ -342,7 +347,7 @@ def test_another_terrain_of_the_region_draws_the_same_record(page):
     page, errors = page
     _show_layer(page)
     _pick(page, 2010, 9)
-    page.locator("#resolutionPreset").select_option("bedmap3")
+    choose_dataset(page, "bedmap3")
     page.wait_for_function(
         "() => { const s = JSON.parse(window.render_game_to_text()); return s.ready && s.dataset === 'bedmap3' && s.seaIce.shown; }",
         timeout=LAYER_TIMEOUT_MS,

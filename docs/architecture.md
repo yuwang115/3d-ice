@@ -81,16 +81,20 @@ bibliography.
 | `static/explore/index.html`, `static/zh/explore/index.html` | Public edition, English and Chinese: a smaller control set, the tour card and the explainer slots |
 | `static/tools/css/explorer.css` | Styles shared by every explorer page |
 | `static/tools/css/explore.css` | Public-edition additions: tour card, explainers |
+| `static/tools/css/research-panel.css` | Research-edition panel: masthead, where to look, collapsible groups, one-of choices, Change over time, inline legends |
 | `static/tools/js/explorer-app.js` | Runtime shared by every explorer page: dataset registry, loading, scene graph, UI wiring, legends, metadata panel, camera flights |
 | `static/tools/js/explore-guide.js` | The public edition's tour and explainers, which drive the explorer through its guide interface |
 | `static/tools/js/editions.js` | Edition profiles: the datasets, layers and runtime behaviours each edition offers |
+| `static/tools/js/research-panel.js`, `research-time.js` | The research panel over the runtime's controls: groups that remember, count and open themselves, the region, terrain and grid controls, one-of choices, the notes on a layer's row, and Change over time one feature at a time, putting back what a feature switched off |
+| `static/tools/js/panel-state.js` | The research panel's decisions with no DOM: terrain and grid choices, why a layer is off on a terrain, stored group state, the one-of choices, and what a time feature changes and puts back |
+| `static/tools/js/view-presets.js` | Named views: the home page's showcase heroes and the research page's `?preset=` views |
 | `static/tools/js/explore-content.js`, `explore-tour.js` | Tour stops and public-edition copy in both locales; camera framing, flights and toggle ordering for the tour |
 | `static/tools/js/polar-projection.js` | EPSG:3031 and EPSG:3413 projections, for placing the camera by latitude and longitude |
 | `static/tools/js/data-contract.js` | Package decoder (the browser half of the data contract) |
 | `static/tools/js/vertical-scale.js` | The scene's base vertical scale and the true vertical exaggeration the slider label shows |
-| `static/tools/js/layer-stats.js` | Statistics of a field over the cells a layer draws, for the Data Snapshot |
+| `static/tools/js/layer-stats.js` | Statistics of a field over the cells a layer draws, for the research panel's *Data and sources* |
 | `static/tools/js/overlay-cells.js` | Which cells an overlay may be drawn on: subglacial water beneath grounded ice, ocean streamlines in open water clear of the bed and the ice-shelf base |
-| `static/tools/js/source-links.js` | The Data Snapshot's source lines, each crediting a data set and, where there is one, its article |
+| `static/tools/js/source-links.js` | The source lines of *Data and sources*, each crediting a data set and, where there is one, its article |
 | `static/tools/antarctica-geometry-worker.js` | Module worker that builds velocity, basal-friction, hydrology and ocean-current geometry off the main thread |
 | `static/tools/gia-rebound-worker.js` | Module worker for the idealised isostatic-rebound solve |
 | `static/tools/js/gia-rebound.js`, `gia-grid.js`, `fft2d.js` | Published-response summary, flexural and Airy isostasy solver, grid utilities and 2-D FFT |
@@ -152,9 +156,10 @@ buffer. The ice flowlines stay on: they keep today's paths but ride the projecte
 take today's speed plus the package's mean speed change for their colour and pulse rate, and
 collapse segment by segment where the ice is gone; a per-vertex phase offset keeps the pulses
 continuous as their rates change, and picking a flowline is off while the projection is.
-The projection's controls end with their own flowline switch (`#projectionFlowline`), a
-second handle on the flowline layer: it sets `#showFlowline` and dispatches its change
-event, and it is kept in step with that toggle, including when the layer is unavailable.
+On the public page the projection's controls end with their own flowline switch
+(`#projectionFlowline`), a second handle on the flowline layer: it sets `#showFlowline` and
+dispatches its change event, and it is kept in step with that toggle, including when the
+layer is unavailable. The research page has no such switch; *Ice flow → Flowlines* is the one.
 Switching the projection on (its toggle, not a scenario change) turns the flowline layer on
 if it is off, and switching it off turns the layer off again unless it was changed in
 between, the same rule the sea plane follows.
@@ -246,13 +251,15 @@ current Chrome, Edge, Firefox and Safari (Chrome and Edge 89+, Firefox 114+, Saf
 | Place search, label styling, the details card, refined-basin validation | node:test | `tests/js/polar-features.test.mjs` | JavaScript unit tests |
 | The ice-core site table: per-site validation, the two-source position check, and that the committed catalogues are its build | pytest | `tests/test_prepare_ice_cores.py` | Python unit and integration tests |
 | Edition profiles, polar projections against every catalogue position, tour framing and flights, and copy parity across locales | node:test | `tests/js/editions.test.mjs`, `polar-projection.test.mjs`, `explore-tour.test.mjs`, `explore-content.test.mjs` | JavaScript unit tests |
+| The research panel's terrain and grid choices, unavailability reasons, group state and time-feature changes; no named view or tour stop breaks a one-of choice | node:test | `tests/js/panel-state.test.mjs`, `tests/js/view-presets.test.mjs` | JavaScript unit tests |
+| Both research shells carry the same ids, in the agreed groups and order, with the one-of choices, the time list and the About boxes | pytest | `tests/test_research_panel_structure.py` | Python unit tests |
 | Every localisation key used at runtime resolves in both locales | node:test | `tests/js/locale-coverage.test.mjs` | JavaScript unit tests |
-| True vertical exaggeration in labels and copy; Data Snapshot statistics over the drawn cells; the cells each overlay may be drawn on; source lines | node:test | `tests/js/vertical-scale.test.mjs`, `tests/js/layer-stats.test.mjs`, `tests/js/overlay-cells.test.mjs`, `tests/js/source-links.test.mjs` | JavaScript unit tests |
+| True vertical exaggeration in labels and copy; *Data and sources* statistics over the drawn cells; the cells each overlay may be drawn on; source lines | node:test | `tests/js/vertical-scale.test.mjs`, `tests/js/layer-stats.test.mjs`, `tests/js/overlay-cells.test.mjs`, `tests/js/source-links.test.mjs` | JavaScript unit tests |
 | Ocean-streamline orientation (ROMS components to EPSG:3031 x/y; the circumpolar current flows east in the packages) and subglacial channel filtering | pytest | `tests/test_ocean_current_orientation.py`, `tests/test_prepare_subglacial_hydrology.py` | Python unit and integration tests |
 | Metadata schema of every package; `CITATION.cff` and `codemeta.json` | pytest, cffconvert | `tests/test_metadata_schema.py` | Validate .meta.json files |
 | The distributable bundle contains every runtime file | Node | `scripts/smoke_compat_bundle.mjs` | Compatibility bundle smoke test |
 | Every page a host builds from the bundle links only to files the bundle carries, and the home pages keep the structure yuwang.blog's copy is built from | pytest | `tests/test_site_embed.py` | Python unit tests |
 | Both home pages link each edition, list every source the runtime cites and share one structure across locales | pytest | `tests/test_home_page.py`, `tests/test_home_latest_updates.py` | Python unit tests |
-| The explorer loads, renders and responds in a real browser; the public edition requests no research-only package, plays its whole tour and shows it in Chinese; the home pages reach both editions from the first screen | Playwright | `tests/e2e/` | Browser E2E tests |
+| The explorer loads, renders and responds in a real browser; the research panel fits its height budget, and every row of its exclusivity table holds, restore included; the public edition requests no research-only package, plays its whole tour and shows it in Chinese; the home pages reach both editions from the first screen | Playwright | `tests/e2e/` | Browser E2E tests |
 
 Commands for running each suite locally are in the [README](../README.md#running-tests).

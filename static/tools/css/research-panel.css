@@ -1,0 +1,692 @@
+@charset "UTF-8";
+
+/* The research edition's panel: a one-row masthead, where to look, and collapsible
+   groups with each legend under its layer. Only the two research pages load this file,
+   after explorer.css, so the public edition never sees it. Class names starting rp- are
+   this panel's own; the rest restyle shared explorer classes inside it. */
+
+:root {
+  --rp-active-bg: linear-gradient(135deg, rgba(15, 126, 168, 0.16) 0%, rgba(31, 159, 136, 0.16) 100%);
+  --rp-active-ring: rgba(15, 126, 168, 0.42);
+  --rp-hover: rgba(92, 150, 179, 0.08);
+  --rp-count-bg: rgba(15, 126, 168, 0.12);
+  --rp-count-text: #0f5976;
+}
+
+:root[data-theme="dark"] {
+  --rp-active-bg: linear-gradient(135deg, rgba(62, 160, 195, 0.24) 0%, rgba(31, 159, 136, 0.2) 100%);
+  --rp-active-ring: rgba(121, 214, 255, 0.4);
+  --rp-hover: rgba(83, 149, 178, 0.12);
+  --rp-count-bg: rgba(121, 214, 255, 0.14);
+  --rp-count-text: #b7ecff;
+}
+
+.panel {
+  padding: 14px 16px 16px;
+}
+
+/* Several rules below set display; whatever the runtime hides must stay hidden. */
+.panel [hidden] {
+  display: none !important;
+}
+
+/* ------------------------------------------------------------------ masthead */
+
+.rp-masthead {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 0 12px;
+}
+
+.rp-wordmark {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.34rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.rp-wordmark__3d {
+  color: transparent;
+  -webkit-text-stroke: 1.2px var(--accent);
+}
+
+.rp-edition-tag {
+  padding: 3px 7px;
+  border: 1px solid var(--section-border);
+  border-radius: 999px;
+  color: var(--section-title);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* The locale switcher shrinks to its two links; the group keeps its "Language" name. */
+.rp-masthead .panel-locale-switcher {
+  display: block;
+  margin: 0 0 0 auto;
+}
+
+.rp-masthead .explorer-locale-switcher__label {
+  display: none;
+}
+
+.rp-masthead .explorer-locale-switcher__link {
+  min-width: 0;
+  padding: 6px 9px;
+  font-size: 0.74rem;
+}
+
+.rp-info-button {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--select-border);
+  border-radius: 999px;
+  background: var(--select-bg);
+  color: var(--meta-text);
+  font: 600 0.82rem/1 "IBM Plex Mono", monospace;
+  letter-spacing: 0;
+}
+
+.rp-info-button[aria-expanded="true"] {
+  border-color: var(--rp-active-ring);
+  background: var(--rp-active-bg);
+  color: var(--meta-strong);
+}
+
+.rp-info-menu {
+  position: absolute;
+  z-index: 8;
+  top: calc(100% - 4px);
+  left: 0;
+  right: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--select-bg);
+  box-shadow: var(--shadow);
+  color: var(--meta-text);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.rp-info-menu .subtitle {
+  margin: 0 0 8px;
+  font-size: 0.86rem;
+}
+
+.rp-info-menu .edition-switch {
+  margin: 0;
+  font-size: 0.86rem;
+}
+
+.rp-info-menu a {
+  color: var(--meta-link);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ where */
+
+.rp-where {
+  display: grid;
+  gap: 8px;
+  padding: 12px 0;
+  border-top: 1px solid var(--section-border);
+}
+
+.rp-segmented {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--select-border);
+  border-radius: 10px;
+  background: var(--select-bg);
+}
+
+.rp-segmented__option {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+  height: auto;
+  min-height: 30px;
+  margin: 0;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--select-text);
+  font-size: 0.86rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.rp-segmented__option:hover {
+  background: var(--rp-hover);
+  filter: none;
+}
+
+.rp-segmented__option[aria-pressed="true"] {
+  background: var(--rp-active-bg);
+  box-shadow: inset 0 0 0 1px var(--rp-active-ring);
+  color: var(--meta-strong);
+  font-weight: 600;
+}
+
+.rp-segmented__option:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.rp-segmented__option:focus-visible {
+  outline: 2px solid var(--select-focus-border);
+  outline-offset: 1px;
+}
+
+/* As tall as the select beside it: 30 px, two of padding and one of border each side. */
+.rp-segmented--compact .rp-segmented__option {
+  min-height: 30px;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+}
+
+/* An empty status line takes no room, but stays in place as a live region. */
+.rp-search .polar-search-status:empty {
+  min-height: 0;
+  margin: 0;
+}
+
+.rp-terrain {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 118px;
+  gap: 8px;
+  align-items: start;
+}
+
+.rp-field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+}
+
+.rp-field__label {
+  color: var(--control-label);
+  font-size: 0.78rem;
+}
+
+.rp-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+/* ------------------------------------------------------------------ groups */
+
+.rp-group {
+  border-top: 1px solid var(--section-border);
+}
+
+.rp-group__summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 2px;
+  border-radius: 6px;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.rp-group__summary::-webkit-details-marker {
+  display: none;
+}
+
+.rp-group__summary:hover {
+  background: var(--rp-hover);
+}
+
+.rp-group__summary:focus-visible {
+  outline: 2px solid var(--select-focus-border);
+  outline-offset: -2px;
+}
+
+/* The chevron points down when the group is open and right when it is closed. */
+.rp-group__summary::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin: 0 4px 3px auto;
+  border-right: 1.5px solid var(--section-title);
+  border-bottom: 1.5px solid var(--section-title);
+  transform: rotate(45deg);
+  transition: transform 150ms ease;
+}
+
+.rp-group:not([open]) > .rp-group__summary::after {
+  margin-bottom: 0;
+  transform: rotate(-45deg);
+}
+
+.rp-group__title {
+  color: var(--section-title);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rp-group__count {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--rp-count-bg);
+  color: var(--rp-count-text);
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rp-group__body {
+  display: grid;
+  gap: 8px;
+  padding: 0 0 10px;
+}
+
+.rp-feature {
+  display: grid;
+  gap: 8px;
+}
+
+/* Spacing inside a group comes from the grid gaps, not from the shared margins. */
+.rp-group .control,
+.rp-group .toggle {
+  margin-bottom: 0;
+}
+
+.rp-group .control > label {
+  margin-bottom: 2px;
+}
+
+.rp-group .toggle-group {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 2px 7px;
+  padding-left: 14px;
+}
+
+/* ------------------------------------------------------------------ rows and chips */
+
+/* Checkbox, label, then a period or the reason the layer is off. A row with a period
+   gives its reason on a second line, so no label wraps. */
+.rp-row {
+  display: grid;
+  grid-template-columns: 15px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 2px;
+  min-height: 22px;
+  margin: 0;
+  color: var(--toggle-text);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.rp-row input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.rp-row__label {
+  min-width: 0;
+}
+
+.rp-row__meta {
+  color: var(--muted);
+  font: 0.72rem "IBM Plex Mono", monospace;
+  white-space: nowrap;
+}
+
+.rp-row:has(input:disabled) {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.rp-reason {
+  grid-column: 3;
+  justify-self: end;
+  padding: 1px 7px;
+  border: 1px dashed var(--select-border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.rp-row:has(.rp-row__meta) .rp-reason {
+  grid-column: 2 / -1;
+  justify-self: start;
+}
+
+.rp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 7px;
+  border: 1px solid var(--select-border);
+  border-radius: 999px;
+  background: var(--select-bg);
+  color: var(--select-text);
+  font-size: 0.82rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.rp-chip input {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.rp-chip:has(input:checked) {
+  border-color: var(--rp-active-ring);
+  background: var(--rp-active-bg);
+  color: var(--meta-strong);
+}
+
+.rp-chip:has(input:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.rp-chip:has(input:focus-visible) {
+  outline: 2px solid var(--select-focus-border);
+  outline-offset: 1px;
+}
+
+.rp-chips--sub {
+  margin-left: 23px;
+}
+
+.rp-chips--sub .rp-chip {
+  padding: 2px 9px 2px 6px;
+  font-size: 0.78rem;
+}
+
+/* The flowline row's hint, and the profile of a picked flowline. */
+.rp-group .flowline-inline-card-slot {
+  margin: -2px 0 0 23px;
+}
+
+.flowline-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+/* ------------------------------------------------------------------ one-of choices */
+
+/* A surface's colourings as one row of pills. The layers keep their checkboxes, drawn as
+   round markers; the first pill, which is not a layer, reads as chosen while none is on. */
+.rp-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}
+
+.rp-choice__opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  height: auto;
+  min-height: 28px;
+  margin: 0;
+  padding: 3px 11px 3px 8px;
+  border: 1px solid var(--select-border);
+  border-radius: 999px;
+  background: var(--select-bg);
+  color: var(--select-text);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.rp-choice__opt input,
+.rp-choice__none::before {
+  appearance: none;
+  flex: 0 0 auto;
+  width: 11px;
+  height: 11px;
+  margin: 0;
+  border: 1.5px solid var(--select-border);
+  border-radius: 50%;
+  background: var(--select-bg);
+}
+
+.rp-choice__none::before {
+  content: "";
+}
+
+.rp-choice__opt:has(input:checked),
+.rp-choice:not(:has(input:checked)) .rp-choice__none {
+  border-color: var(--rp-active-ring);
+  background: var(--rp-active-bg);
+  color: var(--meta-strong);
+  font-weight: 600;
+}
+
+.rp-choice__opt input:checked,
+.rp-choice:not(:has(input:checked)) .rp-choice__none::before {
+  border-color: var(--accent);
+  background: radial-gradient(circle, var(--accent) 0 2.5px, var(--select-bg) 3px);
+}
+
+.rp-choice__none:hover {
+  filter: none;
+}
+
+.rp-choice__opt:has(input:disabled) {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.rp-choice__opt:has(input:focus-visible),
+.rp-choice__none:focus-visible {
+  outline: 2px solid var(--select-focus-border);
+  outline-offset: 1px;
+}
+
+/* Why an option is off: one line for the whole choice, or one line per option. */
+.rp-choice__note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+/* ------------------------------------------------------------------ change over time */
+
+.rp-group__hint {
+  color: var(--muted);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+/* One feature at a time, so the rows wear round markers, and Present day is the first. */
+.rp-row--time input[type="checkbox"],
+.rp-time__dot {
+  appearance: none;
+  display: block;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  border: 1.5px solid var(--select-border);
+  border-radius: 50%;
+  background: var(--select-bg);
+}
+
+.rp-row--time input[type="checkbox"]:checked,
+.rp-group:not(:has(input[data-time]:checked)) .rp-time__dot {
+  border-color: var(--accent);
+  background: radial-gradient(circle, var(--accent) 0 3.5px, var(--select-bg) 4px);
+}
+
+.rp-row--time input[type="checkbox"]:disabled {
+  opacity: 0.5;
+}
+
+.rp-row--time input[type="checkbox"]:focus-visible,
+.rp-time__none:focus-visible {
+  outline: 2px solid var(--select-focus-border);
+  outline-offset: 2px;
+}
+
+.rp-time__none {
+  width: 100%;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--toggle-text);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-align: left;
+}
+
+.rp-time__none:hover {
+  filter: none;
+}
+
+.rp-group:not(:has(input[data-time]:checked)) .rp-time__none {
+  color: var(--meta-strong);
+  font-weight: 600;
+}
+
+/* A layer a time feature has switched off says so, under its label. */
+.rp-takeover {
+  grid-column: 2 / -1;
+  justify-self: start;
+  padding-left: 8px;
+  border-left: 2px solid var(--rp-active-ring);
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+/* A record's longer notes, closed until asked for. */
+.rp-about > summary {
+  color: var(--meta-link);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.rp-about .legend-note {
+  margin-top: 6px;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+/* ------------------------------------------------------------------ data and sources */
+
+.rp-link {
+  justify-self: start;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--meta-link);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-decoration: underline;
+}
+
+.rp-link:hover {
+  filter: none;
+}
+
+/* ------------------------------------------------------------------ legends */
+
+/* A legend sits under the layer that draws it, indented to its label. */
+.rp-legend {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 2px 23px;
+}
+
+.rp-legend--flush {
+  margin-left: 0;
+}
+
+.rp-legend__caption {
+  margin: 0;
+  color: var(--legend-text);
+  font-size: 0.74rem;
+}
+
+.rp-legend .legend,
+.rp-legend .legend-labels,
+.rp-legend .legend-note,
+.rp-legend .ocean-legend-note {
+  margin-top: 0;
+}
+
+.rp-legend .ocean-legend-canvas {
+  height: 104px;
+}
+
+/* ------------------------------------------------------------------ viewer */
+
+/* Reset view joins the viewer's own buttons; the home page's showcase shows none of it. */
+body.showcase #resetView {
+  display: none !important;
+}
+
+/* ------------------------------------------------------------------ phones */
+
+/* A finger needs taller group titles than a pointer does. */
+@media (pointer: coarse) {
+  .rp-group__summary {
+    padding: 11px 2px;
+  }
+}
+
+@media (max-width: 980px) {
+  body.mobile-drawer .rp-masthead {
+    padding-top: 2px;
+  }
+
+  body.mobile-drawer .rp-info-menu {
+    top: calc(100% + 2px);
+  }
+}
