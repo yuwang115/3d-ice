@@ -1102,8 +1102,9 @@ let iceProjectionFrame = null;
 let iceProjectionChartGeometry = null;
 // Whether switching the projection on raised the sea plane, so switching it off can lower it.
 let iceProjectionRaisedSea = false;
-// Set when basal melt or thermal driving unticked the ice surface, which comes back with Off.
-let iceSurfaceHiddenForRise = false;
+// The Scene layers basal melt or thermal driving unticked, which come back with Off.
+const RISE_HIDDEN_SCENE_LAYERS = Object.freeze(["showIce", "showIceBottom"]);
+let sceneLayersHiddenForRise = Object.freeze([]);
 // The same for the flowlines, which the projection shows by default.
 let iceProjectionRaisedFlowlines = false;
 // Observed surface elevation change (see the "observed surface change" section), declared up
@@ -6584,20 +6585,28 @@ function syncIceSurfaceVisibilityFromControls() {
   updateRefinedBasinVisibility();
 }
 
-function hideIceSurfaceForRiseOverlay() {
-  if (!controlsUI.showIce.checked) return;
-  controlsUI.showIce.checked = false;
-  iceSurfaceHiddenForRise = true;
+/** Untick the ice surface and ice base, which would otherwise cover the ice-shelf base colouring. */
+function hideIceForRiseOverlay() {
+  const hiding = RISE_HIDDEN_SCENE_LAYERS.filter((id) => controlsUI[id]?.checked);
+  if (!hiding.length) return;
+  for (const id of hiding) controlsUI[id].checked = false;
+  sceneLayersHiddenForRise = Object.freeze([...new Set([...sceneLayersHiddenForRise, ...hiding])]);
   syncIceSurfaceVisibilityFromControls();
 }
 
-/** Show the ice surface again once neither ice-shelf base colouring is on, if one hid it. */
-function restoreIceSurfaceAfterRiseOverlay() {
-  if (!iceSurfaceHiddenForRise || controlsUI.showBasalMelt.checked || controlsUI.showThermalDriving.checked) return;
-  iceSurfaceHiddenForRise = false;
-  if (controlsUI.showIce.checked) return;
-  controlsUI.showIce.checked = true;
+/** Show the ice surface and ice base again once neither ice-shelf base colouring is on, if one hid them. */
+function restoreIceAfterRiseOverlay() {
+  if (!sceneLayersHiddenForRise.length || controlsUI.showBasalMelt.checked || controlsUI.showThermalDriving.checked) return;
+  const restoring = sceneLayersHiddenForRise.filter((id) => !controlsUI[id].checked);
+  sceneLayersHiddenForRise = Object.freeze([]);
+  if (!restoring.length) return;
+  for (const id of restoring) controlsUI[id].checked = true;
   syncIceSurfaceVisibilityFromControls();
+}
+
+/** A visitor's own choice of a Scene layer wins over the ice-shelf base's. */
+function forgetSceneLayerHiddenForRise(id) {
+  sceneLayersHiddenForRise = Object.freeze(sceneLayersHiddenForRise.filter((hiddenId) => hiddenId !== id));
 }
 
 function hideBedStressOverlaysExcept(activeKey = "") {
@@ -7844,12 +7853,12 @@ function bindUI() {
     updateLegendVisibility();
   });
   controlsUI.showIce.addEventListener("change", () => {
-    // A visitor's own choice wins over the ice-shelf base's.
-    iceSurfaceHiddenForRise = false;
+    forgetSceneLayerHiddenForRise("showIce");
     syncIceSurfaceVisibilityFromControls();
     updateMetaFromCurrentState();
   });
   controlsUI.showIceBottom.addEventListener("change", () => {
+    forgetSceneLayerHiddenForRise("showIceBottom");
     syncIceSurfaceVisibilityFromControls();
     updateMetaFromCurrentState();
   });
@@ -7902,9 +7911,9 @@ function bindUI() {
       controlsUI.showThermalDriving.checked = false;
     }
     if (controlsUI.showBasalMelt.checked) {
-      hideIceSurfaceForRiseOverlay();
+      hideIceForRiseOverlay();
     } else {
-      restoreIceSurfaceAfterRiseOverlay();
+      restoreIceAfterRiseOverlay();
     }
     updateLegendVisibility();
     if (controlsUI.showBasalMelt.checked && !basalMeltMesh) {
@@ -7920,9 +7929,9 @@ function bindUI() {
       controlsUI.showBasalMelt.checked = false;
     }
     if (controlsUI.showThermalDriving.checked) {
-      hideIceSurfaceForRiseOverlay();
+      hideIceForRiseOverlay();
     } else {
-      restoreIceSurfaceAfterRiseOverlay();
+      restoreIceAfterRiseOverlay();
     }
     updateLegendVisibility();
     if (controlsUI.showThermalDriving.checked && !thermalDrivingMesh) {
@@ -9080,8 +9089,8 @@ function hideOverlaysForRebound() {
   if (effectivePressureMesh) effectivePressureMesh.visible = false;
   if (subglacialChannelMesh) subglacialChannelMesh.visible = false;
   updateRiseOverlayVisibility();
-  // The ice-shelf base colouring is gone, so the ice surface it hid comes back.
-  restoreIceSurfaceAfterRiseOverlay();
+  // The ice-shelf base colouring is gone, so the ice surface and ice base it hid come back.
+  restoreIceAfterRiseOverlay();
   updateOceanCurrentLayerControls();
   updateOceanCurrentLayerVisibility();
   updateRefinedBasinVisibility();
@@ -10142,8 +10151,8 @@ function hideOverlaysForIceProjection() {
   updateSurfaceChangeControlsUi();
   leaveSeaIce();
   updateRiseOverlayVisibility();
-  // The ice-shelf base colouring is gone, so the ice surface it hid comes back.
-  restoreIceSurfaceAfterRiseOverlay();
+  // The ice-shelf base colouring is gone, so the ice surface and ice base it hid come back.
+  restoreIceAfterRiseOverlay();
   updateOceanCurrentLayerControls();
   updateOceanCurrentLayerVisibility();
   updateRefinedBasinVisibility();

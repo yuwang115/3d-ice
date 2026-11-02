@@ -4,6 +4,14 @@ All notable changes to 3D ICE are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- Choosing *Basal melt* or *Thermal driving* now unticks *Ice base* as well as *Ice surface*,
+  so the ice-shelf base colouring is seen without the ice base drawn over it. Setting the
+  choice back to Off ticks each one again, unless the reader changed it in the meantime.
+
 ## [0.4.0] — 2026-11-01
 
 Two observed records, ice-core sites and a rebuilt panel for the research edition, and
