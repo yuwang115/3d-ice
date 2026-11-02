@@ -4,7 +4,10 @@ All notable changes to 3D ICE are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.4.0] — Unreleased
+
+Two observed records, ice-core sites and a rebuilt panel for the research edition, and
+analytics that record 3d-ice.com again.
 
 ### Added
 
@@ -445,6 +448,7 @@ hydrology, WAOM2 and Copernicus ocean streamlines, RISE ice-shelf basal melt and
 driving, and drainage-basin boundaries, together with the preparation scripts and the
 compatibility-bundle release workflow.
 
+[0.4.0]: https://github.com/yuwang115/3d-ice/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/yuwang115/3d-ice/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/yuwang115/3d-ice/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/yuwang115/3d-ice/compare/v0.1.2...v0.2.0
