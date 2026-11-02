@@ -15,6 +15,9 @@ All notable changes to 3D ICE are recorded here. The format follows
 
 ### Changed
 
+- Choosing *Basal melt* or *Thermal driving* now unticks *Ice base* as well as *Ice surface*,
+  so the ice-shelf base colouring is seen without the ice base drawn over it. Setting the
+  choice back to Off ticks each one again, unless the reader changed it in the meantime.
 - The public edition's panel takes the research panel's look. The logo banner gives way to a
   two-row masthead, and the intro and what the explorer is built from move into its ⓘ menu.
   Antarctica and Greenland become two buttons. The four groups stay open, each legend sits

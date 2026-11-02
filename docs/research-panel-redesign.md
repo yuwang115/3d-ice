@@ -215,7 +215,7 @@ The rules come from `ICE_PROJECTION_EXCLUSIVE_TOGGLES`, `hideBedStressOverlaysEx
 | CPOM elevation change | Switches off velocity colour and rebound. |
 | Sea ice | Switches off the projection and rebound. Switches on sea level, and switches it off again if it was left so. |
 | Basal friction or effective pressure | Switches off the other one and rebound. |
-| Basal melt or thermal driving | Switches off the other one, and unticks Ice surface. |
+| Basal melt or thermal driving | Switches off the other one, and unticks Ice surface and Ice base. |
 | Velocity colour | Switches off CPOM. |
 | Any layer in the projection's list | Switches off the projection. |
 
@@ -226,7 +226,7 @@ The redesign adds one rule: CPOM and sea ice exclude each other.
 Two surfaces take one colouring at a time:
 
 - **The bed:** elevation (the default), basal friction or effective pressure, and later water-sheet thickness. The elevation legend stays visible under an overlay's legend, because elevation still colours the sea floor and ice-free land.
-- **The ice-shelf base:** off, basal melt or thermal driving. Choosing melt or thermal driving hides the ice surface, as now. Setting it back to Off shows the ice surface again, if this choice was what hid it.
+- **The ice-shelf base:** off, basal melt or thermal driving. Choosing melt or thermal driving hides the ice surface and the ice base, so the colouring is seen unobstructed. Setting it back to Off shows each again, if this choice was what hid it.
 
 How to build it:
 
@@ -401,7 +401,7 @@ On `feat/research-panel`, after phase 1. Measured in headless Chromium at 1440 Ã
 How it is built:
 
 - **One-of choices.** Each surface is a `[data-choice]` field. The layers keep their checkboxes, drawn as round markers inside pills; the first pill (`[data-choice-none]`: Elevation, Off) is a button that switches them all off. Its pressed look comes from CSS (`:not(:has(input:checked))`), and the panel keeps its `aria-pressed` in step. A choice gives its reasons and the time feature's notes on one line under the pills: a single reason when every option shares it ("Antarctica only"), otherwise one line per option ("Effective pressure: Antarctica only").
-- **Ice surface.** Off brings the ice surface back if basal melt or thermal driving hid it, and so does a time feature that clears the ice-shelf base, whose ice would otherwise stay hidden.
+- **Ice surface and ice base.** Off brings each back if basal melt or thermal driving hid it, and so does a time feature that clears the ice-shelf base, whose ice would otherwise stay hidden.
 - **Change over time.** `static/tools/js/research-time.js`. The four feature toggles stay checkboxes, drawn with round markers under a *Present day* option. They keep checkbox semantics, so a click on the feature that is on also returns to the present day. The panel stops the reader's click on a feature and makes the change itself, in order, each step as the toggle's own change event:
   1. the feature that was on goes, so the runtime lowers what it raised;
   2. the layers it switched off come back;

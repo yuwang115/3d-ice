@@ -83,13 +83,18 @@ def test_the_projection_switches_its_layers_off_and_the_present_day_puts_them_ba
     layers = ("showVelocity", "showBasalFriction", "showSubglacialChannels", "showBasalMelt", "showRefinedBasins")
     _switch_on(page, *layers)
     _wait(page, "s.meshes.velocity && s.meshes.basalFriction && s.meshes.hydrology && s.meshes.basalMelt && s.meshes.basins")
-    assert _on(page, "showIce") == {"showIce": False}, "basal melt hides the ice surface"
+    assert _on(page, "showIce", "showIceBottom") == {"showIce": False, "showIceBottom": False}, "basal melt hides the ice"
 
     page.locator("#showIceProjection").check()
     _wait(page, "s.iceProjection.active")
     assert _on(page, *layers) == dict.fromkeys(layers, False)
     # The projection brings the flowlines and the sea plane, and its ice shows again.
-    assert _on(page, "showFlowline", "showSea", "showIce") == {"showFlowline": True, "showSea": True, "showIce": True}
+    assert _on(page, "showFlowline", "showSea", "showIce", "showIceBottom") == {
+        "showFlowline": True,
+        "showSea": True,
+        "showIce": True,
+        "showIceBottom": True,
+    }
     notes = _notes(page)
     assert notes.count(PROJECTION_OFF) == 3  # surface speed, channels, refined basins
     assert f"Basal friction: {PROJECTION_OFF}" in notes and f"Basal melt: {PROJECTION_OFF}" in notes
@@ -97,7 +102,12 @@ def test_the_projection_switches_its_layers_off_and_the_present_day_puts_them_ba
     _present_day(page)
     _wait(page, "!s.iceProjection.active && s.meshes.velocity && s.meshes.basalFriction && s.meshes.basalMelt")
     assert _on(page, *layers) == dict.fromkeys(layers, True)
-    assert _on(page, "showFlowline", "showSea", "showIce") == {"showFlowline": False, "showSea": False, "showIce": False}
+    assert _on(page, "showFlowline", "showSea", "showIce", "showIceBottom") == {
+        "showFlowline": False,
+        "showSea": False,
+        "showIce": False,
+        "showIceBottom": False,
+    }
     assert _notes(page) == []
     assert page.locator("[data-time-none]").get_attribute("aria-pressed") == "true"
     assert errors == []
@@ -172,17 +182,45 @@ def test_basal_melt_and_thermal_driving_share_the_ice_shelf_base_and_off_brings_
     page, errors = page
     page.locator("#showBasalMelt").check()
     _wait(page, "s.meshes.basalMelt")
-    assert _on(page, "showIce") == {"showIce": False}
+    assert _on(page, "showIce", "showIceBottom") == {"showIce": False, "showIceBottom": False}
+    assert _state(page)["meshes"]["iceBottom"] is False
     page.locator("#showThermalDriving").check()
     _wait(page, "s.meshes.thermalDriving")
-    assert _on(page, "showBasalMelt", "showThermalDriving", "showIce") == {
+    assert _on(page, "showBasalMelt", "showThermalDriving", "showIce", "showIceBottom") == {
         "showBasalMelt": False,
         "showThermalDriving": True,
         "showIce": False,
+        "showIceBottom": False,
     }
     page.locator('[data-choice="shelf"] [data-choice-none]').click()
-    assert _on(page, "showThermalDriving", "showIce") == {"showThermalDriving": False, "showIce": True}
-    assert _state(page)["meshes"]["ice"] is True
+    assert _on(page, "showThermalDriving", "showIce", "showIceBottom") == {
+        "showThermalDriving": False,
+        "showIce": True,
+        "showIceBottom": True,
+    }
+    meshes = _state(page)["meshes"]
+    assert meshes["ice"] is True and meshes["iceBottom"] is True
+    assert errors == []
+
+
+def test_thermal_driving_leaves_alone_an_ice_base_the_reader_chose(page):
+    page, errors = page
+    # Already off before the colouring: Off must not switch it on.
+    page.locator("#showIceBottom").uncheck()
+    page.locator("#showThermalDriving").check()
+    _wait(page, "s.meshes.thermalDriving")
+    assert _on(page, "showIce", "showIceBottom") == {"showIce": False, "showIceBottom": False}
+    page.locator('[data-choice="shelf"] [data-choice-none]').click()
+    assert _on(page, "showIce", "showIceBottom") == {"showIce": True, "showIceBottom": False}
+
+    # Ticked back by the reader while the colouring is on: Off leaves it on, and keeps the
+    # ice surface the colouring hid coming back.
+    page.locator("#showIceBottom").check()
+    page.locator("#showBasalMelt").check()
+    _wait(page, "s.meshes.basalMelt")
+    page.locator("#showIceBottom").check()
+    page.locator('[data-choice="shelf"] [data-choice-none]').click()
+    assert _on(page, "showIce", "showIceBottom") == {"showIce": True, "showIceBottom": True}
     assert errors == []
 
 
