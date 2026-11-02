@@ -4,7 +4,7 @@ All notable changes to 3D ICE are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
-## [0.4.0] — Unreleased
+## [0.4.0] — 2026-11-01
 
 Two observed records, ice-core sites and a rebuilt panel for the research edition, and
 analytics that record 3d-ice.com again.

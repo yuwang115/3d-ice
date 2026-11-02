@@ -16,7 +16,7 @@ repository-code: "https://github.com/yuwang115/3d-ice"
 url: "https://3d-ice.com/"
 license: MIT
 version: 0.4.0
-date-released: "2026-10-22"
+date-released: "2026-11-01"
 keywords:
   - cryosphere
   - Antarctica
