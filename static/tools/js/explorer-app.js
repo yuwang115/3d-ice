@@ -30,6 +30,7 @@ const [
   { BASE_HORIZONTAL_VERTICAL_SCALE_RATIO, formatVerticalExaggeration },
   { summariseMasked },
   { isInOpenWater, OCEAN_STREAMLINE_BED_CLEARANCE_M, OCEAN_STREAMLINE_ICE_CLEARANCE_M },
+  { buildGroundingRibbon, classifyProjectionCells, classifyTerrainCells, scatterDomainInto, traceGroundingLine },
   { escapeHtml, renderSourceLine },
   { describeUnavailability, TIME_FEATURE_TOGGLES = [] },
   { createResearchPanel },
@@ -45,6 +46,7 @@ const [
   import(assetUrl("js/vertical-scale.js")),
   import(assetUrl("js/layer-stats.js")),
   import(assetUrl("js/overlay-cells.js")),
+  import(assetUrl("js/grounding-line.js")),
   import(assetUrl("js/source-links.js")),
   hasResearchPanel ? import(assetUrl("js/panel-state.js")) : {},
   hasResearchPanel ? import(assetUrl("js/research-panel.js")) : {},
@@ -850,6 +852,7 @@ const controlsUI = {
   showEffectivePressure: resolveControl("showEffectivePressure"),
   showSubglacialChannels: resolveControl("showSubglacialChannels"),
   showSea: resolveControl("showSea"),
+  showGroundingLine: resolveControl("showGroundingLine"),
   reboundLegendNote: resolveControl("reboundLegendNote"),
   showIsostaticRebound: resolveControl("showIsostaticRebound"),
   isostaticReboundControls: resolveControl("isostaticReboundControls"),
@@ -1036,6 +1039,9 @@ let flowlineMesh;
 let selectedFlowlineHighlight;
 let oceanCurrentMesh;
 let seaLevelMesh;
+// The grounding-line ribbon, and what it was last drawn from (see refreshGroundingLine()).
+let groundingLineMesh = null;
+let groundingLineDrawn = null;
 let refinedBasinBedLines;
 let refinedBasinSurfaceLines;
 let refinedBasinBedLabels;
@@ -1781,6 +1787,7 @@ function applyExplorerPresetControls(preset) {
     showEffectivePressure: false,
     showSubglacialChannels: false,
     showSea: false,
+    showGroundingLine: false,
     showIsostaticRebound: false,
     showIceProjection: false,
   };
@@ -2600,6 +2607,13 @@ const CHANNEL_STRIP_WIDTH_M_MAX = 5000;
 const EFFECTIVE_PRESSURE_SURFACE_OFFSET_M = 10;
 const SUBGLACIAL_CHANNEL_SURFACE_OFFSET_M = 14;
 const RISE_SURFACE_OFFSET_M = 14;
+// The grounding line rides on the ice like the basin outlines, as a flat ribbon a little above
+// the surface it is drawn on. Its width is fixed in scene units, so it reads the same in both
+// regions: about 5 km across in Antarctica and 2 km in Greenland.
+const GROUNDING_LINE_OFFSET_M = 24;
+const GROUNDING_LINE_HALF_WIDTH_UNITS = 0.05;
+const GROUNDING_LINE_COLOR = 0x10233a;
+const GROUNDING_LINE_RENDER_ORDER = 40;
 const REFINED_BASIN_BED_OFFSET_M = 90;
 const REFINED_BASIN_SURFACE_OFFSET_M = 24;
 const REFINED_BASIN_BED_LINE_WIDTH_M = 5000;
@@ -5678,6 +5692,7 @@ function collectExplorerState() {
     showEffectivePressure: Boolean(controlsUI.showEffectivePressure?.checked),
     showSubglacialChannels: Boolean(controlsUI.showSubglacialChannels?.checked),
     showSea: Boolean(controlsUI.showSea?.checked),
+    showGroundingLine: Boolean(controlsUI.showGroundingLine?.checked),
     showIsostaticRebound: Boolean(controlsUI.showIsostaticRebound?.checked),
     showIceProjection: Boolean(controlsUI.showIceProjection?.checked),
     highlightEmergentLand: Boolean(controlsUI.highlightEmergentLand?.checked),
@@ -5708,6 +5723,7 @@ function collectExplorerState() {
       oceanParticles: hasFlowLightParticleOverlay(oceanCurrentMesh),
     },
     captureMotion: getRecordingStateSnapshot(),
+    groundingLine: collectGroundingLineState(),
     isostaticRebound: {
       enabled: Boolean(controlsUI.showIsostaticRebound?.checked),
       available: Boolean(controlsUI.showIsostaticRebound && !controlsUI.showIsostaticRebound.disabled),
@@ -5799,6 +5815,7 @@ function collectExplorerState() {
       seaIce: isSeaIceShown(),
       ice: Boolean(iceMesh && iceMesh.visible),
       iceBottom: Boolean(iceBottomMesh && iceBottomMesh.visible),
+      groundingLine: Boolean(groundingLineMesh && groundingLineMesh.visible),
       velocity: Boolean(velocitySurfaceMesh && velocitySurfaceMesh.visible),
       flowline: Boolean(flowlineMesh && flowlineMesh.visible),
       basalFriction: Boolean(basalFrictionMesh && basalFrictionMesh.visible),
@@ -5902,6 +5919,8 @@ function clearModelMeshes() {
   flowlineMesh = disposeMesh(flowlineMesh);
   oceanCurrentMesh = disposeObject3D(oceanCurrentMesh);
   seaLevelMesh = disposeMesh(seaLevelMesh);
+  groundingLineMesh = disposeMesh(groundingLineMesh);
+  groundingLineDrawn = null;
   clearRefinedBasinOverlays();
   velocityField = null;
   refreshFlowlineGuidanceUi();
@@ -6459,6 +6478,160 @@ function buildRefinedBasinOverlays(context, dataset) {
   return Boolean(refinedBasinBedLines || refinedBasinSurfaceLines || refinedBasinBedLabels || refinedBasinSurfaceLabels);
 }
 
+// ------------------------------------------------------------------ grounding line
+//
+// Traced by js/grounding-line.js from the grounded and floating ice the scene draws: the
+// terrain's mask, or the projection's frame while the projection is on.
+
+/** The surface the line is drawn on: the ice surface, else the ice base, else the bed; null when none shows. */
+function getGroundingLineCarrier() {
+  if (iceMesh?.visible) return "surface";
+  if (iceBottomMesh?.visible) return "base";
+  if (bedMesh?.visible) return "bed";
+  return null;
+}
+
+/** The cell classes and the carrier's heights: today's terrain, or the projection's frame. */
+function collectGroundingLineSource(context, carrier) {
+  const sceneState = isIceProjectionActive() && iceProjectionScene?.context === context ? iceProjectionScene : null;
+  if (!sceneState) {
+    context.groundingLineClasses ||= classifyTerrainCells(context.mask, context.iceValid);
+    const [heights, valid] = {
+      surface: [context.surfaceHeights, context.iceValid],
+      base: [context.iceBottomHeights, context.iceBottomValid],
+      bed: [context.bedHeights, context.bedValid],
+    }[carrier];
+    return { kind: "terrain", classes: context.groundingLineClasses, heights, valid };
+  }
+  const { projection, ice, grounded, restingBed } = sceneState;
+  const scratch = (sceneState.groundingLineScratch ||= {
+    classes: new Uint8Array(context.cellCount),
+    heights: new Float32Array(context.cellCount),
+    valid: new Uint8Array(context.cellCount),
+  });
+  classifyProjectionCells(projection, ice, grounded, restingBed, context.mask, scratch.classes);
+  if (carrier === "bed") {
+    // The projection rewrites the bed mesh inside its domain, so read the heights back from it.
+    const positions = bedMesh.geometry.getAttribute("position").array;
+    const verticalMetersPerUnit = context.baseConfig.verticalMetersPerUnit;
+    for (let i = 0; i < context.cellCount; i += 1) scratch.heights[i] = positions[3 * i + 1] * verticalMetersPerUnit;
+    return { kind: "projection", classes: scratch.classes, heights: scratch.heights, valid: context.bedValid };
+  }
+  scatterDomainInto(projection, carrier === "surface" ? sceneState.surface : sceneState.base, ice, Number.NaN, scratch.heights);
+  scatterDomainInto(projection, ice, ice, 0, scratch.valid);
+  return { kind: "projection", classes: scratch.classes, heights: scratch.heights, valid: scratch.valid };
+}
+
+function createGroundingLineMesh() {
+  const material = new THREE.MeshBasicMaterial({
+    color: GROUNDING_LINE_COLOR,
+    transparent: true,
+    opacity: 0.95,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    polygonOffset: true,
+    polygonOffsetFactor: -4,
+    polygonOffsetUnits: -4,
+  });
+  const mesh = new THREE.Mesh(new THREE.BufferGeometry(), material);
+  // The ribbon is rewritten in place, so bounds computed once would go stale.
+  mesh.frustumCulled = false;
+  mesh.renderOrder = GROUNDING_LINE_RENDER_ORDER;
+  mesh.scale.y = Number(controlsUI.exaggeration.value);
+  scene.add(mesh);
+  return mesh;
+}
+
+/** Copy a ribbon into the mesh, replacing its buffers only when they are too small. */
+function writeGroundingLineRibbon({ positions, indices }) {
+  if (!groundingLineMesh) groundingLineMesh = createGroundingLineMesh();
+  let geometry = groundingLineMesh.geometry;
+  const current = geometry.getAttribute("position");
+  if (!current || current.array.length < positions.length || geometry.index.array.length < indices.length) {
+    geometry.dispose();
+    geometry = new THREE.BufferGeometry();
+    // Headroom for a projection frame whose line is a little longer than the last one.
+    const vertexCapacity = Math.ceil((positions.length / 3) * 1.25) + 64;
+    const indexCapacity = Math.ceil(indices.length * 1.25) + 96;
+    geometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(new Float32Array(vertexCapacity * 3), 3).setUsage(THREE.DynamicDrawUsage)
+    );
+    geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indexCapacity), 1).setUsage(THREE.DynamicDrawUsage));
+    groundingLineMesh.geometry = geometry;
+  }
+  const position = geometry.getAttribute("position");
+  position.array.set(positions);
+  position.clearUpdateRanges();
+  position.addUpdateRange(0, positions.length);
+  position.needsUpdate = true;
+  geometry.index.array.set(indices);
+  geometry.index.clearUpdateRanges();
+  geometry.index.addUpdateRange(0, indices.length);
+  geometry.index.needsUpdate = true;
+  geometry.setDrawRange(0, indices.length);
+}
+
+/**
+ * Draw the grounding line, or hide it. It shows while its toggle is on and the rebound is
+ * not (it belongs to today's ice), on the highest surface on screen. It is traced again only
+ * when what it is drawn from changes: the terrain, that surface, or the projection's frame.
+ */
+function refreshGroundingLine() {
+  const context = currentCoreContext;
+  const carrier = getGroundingLineCarrier();
+  if (!controlsUI.showGroundingLine?.checked || !context || !carrier || isReboundActive()) {
+    if (groundingLineMesh) groundingLineMesh.visible = false;
+    return;
+  }
+  const projectionOn = isIceProjectionActive() && iceProjectionScene?.context === context;
+  const frame = projectionOn ? `${iceProjectionScene.scenarioKey}@${iceProjectionYear}` : "today";
+  const key = `${carrier}|${frame}`;
+  if (groundingLineDrawn?.context !== context || groundingLineDrawn.key !== key) {
+    const source = collectGroundingLineSource(context, carrier);
+    const lines = traceGroundingLine(context.nx, context.ny, source.classes);
+    const { horizontalMetersPerUnit, verticalMetersPerUnit } = context.baseConfig;
+    const ribbon = buildGroundingRibbon(lines, {
+      nx: context.nx,
+      ny: context.ny,
+      heights: source.heights,
+      valid: source.valid,
+      colUnits: context.meta.grid.dx_m / horizontalMetersPerUnit,
+      rowUnits: Math.abs(context.meta.grid.dy_m) / horizontalMetersPerUnit,
+      verticalMetersPerUnit,
+      offsetMeters: GROUNDING_LINE_OFFSET_M,
+      halfWidthUnits: GROUNDING_LINE_HALF_WIDTH_UNITS,
+    });
+    writeGroundingLineRibbon(ribbon);
+    groundingLineDrawn = {
+      context,
+      key,
+      source: source.kind,
+      carrier,
+      year: projectionOn ? iceProjectionYear : null,
+      lines: lines.length,
+      points: lines.reduce((sum, line) => sum + line.points.length / 2, 0),
+      triangles: ribbon.indices.length / 3,
+    };
+  }
+  groundingLineMesh.visible = true;
+}
+
+function collectGroundingLineState() {
+  const drawn = groundingLineDrawn;
+  return {
+    enabled: Boolean(controlsUI.showGroundingLine?.checked),
+    visible: Boolean(groundingLineMesh?.visible),
+    source: drawn?.source ?? null,
+    // The surface it is drawn on now; null while it is hidden.
+    carrier: groundingLineMesh?.visible ? drawn?.carrier ?? null : null,
+    year: drawn && Number.isFinite(drawn.year) ? Number(drawn.year.toFixed(2)) : null,
+    lines: drawn?.lines ?? 0,
+    points: drawn?.points ?? 0,
+    triangles: drawn?.triangles ?? 0,
+  };
+}
+
 async function ensureRefinedBasinsLoaded({ trigger = "prefetch" } = {}) {
   const context = currentCoreContext;
   if (!context || context.generation !== loadGeneration) return false;
@@ -6578,6 +6751,7 @@ function syncIceSurfaceVisibilityFromControls() {
   if (iceBottomMesh) iceBottomMesh.visible = controlsUI.showIceBottom.checked;
   updateIceSideVisibility();
   updateRefinedBasinVisibility();
+  refreshGroundingLine();
 }
 
 /** Untick the ice surface and ice base, which would otherwise cover the ice-shelf base colouring. */
@@ -7830,6 +8004,7 @@ function bindUI() {
     if (oceanCurrentMesh) oceanCurrentMesh.scale.y = value;
     if (refinedBasinBedLines) refinedBasinBedLines.scale.y = value;
     if (refinedBasinSurfaceLines) refinedBasinSurfaceLines.scale.y = value;
+    if (groundingLineMesh) groundingLineMesh.scale.y = value;
     updateRefinedBasinLabelPositionsForExaggeration();
     updateReboundSeaPlane();
     polarFeaturesController?.updateExaggeration();
@@ -7845,6 +8020,7 @@ function bindUI() {
   controlsUI.showBed.addEventListener("change", () => {
     if (bedMesh) bedMesh.visible = controlsUI.showBed.checked;
     updateRefinedBasinVisibility();
+    refreshGroundingLine();
     updateLegendVisibility();
   });
   controlsUI.showIce.addEventListener("change", () => {
@@ -7997,6 +8173,10 @@ function bindUI() {
       return;
     }
     if (subglacialChannelMesh) subglacialChannelMesh.visible = controlsUI.showSubglacialChannels.checked;
+    updateMetaFromCurrentState();
+  });
+  controlsUI.showGroundingLine?.addEventListener("change", () => {
+    refreshGroundingLine();
     updateMetaFromCurrentState();
   });
   controlsUI.showSea.addEventListener("change", () => {
@@ -8341,6 +8521,15 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
     ...(qrfHybridSummary
       ? [
           `<li><strong>${isChineseLocale ? "地形组成" : "Terrain composition"}:</strong> ${qrfHybridSummary}</li>`,
+        ]
+      : []),
+    ...(controlsUI.showGroundingLine?.checked
+      ? [
+          `<li><strong>${t("explorer.meta.groundingLine")}:</strong> ${
+            isIceProjectionActive()
+              ? t("explorer.meta.groundingLineProjection")
+              : t("explorer.meta.groundingLineTerrain", { spacing: stepKm.toFixed(stepKm >= 10 ? 0 : 1) })
+          }</li>`,
         ]
       : []),
   ];
@@ -9025,6 +9214,9 @@ function applyReboundGeometry({ recomputeNormals = true } = {}) {
       : Math.max(0.12, iceOpacity * 0.82);
   }
   updateReboundSeaPlane();
+  // The rebound takes today's ice away once its solve lands, which may be after the line
+  // was switched on.
+  refreshGroundingLine();
 }
 
 function scheduleReboundGeometryUpdate({ recomputeNormals = false } = {}) {
@@ -9063,6 +9255,7 @@ const REBOUND_EXCLUSIVE_TOGGLES = [
   "showRefinedBasins",
   "showSurfaceChange",
   "showSeaIce",
+  "showGroundingLine",
 ];
 
 function hideOverlaysForRebound() {
@@ -9090,6 +9283,7 @@ function hideOverlaysForRebound() {
   updateOceanCurrentLayerVisibility();
   updateRefinedBasinVisibility();
   updateFlowlineVisibility();
+  refreshGroundingLine();
   return true;
 }
 
@@ -10075,6 +10269,7 @@ function applyIceProjectionYear() {
     sceneState.boundsReady = true;
   }
   applyIceProjectionToFlowlines(sceneState);
+  refreshGroundingLine();
   updateIceProjectionReadout();
 }
 
@@ -10228,6 +10423,7 @@ function deactivateIceProjection() {
   }
   iceProjectionRaisedSea = false;
   updateIceSideVisibility();
+  refreshGroundingLine();
   updateIceProjectionReadout();
 }
 
@@ -12337,6 +12533,7 @@ async function loadAndBuildMeshes(datasetKey = currentDatasetKey) {
     updateRecordingControlsUi();
     updateMetaFromCurrentState();
     updateFlowlineVisibility();
+    refreshGroundingLine();
     statusEl.textContent = getReadyStatusText(currentCoreContext);
     updateLoadingProgress(1, t("explorer.loading.coreTerrainReady"));
 

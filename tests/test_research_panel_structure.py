@@ -42,7 +42,16 @@ GROUP_CONTROLS = {
         "resolutionPreset",
         "terrainHint",
     ),
-    "scene": ("showIce", "showIceBottom", "showBed", "showSea", "bedLegendSection", "iceOpacity", "exaggeration"),
+    "scene": (
+        "showIce",
+        "showIceBottom",
+        "showBed",
+        "showSea",
+        "showGroundingLine",
+        "bedLegendSection",
+        "iceOpacity",
+        "exaggeration",
+    ),
     "flow": ("showVelocity", "showFlowline", "flowlineProfileCardMount", "velocityLegendSection"),
     "bed": (
         "showBasalFriction",
@@ -99,6 +108,7 @@ LEGEND_OF = {
 # The layers that start off: a group counts them, and opens when one is switched on.
 LAYERS = (
     "showSea",
+    "showGroundingLine",
     "showVelocity",
     "showFlowline",
     "showBasalFriction",

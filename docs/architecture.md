@@ -95,6 +95,7 @@ bibliography.
 | `static/tools/js/vertical-scale.js` | The scene's base vertical scale and the true vertical exaggeration the slider label shows |
 | `static/tools/js/layer-stats.js` | Statistics of a field over the cells a layer draws, for the research panel's *Data and sources* |
 | `static/tools/js/overlay-cells.js` | Which cells an overlay may be drawn on: subglacial water beneath grounded ice, ocean streamlines in open water clear of the bed and the ice-shelf base |
+| `static/tools/js/grounding-line.js` | The grounding line: the cell classes of a terrain or a projection frame, the line along the edge of grounded ice against floating ice or the ocean (marching squares, chained and smoothed), heights on the mesh it rides on, and the ribbon drawn there |
 | `static/tools/js/source-links.js` | The source lines of *Data and sources*, each crediting a data set and, where there is one, its article |
 | `static/tools/antarctica-geometry-worker.js` | Module worker that builds velocity, basal-friction, hydrology and ocean-current geometry off the main thread |
 | `static/tools/gia-rebound-worker.js` | Module worker for the idealised isostatic-rebound solve |
@@ -187,6 +188,22 @@ is all the rate views fetch of the record. The layer is in the research edition
 only. It is exclusive with the projection, the rebound and the velocity colour, which
 redraw or recolour the same surface.
 
+**The grounding line** needs no package of its own: the runtime traces it from the cells the
+scene draws. On today's terrain a cell is grounded ice (mask 2, or 4 over Lake Vostok, which
+belongs to the ice sheet's interior), floating ice (3), ocean (0) or anything else; while the
+projection is on, its frame decides, with grounded and floating ice by flotation and ice-free
+cells at or below sea level counted as ocean. `grounding-line.js` runs marching squares over
+the grid of cell centres, splitting saddle squares along the terrain meshes' own diagonal, and
+keeps only the stretches where grounded ice faces floating ice or the ocean. Against floating
+ice the line runs half-way between the cell centres, where the subglacial channels end;
+against the ocean it runs through the last grounded cells, which is where the ice front is
+drawn. Chained into polylines and smoothed by two corner-cutting passes, it is draped on the
+highest surface on screen (the ice surface, else the ice base, else the bed), interpolated
+over that mesh's own triangles, as a flat ribbon of fixed scene width (about 5 km in
+Antarctica, 2 km in Greenland) 24 m above it. The 10 km Antarctic line has about 23,000
+points and is traced and draped in about 10 ms, so the projection retraces it every frame it
+draws. The rebound switches it off with the other layers drawn on today's ice.
+
 **Observed sea ice** shows the NOAA/NSIDC climate data record of sea-ice concentration from
 passive microwave radiometers (SMMR, SSM/I, SSMIS, AMSR2), every month from November 1978, in
 both regions. One package per region holds the months on a 25 km grid of its own; the runtime
@@ -250,6 +267,7 @@ current Chrome, Edge, Firefox and Safari (Chrome and Edge 89+, Firefox 114+, Saf
 | Observed elevation change: decoding, epoch interpolation, the extrapolated polar cap, significance, readout and colours, basin selection and chart geometry; the CPOM packer's row flip, area-weighted resampling, CryoSat-2 detection, basin names and series, and package layout | node:test, pytest | `tests/js/surface-change.test.mjs`, `tests/test_prepare_cpom_land_ice.py` | JavaScript and Python unit tests |
 | Observed sea ice: decoding, months and frames, blending across empty months, the median edge, the readout and rank, chart geometry and colours; the NSIDC packer's projections against NSIDC's own cell positions, resampling, coastal fill, hemisphere totals, reference frequency, trends and package layout | node:test, pytest | `tests/js/sea-ice.test.mjs`, `tests/test_prepare_nsidc_sea_ice.py` | JavaScript and Python unit tests |
 | Place search, label styling, the details card, refined-basin validation | node:test | `tests/js/polar-features.test.mjs` | JavaScript unit tests |
+| The grounding line: cell classes, tracing (half-way to floating ice, along the ice front at the ocean, none against land, saddles split as the meshes are), smoothing, mesh heights, the ribbon; every traced point of three shipped terrains on an edge of grounded ice facing floating ice or the ocean | node:test | `tests/js/grounding-line.test.mjs` | JavaScript unit tests |
 | The ice-core site table: per-site validation, the two-source position check, and that the committed catalogues are its build | pytest | `tests/test_prepare_ice_cores.py` | Python unit and integration tests |
 | Edition profiles, polar projections against every catalogue position, tour framing and flights, and copy parity across locales | node:test | `tests/js/editions.test.mjs`, `polar-projection.test.mjs`, `explore-tour.test.mjs`, `explore-content.test.mjs` | JavaScript unit tests |
 | The research panel's terrain and grid choices, unavailability reasons, group state and time-feature changes; no named view or tour stop breaks a one-of choice | node:test | `tests/js/panel-state.test.mjs`, `tests/js/view-presets.test.mjs` | JavaScript unit tests |

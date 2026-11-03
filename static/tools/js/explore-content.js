@@ -78,7 +78,8 @@ export const TOUR_CHAPTERS = deepFreeze([
     id: "floating-ice",
     view: {
       region: "antarctica",
-      controls: { showSea: true },
+      // The stop's copy names the grounding line, so the line is drawn.
+      controls: { showSea: true, showGroundingLine: true },
       sliders: { exaggeration: 4.8, iceOpacity: 1 },
       camera: { lat: -80.5, lon: -175, fitKm: 2400, azimuthDeg: 0, elevationDeg: 50 },
     },
@@ -290,6 +291,17 @@ const EN = {
       title: "The ice sheet",
       body: [
         "The top of the ice, shaded whiter where it is thicker. Ice resting on land is called grounded. Around the coast, ice floating on the sea forms ice shelves, drawn slightly bluer.",
+      ],
+      sources: [
+        { text: "BedMachine Antarctica v4 (Morlighem et al., 2020)", url: SOURCES.bedMachineAntarctica },
+        { text: "BedMachine Greenland v6 (Morlighem et al., 2017)", url: SOURCES.bedMachineGreenland },
+      ],
+    },
+    groundingLine: {
+      title: "Grounding line",
+      body: [
+        "The dark line marks where the ice lifts off the bedrock and begins to float. Inland of it the ice is grounded; beyond it lie the ice shelves. Where there is no ice shelf, the line runs along the edge of the ice, where glaciers meet the sea.",
+        "Ice that flows across the line into the sea raises sea level. Where the bedrock deepens inland, as it does beneath much of West Antarctica, a grounding line that starts to retreat can be hard to stop. When you play the future to 2300, the line moves with the models' ice.",
       ],
       sources: [
         { text: "BedMachine Antarctica v4 (Morlighem et al., 2020)", url: SOURCES.bedMachineAntarctica },
@@ -525,6 +537,17 @@ const ZH = {
       title: "冰盖",
       body: [
         "冰的上表面，冰越厚颜色越白。压在陆地上的冰称为接地冰；在海岸周围漂浮在海面上的冰形成冰架，颜色略偏蓝。",
+      ],
+      sources: [
+        { text: "BedMachine Antarctica v4（Morlighem 等，2020）", url: SOURCES.bedMachineAntarctica },
+        { text: "BedMachine Greenland v6（Morlighem 等，2017）", url: SOURCES.bedMachineGreenland },
+      ],
+    },
+    groundingLine: {
+      title: "接地线",
+      body: [
+        "这条深色的线标出冰离开基岩、开始漂浮的位置。线的内侧是接地冰，外侧是冰架。没有冰架的地方，这条线沿着冰的边缘延伸，也就是冰川入海的地方。",
+        "冰越过这条线流入海洋，就会抬高海平面。在基岩向内陆加深的地方，例如西南极的大部分地区，接地线一旦开始后退，就可能难以停下。在“未来，直到 2300 年”中，这条线会随模型模拟的冰一起移动。",
       ],
       sources: [
         { text: "BedMachine Antarctica v4（Morlighem 等，2020）", url: SOURCES.bedMachineAntarctica },

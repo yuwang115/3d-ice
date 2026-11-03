@@ -33,7 +33,7 @@ TOUR_STOPS = [
     ("ice-continent", "antarctica", {"showIce", "showBed"}),
     ("land-beneath", "antarctica", {"showIce", "showBed"}),
     ("rivers-of-ice", "antarctica", {"showIce", "showBed", "showFlowline"}),
-    ("floating-ice", "antarctica", {"showIce", "showBed", "showSea"}),
+    ("floating-ice", "antarctica", {"showIce", "showBed", "showSea", "showGroundingLine"}),
     ("southern-ocean", "antarctica", {"showIce", "showBed", "showOceanCurrents"}),
     ("high-emissions", "antarctica", {"showIce", "showBed", "showFlowline", "showSea", "showIceProjection"}),
     ("without-ice", "antarctica", {"showIce", "showBed", "showIsostaticRebound", "showSea"}),
@@ -46,6 +46,7 @@ PUBLIC_TOGGLES = {
     "showFlowline",
     "showOceanCurrents",
     "showSea",
+    "showGroundingLine",
     "showIsostaticRebound",
     "showIceProjection",
     "showGeographicNames",
@@ -216,8 +217,9 @@ class TestPublicPanel:
     def test_every_group_stays_open_in_a_panel_half_its_old_height(self, public_page):
         page, errors = public_page
         assert page.locator("aside.panel details").count() == 0
-        # 1,877 px before the redesign, with the logo, the language row and the legends apart.
-        assert page.evaluate("() => document.querySelector('.panel').scrollHeight") <= 1000
+        # 1,877 px before the redesign, with the logo, the language row and the legends apart;
+        # 979 px after it, and 1,013 px with the grounding line's row.
+        assert page.evaluate("() => document.querySelector('.panel').scrollHeight") <= 1040
         assert errors == []
 
     def test_the_info_menu_holds_the_intro_and_what_the_explorer_is_built_from(self, public_page):
@@ -293,8 +295,12 @@ class TestGuidedTour:
                 assert float(page.locator("#iceOpacity").input_value()) == pytest.approx(0.06)
             if stop_id == "rivers-of-ice":
                 assert state["meshes"]["flowline"] and state["legends"]["velocity"]
+            if stop_id == "floating-ice":
+                # The stop's copy names the grounding line, so the line is drawn on the ice.
+                assert state["meshes"]["groundingLine"] and state["groundingLine"]["carrier"] == "surface"
             if stop_id == "southern-ocean":
                 assert state["meshes"]["oceanCurrents"] and state["legends"]["oceanCurrents"]
+                assert not state["meshes"]["groundingLine"]
             if stop_id == "high-emissions":
                 # Under reduced motion the years jump straight to the end of the projection.
                 _wait_projection_year(page, 2300)
