@@ -209,7 +209,7 @@ the OpenAI Codex coding agent (GPT-5-family models, February to August 2026)
 from Y. Wang's natural-language specifications, data, and review, as the
 project's public coverage describes [@aapp2026]. Anthropic's Claude Code
 (Claude Opus 4.6 in March and April 2026; Claude Opus 5 and Claude Opus 5.5 in
-September and October 2026) was used for later work: parts of the interface,
+September to November 2026) was used for later work: parts of the interface,
 including the public edition and the home pages; test infrastructure; the
 isostatic-rebound and projection layers and their data pipelines; the
 refactoring of the runtime into shared, tested modules; the repository
