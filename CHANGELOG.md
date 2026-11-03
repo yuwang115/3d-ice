@@ -8,6 +8,19 @@ All notable changes to 3D ICE are recorded here. The format follows
 
 ### Added
 
+- The grounding line, in both editions: the edge of grounded ice wherever it meets floating
+  ice or the ocean, drawn as a dark line on the ice surface. It is traced in the browser from
+  the grounded and floating ice of the terrain on screen, every terrain of both regions, so
+  it matches the drawn ice shelves cell for cell; where grounded ice meets the ocean directly,
+  as at Greenland's tidewater glaciers, the line is the ice front, and against ice-free land
+  there is none. While the ISMIP6 projection plays, the line is traced again from each frame
+  and retreats with the projected ice. With the ice surface hidden it rides on the ice base,
+  then on the bed. The rebound switches it off, as it does the other layers drawn on today's
+  ice, and the research panel puts it back afterwards. In the research edition it is a chip in
+  *Scene*. The public edition gives it a row and an explainer under *The ice and the land
+  beneath*, which makes that panel 1,013 px tall with nothing on, and the tour's *Where the
+  ice meets the sea* stop draws it. `js/grounding-line.js` holds the tracing, unit-tested on
+  the shipped terrains.
 - An edition switch in the panel of both editions, beside the language switch: *Public |
   Research* (*科普版 | 专业版*). It opens the other edition in the same language and at the
   region on screen, and the analytics counts it as an entry to that edition.

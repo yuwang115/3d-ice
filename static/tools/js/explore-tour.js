@@ -37,6 +37,7 @@ export const TOUR_CONTROL_DEFAULTS = Object.freeze({
   showFlowline: false,
   showOceanCurrents: false,
   showSea: false,
+  showGroundingLine: false,
   showIsostaticRebound: false,
   showIceProjection: false,
   showGeographicNames: false,

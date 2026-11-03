@@ -459,6 +459,11 @@
           dischargeQuantiles: "Discharge Quantiles",
           renderedChannels: "Rendered Channels",
           sourceBedIceGeometry: "Bed/Ice Geometry",
+          groundingLine: "Grounding Line",
+          groundingLineTerrain:
+            "Where the terrain's grounded ice meets its floating ice or the ocean, traced at the grid's {spacing} km spacing",
+          groundingLineProjection:
+            "Where the projected ice is grounded, by flotation on the model bed, against floating ice or open water",
           sourceBasinBoundaries: "Basin Boundaries",
           sourceSurfaceVelocity: "Surface Velocity",
           sourceBasalFriction: "Basal Friction",
@@ -1038,6 +1043,9 @@
           dischargeQuantiles: "流量分位数",
           renderedChannels: "渲染通道数",
           sourceBedIceGeometry: "基岩/冰体几何",
+          groundingLine: "接地线",
+          groundingLineTerrain: "地形中接地冰与浮冰或海洋的交界，按 {spacing} km 网格间距描出",
+          groundingLineProjection: "投影中按模式基岩上的漂浮条件判定的接地冰与浮冰或开阔水域的交界",
           sourceBasinBoundaries: "流域边界",
           sourceSurfaceVelocity: "表面流速",
           sourceBasalFriction: "基底摩擦",
