@@ -55,3 +55,36 @@ test("views are frozen, so the runtime cannot change one under another page", ()
     assert.ok(Object.isFrozen(preset) && Object.isFrozen(preset.toggles), name);
   }
 });
+
+test("every layer of the home page's data tower opens a view of its own region", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const { getEditionProfile } = await import("../../static/tools/js/editions.js");
+  // The layer toggles a public-edition view may not switch on: their capability is off there.
+  const capabilityOf = {
+    showBasalFriction: "basalFriction",
+    showBasalMelt: "rise",
+    showThermalDriving: "rise",
+    showEffectivePressure: "hydrology",
+    showSubglacialChannels: "hydrology",
+    showRefinedBasins: "refinedBasins",
+    showSurfaceChange: "surfaceChange",
+    showSeaIce: "seaIce",
+  };
+  const publicOff = new Set(getEditionProfile("public").disabledCapabilities);
+  for (const page of ["../../static/index.html", "../../static/zh/index.html"]) {
+    const html = await readFile(new URL(page, import.meta.url), "utf8");
+    const links = [...html.matchAll(/href="\.\/(explore\/|tools\/3D-interactive-cryosphere-explorer\.html)\?region=([a-z]+)&amp;preset=([a-z0-9-]+)" data-opens="([a-z]+)"/g)];
+    assert.equal(links.length, 22, page);
+    for (const [, target, region, presetKey, opens] of links) {
+      const preset = getExplorerPreset(presetKey);
+      assert.ok(preset, `${page}: no view ${presetKey}`);
+      assert.equal(preset.regionKey, region, presetKey);
+      assert.equal(opens, target === "explore/" ? "public" : "research", presetKey);
+      if (opens !== "public") continue;
+      const needs = Object.entries(preset.toggles)
+        .filter(([id, on]) => on && publicOff.has(capabilityOf[id]))
+        .map(([id]) => id);
+      assert.deepEqual(needs, [], `${presetKey} opens in the public edition, which lacks ${needs}`);
+    }
+  }
+});

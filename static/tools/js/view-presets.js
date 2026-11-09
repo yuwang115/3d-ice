@@ -74,7 +74,7 @@ export function getShowcasePreset(presetKey) {
   return SHOWCASE_PRESETS[presetKey] || SHOWCASE_PRESETS["home-hero"];
 }
 
-export const EXPLORER_PRESETS = deepFreeze({
+const EXPLORER_PRESETS_DRAFT = {
   "antarctica-velocity-flowlines": {
     regionKey: "antarctica",
     datasetKey: "balanced",
@@ -164,7 +164,58 @@ export const EXPLORER_PRESETS = deepFreeze({
       lower: true,
     },
   },
-});
+};
+
+/**
+ * The views the home page's data tower opens, one per layer of the stack. Each turns on its
+ * layer as the panel would, with what switching it on there turns on too: the sea plane for
+ * the sea ice, the rebound and the projection, and the flowlines for the projection. A layer
+ * drawn on the bed hides the ice above it, as the ice-shelf base's colourings do themselves.
+ */
+const TOWER_VIEWS = {
+  "ice-surface": {},
+  "surface-change": { showSurfaceChange: true },
+  "sea-ice": { showSeaIce: true, showSea: true },
+  projection: { showIceProjection: true, showFlowline: true, showSea: true },
+  "basal-melt": { showIce: false, showIceBottom: false, showBasalMelt: true },
+  "basal-friction": { showIce: false, showIceBottom: false, showBasalFriction: true },
+  "bed-topography": { showIce: false, showIceBottom: false },
+  "isostatic-rebound": { showIsostaticRebound: true, showSea: true },
+  "grounding-line": { showGroundingLine: true },
+  "basin-boundary": { showRefinedBasins: true },
+};
+
+const TOWER_REGIONS = {
+  antarctica: {
+    datasetKey: "balanced",
+    exaggeration: 4.8,
+    views: ["ice-surface", "surface-change", "sea-ice", "projection", "basal-melt", "basal-friction", "bed-topography", "isostatic-rebound", "grounding-line"],
+  },
+  greenland: {
+    datasetKey: "3km",
+    exaggeration: 4.2,
+    views: ["ice-surface", "sea-ice", "basal-friction", "bed-topography", "isostatic-rebound", "grounding-line", "basin-boundary"],
+  },
+};
+
+function towerPresets() {
+  const presets = {};
+  for (const [regionKey, region] of Object.entries(TOWER_REGIONS)) {
+    for (const view of region.views) {
+      presets[`${regionKey}-${view}`] = {
+        regionKey,
+        datasetKey: region.datasetKey,
+        exaggeration: region.exaggeration,
+        iceOpacity: 1,
+        toggles: { showBed: true, showIce: true, showIceBottom: true, ...TOWER_VIEWS[view] },
+      };
+    }
+  }
+  return presets;
+}
+
+// The data tower's views, after the named ones above (which stay as they were).
+export const EXPLORER_PRESETS = deepFreeze({ ...EXPLORER_PRESETS_DRAFT, ...towerPresets() });
 
 export function getExplorerPreset(presetKey) {
   return EXPLORER_PRESETS[presetKey] || null;

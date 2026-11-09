@@ -146,8 +146,7 @@
             </nav>
             <nav class="explorer-page-nav" aria-label="On this page">
               <a href="#editions">Editions</a>
-              <a href="#antarctica-features">Antarctica</a>
-              <a href="#greenland-features">Greenland</a>
+              <a href="#data-tower">Datasets</a>
               <a href="#latest-updates">What’s new</a>
               <a href="#source-data">Source data</a>
               <a href="#feedback">Feedback</a>
@@ -323,174 +322,158 @@
             </details>
           </section>
 
-          <section id="antarctica-features" class="explorer-section explorer-region" aria-labelledby="antarctica-features-title">
+          <section id="data-tower" class="explorer-section explorer-tower-section" aria-labelledby="data-tower-title" data-tower>
             <div class="explorer-region-intro">
-              <p class="explorer-region-label">Antarctica</p>
-              <h2 id="antarctica-features-title">Discover Key Features of the Antarctic Ice Sheet</h2>
-              <p>
-                A vast, frozen desert at the bottom of the Earth, Antarctica holds 90% of the world’s ice
-                and hides a dynamic, hidden landscape of subglacial lakes and rivers that shape our future
-                coastlines.
-              </p>
+              <p class="explorer-region-label">Datasets</p>
+              <h2 id="data-tower-title">Every dataset, layer by layer</h2>
+              <p>Each layer of the stack is one of the datasets in 3D ICE, drawn from the files the explorer loads and in the colours it shows them in. Drag the stack to turn it, and click a layer to open it: in the public edition if it has the layer, otherwise in the research edition.</p>
             </div>
-            <div class="explorer-video-grid explorer-video-grid--antarctica">
-              <article class="explorer-video-card" data-demo-slot="antarctica-velocity-flowlines" data-editions="public research">
-                <div class="explorer-video-copy">
-                  <h3>Antarctic ice velocity and flowlines</h3>
-                  <p>
-                    Watch how fast-flowing ice streams and drainage patterns connect the deep continental
-                    interior to outlet glaciers and massive ice shelves across Antarctica.
-                  </p>
-                  <ul class="explorer-edition-tags" role="list" aria-label="Available in">
-                    <li><span class="explorer-edition-tag explorer-edition-tag--public">Public edition</span></li>
-                    <li><span class="explorer-edition-tag explorer-edition-tag--research">Research edition</span></li>
-                  </ul>
-                </div>
-                <div class="explorer-video-media explorer-video-media--video-preview">
-                  <a class="explorer-preview-link explorer-preview-link--video" href="./explore/?region=antarctica&amp;preset=antarctica-velocity-flowlines" data-video-preview>
-                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/antarctica-velocity-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
-                      <source src="/tools/media/3d-ice/antarctica-velocity-preview.mp4" type="video/mp4" />
-                    </video>
-                    <span class="explorer-video-overlay">
-                      <span class="explorer-video-badge"><span>Loop preview · <span class="explorer-video-badge-click">Click</span><span class="explorer-video-badge-tap">Tap</span> to open</span></span>
-                    </span>
-                    <span class="visually-hidden">: Antarctic ice flow (public edition)</span>
-                  </a>
-                </div>
-                <p class="explorer-video-alt">Or open it in the <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-velocity-flowlines">research edition</a>, with the velocity field.</p>
-              </article>
-              <article class="explorer-video-card" data-demo-slot="antarctica-basin-boundary" data-editions="research">
-                <div class="explorer-video-copy">
-                  <h3>Basin boundaries</h3>
-                  <p>
-                    Visualize distinct catchment outlines to see exactly how the ice sheet is partitioned,
-                    highlighting why regional ice loss must be interpreted within its specific basin context.
-                  </p>
-                  <ul class="explorer-edition-tags" role="list" aria-label="Available in">
-                    <li><span class="explorer-edition-tag explorer-edition-tag--research">Research edition</span></li>
-                  </ul>
-                </div>
-                <div class="explorer-video-media explorer-video-media--video-preview">
-                  <a class="explorer-preview-link explorer-preview-link--video" href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-basin-boundary" data-video-preview>
-                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/antarctica-basin-boundary-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
-                      <source src="/tools/media/3d-ice/antarctica-basin-boundary-preview.mp4" type="video/mp4" />
-                    </video>
-                    <span class="explorer-video-overlay">
-                      <span class="explorer-video-badge"><span>Loop preview · <span class="explorer-video-badge-click">Click</span><span class="explorer-video-badge-tap">Tap</span> to open</span></span>
-                    </span>
-                    <span class="visually-hidden">: basin boundaries (research edition)</span>
-                  </a>
-                </div>
-              </article>
-              <article class="explorer-video-card" data-demo-slot="antarctica-subglacial-features" data-editions="research">
-                <div class="explorer-video-copy">
-                  <h3>Subglacial features</h3>
-                  <p>Reveal the hidden world: modelled effective pressure and subglacial channels beneath kilometres of ice.</p>
-                  <ul class="explorer-edition-tags" role="list" aria-label="Available in">
-                    <li><span class="explorer-edition-tag explorer-edition-tag--research">Research edition</span></li>
-                  </ul>
-                </div>
-                <div class="explorer-video-media explorer-video-media--video-preview">
-                  <a class="explorer-preview-link explorer-preview-link--video" href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-subglacial-features" data-video-preview>
-                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/antarctica-subglacial-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
-                      <source src="/tools/media/3d-ice/antarctica-subglacial-preview.mp4" type="video/mp4" />
-                    </video>
-                    <span class="explorer-video-overlay">
-                      <span class="explorer-video-badge"><span>Loop preview · <span class="explorer-video-badge-click">Click</span><span class="explorer-video-badge-tap">Tap</span> to open</span></span>
-                    </span>
-                    <span class="visually-hidden">: subglacial features (research edition)</span>
-                  </a>
-                </div>
-              </article>
-              <article class="explorer-video-card" data-demo-slot="antarctica-ocean-circulations" data-editions="public research">
-                <div class="explorer-video-copy">
-                  <h3>Ocean circulations</h3>
-                  <p>
-                    Dive into the annual-mean circulation of the Southern Ocean, from the open sea into the
-                    cavities beneath the Antarctic ice shelves.
-                  </p>
-                  <ul class="explorer-edition-tags" role="list" aria-label="Available in">
-                    <li><span class="explorer-edition-tag explorer-edition-tag--public">Public edition</span></li>
-                    <li><span class="explorer-edition-tag explorer-edition-tag--research">Research edition</span></li>
-                  </ul>
-                </div>
-                <div class="explorer-video-media explorer-video-media--video-preview">
-                  <a class="explorer-preview-link explorer-preview-link--video" href="./explore/?region=antarctica&amp;preset=antarctica-ocean-circulations" data-video-preview>
-                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/antarctica-ocean-streamlines-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
-                      <source src="/tools/media/3d-ice/antarctica-ocean-streamlines-preview.mp4" type="video/mp4" />
-                    </video>
-                    <span class="explorer-video-overlay">
-                      <span class="explorer-video-badge"><span>Loop preview · <span class="explorer-video-badge-click">Click</span><span class="explorer-video-badge-tap">Tap</span> to open</span></span>
-                    </span>
-                    <span class="visually-hidden">: the Southern Ocean (public edition)</span>
-                  </a>
-                </div>
-                <p class="explorer-video-alt">Or open it in the <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-ocean-circulations">research edition</a>, with a switch for each depth band.</p>
-              </article>
+            <div class="explorer-tower-controls" data-tower-controls hidden>
+              <div class="explorer-tower-switch" role="group" aria-label="Ice sheet">
+                <button type="button" data-tower-region-button="antarctica" aria-pressed="true">Antarctica</button>
+                <button type="button" data-tower-region-button="greenland" aria-pressed="false">Greenland</button>
+              </div>
+              <p class="explorer-tower-hint"><span class="explorer-tower-hint-mouse">Drag to turn the stack · Click a layer to open it</span><span class="explorer-tower-hint-touch">Swipe to turn the stack · Tap a layer, then tap again to open it</span></p>
             </div>
-          </section>
-
-          <section id="greenland-features" class="explorer-section explorer-region" aria-labelledby="greenland-features-title">
-            <div class="explorer-region-intro">
-              <p class="explorer-region-label">Greenland</p>
-              <h2 id="greenland-features-title">Seamlessly Transition to Greenland in One Unified 3D Environment</h2>
-              <p>
-                Serving as the Arctic’s climate sentinel, the Greenland Ice Sheet is a rapidly transforming
-                giant whose accelerating melt directly drives global sea-level rise and influences ocean
-                circulation.
-              </p>
-            </div>
-            <div class="explorer-video-grid explorer-video-grid--greenland">
-              <article class="explorer-video-card" data-demo-slot="greenland-velocity-flowlines" data-editions="public research">
-                <div class="explorer-video-copy">
-                  <h3>Greenland ice velocity and flowlines</h3>
-                  <p>
-                    Focus on a complex network of outlet glaciers and fast-flow structures, visualizing how ice
-                    is swiftly routed from high-altitude interior catchments down to the coast.
-                  </p>
-                  <ul class="explorer-edition-tags" role="list" aria-label="Available in">
-                    <li><span class="explorer-edition-tag explorer-edition-tag--public">Public edition</span></li>
-                    <li><span class="explorer-edition-tag explorer-edition-tag--research">Research edition</span></li>
-                  </ul>
-                </div>
-                <div class="explorer-video-media explorer-video-media--video-preview">
-                  <a class="explorer-preview-link explorer-preview-link--video" href="./explore/?region=greenland&amp;preset=greenland-velocity-flowlines" data-video-preview>
-                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/greenland-velocity-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
-                      <source src="/tools/media/3d-ice/greenland-velocity-preview.mp4" type="video/mp4" />
-                    </video>
-                    <span class="explorer-video-overlay">
-                      <span class="explorer-video-badge"><span>Loop preview · <span class="explorer-video-badge-click">Click</span><span class="explorer-video-badge-tap">Tap</span> to open</span></span>
-                    </span>
-                    <span class="visually-hidden">: Greenland ice flow (public edition)</span>
+            <div class="explorer-tower-stage" data-tower-stage>
+              <canvas class="explorer-tower-canvas" data-tower-canvas aria-hidden="true"></canvas>
+              <ol class="explorer-tower-layers" data-tower-region="antarctica" data-shadow-src="/tools/media/3d-ice/tower/antarctica-shadow.webp" aria-label="Antarctica's datasets, from the top of the stack">
+                <li class="explorer-tower-layer" data-tower-layer="ice-surface" data-src="/tools/media/3d-ice/tower/antarctica-ice-surface.webp">
+                  <a href="./explore/?region=antarctica&amp;preset=antarctica-ice-surface" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Ice surface</span> <span class="explorer-tower-tag explorer-tower-tag--public">Public<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">BedMachine Antarctica v4</span>
                   </a>
-                </div>
-                <p class="explorer-video-alt">Or open it in the <a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-velocity-flowlines">research edition</a>, with the velocity field.</p>
-              </article>
-              <article class="explorer-video-card" data-demo-slot="greenland-ocean-circulations" data-editions="public research">
-                <div class="explorer-video-copy">
-                  <h3>Ocean circulations</h3>
-                  <p>
-                    Examine the ocean currents on Greenland’s continental shelf and offshore that carry heat
-                    towards its marine-terminating glaciers.
-                  </p>
-                  <ul class="explorer-edition-tags" role="list" aria-label="Available in">
-                    <li><span class="explorer-edition-tag explorer-edition-tag--public">Public edition</span></li>
-                    <li><span class="explorer-edition-tag explorer-edition-tag--research">Research edition</span></li>
-                  </ul>
-                </div>
-                <div class="explorer-video-media explorer-video-media--video-preview">
-                  <a class="explorer-preview-link explorer-preview-link--video" href="./explore/?region=greenland&amp;preset=greenland-ocean-circulations" data-video-preview>
-                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/greenland-ocean-circulations-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
-                      <source src="/tools/media/3d-ice/greenland-ocean-circulations-preview.mp4" type="video/mp4" />
-                    </video>
-                    <span class="explorer-video-overlay">
-                      <span class="explorer-video-badge"><span>Loop preview · <span class="explorer-video-badge-click">Click</span><span class="explorer-video-badge-tap">Tap</span> to open</span></span>
-                    </span>
-                    <span class="visually-hidden">: the ocean around Greenland (public edition)</span>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="surface-change" data-src="/tools/media/3d-ice/tower/antarctica-surface-change.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-surface-change" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Elevation change since 1995</span> <span class="explorer-tower-tag explorer-tower-tag--research">Research<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">CPOM radar altimetry</span>
                   </a>
-                </div>
-                <p class="explorer-video-alt">Or open it in the <a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-ocean-circulations">research edition</a>, with a switch for each depth band.</p>
-              </article>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="velocity" data-src="/tools/media/3d-ice/tower/antarctica-velocity.webp">
+                  <a href="./explore/?region=antarctica&amp;preset=antarctica-velocity-flowlines" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Ice flow speed</span> <span class="explorer-tower-tag explorer-tower-tag--public">Public<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">MEaSUREs phase-based velocity</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="projection" data-src="/tools/media/3d-ice/tower/antarctica-projection.webp">
+                  <a href="./explore/?region=antarctica&amp;preset=antarctica-projection" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Ice thickness change to 2300</span> <span class="explorer-tower-tag explorer-tower-tag--public">Public<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">ISMIP6, high emissions</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="sea-ice" data-src="/tools/media/3d-ice/tower/antarctica-sea-ice.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-sea-ice" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Sea ice</span> <span class="explorer-tower-tag explorer-tower-tag--research">Research<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">NOAA/NSIDC Climate Data Record</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="ocean" data-src="/tools/media/3d-ice/tower/antarctica-ocean.webp">
+                  <a href="./explore/?region=antarctica&amp;preset=antarctica-ocean-circulations" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Ocean currents</span> <span class="explorer-tower-tag explorer-tower-tag--public">Public<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">WAOM2 ocean model</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="basal-melt" data-src="/tools/media/3d-ice/tower/antarctica-basal-melt.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-basal-melt" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Ice-shelf basal melt</span> <span class="explorer-tower-tag explorer-tower-tag--research">Research<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">Galton-Fenzi et al. (2025)</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="basal-friction" data-src="/tools/media/3d-ice/tower/antarctica-basal-friction.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-basal-friction" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Basal friction</span> <span class="explorer-tower-tag explorer-tower-tag--research">Research<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">AISEFI ensemble inversion</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="subglacial" data-src="/tools/media/3d-ice/tower/antarctica-subglacial.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-subglacial-features" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Subglacial water</span> <span class="explorer-tower-tag explorer-tower-tag--research">Research<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">Ehrenfeucht et al. (2025)</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="bed" data-src="/tools/media/3d-ice/tower/antarctica-bed.webp">
+                  <a href="./explore/?region=antarctica&amp;preset=antarctica-bed-topography" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Bed elevation</span> <span class="explorer-tower-tag explorer-tower-tag--public">Public<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">BedMachine Antarctica v4</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="rebound" data-src="/tools/media/3d-ice/tower/antarctica-rebound.webp">
+                  <a href="./explore/?region=antarctica&amp;preset=antarctica-isostatic-rebound" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Ice-free rebound</span> <span class="explorer-tower-tag explorer-tower-tag--public">Public<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">Paxman et al. (2022)</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="basins" data-src="/tools/media/3d-ice/tower/antarctica-basins.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-basin-boundary" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Drainage basins</span> <span class="explorer-tower-tag explorer-tower-tag--research">Research<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">MEaSUREs Antarctic Boundaries</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="grounding-line" data-src="/tools/media/3d-ice/tower/antarctica-grounding-line.webp">
+                  <a href="./explore/?region=antarctica&amp;preset=antarctica-grounding-line" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Grounding line</span> <span class="explorer-tower-tag explorer-tower-tag--public">Public<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">BedMachine Antarctica v4</span>
+                  </a>
+                </li>
+              </ol>
+              <ol class="explorer-tower-layers" data-tower-region="greenland" data-shadow-src="/tools/media/3d-ice/tower/greenland-shadow.webp" aria-label="Greenland's datasets, from the top of the stack">
+                <li class="explorer-tower-layer" data-tower-layer="ice-surface" data-src="/tools/media/3d-ice/tower/greenland-ice-surface.webp">
+                  <a href="./explore/?region=greenland&amp;preset=greenland-ice-surface" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Ice surface</span> <span class="explorer-tower-tag explorer-tower-tag--public">Public<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">BedMachine Greenland v6</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="velocity" data-src="/tools/media/3d-ice/tower/greenland-velocity.webp">
+                  <a href="./explore/?region=greenland&amp;preset=greenland-velocity-flowlines" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Ice flow speed</span> <span class="explorer-tower-tag explorer-tower-tag--public">Public<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">ITS_LIVE velocity mosaic</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="sea-ice" data-src="/tools/media/3d-ice/tower/greenland-sea-ice.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-sea-ice" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Sea ice</span> <span class="explorer-tower-tag explorer-tower-tag--research">Research<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">NOAA/NSIDC Climate Data Record</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="ocean" data-src="/tools/media/3d-ice/tower/greenland-ocean.webp">
+                  <a href="./explore/?region=greenland&amp;preset=greenland-ocean-circulations" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Ocean currents</span> <span class="explorer-tower-tag explorer-tower-tag--public">Public<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">Copernicus Marine analysis</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="basal-friction" data-src="/tools/media/3d-ice/tower/greenland-basal-friction.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-basal-friction" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Basal friction</span> <span class="explorer-tower-tag explorer-tower-tag--research">Research<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">GrISEFI ensemble inversion</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="bed" data-src="/tools/media/3d-ice/tower/greenland-bed.webp">
+                  <a href="./explore/?region=greenland&amp;preset=greenland-bed-topography" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Bed elevation</span> <span class="explorer-tower-tag explorer-tower-tag--public">Public<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">BedMachine Greenland v6</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="rebound" data-src="/tools/media/3d-ice/tower/greenland-rebound.webp">
+                  <a href="./explore/?region=greenland&amp;preset=greenland-isostatic-rebound" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Ice-free rebound</span> <span class="explorer-tower-tag explorer-tower-tag--public">Public<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">Paxman et al. (2022)</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="basins" data-src="/tools/media/3d-ice/tower/greenland-basins.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-basin-boundary" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Drainage basins</span> <span class="explorer-tower-tag explorer-tower-tag--research">Research<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">Mouginot &amp; Rignot (2019)</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="grounding-line" data-src="/tools/media/3d-ice/tower/greenland-grounding-line.webp">
+                  <a href="./explore/?region=greenland&amp;preset=greenland-grounding-line" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>Grounding line</span> <span class="explorer-tower-tag explorer-tower-tag--public">Public<span class="visually-hidden"> edition</span></span></span>
+                    <span class="explorer-tower-layer-source">BedMachine Greenland v6</span>
+                  </a>
+                </li>
+              </ol>
+              <p class="explorer-tower-open" data-tower-open data-template="Open {layer}" hidden><a class="explorer-button explorer-button--primary"></a></p>
             </div>
           </section>
 

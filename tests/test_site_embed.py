@@ -39,7 +39,9 @@ SITE_ONLY_ASSETS = {"/js/3d-ice-analytics.js"}
 # Site furniture every host has its own copy of.
 HOST_FURNITURE = re.compile(r"^/(favicon[^/]*|apple-touch-icon[^/]*)$")
 TYPE_CSS = STATIC_DIR / "css" / "3d-ice-type.css"
-URL_ATTRS = ("href", "src", "poster", "data-light-src", "data-dark-src", "data-src")
+URL_ATTRS = ("href", "src", "poster", "data-light-src", "data-dark-src", "data-src", "data-shadow-src")
+HOME_SCRIPT = STATIC_DIR / "js" / "3d-ice-home.js"
+TOWER_SCRIPT = STATIC_DIR / "js" / "3d-ice-data-tower.js"
 # The explorer pages resolve data-src images against their asset base, not the page.
 EXPLORER_ASSET_BASE = "/tools/"
 
@@ -127,6 +129,16 @@ class TestHomePageEmbedContract:
         assert loaded - SITE_ONLY_ASSETS == HOME_ASSETS, "a new home-page asset must be added to the bundle and to yuwang.blog's layout"
         assert SITE_ONLY_ASSETS <= loaded
         assert all(in_bundle(path) for path in HOME_ASSETS | SITE_ONLY_ASSETS)
+
+    def test_the_modules_the_home_script_imports_are_in_the_bundle(self, locale):
+        # 3d-ice-home.js loads the data tower with import(), which neither page names in its
+        # markup, so yuwang.blog serves the modules only if the bundle carries them.
+        imported = re.findall(r'const TOWER_MODULE = "([^"]+)"', HOME_SCRIPT.read_text(encoding="utf-8"))
+        assert imported == ["/js/3d-ice-data-tower.js"]
+        relative = re.findall(r'from "\./([^"]+)"', TOWER_SCRIPT.read_text(encoding="utf-8"))
+        assert relative == ["3d-ice-data-tower-geometry.js"]
+        for path in imported + [f"/js/{name}" for name in relative]:
+            assert in_bundle(path), f"the bundle does not carry {path}"
 
     def test_scripts_outside_the_head_are_external(self, locale):
         body = parse(locale).find("body")

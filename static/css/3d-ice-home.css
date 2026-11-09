@@ -16,7 +16,7 @@
  *   5. Hero               logo, lead, actions, live showcase
  *   6. Sections           shared section frame and intro
  *   7. Editions           the two edition cards and the comparison table
- *   8. Previews           region video cards and their edition tags
+ *   8. Data tower         the stack of dataset layers and its labels
  *   9. Updates            dated release cards
  *  10. Features and data  key features, source lists
  *  11. Community          feedback form and closing links
@@ -308,21 +308,17 @@ html.dark .explorer-footer-note a {
   --ice-card-border-hover: #a7c9d9;
   --ice-card-sheen-feature: linear-gradient(140deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0) 34%),
     radial-gradient(circle at 88% 12%, rgba(15, 126, 168, 0.045), transparent 22%);
-  --ice-card-sheen-video: linear-gradient(140deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0) 34%),
-    radial-gradient(circle at 88% 12%, rgba(15, 126, 168, 0.038), transparent 24%);
   --ice-card-sheen-source: linear-gradient(140deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0) 34%),
     radial-gradient(circle at 88% 12%, rgba(15, 126, 168, 0.038), transparent 24%);
   --ice-card-sheen-link: linear-gradient(140deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0) 34%),
     radial-gradient(circle at 88% 12%, rgba(15, 126, 168, 0.03), transparent 22%);
   --ice-feature-heading: #15374a;
-  --ice-video-heading: #15374a;
   --ice-source-heading: #163a4d;
   --ice-source-link-text: #11425a;
   --ice-source-link-hover-border: #9dc2d3;
   --ice-showcase-border: #c3dce8;
   --ice-showcase-bg: linear-gradient(160deg, #061f31 0%, #0c3a53 58%, #15536b 100%);
   --ice-showcase-note: #123447;
-  --ice-video-media-border: #c1d8e5;
   --ice-button-ghost-bg: #f3f9fc;
   --ice-button-ghost-border: #c6dce7;
   --ice-button-ghost-text: #204c61;
@@ -442,21 +438,17 @@ html.dark .explorer-page-shell--ice {
   --ice-card-border-hover: rgba(146, 215, 241, 0.44);
   --ice-card-sheen-feature: linear-gradient(140deg, rgba(231, 250, 255, 0.08) 0%, rgba(231, 250, 255, 0) 36%),
     radial-gradient(circle at 88% 12%, rgba(58, 169, 212, 0.18), transparent 24%);
-  --ice-card-sheen-video: linear-gradient(140deg, rgba(231, 250, 255, 0.07) 0%, rgba(231, 250, 255, 0) 36%),
-    radial-gradient(circle at 88% 12%, rgba(60, 173, 214, 0.18), transparent 24%);
   --ice-card-sheen-source: linear-gradient(140deg, rgba(231, 250, 255, 0.07) 0%, rgba(231, 250, 255, 0) 36%),
     radial-gradient(circle at 88% 12%, rgba(60, 173, 214, 0.16), transparent 24%);
   --ice-card-sheen-link: linear-gradient(140deg, rgba(231, 250, 255, 0.07) 0%, rgba(231, 250, 255, 0) 36%),
     radial-gradient(circle at 88% 12%, rgba(60, 173, 214, 0.14), transparent 22%);
   --ice-feature-heading: #e8f7ff;
-  --ice-video-heading: #e6f6ff;
   --ice-source-heading: #dbf2ff;
   --ice-source-link-text: #d6f0ff;
   --ice-source-link-hover-border: rgba(147, 214, 239, 0.44);
   --ice-showcase-border: rgba(116, 175, 205, 0.28);
   --ice-showcase-bg: linear-gradient(160deg, #03111c 0%, #092437 58%, #0d3550 100%);
   --ice-showcase-note: #9fc1d4;
-  --ice-video-media-border: rgba(116, 176, 204, 0.26);
   --ice-button-ghost-bg: rgba(8, 20, 29, 0.92);
   --ice-button-ghost-border: rgba(121, 186, 214, 0.24);
   --ice-button-ghost-text: #c6e7f8;
@@ -867,8 +859,7 @@ html.dark .explorer-theme-toggle .theme-icon-moon {
 }
 
 .explorer-page-shell--ice .explorer-showcase-note a,
-.explorer-page-shell--ice .explorer-region-intro a,
-.explorer-page-shell--ice .explorer-video-alt a {
+.explorer-page-shell--ice .explorer-region-intro a {
   color: var(--ice-link);
   font-weight: 700;
   text-decoration: underline;
@@ -971,7 +962,6 @@ html.dark .explorer-theme-toggle .theme-icon-moon {
 
 /* Cards share a sheen layer drawn over their gradient surface, under their content. */
 .explorer-page-shell--ice .explorer-feature-card::before,
-.explorer-page-shell--ice .explorer-video-card::before,
 .explorer-page-shell--ice .explorer-edition-card::before,
 .explorer-page-shell--ice .explorer-source-column::before,
 .explorer-page-shell--ice .explorer-source-list a::before {
@@ -984,7 +974,6 @@ html.dark .explorer-theme-toggle .theme-icon-moon {
 }
 
 .explorer-page-shell--ice .explorer-feature-card > *,
-.explorer-page-shell--ice .explorer-video-card > *,
 .explorer-page-shell--ice .explorer-edition-card > *,
 .explorer-page-shell--ice .explorer-source-column > * {
   position: relative;
@@ -1212,202 +1201,262 @@ html.dark .explorer-theme-toggle .theme-icon-moon {
   background: var(--ice-table-row-alt);
 }
 
-/* ------------------------------------------------------------------ 8. previews */
+/* ------------------------------------------------------------------ 8. data tower */
 
-.explorer-page-shell--ice .explorer-video-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+/* The stack of dataset layers, drawn by static/js/3d-ice-data-tower.js. Without the script
+   each region's layers stand as a plain list of links, one region after the other. */
+.explorer-page-shell--ice .explorer-tower-section {
+  /* Colours the script reads for the glass box, its base and the label lines. */
+  --tower-glass-fill: rgba(222, 236, 244, 0.36);
+  --tower-glass-front: rgba(255, 255, 255, 0.1);
+  --tower-glass-edge: rgba(112, 150, 174, 0.62);
+  --tower-frame: rgba(112, 150, 174, 0.34);
+  --tower-base-top: #dce8ef;
+  --tower-base-left: #bfd1dc;
+  --tower-base-right: #a8becc;
+  --tower-leader: rgba(58, 94, 117, 0.6);
+  --tower-accent: var(--ice-accent);
+  --tower-canvas-height: min(128vw, 560px);
+  background: var(--ice-region-bg);
 }
 
-.explorer-page-shell--ice .explorer-video-card {
-  --ice-card-bg: var(--ice-panel-card);
-  --ice-card-sheen: var(--ice-card-sheen-video);
-  position: relative;
-  isolation: isolate;
-  display: grid;
-  align-content: start;
-  gap: 1rem;
-  overflow: hidden;
-  padding: 1rem;
-  border: 1px solid var(--ice-card-border);
-  border-radius: 24px;
-  background: var(--ice-card-bg);
-  box-shadow: var(--ice-card-shadow);
+html.dark .explorer-page-shell--ice .explorer-tower-section {
+  --tower-glass-fill: rgba(70, 126, 158, 0.14);
+  --tower-glass-front: rgba(170, 220, 245, 0.04);
+  --tower-glass-edge: rgba(128, 188, 218, 0.5);
+  --tower-frame: rgba(128, 188, 218, 0.26);
+  --tower-base-top: #17313f;
+  --tower-base-left: #102633;
+  --tower-base-right: #0b1d28;
+  --tower-leader: rgba(150, 202, 228, 0.55);
+  --tower-accent: #79d6ff;
 }
 
-.explorer-page-shell--ice .explorer-video-card:nth-child(4n + 1) {
-  --ice-card-bg: var(--ice-panel-card-glacier);
-}
-
-.explorer-page-shell--ice .explorer-video-card:nth-child(4n + 2) {
-  --ice-card-bg: var(--ice-panel-card-sky);
-}
-
-.explorer-page-shell--ice .explorer-video-card:nth-child(4n + 3) {
-  --ice-card-bg: var(--ice-panel-card-frost);
-}
-
-.explorer-page-shell--ice .explorer-video-card:nth-child(4n + 4) {
-  --ice-card-bg: var(--ice-panel-card-mint);
-}
-
-.explorer-page-shell--ice .explorer-video-copy h3 {
-  margin: 0 0 0.45rem;
-  color: var(--ice-video-heading);
-  font-size: 1.12rem;
-  line-height: 1.25;
-}
-
-.explorer-page-shell--ice .explorer-video-copy p {
-  margin: 0;
-  font-size: 0.98rem;
-}
-
-.explorer-page-shell--ice .explorer-edition-tags {
+.explorer-page-shell--ice .explorer-tower-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.75rem;
-}
-
-.explorer-page-shell--ice .explorer-section .explorer-edition-tags li {
-  line-height: 1;
-}
-
-.explorer-page-shell--ice .explorer-edition-tag {
-  display: inline-flex;
   align-items: center;
-  padding: 0.32rem 0.62rem;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 0.4rem;
+}
+
+/* Hidden stays hidden, whatever layout the stage is in. */
+.explorer-page-shell--ice .explorer-tower-controls[hidden],
+.explorer-page-shell--ice .explorer-tower-layers[hidden],
+.explorer-page-shell--ice .explorer-tower-open[hidden] {
+  display: none !important;
+}
+
+.explorer-page-shell--ice .explorer-tower-switch {
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--ice-border);
+  border-radius: 999px;
+  background: var(--ice-button-ghost-bg);
+}
+
+.explorer-page-shell--ice .explorer-tower-switch button {
+  min-height: 40px;
+  padding: 0.45rem 1.1rem;
+  border-radius: 999px;
+  color: var(--ice-text);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.explorer-page-shell--ice .explorer-tower-switch button:hover {
+  color: var(--ice-ink);
+}
+
+.explorer-page-shell--ice .explorer-tower-switch button[aria-pressed="true"] {
+  background: var(--ice-cta);
+  box-shadow: 0 8px 18px rgba(16, 104, 139, 0.2);
+  color: #f7fdff;
+}
+
+.explorer-page-shell--ice .explorer-tower-switch button:focus-visible,
+.explorer-page-shell--ice .explorer-tower-layer a:focus-visible {
+  outline: 3px solid var(--ice-focus);
+  outline-offset: 2px;
+}
+
+.explorer-page-shell--ice .explorer-section .explorer-tower-hint {
+  margin: 0;
+  color: var(--ice-muted);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.explorer-page-shell--ice .explorer-tower-hint-touch {
+  display: none;
+}
+
+.explorer-page-shell--ice .explorer-tower-stage {
+  position: relative;
+}
+
+.explorer-page-shell--ice .explorer-tower-canvas {
+  display: none;
+  width: 100%;
+  height: var(--tower-canvas-height);
+  /* A sideways drag turns the stack; an upward or downward one still scrolls the page. */
+  touch-action: pan-y;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.explorer-page-shell--ice .explorer-tower-stage.is-live .explorer-tower-canvas {
+  display: block;
+}
+
+.explorer-page-shell--ice .explorer-tower-canvas.is-dragging {
+  cursor: grabbing;
+}
+
+/* The labels: each a link to its layer's view, in a grid under the stack on narrow screens. */
+.explorer-page-shell--ice .explorer-tower-layers {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: 0.15rem 1rem;
+  margin: 0.75rem 0 0;
+}
+
+.explorer-page-shell--ice .explorer-tower-stage:not(.is-live) .explorer-tower-layers::before {
+  content: attr(aria-label);
+  grid-column: 1 / -1;
+  margin: 0.5rem 0 0.25rem;
+  color: var(--ice-ink);
+  font-weight: 800;
+}
+
+.explorer-page-shell--ice .explorer-section .explorer-tower-layer {
+  margin: 0;
+  color: var(--ice-ink);
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.explorer-page-shell--ice .explorer-tower-layer a {
+  display: grid;
+  gap: 0.05rem;
+  padding: 0.42rem 0.6rem;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: background 160ms ease, opacity 160ms ease;
+}
+
+.explorer-page-shell--ice .explorer-tower-layer a:hover,
+.explorer-page-shell--ice .explorer-tower-layer.is-focused a {
+  background: var(--ice-edition-research-bg);
+}
+
+.explorer-page-shell--ice .explorer-tower-layer-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.45rem;
+  color: var(--ice-ink);
+  font-weight: 750;
+}
+
+.explorer-page-shell--ice .explorer-tower-layer.is-focused .explorer-tower-layer-name [data-tower-name] {
+  color: var(--ice-link);
+}
+
+.explorer-page-shell--ice .explorer-tower-layer-source {
+  color: var(--ice-muted);
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.explorer-page-shell--ice .explorer-tower-tag {
+  padding: 0.1rem 0.42rem;
   border: 1px solid var(--ice-edition-research-border);
   border-radius: 999px;
   background: var(--ice-edition-research-bg);
   color: var(--ice-edition-research);
-  font-size: 0.72rem;
+  font-size: 0.6rem;
   font-weight: 800;
   letter-spacing: 0.08em;
+  line-height: 1.3;
   text-transform: uppercase;
 }
 
-.explorer-page-shell--ice .explorer-edition-tag--public {
+.explorer-page-shell--ice .explorer-tower-tag--public {
   border-color: var(--ice-edition-public-border);
   background: var(--ice-edition-public-bg);
   color: var(--ice-edition-public);
 }
 
-.explorer-page-shell--ice .explorer-video-media {
-  position: relative;
+/* Beside the stack, once the stage is wide enough: the script sets each label level with
+   its layer and draws the line between them. */
+.explorer-page-shell--ice .explorer-tower-stage.is-side-labels {
+  --tower-canvas-height: clamp(600px, 60vw, 760px);
+}
+
+.explorer-page-shell--ice .explorer-tower-stage.is-side-labels .explorer-tower-layers {
+  position: absolute;
+  inset: 0;
+  display: block;
+  margin: 0;
+  pointer-events: none;
+}
+
+.explorer-page-shell--ice .explorer-tower-stage.is-side-labels .explorer-tower-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 37%;
+  pointer-events: auto;
+}
+
+.explorer-page-shell--ice .explorer-tower-stage.is-side-labels .explorer-tower-layer a {
+  padding: 0.1rem 0.55rem;
+  line-height: 1.22;
+}
+
+.explorer-page-shell--ice .explorer-tower-stage.is-side-labels .explorer-tower-layer-name,
+.explorer-page-shell--ice .explorer-tower-stage.is-side-labels .explorer-tower-layer-source {
+  flex-wrap: nowrap;
   overflow: hidden;
-  aspect-ratio: 16 / 9;
-  border: 1px solid var(--ice-video-media-border);
-  border-radius: 20px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.explorer-page-shell--ice .explorer-video-media--video-preview {
-  background: radial-gradient(circle at top, rgba(139, 217, 255, 0.16), transparent 56%),
-    linear-gradient(180deg, rgba(6, 28, 42, 0.9), rgba(2, 12, 20, 0.98));
+.explorer-page-shell--ice .explorer-tower-stage.has-focus .explorer-tower-layer:not(.is-focused) a {
+  opacity: 0.5;
 }
 
-.explorer-page-shell--ice .explorer-preview-link {
-  position: relative;
-  isolation: isolate;
-  display: block;
-  width: 100%;
-  height: 100%;
-  color: inherit;
-  text-decoration: none;
-}
-
-.explorer-page-shell--ice .explorer-preview-link--video {
-  background: radial-gradient(circle at 20% 18%, rgba(118, 222, 255, 0.18), transparent 40%),
-    linear-gradient(180deg, rgba(8, 34, 48, 0.7), rgba(3, 14, 24, 0.92));
-}
-
-.explorer-page-shell--ice .explorer-video-media video {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: rgba(7, 26, 40, 0.65);
-  object-fit: cover;
-}
-
-.explorer-page-shell--ice .explorer-preview-link--video .explorer-feature-video {
+/* On a touch screen, the layer tapped once is opened from this button, or by a second tap. */
+.explorer-page-shell--ice .explorer-section .explorer-tower-open {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: saturate(0.92) contrast(1.03);
-  transform-origin: center;
-  transition: transform 220ms ease, filter 220ms ease;
-}
-
-.explorer-page-shell--ice .explorer-preview-link--video.is-video-active .explorer-feature-video,
-.explorer-page-shell--ice .explorer-preview-link--video:hover .explorer-feature-video,
-.explorer-page-shell--ice .explorer-preview-link--video:focus-visible .explorer-feature-video {
-  filter: saturate(1.04) contrast(1.07);
-  transform: scale(1.025);
-}
-
-.explorer-page-shell--ice .explorer-video-overlay {
-  position: absolute;
-  inset: auto 0 0;
-  display: grid;
-  gap: 0.35rem;
-  padding: 1rem;
-  background: linear-gradient(180deg, rgba(2, 12, 20, 0) 0%, rgba(2, 12, 20, 0.86) 72%, rgba(2, 12, 20, 0.92) 100%);
-  color: #eefbff;
-  pointer-events: none;
-  transition: transform 180ms ease, opacity 180ms ease;
-}
-
-.explorer-page-shell--ice .explorer-preview-link--video.is-video-playing .explorer-video-overlay,
-.explorer-page-shell--ice .explorer-preview-link--video:hover .explorer-video-overlay,
-.explorer-page-shell--ice .explorer-preview-link--video:focus-visible .explorer-video-overlay {
-  transform: translateY(-2px);
-}
-
-.explorer-page-shell--ice .explorer-video-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: fit-content;
-  padding: 0.28rem 0.62rem;
-  border: 1px solid rgba(190, 236, 255, 0.4);
-  border-radius: 999px;
-  background: rgba(7, 41, 58, 0.7);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.explorer-page-shell--ice .explorer-video-badge-tap {
-  display: none;
-}
-
-.explorer-page-shell--ice .explorer-preview-link:hover,
-.explorer-page-shell--ice .explorer-preview-link:focus-visible {
-  outline: none;
-}
-
-/* Drawn as a layer above the video and its overlay, which would cover an outline or an inset
-   shadow on the link itself. */
-.explorer-page-shell--ice .explorer-preview-link:focus-visible::after {
-  content: "";
-  position: absolute;
-  inset: 0;
+  top: calc(var(--tower-canvas-height) - 4.25rem);
+  left: 50%;
   z-index: 2;
-  border: 3px solid var(--ice-focus);
-  border-radius: inherit;
-  pointer-events: none;
+  margin: 0;
+  transform: translateX(-50%);
 }
 
-.explorer-page-shell--ice .explorer-section .explorer-video-alt {
-  margin: -0.25rem 0 0;
-  color: var(--ice-muted);
-  font-size: 0.9rem;
-  line-height: 1.5;
+.explorer-page-shell--ice .explorer-tower-open .explorer-button {
+  width: auto;
+  min-height: 44px;
+  padding: 0.6rem 1.15rem;
+  white-space: nowrap;
+}
+
+@media (pointer: coarse) {
+  .explorer-page-shell--ice .explorer-tower-hint-mouse {
+    display: none;
+  }
+
+  .explorer-page-shell--ice .explorer-tower-hint-touch {
+    display: inline;
+  }
 }
 
 /* ------------------------------------------------------------------ 9. updates */
@@ -2287,18 +2336,6 @@ html.dark .explorer-theme-toggle .theme-icon-moon {
     -webkit-tap-highlight-color: transparent;
   }
 
-  .explorer-page-shell--ice .explorer-video-badge-click {
-    display: none;
-  }
-
-  .explorer-page-shell--ice .explorer-video-badge-tap {
-    display: inline;
-  }
-
-  .explorer-page-shell--ice .explorer-video-grid {
-    grid-template-columns: 1fr;
-  }
-
   .explorer-page-shell--ice .explorer-feedback-panel--faq-style .tool-feedback-card-inner {
     padding: 0.9rem;
   }
@@ -2346,14 +2383,9 @@ html.dark .explorer-theme-toggle .theme-icon-moon {
     border-radius: 24px;
   }
 
-  .explorer-page-shell--ice .explorer-video-card,
   .explorer-page-shell--ice .explorer-source-column {
     padding: 0.9rem;
     border-radius: 20px;
-  }
-
-  .explorer-page-shell--ice .explorer-video-media {
-    border-radius: 16px;
   }
 
   .page-footer .explorer-footer-logos {
@@ -2386,9 +2418,7 @@ html.dark .explorer-theme-toggle .theme-icon-moon {
   .explorer-page-shell--ice .explorer-feature-card:hover,
   .explorer-page-shell--ice .explorer-feature-card:focus-within,
   .explorer-page-shell--ice .explorer-source-list a:hover,
-  .explorer-page-shell--ice .explorer-source-list a:focus-visible,
-  .explorer-page-shell--ice .explorer-preview-link--video:hover .explorer-feature-video,
-  .explorer-page-shell--ice .explorer-preview-link--video.is-video-active .explorer-feature-video {
+  .explorer-page-shell--ice .explorer-source-list a:focus-visible {
     transform: none;
   }
 }

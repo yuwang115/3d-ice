@@ -1790,6 +1790,8 @@ function applyExplorerPresetControls(preset) {
     showGroundingLine: false,
     showIsostaticRebound: false,
     showIceProjection: false,
+    showSurfaceChange: false,
+    showSeaIce: false,
   };
   const presetToggles = preset.toggles || {};
   for (const [key, defaultValue] of Object.entries(toggleDefaults)) {

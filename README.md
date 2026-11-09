@@ -167,7 +167,8 @@ replace the host's own home page. yuwang.blog builds its `/tools/3d-ice/` page t
 
 | Path | Purpose |
 | --- | --- |
-| `static/index.html`, `static/zh/index.html` | Home pages (English and Chinese): the way into both editions, previews, updates, source data and feedback. |
+| `static/index.html`, `static/zh/index.html` | Home pages (English and Chinese): the way into both editions, the data tower, updates, source data and feedback. |
+| `static/js/3d-ice-data-tower.js`, `3d-ice-data-tower-geometry.js` | The home page's data tower: every dataset as one layer of a turning stack, each opening its view. Its layer images are drawn by `scripts/build_home_data_tower.py`. |
 | `static/css/3d-ice-home.css`, `static/css/3d-ice-type.css`, `static/js/3d-ice-home.js` | Home-page styles, typefaces and behaviour (theme, preview videos, feedback form, language switcher). |
 | `static/fonts/` | Self-hosted Space Grotesk and Playfair Display (SIL Open Font License). |
 | `static/tools/3D-interactive-cryosphere-explorer.html`, `static/zh/tools/…` | Research-edition explorer pages (English and Chinese). |
@@ -179,7 +180,7 @@ replace the host's own home page. yuwang.blog builds its `/tools/3d-ice/` page t
 | `static/tools/*-worker.js` | Web Workers for overlay geometry and the rebound solve. |
 | `static/js/3d-ice-locale.js` | English and Chinese interface strings. |
 | `static/tools/data/` | Prepared data packages (`.bin` + `.meta.json`) and feature catalogues. |
-| `static/tools/media/3d-ice/` | Preview stills and loop videos used across the experience. |
+| `static/tools/media/3d-ice/` | Preview stills and loop videos, and in `tower/` the data tower's layer images. |
 | `static/tools/vendor/three/` | Vendored Three.js r161. |
 | `scripts/` | Data preparation, bundle and release utilities, and trailer capture. |
 | `tests/` | Python, JavaScript and browser tests. |

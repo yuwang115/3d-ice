@@ -26,6 +26,26 @@ TOUR = "./explore/?tour=1"
 PUBLIC = "./explore/"
 RESEARCH = "./tools/3D-interactive-cryosphere-explorer.html"
 RUNTIME = STATIC_DIR / "tools" / "js" / "explorer-app.js"
+# The data tower's layers, top to bottom, and those only the research edition offers.
+TOWER_LAYERS = {
+    "antarctica": [
+        "ice-surface", "surface-change", "velocity", "projection", "sea-ice", "ocean", "basal-melt",
+        "basal-friction", "subglacial", "bed", "rebound", "basins", "grounding-line",
+    ],
+    "greenland": [
+        "ice-surface", "velocity", "sea-ice", "ocean", "basal-friction", "bed", "rebound", "basins", "grounding-line",
+    ],
+}
+RESEARCH_ONLY_LAYERS = {"surface-change", "sea-ice", "basal-melt", "basal-friction", "subglacial", "basins"}
+# Layers whose view goes by another name than <region>-<layer>.
+TOWER_PRESETS = {
+    "velocity": "{region}-velocity-flowlines",
+    "ocean": "{region}-ocean-circulations",
+    "subglacial": "{region}-subglacial-features",
+    "bed": "{region}-bed-topography",
+    "rebound": "{region}-isostatic-rebound",
+    "basins": "{region}-basin-boundary",
+}
 VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}
 
 
@@ -46,21 +66,23 @@ class Node:
                 yield child
                 yield from child.iter()
 
-    def find_all(self, tag: str | None = None, cls: str | None = None, **attrs: str) -> list["Node"]:
+    def find_all(self, tag: str | None = None, cls: str | None = None, attrs_present: str | None = None, **attrs: str) -> list["Node"]:
         found = []
         for node in self.iter():
             if tag and node.tag != tag:
                 continue
             if cls and cls not in node.classes:
                 continue
+            if attrs_present and attrs_present not in node.attrs:
+                continue
             if any(node.attrs.get(key.replace("_", "-")) != value for key, value in attrs.items()):
                 continue
             found.append(node)
         return found
 
-    def find(self, tag: str | None = None, cls: str | None = None, **attrs: str) -> "Node":
-        matches = self.find_all(tag, cls, **attrs)
-        assert matches, f"no <{tag or '*'} class={cls} {attrs}> under <{self.tag}>"
+    def find(self, tag: str | None = None, cls: str | None = None, attrs_present: str | None = None, **attrs: str) -> "Node":
+        matches = self.find_all(tag, cls, attrs_present, **attrs)
+        assert matches, f"no <{tag or '*'} class={cls} {attrs_present or ''} {attrs}> under <{self.tag}>"
         return matches[0]
 
     def text(self) -> str:
@@ -94,6 +116,11 @@ class _TreeBuilder(HTMLParser):
 
     def handle_data(self, data):
         self.current.children.append(data)
+
+
+def tower_preset(region: str, layer: str) -> str:
+    """The explorer view a data tower layer opens (static/tools/js/view-presets.js)."""
+    return TOWER_PRESETS.get(layer, "{region}-" + layer).format(region=region)
 
 
 def parse(locale: str) -> Node:
@@ -140,10 +167,10 @@ class TestEntries:
         assert "explorer-button--primary" not in buttons[1].classes
         assert all(button.text() for button in buttons)
 
-    def test_the_editions_section_follows_the_hero(self, locale):
+    def test_the_editions_section_follows_the_hero_and_the_data_tower_follows_it(self, locale):
         ids = section_ids(parse(locale))
-        assert ids[0] == "editions"
-        assert ids.index("editions") < ids.index("antarctica-features")
+        assert ids[:3] == ["editions", "data-tower", "latest-updates"]
+        assert "antarctica-features" not in ids and "greenland-features" not in ids
 
     def test_each_edition_has_an_introduction_and_a_way_in(self, locale):
         editions = parse(locale).find("section", id="editions")
@@ -186,31 +213,50 @@ class TestEntries:
             for cell in row.find_all("td"):
                 assert cell.text(), f"an empty cell in {row.text()!r}"
 
-    def test_every_preview_names_the_editions_that_offer_it_and_opens_one(self, locale):
-        doc = parse(locale)
-        cards = doc.find_all("article", cls="explorer-video-card")
-        assert len(cards) == 6
-        for card in cards:
-            slot = card.attrs["data-demo-slot"]
-            editions = card.attrs.get("data-editions")
-            assert editions in {"public research", "research"}, slot
-            tags = card.find_all("span", cls="explorer-edition-tag")
-            assert len(tags) == len(editions.split()), slot
-            link = card.find("a", cls="explorer-preview-link")
-            # The link's name starts with its visible badge text, then says where it goes.
-            assert "aria-label" not in link.attrs, slot
-            assert link.find("span", cls="visually-hidden").text(), slot
-            region = slot.split("-")[0]
-            target = PUBLIC if editions.startswith("public") else RESEARCH
-            assert link.attrs["href"] == f"{target}?region={region}&preset={slot}", slot
-            if editions == "public research":
-                research_links = [a for a in card.find_all("a") if a.attrs["href"].startswith(RESEARCH)]
-                assert research_links, f"{slot} also opens in the research edition"
+    def test_the_data_tower_holds_both_regions_from_the_ice_surface_down(self, locale):
+        tower = parse(locale).find("section", id="data-tower")
+        assert tower.attrs.get("aria-labelledby") == "data-tower-title"
+        assert tower.find("h2", id="data-tower-title").text()
+        lists = tower.find_all("ol", cls="explorer-tower-layers")
+        assert [node.attrs.get("data-tower-region") for node in lists] == list(TOWER_LAYERS)
+        for node in lists:
+            region = node.attrs["data-tower-region"]
+            layers = [item.attrs["data-tower-layer"] for item in node.find_all("li", cls="explorer-tower-layer")]
+            assert layers == TOWER_LAYERS[region], region
+            assert node.attrs.get("aria-label"), f"the {region} list names itself"
+            assert node.attrs.get("data-shadow-src") == f"/tools/media/3d-ice/tower/{region}-shadow.webp"
 
-    def test_research_only_previews_are_the_research_layers(self, locale):
-        cards = parse(locale).find_all("article", cls="explorer-video-card")
-        research_only = {card.attrs["data-demo-slot"] for card in cards if card.attrs["data-editions"] == "research"}
-        assert research_only == {"antarctica-basin-boundary", "antarctica-subglacial-features"}
+    def test_every_tower_layer_opens_its_view_in_the_edition_that_has_it(self, locale):
+        tower = parse(locale).find("section", id="data-tower")
+        for item in tower.find_all("li", cls="explorer-tower-layer"):
+            region = item.parent.attrs["data-tower-region"]
+            layer = item.attrs["data-tower-layer"]
+            assert item.attrs.get("data-src") == f"/tools/media/3d-ice/tower/{region}-{layer}.webp"
+            links = item.find_all("a")
+            assert len(links) == 1, f"{region} {layer}: one link per layer"
+            link = links[0]
+            opens = "research" if layer in RESEARCH_ONLY_LAYERS else "public"
+            assert link.attrs.get("data-opens") == opens, f"{region} {layer}"
+            target = PUBLIC if opens == "public" else RESEARCH
+            assert link.attrs["href"] == f"{target}?region={region}&preset={tower_preset(region, layer)}", f"{region} {layer}"
+            assert link.find(attrs_present="data-tower-name").text(), f"{region} {layer} has a name"
+            assert link.find("span", cls="explorer-tower-layer-source").text(), f"{region} {layer} names its source"
+            tag = link.find("span", cls="explorer-tower-tag")
+            assert f"explorer-tower-tag--{opens}" in tag.classes and tag.text(), f"{region} {layer} says where it opens"
+
+    def test_the_tower_controls_wait_for_the_script(self, locale):
+        tower = parse(locale).find("section", id="data-tower")
+        controls = tower.find("div", cls="explorer-tower-controls")
+        # Without the script the region switch would do nothing, so it starts hidden.
+        assert "hidden" in controls.attrs
+        buttons = controls.find_all("button")
+        assert [button.attrs.get("data-tower-region-button") for button in buttons] == list(TOWER_LAYERS)
+        assert [button.attrs.get("aria-pressed") for button in buttons] == ["true", "false"]
+        assert controls.find("div", cls="explorer-tower-switch").attrs.get("role") == "group"
+        canvas = tower.find("canvas")
+        assert canvas.attrs.get("aria-hidden") == "true", "the lists of links are what assistive technology reads"
+        chip = tower.find(attrs_present="data-tower-open")
+        assert "hidden" in chip.attrs and "{layer}" in chip.attrs.get("data-template", "")
 
     def test_the_newest_updates_introduce_the_projections_then_the_public_edition(self, locale):
         updates = parse(locale).find("section", id="latest-updates")
@@ -269,10 +315,12 @@ class TestParity:
 
         def shape(doc: Node) -> list[tuple]:
             return [
-                (node.tag, node.attrs.get("id"), node.attrs.get("data-edition"), node.attrs.get("data-editions"),
-                 node.attrs.get("data-demo-slot"), node.attrs.get("href") if node.tag == "a" else None)
+                (node.tag, node.attrs.get("id"), node.attrs.get("data-edition"), node.attrs.get("data-tower-layer"),
+                 node.attrs.get("data-tower-region"), node.attrs.get("data-src"), node.attrs.get("data-opens"),
+                 node.attrs.get("href") if node.tag == "a" else None)
                 for node in doc.find("body").iter()
-                if node.attrs.get("id") or node.attrs.get("data-edition") or node.attrs.get("data-demo-slot")
+                if node.attrs.get("id") or node.attrs.get("data-edition") or node.attrs.get("data-tower-layer")
+                or node.attrs.get("data-tower-region")
                 or (node.tag == "a" and not node.attrs.get("href", "").startswith("mailto:"))
             ]
 
@@ -306,7 +354,7 @@ class TestAssets:
         page_dir = HOME_PAGES[locale].parent
         refs = []
         for node in doc.iter():
-            for attr in ("href", "src", "poster", "data-light-src", "data-dark-src"):
+            for attr in ("href", "src", "poster", "data-light-src", "data-dark-src", "data-src", "data-shadow-src"):
                 value = node.attrs.get(attr, "")
                 if value and not value.startswith(("http:", "https:", "mailto:", "#", "//")):
                     refs.append(value)

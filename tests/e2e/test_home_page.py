@@ -18,7 +18,7 @@ NAVIGATION_TIMEOUT_MS = 60_000
 TOUR_TIMEOUT_MS = 120_000
 
 
-def _open(browser, url: str, *, viewport=(1440, 900), reduced_motion: str = "reduce", live_showcase: bool = False):
+def _open(browser, url: str, *, viewport=(1440, 900), reduced_motion: str = "reduce", live_showcase: bool = False, requests=None):
     context = browser.new_context(viewport={"width": viewport[0], "height": viewport[1]}, reduced_motion=reduced_motion)
     # Keep third-party services out of the tests.
     context.route("https://www.googletagmanager.com/**", lambda route: route.abort())
@@ -30,6 +30,8 @@ def _open(browser, url: str, *, viewport=(1440, 900), reduced_motion: str = "red
             lambda route: route.fulfill(body="<!doctype html><title>showcase</title>", content_type="text/html"),
         )
     page = context.new_page()
+    if requests is not None:
+        page.on("request", lambda request: requests.append(urlparse(request.url).path))
     errors: list[str] = []
     failed: list[str] = []
     page.on("pageerror", lambda error: errors.append(str(error)))
@@ -147,34 +149,6 @@ class TestHomePageInABrowser:
         finally:
             context.close()
 
-    def test_previews_stay_still_under_reduced_motion(self, playwright_browser, server):
-        context, page, _errors, _failed = _open(playwright_browser, server + "/", reduced_motion="reduce")
-        try:
-            page.locator("#antarctica-features").scroll_into_view_if_needed()
-            page.wait_for_timeout(800)
-            states = page.evaluate(
-                "() => [...document.querySelectorAll('.explorer-feature-video')].map((video) => ({"
-                " paused: video.paused, active: video.closest('a').classList.contains('is-video-active') }))"
-            )
-            assert states and all(state["paused"] and not state["active"] for state in states)
-        finally:
-            context.close()
-
-    def test_previews_only_try_to_play_while_on_screen(self, playwright_browser, server):
-        context, page, _errors, _failed = _open(playwright_browser, server + "/", reduced_motion="no-preference")
-        try:
-            page.wait_for_timeout(800)
-            # The first screen shows the hero, so no preview is asked to play yet.
-            assert page.locator(".explorer-preview-link.is-video-active").count() == 0
-            page.locator('[data-demo-slot="antarctica-velocity-flowlines"]').scroll_into_view_if_needed()
-            page.wait_for_function(
-                "() => document.querySelector('[data-demo-slot=\"antarctica-velocity-flowlines\"] a').classList.contains('is-video-active')"
-                " || document.querySelector('[data-demo-slot=\"antarctica-velocity-flowlines\"] video').error !== null",
-                timeout=10_000,
-            )
-        finally:
-            context.close()
-
 
 class TestHomePageEdgeCases:
     def test_the_open_comparison_table_scrolls_inside_its_box_on_a_phone(self, playwright_browser, server, home_locale):
@@ -198,18 +172,6 @@ class TestHomePageEdgeCases:
             )
             page.wait_for_timeout(600)
             assert page.evaluate("window.scrollY") >= 1990
-        finally:
-            context.close()
-
-    def test_a_keyboard_user_sees_which_preview_has_focus(self, playwright_browser, server):
-        context, page, _errors, _failed = _open(playwright_browser, server + "/")
-        try:
-            page.locator("#antarctica-features-title").evaluate("(el) => { el.tabIndex = -1; el.focus(); }")
-            page.keyboard.press("Tab")
-            link = page.locator('[data-demo-slot="antarctica-velocity-flowlines"] .explorer-preview-link')
-            assert link.evaluate("(el) => el === document.activeElement && el.matches(':focus-visible')")
-            ring = link.evaluate("(el) => getComputedStyle(el, '::after')")
-            assert link.evaluate("(el) => getComputedStyle(el, '::after').borderTopWidth") == "3px", ring
         finally:
             context.close()
 
@@ -281,3 +243,174 @@ class TestHomePageEdgeCases:
             assert page.evaluate("document.activeElement.id") == "faq-feedback-3d-ice-message"
         finally:
             context.close()
+
+
+TOWER_MODULE = "/js/3d-ice-data-tower.js"
+TOWER_READY = "() => document.querySelector('[data-tower-stage]')?.classList.contains('is-ready')"
+FOCUSED_LAYER = """() => {
+    const item = document.querySelector('[data-tower-region]:not([hidden]) .explorer-tower-layer.is-focused');
+    return item ? { layer: item.dataset.towerLayer, href: item.querySelector('a').href } : null;
+}"""
+
+
+def _show_tower(page) -> None:
+    page.evaluate("document.getElementById('data-tower').scrollIntoView({ behavior: 'instant', block: 'start' })")
+    page.wait_for_function(TOWER_READY, timeout=30_000)
+    # Let the layers fade in once their images have loaded.
+    page.wait_for_timeout(1200)
+
+
+def _canvas_pixels(page) -> str:
+    return page.locator("[data-tower-canvas]").evaluate("(canvas) => canvas.toDataURL()")
+
+
+def _canvas_points(page, columns: int = 9, rows: int = 12):
+    """Points over the stack, top to bottom, where a layer may be under the pointer."""
+    box = page.locator("[data-tower-canvas]").bounding_box()
+    side = page.locator("[data-tower-stage]").evaluate("(stage) => stage.classList.contains('is-side-labels')")
+    width = box["width"] * (0.6 if side else 1)
+    for row in range(rows):
+        for column in range(columns):
+            yield box["x"] + width * (0.2 + 0.6 * column / (columns - 1)), box["y"] + box["height"] * (0.2 + 0.7 * row / (rows - 1))
+
+
+def _hover_a_layer(page) -> tuple[float, float, dict]:
+    for x, y in _canvas_points(page):
+        page.mouse.move(x, y)
+        focused = page.evaluate(FOCUSED_LAYER)
+        if focused:
+            return x, y, focused
+    raise AssertionError("no point over the stack put a layer in focus")
+
+
+class TestDataTower:
+    def test_the_tower_loads_only_once_its_section_nears_the_screen(self, playwright_browser, server):
+        requested: list[str] = []
+        context, page, errors, failed = _open(playwright_browser, server + "/", requests=requested)
+        try:
+            page.wait_for_timeout(800)
+            assert TOWER_MODULE not in requested, "the first screen is the hero; the tower can wait"
+            _show_tower(page)
+            assert TOWER_MODULE in requested
+            images = [path for path in requested if path.startswith("/tools/media/3d-ice/tower/")]
+            assert images and all(path.split("/")[-1].startswith("antarctica-") for path in images), images
+            assert page.locator("[data-tower-controls]").is_visible()
+            assert errors == [] and failed == []
+        finally:
+            context.close()
+
+    def test_the_stack_turns_by_itself_but_not_under_reduced_motion(self, playwright_browser, server):
+        for motion, turns in (("no-preference", True), ("reduce", False)):
+            context, page, errors, _failed = _open(playwright_browser, server + "/", reduced_motion=motion)
+            try:
+                _show_tower(page)
+                page.mouse.move(2, 2)
+                before = _canvas_pixels(page)
+                page.wait_for_timeout(900)
+                assert (_canvas_pixels(page) != before) == turns, motion
+                assert errors == []
+            finally:
+                context.close()
+
+    def test_a_drag_turns_the_stack(self, playwright_browser, server):
+        context, page, _errors, _failed = _open(playwright_browser, server + "/")
+        try:
+            _show_tower(page)
+            box = page.locator("[data-tower-canvas]").bounding_box()
+            before = _canvas_pixels(page)
+            x, y = box["x"] + box["width"] * 0.3, box["y"] + box["height"] * 0.5
+            page.mouse.move(x, y)
+            page.mouse.down()
+            page.mouse.move(x + 160, y, steps=8)
+            page.mouse.up()
+            page.wait_for_timeout(300)
+            assert _canvas_pixels(page) != before
+            assert page.url.rstrip("/") == server.rstrip("/"), "a drag is not a click"
+        finally:
+            context.close()
+
+    def test_a_layer_under_the_pointer_lights_its_label_and_a_click_opens_it(self, playwright_browser, server, home_locale):
+        context, page, errors, _failed = _open(playwright_browser, server + HOME_PATHS[home_locale])
+        try:
+            _show_tower(page)
+            x, y, focused = _hover_a_layer(page)
+            assert page.locator("[data-tower-canvas]").evaluate("(canvas) => canvas.style.cursor") == "pointer"
+            assert page.locator("[data-tower-stage]").evaluate("(stage) => stage.classList.contains('has-focus')")
+            page.mouse.click(x, y)
+            page.wait_for_url(focused["href"], wait_until="commit", timeout=NAVIGATION_TIMEOUT_MS)
+            assert errors == []
+        finally:
+            context.close()
+
+    def test_the_region_switch_stacks_greenland(self, playwright_browser, server):
+        context, page, errors, _failed = _open(playwright_browser, server + "/")
+        try:
+            _show_tower(page)
+            before = _canvas_pixels(page)
+            page.locator('[data-tower-region-button="greenland"]').click()
+            page.wait_for_timeout(1600)
+            assert page.locator('[data-tower-region-button="greenland"]').get_attribute("aria-pressed") == "true"
+            assert page.locator('[data-tower-region="greenland"]').is_visible()
+            assert page.locator('[data-tower-region="antarctica"]').is_hidden()
+            assert _canvas_pixels(page) != before
+            _x, _y, focused = _hover_a_layer(page)
+            assert "region=greenland" in focused["href"]
+            assert errors == []
+        finally:
+            context.close()
+
+    def test_a_keyboard_user_reaches_every_layer_and_sees_which_has_focus(self, playwright_browser, server):
+        context, page, _errors, _failed = _open(playwright_browser, server + "/")
+        try:
+            _show_tower(page)
+            page.locator('[data-tower-region-button="greenland"]').focus()
+            page.keyboard.press("Tab")
+            link = page.locator('[data-tower-region="antarctica"] [data-tower-layer="ice-surface"] a')
+            assert link.evaluate("(el) => el === document.activeElement && el.matches(':focus-visible')")
+            assert link.evaluate("(el) => getComputedStyle(el).outlineWidth") == "3px"
+            assert page.evaluate(FOCUSED_LAYER)["layer"] == "ice-surface"
+            count = page.locator('[data-tower-region="antarctica"] a').count()
+            assert count == 13
+        finally:
+            context.close()
+
+    def test_a_phone_lists_the_layers_under_the_stack(self, playwright_browser, server, home_locale):
+        context, page, _errors, _failed = _open(playwright_browser, server + HOME_PATHS[home_locale], viewport=(390, 844))
+        try:
+            _show_tower(page)
+            assert not page.locator("[data-tower-stage]").evaluate("(stage) => stage.classList.contains('is-side-labels')")
+            canvas = page.locator("[data-tower-canvas]").bounding_box()
+            first = page.locator('[data-tower-region="antarctica"] .explorer-tower-layer').first.bounding_box()
+            assert first["y"] >= canvas["y"] + canvas["height"], "the labels follow the stack"
+            assert page.evaluate("document.documentElement.scrollWidth") <= 390
+        finally:
+            context.close()
+
+
+def test_a_tap_picks_a_layer_and_a_second_tap_opens_it(playwright_browser, server):
+    context = playwright_browser.new_context(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True, reduced_motion="reduce")
+    context.route("https://js.usebasin.com/**", lambda route: route.abort())
+    context.route(
+        lambda target: "mode=showcase" in target,
+        lambda route: route.fulfill(body="<!doctype html><title>showcase</title>", content_type="text/html"),
+    )
+    try:
+        page = context.new_page()
+        page.goto(server + "/", wait_until="load", timeout=NAVIGATION_TIMEOUT_MS)
+        _show_tower(page)
+        chip = page.locator("[data-tower-open]")
+        for x, y in _canvas_points(page, columns=5, rows=8):
+            page.touchscreen.tap(x, y)
+            if chip.is_visible():
+                break
+        else:
+            raise AssertionError("no tap on the stack picked a layer")
+        focused = page.evaluate(FOCUSED_LAYER)
+        link = chip.locator("a")
+        assert link.evaluate("(el) => el.href") == focused["href"]
+        assert link.text_content().strip()
+        assert page.url.rstrip("/") == server.rstrip("/"), "the first tap only picks the layer"
+        page.touchscreen.tap(x, y)
+        page.wait_for_url(focused["href"], wait_until="commit", timeout=NAVIGATION_TIMEOUT_MS)
+    finally:
+        context.close()

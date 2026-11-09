@@ -79,7 +79,7 @@ class _HomeStructureParser(HTMLParser):
 
 @pytest.mark.integration
 @pytest.mark.parametrize(("page_path", "visible_date", "expected_terms"), HOME_CASES)
-def test_latest_updates_is_localized_and_between_region_and_features(
+def test_latest_updates_is_localized_and_between_the_data_tower_and_features(
     page_path: Path,
     visible_date: str,
     expected_terms: tuple[str, ...],
@@ -89,7 +89,7 @@ def test_latest_updates_is_localized_and_between_region_and_features(
 
     assert parser.id_counts.get("latest-updates") == 1
     assert "/css/3d-ice-home.css" in parser.stylesheets
-    assert parser.ids.index("greenland-features") < parser.ids.index("latest-updates")
+    assert parser.ids.index("data-tower") < parser.ids.index("latest-updates")
     assert parser.ids.index("latest-updates") < parser.ids.index("key-features")
     assert parser.latest_attrs.get("aria-labelledby") == "latest-updates-title"
     assert any(

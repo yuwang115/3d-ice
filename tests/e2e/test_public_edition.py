@@ -162,15 +162,25 @@ class TestPublicEditionCore:
         assert not _state(page)["featureLayers"]["iceCores"]["offered"]
 
     def test_a_preset_cannot_switch_research_layers_on(self, playwright_browser, explore_url):
-        for preset in ("antarctica-subglacial-features", "antarctica-basin-boundary"):
+        # The data tower links these to the research edition; opened here they stay off.
+        research_views = (
+            "antarctica-subglacial-features",
+            "antarctica-basin-boundary",
+            "antarctica-basal-friction",
+            "antarctica-basal-melt",
+            "antarctica-surface-change",
+            "antarctica-sea-ice",
+            "greenland-basin-boundary",
+        )
+        for preset in research_views:
             context, page, errors = _open(playwright_browser, f"{explore_url}?preset={preset}")
             try:
                 state = _state(page)
-                assert errors == []
-                assert not state["toggles"]["showEffectivePressure"]
-                assert not state["toggles"]["showSubglacialChannels"]
-                assert not state["toggles"]["showRefinedBasins"]
-                assert not state["meshes"]["hydrology"] and not state["meshes"]["basins"]
+                assert errors == [], preset
+                for toggle in ("showEffectivePressure", "showSubglacialChannels", "showRefinedBasins", "showBasalFriction", "showBasalMelt"):
+                    assert not state["toggles"][toggle], f"{preset}: {toggle}"
+                assert not state["meshes"]["hydrology"] and not state["meshes"]["basins"], preset
+                assert not state["surfaceChange"]["enabled"] and not state["seaIce"]["enabled"], preset
             finally:
                 context.close()
 

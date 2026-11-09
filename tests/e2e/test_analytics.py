@@ -64,7 +64,12 @@ EDITION_ENTRIES = {
         "#editions a[href='./tools/3D-interactive-cryosphere-explorer.html']",
         "open-research-edition:home-editions",
     ),
-    "home-preview": ("/", "#greenland-features a[href^='./explore/']", "open-public-edition:home-greenland-features"),
+    "home-tower": ("/", "#data-tower a[href^='./explore/']", "open-public-edition:home-data-tower"),
+    "home-zh-tower-research": (
+        "/zh/",
+        "#data-tower a[href^='./tools/3D-interactive-cryosphere-explorer.html']",
+        "open-research-edition:home-data-tower",
+    ),
     "research-to-tour": ("/tools/3D-interactive-cryosphere-explorer.html", "a[href='../explore/?tour=1']", "open-public-edition:research-edition"),
     "research-switch": ("/tools/3D-interactive-cryosphere-explorer.html", "a[data-edition-link]", "open-public-edition:research-edition"),
     "public-zh-switch": ("/zh/explore/", "a[data-edition-link]", "open-research-edition:public-edition"),

@@ -28,6 +28,9 @@ const SERVED_PATHS = Object.freeze([
   "zh/tools/3D-interactive-cryosphere-explorer.html",
   "js/3d-ice-locale.js",
   "js/3d-ice-home.js",
+  // The data tower, which js/3d-ice-home.js imports when its section nears the screen.
+  "js/3d-ice-data-tower.js",
+  "js/3d-ice-data-tower-geometry.js",
   "js/3d-ice-analytics.js",
   "css/3d-ice-home.css",
   "css/3d-ice-type.css",

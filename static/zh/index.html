@@ -146,8 +146,7 @@
             </nav>
             <nav class="explorer-page-nav" aria-label="本页导航">
               <a href="#editions">版本</a>
-              <a href="#antarctica-features">南极洲</a>
-              <a href="#greenland-features">格陵兰</a>
+              <a href="#data-tower">数据集</a>
               <a href="#latest-updates">最新更新</a>
               <a href="#source-data">源数据</a>
               <a href="#feedback">反馈</a>
@@ -317,155 +316,158 @@
             </details>
           </section>
 
-          <section id="antarctica-features" class="explorer-section explorer-region" aria-labelledby="antarctica-features-title">
+          <section id="data-tower" class="explorer-section explorer-tower-section" aria-labelledby="data-tower-title" data-tower>
             <div class="explorer-region-intro">
-              <p class="explorer-region-label">南极洲</p>
-              <h2 id="antarctica-features-title">探索南极冰盖的核心特征</h2>
-              <p>
-                作为地球最南端的广袤冰冻荒漠，南极洲蕴藏着全球 90% 的冰，并在其表面之下隐藏着一个由冰下湖泊和河流组成的动态世界，塑造着我们未来的海岸线。
-              </p>
+              <p class="explorer-region-label">数据集</p>
+              <h2 id="data-tower-title">逐层看懂 3D ICE 的每一个数据集</h2>
+              <p>数据塔的每一层都是 3D ICE 中的一个数据集，取自探索器加载的同一批文件，配色也与探索器一致。拖动可以旋转数据塔，点击某一层即可打开它：科普版中有的图层在科普版中打开，其余的在专业版中打开。</p>
             </div>
-            <div class="explorer-video-grid explorer-video-grid--antarctica">
-              <article class="explorer-video-card" data-demo-slot="antarctica-velocity-flowlines" data-editions="public research">
-                <div class="explorer-video-copy">
-                  <h3>南极冰速与冰流线</h3>
-                  <p>直观展现快速移动的冰流与汇流网络，揭示南极大陆腹地与边缘溢出冰川及巨型冰架之间的动态联系。</p>
-                  <ul class="explorer-edition-tags" role="list" aria-label="所属版本">
-                    <li><span class="explorer-edition-tag explorer-edition-tag--public">科普版</span></li>
-                    <li><span class="explorer-edition-tag explorer-edition-tag--research">专业版</span></li>
-                  </ul>
-                </div>
-                <div class="explorer-video-media explorer-video-media--video-preview">
-                  <a class="explorer-preview-link explorer-preview-link--video" href="./explore/?region=antarctica&amp;preset=antarctica-velocity-flowlines" data-video-preview>
-                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/antarctica-velocity-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
-                      <source src="/tools/media/3d-ice/antarctica-velocity-preview.mp4" type="video/mp4" />
-                    </video>
-                    <span class="explorer-video-overlay">
-                      <span class="explorer-video-badge"><span>循环预览 · <span class="explorer-video-badge-click">点击</span><span class="explorer-video-badge-tap">轻触</span>打开</span></span>
-                    </span>
-                    <span class="visually-hidden">：南极冰的流动（科普版）</span>
-                  </a>
-                </div>
-                <p class="explorer-video-alt">也可在<a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-velocity-flowlines">专业版</a>中打开，并显示流速场。</p>
-              </article>
-              <article class="explorer-video-card" data-demo-slot="antarctica-basin-boundary" data-editions="research">
-                <div class="explorer-video-copy">
-                  <h3>流域边界</h3>
-                  <p>全景呈现清晰的冰盖区划与流域轮廓，深刻揭示为何评估区域性冰体流失时，必须依托其特定的流域背景。</p>
-                  <ul class="explorer-edition-tags" role="list" aria-label="所属版本">
-                    <li><span class="explorer-edition-tag explorer-edition-tag--research">专业版</span></li>
-                  </ul>
-                </div>
-                <div class="explorer-video-media explorer-video-media--video-preview">
-                  <a class="explorer-preview-link explorer-preview-link--video" href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-basin-boundary" data-video-preview>
-                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/antarctica-basin-boundary-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
-                      <source src="/tools/media/3d-ice/antarctica-basin-boundary-preview.mp4" type="video/mp4" />
-                    </video>
-                    <span class="explorer-video-overlay">
-                      <span class="explorer-video-badge"><span>循环预览 · <span class="explorer-video-badge-click">点击</span><span class="explorer-video-badge-tap">轻触</span>打开</span></span>
-                    </span>
-                    <span class="visually-hidden">：流域边界（专业版）</span>
-                  </a>
-                </div>
-              </article>
-              <article class="explorer-video-card" data-demo-slot="antarctica-subglacial-features" data-editions="research">
-                <div class="explorer-video-copy">
-                  <h3>冰下特征</h3>
-                  <p>探秘冰盖之下的隐秘世界：展示巨厚冰层之下模拟的有效压力分布与冰下水文通道。</p>
-                  <ul class="explorer-edition-tags" role="list" aria-label="所属版本">
-                    <li><span class="explorer-edition-tag explorer-edition-tag--research">专业版</span></li>
-                  </ul>
-                </div>
-                <div class="explorer-video-media explorer-video-media--video-preview">
-                  <a class="explorer-preview-link explorer-preview-link--video" href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-subglacial-features" data-video-preview>
-                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/antarctica-subglacial-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
-                      <source src="/tools/media/3d-ice/antarctica-subglacial-preview.mp4" type="video/mp4" />
-                    </video>
-                    <span class="explorer-video-overlay">
-                      <span class="explorer-video-badge"><span>循环预览 · <span class="explorer-video-badge-click">点击</span><span class="explorer-video-badge-tap">轻触</span>打开</span></span>
-                    </span>
-                    <span class="visually-hidden">：冰下特征（专业版）</span>
-                  </a>
-                </div>
-              </article>
-              <article class="explorer-video-card" data-demo-slot="antarctica-ocean-circulations" data-editions="public research">
-                <div class="explorer-video-copy">
-                  <h3>海洋环流</h3>
-                  <p>沉浸式探索南大洋的年平均环流，从外海一直深入南极冰架下方的空腔。</p>
-                  <ul class="explorer-edition-tags" role="list" aria-label="所属版本">
-                    <li><span class="explorer-edition-tag explorer-edition-tag--public">科普版</span></li>
-                    <li><span class="explorer-edition-tag explorer-edition-tag--research">专业版</span></li>
-                  </ul>
-                </div>
-                <div class="explorer-video-media explorer-video-media--video-preview">
-                  <a class="explorer-preview-link explorer-preview-link--video" href="./explore/?region=antarctica&amp;preset=antarctica-ocean-circulations" data-video-preview>
-                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/antarctica-ocean-streamlines-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
-                      <source src="/tools/media/3d-ice/antarctica-ocean-streamlines-preview.mp4" type="video/mp4" />
-                    </video>
-                    <span class="explorer-video-overlay">
-                      <span class="explorer-video-badge"><span>循环预览 · <span class="explorer-video-badge-click">点击</span><span class="explorer-video-badge-tap">轻触</span>打开</span></span>
-                    </span>
-                    <span class="visually-hidden">：南大洋环流（科普版）</span>
-                  </a>
-                </div>
-                <p class="explorer-video-alt">也可在<a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-ocean-circulations">专业版</a>中打开，可分别开关各深度层。</p>
-              </article>
+            <div class="explorer-tower-controls" data-tower-controls hidden>
+              <div class="explorer-tower-switch" role="group" aria-label="冰盖">
+                <button type="button" data-tower-region-button="antarctica" aria-pressed="true">南极洲</button>
+                <button type="button" data-tower-region-button="greenland" aria-pressed="false">格陵兰</button>
+              </div>
+              <p class="explorer-tower-hint"><span class="explorer-tower-hint-mouse">拖动旋转数据塔 · 点击图层即可打开</span><span class="explorer-tower-hint-touch">滑动旋转数据塔 · 轻点图层，再点一次即可打开</span></p>
             </div>
-          </section>
-
-          <section id="greenland-features" class="explorer-section explorer-region" aria-labelledby="greenland-features-title">
-            <div class="explorer-region-intro">
-              <p class="explorer-region-label">格陵兰</p>
-              <h2 id="greenland-features-title">在同一 3D 视界中，漫游格陵兰冰盖</h2>
-              <p>
-                作为北极的“气候前哨”，格陵兰冰盖是一个正在快速演变的巨兽，其加速融化正直接推动全球海平面上升并影响着海洋环流。
-              </p>
-            </div>
-            <div class="explorer-video-grid explorer-video-grid--greenland">
-              <article class="explorer-video-card" data-demo-slot="greenland-velocity-flowlines" data-editions="public research">
-                <div class="explorer-video-copy">
-                  <h3>格陵兰冰速与冰流线</h3>
-                  <p>聚焦由溢出冰川与快速冰流带交织而成的复杂网络，生动展现冰体从高海拔内陆流域向海岸线快速输送的壮观过程。</p>
-                  <ul class="explorer-edition-tags" role="list" aria-label="所属版本">
-                    <li><span class="explorer-edition-tag explorer-edition-tag--public">科普版</span></li>
-                    <li><span class="explorer-edition-tag explorer-edition-tag--research">专业版</span></li>
-                  </ul>
-                </div>
-                <div class="explorer-video-media explorer-video-media--video-preview">
-                  <a class="explorer-preview-link explorer-preview-link--video" href="./explore/?region=greenland&amp;preset=greenland-velocity-flowlines" data-video-preview>
-                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/greenland-velocity-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
-                      <source src="/tools/media/3d-ice/greenland-velocity-preview.mp4" type="video/mp4" />
-                    </video>
-                    <span class="explorer-video-overlay">
-                      <span class="explorer-video-badge"><span>循环预览 · <span class="explorer-video-badge-click">点击</span><span class="explorer-video-badge-tap">轻触</span>打开</span></span>
-                    </span>
-                    <span class="visually-hidden">：格陵兰冰的流动（科普版）</span>
+            <div class="explorer-tower-stage" data-tower-stage>
+              <canvas class="explorer-tower-canvas" data-tower-canvas aria-hidden="true"></canvas>
+              <ol class="explorer-tower-layers" data-tower-region="antarctica" data-shadow-src="/tools/media/3d-ice/tower/antarctica-shadow.webp" aria-label="南极洲的数据集，自上而下">
+                <li class="explorer-tower-layer" data-tower-layer="ice-surface" data-src="/tools/media/3d-ice/tower/antarctica-ice-surface.webp">
+                  <a href="./explore/?region=antarctica&amp;preset=antarctica-ice-surface" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>冰表面</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                    <span class="explorer-tower-layer-source">BedMachine Antarctica v4</span>
                   </a>
-                </div>
-                <p class="explorer-video-alt">也可在<a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-velocity-flowlines">专业版</a>中打开，并显示流速场。</p>
-              </article>
-              <article class="explorer-video-card" data-demo-slot="greenland-ocean-circulations" data-editions="public research">
-                <div class="explorer-video-copy">
-                  <h3>海洋环流</h3>
-                  <p>探究格陵兰陆架与外海的洋流，正是它们把热量输送到入海冰川附近。</p>
-                  <ul class="explorer-edition-tags" role="list" aria-label="所属版本">
-                    <li><span class="explorer-edition-tag explorer-edition-tag--public">科普版</span></li>
-                    <li><span class="explorer-edition-tag explorer-edition-tag--research">专业版</span></li>
-                  </ul>
-                </div>
-                <div class="explorer-video-media explorer-video-media--video-preview">
-                  <a class="explorer-preview-link explorer-preview-link--video" href="./explore/?region=greenland&amp;preset=greenland-ocean-circulations" data-video-preview>
-                    <video class="explorer-feature-video" poster="/tools/media/3d-ice/greenland-ocean-circulations-preview.jpg" preload="none" muted loop playsinline aria-hidden="true">
-                      <source src="/tools/media/3d-ice/greenland-ocean-circulations-preview.mp4" type="video/mp4" />
-                    </video>
-                    <span class="explorer-video-overlay">
-                      <span class="explorer-video-badge"><span>循环预览 · <span class="explorer-video-badge-click">点击</span><span class="explorer-video-badge-tap">轻触</span>打开</span></span>
-                    </span>
-                    <span class="visually-hidden">：格陵兰周边海洋（科普版）</span>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="surface-change" data-src="/tools/media/3d-ice/tower/antarctica-surface-change.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-surface-change" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>1995 年以来的冰面高程变化</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                    <span class="explorer-tower-layer-source">CPOM 雷达测高</span>
                   </a>
-                </div>
-                <p class="explorer-video-alt">也可在<a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-ocean-circulations">专业版</a>中打开，可分别开关各深度层。</p>
-              </article>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="velocity" data-src="/tools/media/3d-ice/tower/antarctica-velocity.webp">
+                  <a href="./explore/?region=antarctica&amp;preset=antarctica-velocity-flowlines" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>冰流速度</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                    <span class="explorer-tower-layer-source">MEaSUREs 相位法冰速</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="projection" data-src="/tools/media/3d-ice/tower/antarctica-projection.webp">
+                  <a href="./explore/?region=antarctica&amp;preset=antarctica-projection" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>至 2300 年的冰厚变化</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                    <span class="explorer-tower-layer-source">ISMIP6，高排放情景</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="sea-ice" data-src="/tools/media/3d-ice/tower/antarctica-sea-ice.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-sea-ice" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>海冰</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                    <span class="explorer-tower-layer-source">NOAA/NSIDC 气候数据记录</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="ocean" data-src="/tools/media/3d-ice/tower/antarctica-ocean.webp">
+                  <a href="./explore/?region=antarctica&amp;preset=antarctica-ocean-circulations" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>海洋环流</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                    <span class="explorer-tower-layer-source">WAOM2 海洋模式</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="basal-melt" data-src="/tools/media/3d-ice/tower/antarctica-basal-melt.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-basal-melt" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>冰架底部融化</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                    <span class="explorer-tower-layer-source">Galton-Fenzi 等（2025）</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="basal-friction" data-src="/tools/media/3d-ice/tower/antarctica-basal-friction.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-basal-friction" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>基底摩擦</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                    <span class="explorer-tower-layer-source">AISEFI 集合反演</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="subglacial" data-src="/tools/media/3d-ice/tower/antarctica-subglacial.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-subglacial-features" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>冰下水文</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                    <span class="explorer-tower-layer-source">Ehrenfeucht 等（2025）</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="bed" data-src="/tools/media/3d-ice/tower/antarctica-bed.webp">
+                  <a href="./explore/?region=antarctica&amp;preset=antarctica-bed-topography" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>基岩高程</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                    <span class="explorer-tower-layer-source">BedMachine Antarctica v4</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="rebound" data-src="/tools/media/3d-ice/tower/antarctica-rebound.webp">
+                  <a href="./explore/?region=antarctica&amp;preset=antarctica-isostatic-rebound" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>无冰状态下的地壳回弹</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                    <span class="explorer-tower-layer-source">Paxman 等（2022）</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="basins" data-src="/tools/media/3d-ice/tower/antarctica-basins.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-basin-boundary" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>流域边界</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                    <span class="explorer-tower-layer-source">MEaSUREs 南极边界</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="grounding-line" data-src="/tools/media/3d-ice/tower/antarctica-grounding-line.webp">
+                  <a href="./explore/?region=antarctica&amp;preset=antarctica-grounding-line" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>接地线</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                    <span class="explorer-tower-layer-source">BedMachine Antarctica v4</span>
+                  </a>
+                </li>
+              </ol>
+              <ol class="explorer-tower-layers" data-tower-region="greenland" data-shadow-src="/tools/media/3d-ice/tower/greenland-shadow.webp" aria-label="格陵兰的数据集，自上而下">
+                <li class="explorer-tower-layer" data-tower-layer="ice-surface" data-src="/tools/media/3d-ice/tower/greenland-ice-surface.webp">
+                  <a href="./explore/?region=greenland&amp;preset=greenland-ice-surface" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>冰表面</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                    <span class="explorer-tower-layer-source">BedMachine Greenland v6</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="velocity" data-src="/tools/media/3d-ice/tower/greenland-velocity.webp">
+                  <a href="./explore/?region=greenland&amp;preset=greenland-velocity-flowlines" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>冰流速度</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                    <span class="explorer-tower-layer-source">ITS_LIVE 冰速镶嵌图</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="sea-ice" data-src="/tools/media/3d-ice/tower/greenland-sea-ice.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-sea-ice" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>海冰</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                    <span class="explorer-tower-layer-source">NOAA/NSIDC 气候数据记录</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="ocean" data-src="/tools/media/3d-ice/tower/greenland-ocean.webp">
+                  <a href="./explore/?region=greenland&amp;preset=greenland-ocean-circulations" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>海洋环流</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                    <span class="explorer-tower-layer-source">哥白尼海洋服务分析数据</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="basal-friction" data-src="/tools/media/3d-ice/tower/greenland-basal-friction.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-basal-friction" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>基底摩擦</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                    <span class="explorer-tower-layer-source">GrISEFI 集合反演</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="bed" data-src="/tools/media/3d-ice/tower/greenland-bed.webp">
+                  <a href="./explore/?region=greenland&amp;preset=greenland-bed-topography" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>基岩高程</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                    <span class="explorer-tower-layer-source">BedMachine Greenland v6</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="rebound" data-src="/tools/media/3d-ice/tower/greenland-rebound.webp">
+                  <a href="./explore/?region=greenland&amp;preset=greenland-isostatic-rebound" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>无冰状态下的地壳回弹</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                    <span class="explorer-tower-layer-source">Paxman 等（2022）</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="basins" data-src="/tools/media/3d-ice/tower/greenland-basins.webp">
+                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-basin-boundary" data-opens="research">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>流域边界</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                    <span class="explorer-tower-layer-source">Mouginot 与 Rignot（2019）</span>
+                  </a>
+                </li>
+                <li class="explorer-tower-layer" data-tower-layer="grounding-line" data-src="/tools/media/3d-ice/tower/greenland-grounding-line.webp">
+                  <a href="./explore/?region=greenland&amp;preset=greenland-grounding-line" data-opens="public">
+                    <span class="explorer-tower-layer-name"><span data-tower-name>接地线</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                    <span class="explorer-tower-layer-source">BedMachine Greenland v6</span>
+                  </a>
+                </li>
+              </ol>
+              <p class="explorer-tower-open" data-tower-open data-template="打开{layer}" hidden><a class="explorer-button explorer-button--primary"></a></p>
             </div>
           </section>
 

@@ -25,6 +25,23 @@ All notable changes to 3D ICE are recorded here. The format follows
   Research* (*科普版 | 专业版*). It opens the other edition in the same language and at the
   region on screen, and the analytics counts it as an entry to that edition.
 - The site's icon in front of the 3D ICE wordmark.
+- A data tower on both home pages, in place of the Antarctica and Greenland preview
+  sections: every dataset of a region drawn as one layer of a glass stack, 13 for Antarctica
+  and 9 for Greenland, from the ice surface down through the ice, the ocean and the bed to the
+  rebound and the grounding line. The stack turns slowly (not under reduced motion), turns
+  further and tilts when dragged, and lights a layer and its label under the pointer; a click
+  opens the layer in the public edition if it has it, otherwise in the research edition. A
+  label names the dataset and the edition it opens in. On a touch screen the first tap picks a
+  layer and the second opens it. An *Antarctica | Greenland* switch changes the stack.
+  `scripts/build_home_data_tower.py` draws the layer images from the explorer's own packages
+  and in its own colour scales, which a test holds to the explorer's; the stack is a 2D
+  canvas, `js/3d-ice-data-tower.js` with its geometry in `js/3d-ice-data-tower-geometry.js`,
+  loaded only once the section nears the screen. Without the script the layers stay a list of
+  links. The compatibility bundle carries both modules.
+- Explorer views for the tower's layers (`?preset=`): the ice surface, the observed
+  elevation change and sea ice, the 2300 projection, ice-shelf basal melt, basal friction,
+  the bed, the ice-free rebound and the grounding line, and for Greenland its basins. A view
+  can now open on the observed elevation change or the sea ice.
 
 ### Changed
 

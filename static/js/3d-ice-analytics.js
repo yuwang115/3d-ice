@@ -14,7 +14,8 @@
  *   tour-start, tour-complete      the guided tour (static/tools/js/explore-guide.js);
  *   open-<edition>-edition:<from>  a click into the public or research edition, from the other
  *                                  edition or from the home page section holding the link
- *                                  (home-hero, home-editions, home-antarctica-features, ...).
+ *                                  (home-hero, home-editions, home-data-tower, ...). A click
+ *                                  on a layer of the home page's data tower clicks its link.
  * An event reported before count.js has loaded waits for it; away from 3d-ice.com, or once
  * count.js has failed to load, events are dropped.
  */

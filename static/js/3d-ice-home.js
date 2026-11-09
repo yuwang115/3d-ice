@@ -1,7 +1,8 @@
 /*
  * Behaviour for the 3D ICE home pages (/ and /zh/): the language switcher, the theme toggle
- * and the images that follow it, the preview videos, the scroll hand-off from the hero
- * showcase and the feedback form's messages. Loaded with `defer`, after 3d-ice-locale.js.
+ * and the images that follow it, the data tower (3d-ice-data-tower.js, loaded on demand), the
+ * scroll hand-off from the hero showcase and the feedback form's messages. Loaded with
+ * `defer`, after 3d-ice-locale.js.
  *
  * The theme itself is applied by a small inline script in <head> before the first paint.
  * It lives on <html class="dark"> and in localStorage["wc-color-theme"], which the
@@ -12,8 +13,9 @@
 
   const THEME_KEY = "wc-color-theme";
   const SHOWCASE_SCROLL_MESSAGE = "3d-ice:showcase-scroll";
+  // Next to this script on both hosts: 3d-ice.com, and yuwang.blog, which serves the bundle.
+  const TOWER_MODULE = "/js/3d-ice-data-tower.js";
   const root = document.documentElement;
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   const isDark = () => root.classList.contains("dark");
 
@@ -64,93 +66,33 @@
     syncTheme();
   }
 
-  // ------------------------------------------------------------------ preview videos
-
-  function preparePreview(link) {
-    const video = link.querySelector("video");
-    if (!video) return null;
-    // Muted inline playback is what lets browsers start a video without a gesture.
-    video.muted = true;
-    video.defaultMuted = true;
-    video.playsInline = true;
-    return video;
-  }
-
-  function playPreview(preview) {
-    const { link, video } = preview;
-    link.classList.add("is-video-active");
-    const started = video.play();
-    if (started && typeof started.then === "function") {
-      started
-        .then(() => link.classList.add("is-video-playing"))
-        .catch(() => {
-          // Refused (Low Power Mode, an unsupported format): leave the poster rather than retry.
-          preview.refused = true;
-          link.classList.remove("is-video-active");
-        });
-    } else {
-      link.classList.add("is-video-playing");
-    }
-  }
-
-  function pausePreview(link, video) {
-    link.classList.remove("is-video-active", "is-video-playing");
-    video.pause();
-  }
-
-  /** Reduced motion and Data Saver keep the previews on their posters. */
-  function previewsMayPlay() {
-    return !reducedMotion.matches && !navigator.connection?.saveData;
-  }
+  // ------------------------------------------------------------------ data tower
 
   /**
-   * Preview loops play while they are on screen and pause off it, so six videos never decode
-   * at once. They are marked preload="none" and load on their first play, so a visitor who
-   * never scrolls to them downloads only the posters. The links work either way.
+   * The data tower's script loads once its section is about a screen away, so a visitor who
+   * never scrolls to it downloads neither the script nor the layer images. Without it, or if
+   * it fails, the layers stay a list of links.
    */
-  function initPreviews() {
-    const previews = [...document.querySelectorAll(".explorer-preview-link--video[data-video-preview]")]
-      .map((link) => ({ link, video: preparePreview(link), refused: false }))
-      .filter((preview) => preview.video);
-    if (!previews.length) return;
-
-    const visible = new Set();
-    const update = () => {
-      const mayPlay = previewsMayPlay();
-      for (const preview of previews) {
-        const { link, video } = preview;
-        const active = link.classList.contains("is-video-active");
-        const shouldPlay = mayPlay && visible.has(link) && !preview.refused;
-        if (shouldPlay && video.paused && !active) playPreview(preview);
-        else if (!shouldPlay && (!video.paused || active)) pausePreview(link, video);
-      }
+  function initDataTower() {
+    const section = document.querySelector("[data-tower]");
+    if (!section || typeof IntersectionObserver !== "function" || !window.CanvasRenderingContext2D) return;
+    let started = false;
+    const start = () => {
+      if (started) return;
+      started = true;
+      import(TOWER_MODULE)
+        .then(({ mountDataTower }) => mountDataTower(section))
+        .catch((error) => console.error("3D ICE home: the data tower failed to start", error));
     };
-
-    if ("IntersectionObserver" in window) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (entry.isIntersecting) visible.add(entry.target);
-            else visible.delete(entry.target);
-          }
-          update();
-        },
-        { threshold: 0.25 }
-      );
-      previews.forEach(({ link }) => observer.observe(link));
-    } else {
-      previews.forEach(({ link }) => visible.add(link));
-      update();
-    }
-    reducedMotion.addEventListener("change", update);
-    window.addEventListener("pagehide", () => previews.forEach(({ link, video }) => pausePreview(link, video)));
-    // Coming back with the Back button restores the page from the cache, paused.
-    window.addEventListener("pageshow", () => {
-      previews.forEach((preview) => {
-        preview.refused = false;
-      });
-      update();
-    });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        start();
+      },
+      { rootMargin: "100% 0px" }
+    );
+    observer.observe(section);
   }
 
   // ------------------------------------------------------------------ hero showcase
@@ -262,7 +204,7 @@
   // ------------------------------------------------------------------ start
 
   // Each part starts on its own, so a missing element cannot take the others down with it.
-  for (const init of [initLocale, initTheme, initPreviews, initShowcaseScroll, initFeedbackForm]) {
+  for (const init of [initLocale, initTheme, initDataTower, initShowcaseScroll, initFeedbackForm]) {
     try {
       init();
     } catch (error) {
