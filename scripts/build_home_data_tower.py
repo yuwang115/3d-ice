@@ -674,8 +674,13 @@ def draw_sea_ice(ctx: Context, month: int = 9) -> np.ndarray:
     edge = contour_line(smooth, 50.0, 1.4 * FIELD_OVERSAMPLE)
     land = ctx.sample(silhouette(ctx.land_or_ice, UNDERLAY_COLOR, UNDERLAY_ALPHA))
     # Outside the package's domain the share reads 0, which would trace the coast as well.
-    near_land = Image.fromarray(np.uint8(land[..., 3] > 0) * 255).filter(ImageFilter.MaxFilter(2 * round(cell_px) + 1))
-    edge = edge * (np.asarray(near_land) == 0)
+    near_land = np.uint8(land[..., 3] > 0) * 255
+    reach = round(cell_px)
+    # A rank filter of size 1 changes nothing, and Pillow 12.3 dies on it with SIGFPE on
+    # x86-64 Linux, which a canvas small enough for a cell under half a pixel would ask for.
+    if reach > 0:
+        near_land = np.asarray(Image.fromarray(near_land).filter(ImageFilter.MaxFilter(2 * reach + 1)))
+    edge = edge * (near_land == 0)
     edge_layer = np.concatenate([np.array(SEA_ICE_EDGE_COLOR) * edge[..., None], edge[..., None]], axis=-1)
     return premultiplied_over(edge_layer, premultiplied_over(ice, land))
 

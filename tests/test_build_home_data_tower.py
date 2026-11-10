@@ -249,6 +249,18 @@ class TestPackagesAndImages:
             with Image.open(tmp_path / name) as image:
                 assert np.asarray(image.getchannel("A")).max() > 60, f"{name} is empty"
 
+    def test_a_small_canvas_asks_for_no_rank_filter_of_size_one(self, tmp_path, monkeypatch):
+        # Pillow 12.3's MaxFilter(1) dies with SIGFPE on x86-64 Linux (CI, 2026-11-10); at 40 px
+        # an Antarctic sea-ice cell is under half a pixel, which once asked for exactly that.
+        real = tower.ImageFilter.MaxFilter
+
+        def max_filter(size=3):
+            assert size > 1, "a rank filter of size 1 changes nothing and crashes Pillow on Linux"
+            return real(size)
+
+        monkeypatch.setattr(tower.ImageFilter, "MaxFilter", max_filter)
+        assert tower.build_region("antarctica", tmp_path, long_side=40, only={"sea-ice"})
+
     def test_the_command_line_draws_what_it_is_asked_for(self, tmp_path, capsys):
         tower.main(["--region", "greenland", "--layer", "bed", "--output-dir", str(tmp_path), "--long-side", "32"])
         assert (tmp_path / "greenland-bed.webp").is_file()
