@@ -1,8 +1,11 @@
 """The home pages route visitors to the two editions and describe each of them.
 
-Both locale pages share one structure, one stylesheet and one script, so most checks run
-on both and a parity test keeps them in step. Page links are relative to the page (so
-/zh/ reaches the Chinese editions), and shared assets are absolute from the site root.
+The page runs in five parts: the hero, Explore (the data tower with the two edition cards
+under it), the latest updates (three on the page, every one in a drawer), the source data
+grouped by what they show, and feedback. Both locale pages share one structure, one
+stylesheet and one script, so most checks run on both and a parity test keeps them in step.
+Page links are relative to the page (so /zh/ reaches the Chinese editions), and shared assets
+are absolute from the site root.
 """
 
 from __future__ import annotations
@@ -46,6 +49,12 @@ TOWER_PRESETS = {
     "rebound": "{region}-isostatic-rebound",
     "basins": "{region}-basin-boundary",
 }
+# The page's sections, in order; Key Features is gone and Editions and Datasets are one.
+SECTIONS = ["explore", "latest-updates", "source-data", "feedback"]
+# The source data, one group per kind of dataset.
+SOURCE_GROUPS = 8
+# The updates on the page itself; the drawer holds every one.
+UPDATES_ON_PAGE = 3
 VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}
 
 
@@ -167,15 +176,36 @@ class TestEntries:
         assert "explorer-button--primary" not in buttons[1].classes
         assert all(button.text() for button in buttons)
 
-    def test_the_editions_section_follows_the_hero_and_the_data_tower_follows_it(self, locale):
-        ids = section_ids(parse(locale))
-        assert ids[:3] == ["editions", "data-tower", "latest-updates"]
-        assert "antarctica-features" not in ids and "greenland-features" not in ids
+    def test_the_page_runs_explore_updates_data_and_feedback_after_the_hero(self, locale):
+        doc = parse(locale)
+        assert section_ids(doc) == SECTIONS
+        ids = {node.attrs["id"] for node in doc.iter() if node.attrs.get("id")}
+        for gone in ("key-features", "editions-title", "data-tower-title", "antarctica-features", "greenland-features"):
+            assert gone not in ids, gone
+
+    def test_the_explore_section_holds_the_tower_then_the_two_editions(self, locale):
+        explore = parse(locale).find("section", id="explore")
+        assert explore.attrs.get("aria-labelledby") == "explore-title"
+        assert explore.find("h2", id="explore-title").text()
+        parts = [node.attrs["id"] for node in explore.iter() if node.attrs.get("id") in ("data-tower", "editions")]
+        assert parts == ["data-tower", "editions"]
+        # Each names itself to the analytics, as the sections they used to be did.
+        for part in parts:
+            assert explore.find(id=part).attrs.get("data-entry-source") == part
+
+    def test_the_tower_says_what_its_edition_tags_mean(self, locale):
+        key = parse(locale).find(id="data-tower").find("p", cls="explorer-tower-key")
+        # Outside the controls, which wait for the script: the key reads without it too.
+        assert key.parent.attrs.get("data-tower-controls") is None
+        tags = key.find_all("span", cls="explorer-tower-tag")
+        assert [("explorer-tower-tag--public" in tag.classes, "explorer-tower-tag--research" in tag.classes) for tag in tags] == [
+            (True, False),
+            (False, True),
+        ]
+        assert key.text()
 
     def test_each_edition_has_an_introduction_and_a_way_in(self, locale):
-        editions = parse(locale).find("section", id="editions")
-        assert editions.attrs.get("aria-labelledby") == "editions-title"
-        assert editions.find("h2", id="editions-title").text()
+        editions = parse(locale).find(id="editions")
         cards = editions.find_all("article", cls="explorer-edition-card")
         assert [card.attrs.get("data-edition") for card in cards] == ["public", "research"]
         expected_primary = {"public": TOUR, "research": RESEARCH}
@@ -184,9 +214,12 @@ class TestEntries:
             title = card.find("h3")
             assert title.attrs.get("id") == f"{edition}-edition-title"
             assert card.attrs.get("aria-labelledby") == title.attrs["id"]
-            assert card.find("p", cls="explorer-edition-audience").text()
+            audience = card.find("p", cls="explorer-edition-audience")
+            assert audience.text()
+            # The card wears the tag the tower's labels wear for the same edition.
+            assert f"explorer-tower-tag--{edition}" in audience.find("span", cls="explorer-tower-tag").classes
             assert card.find("p", cls="explorer-edition-lead").text()
-            assert len(card.find("ul", cls="explorer-edition-points").find_all("li")) >= 4
+            assert 3 <= len(card.find("ul", cls="explorer-edition-points").find_all("li")) <= 4
             assert card.find("p", cls="explorer-edition-meta").text()
             primary = card.find("a", cls="explorer-button--primary")
             assert primary.attrs["href"] == expected_primary[edition]
@@ -194,8 +227,7 @@ class TestEntries:
         assert PUBLIC in public_links, "the public card also opens the edition without the tour"
 
     def test_the_editions_can_be_compared_in_a_table(self, locale):
-        editions = parse(locale).find("section", id="editions")
-        compare = editions.find("details", cls="explorer-edition-compare")
+        compare = parse(locale).find("section", id="explore").find("details", cls="explorer-edition-compare")
         assert "open" not in compare.attrs, "the comparison starts folded"
         assert compare.find("summary").text()
         # On a phone the table scrolls sideways inside a region a keyboard can reach and name.
@@ -214,9 +246,8 @@ class TestEntries:
                 assert cell.text(), f"an empty cell in {row.text()!r}"
 
     def test_the_data_tower_holds_both_regions_from_the_ice_surface_down(self, locale):
-        tower = parse(locale).find("section", id="data-tower")
-        assert tower.attrs.get("aria-labelledby") == "data-tower-title"
-        assert tower.find("h2", id="data-tower-title").text()
+        tower = parse(locale).find(id="data-tower")
+        assert "data-tower" in tower.attrs
         lists = tower.find_all("ol", cls="explorer-tower-layers")
         assert [node.attrs.get("data-tower-region") for node in lists] == list(TOWER_LAYERS)
         for node in lists:
@@ -227,7 +258,7 @@ class TestEntries:
             assert node.attrs.get("data-shadow-src") == f"/tools/media/3d-ice/tower/{region}-shadow.webp"
 
     def test_every_tower_layer_opens_its_view_in_the_edition_that_has_it(self, locale):
-        tower = parse(locale).find("section", id="data-tower")
+        tower = parse(locale).find(id="data-tower")
         for item in tower.find_all("li", cls="explorer-tower-layer"):
             region = item.parent.attrs["data-tower-region"]
             layer = item.attrs["data-tower-layer"]
@@ -245,7 +276,7 @@ class TestEntries:
             assert f"explorer-tower-tag--{opens}" in tag.classes and tag.text(), f"{region} {layer} says where it opens"
 
     def test_the_tower_controls_wait_for_the_script(self, locale):
-        tower = parse(locale).find("section", id="data-tower")
+        tower = parse(locale).find(id="data-tower")
         controls = tower.find("div", cls="explorer-tower-controls")
         # Without the script the region switch would do nothing, so it starts hidden.
         assert "hidden" in controls.attrs
@@ -258,14 +289,54 @@ class TestEntries:
         chip = tower.find(attrs_present="data-tower-open")
         assert "hidden" in chip.attrs and "{layer}" in chip.attrs.get("data-template", "")
 
-    def test_the_newest_updates_introduce_the_projections_then_the_public_edition(self, locale):
-        updates = parse(locale).find("section", id="latest-updates")
-        newest, previous = updates.find_all("article", cls="explorer-update-card")[:2]
-        assert newest.attrs.get("aria-labelledby") == "projection-update-title"
-        assert newest.find("time", cls="explorer-update-date").attrs.get("datetime") == "2026-10-06"
-        assert previous.attrs.get("aria-labelledby") == "public-edition-update-title"
-        assert previous.find("time", cls="explorer-update-date").attrs.get("datetime") == "2026-09-30"
-        assert TOUR in [a.attrs["href"] for a in previous.find_all("a")]
+    def test_the_page_shows_the_newest_updates_and_a_way_to_all_of_them(self, locale):
+        doc = parse(locale)
+        updates = doc.find("section", id="latest-updates")
+        cards = updates.find_all("article", cls="explorer-update-card")
+        assert len(cards) == UPDATES_ON_PAGE
+        drawer = doc.find("dialog", id="all-updates")
+        everything = [node.attrs["datetime"] for node in drawer.find_all("time", cls="explorer-update-date")]
+        shown = [card.find("time", cls="explorer-update-date").attrs["datetime"] for card in cards]
+        assert shown == everything[:UPDATES_ON_PAGE], "the page shows the drawer's newest updates"
+        for card in cards:
+            title = card.find("h3")
+            assert card.attrs.get("aria-labelledby") == title.attrs.get("id") and title.text()
+            assert card.find("span", cls="explorer-update-badge").text()
+            assert len(card.find_all("a", cls="explorer-update-link")) == 1, "each update links to where it can be seen"
+        trigger = updates.find("a", attrs_present="data-drawer-open")
+        assert (trigger.attrs["href"], trigger.attrs["data-drawer-open"], trigger.attrs.get("aria-haspopup")) == (
+            "#all-updates",
+            "all-updates",
+            "dialog",
+        )
+
+    def test_the_drawer_lists_every_update_newest_first(self, locale):
+        drawer = parse(locale).find("dialog", id="all-updates")
+        assert "open" not in drawer.attrs, "the drawer starts closed"
+        assert drawer.attrs.get("aria-labelledby") == "all-updates-title"
+        assert drawer.find("h2", id="all-updates-title").text()
+        assert drawer.attrs.get("data-entry-source") == "all-updates"
+        close = drawer.find(attrs_present="data-drawer-close")
+        # Without the script the close link leaves the drawer, which then hides again.
+        assert close.attrs.get("href") == "#latest-updates" and close.attrs.get("aria-label")
+        items = drawer.find("ol", cls="explorer-drawer-list").find_all("li", cls="explorer-drawer-item")
+        dates = [item.find("time", cls="explorer-update-date").attrs["datetime"] for item in items]
+        assert len(items) >= 8
+        assert dates == sorted(dates, reverse=True)
+        for item in items:
+            assert item.find("h3").text() and item.find("span", cls="explorer-update-badge").text()
+            assert len([child for child in item.find_all("p") if "explorer-update-meta" not in child.classes]) == 1
+        # The releases and features the page has announced before, still on record.
+        for date in ("2026-10-06", "2026-09-30", "2026-09-22", "2026-08-13"):
+            assert date in dates, date
+        changelog = drawer.find("p", cls="explorer-drawer-foot").find("a")
+        assert changelog.attrs["href"].endswith("/CHANGELOG.md")
+
+    def test_update_badges_name_their_edition_in_its_colour(self, locale):
+        doc = parse(locale)
+        for badge in doc.find_all("span", cls="explorer-update-badge"):
+            variants = [name for name in badge.classes if name.startswith("explorer-update-badge--")]
+            assert variants in (["explorer-update-badge--both"], ["explorer-update-badge--public"], ["explorer-update-badge--research"]), badge.text()
 
 
 @pytest.mark.integration
@@ -281,11 +352,33 @@ class TestContent:
         sources = parse(locale).find("section", id="source-data")
         assert "https://doi.org/10.7280/D1WT11" in {a.attrs["href"] for a in sources.find_all("a")}
 
+    def test_source_data_is_grouped_by_what_it_shows(self, locale):
+        sources = parse(locale).find("section", id="source-data")
+        groups = sources.find("div", cls="explorer-source-columns").find_all("div", cls="explorer-source-group")
+        assert len(groups) == SOURCE_GROUPS
+        entries = 0
+        for group in groups:
+            assert group.find("h3").text()
+            items = group.find("ul", cls="explorer-source-list").find_all("li")
+            assert items, group.find("h3").text()
+            entries += len(items)
+        # One line per dataset, with its paper or data alongside: no longer a list of 42 titles.
+        assert entries <= 24
+
     def test_source_links_open_in_a_new_tab_safely(self, locale):
         sources = parse(locale).find("section", id="source-data")
         for link in sources.find("div", cls="explorer-source-columns").find_all("a"):
             assert link.attrs.get("target") == "_blank"
             assert "noopener" in link.attrs.get("rel", "")
+
+    def test_the_hero_holds_the_one_page_title(self, locale):
+        doc = parse(locale)
+        titles = doc.find_all("h1")
+        assert len(titles) == 1 and "explorer-page-title" in titles[0].classes
+        hero = doc.find(cls="explorer-ice-hero")
+        assert hero.find("h1") is titles[0]
+        assert titles[0].find("img", cls="explorer-ice-logo").attrs.get("alt")
+        assert titles[0].find("span", cls="explorer-hero-title").text()
 
     def test_in_page_links_point_at_sections_on_the_page(self, locale):
         doc = parse(locale)

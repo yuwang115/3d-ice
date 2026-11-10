@@ -69,7 +69,10 @@
     const here = editionAt(window.location);
     if (here) return `${here}-edition`;
     if (!HOME_PATHS.includes(window.location.pathname)) return "other";
-    return `home-${link.closest("section[id]")?.id || "hero"}`;
+    // A part of a section can name itself (data-entry-source), as the data tower and the
+    // edition cards do inside the Explore section.
+    const holder = link.closest("[data-entry-source], section[id]");
+    return `home-${holder?.dataset.entrySource || holder?.id || "hero"}`;
   };
 
   // A click on a link into an edition is an entry to it. Links within an edition, such as its

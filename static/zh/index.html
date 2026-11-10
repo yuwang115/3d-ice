@@ -117,7 +117,7 @@
             "name": "我可以在 3D ICE 中探索哪些数据？",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "南极洲与格陵兰的基岩地形、冰厚与冰的流动、海洋环流、海平面以及无冰状态下的地壳均衡回弹，以及基于八个 ISMIP6 模型的南极冰盖 2300 年预估；专业版还提供基底摩擦，以及南极的冰下水文和冰架底部融化。每个图层都来自已发表的数据集、模型或预印本。"
+              "text": "南极洲与格陵兰的基岩地形、冰厚与冰的流动、接地线、海洋环流、海平面以及无冰状态下的地壳均衡回弹，以及基于八个 ISMIP6 模型的南极冰盖 2300 年预估。专业版还提供基底摩擦、1978 年以来的海冰观测，以及南极的冰下水文、冰架底部融化和 1995 年以来的冰面高程变化观测。每个图层都来自已发表的数据集、模型或预印本。"
             }
           },
           {
@@ -132,7 +132,7 @@
       }
     </script>
   </head>
-  <body class="page-wrapper" id="top">
+  <body class="page-wrapper explorer-home-page" id="top">
     <a class="explorer-skip-link" href="#main">跳到正文</a>
     <div class="page-body">
       <div class="explorer-page-shell explorer-page-shell--ice">
@@ -145,10 +145,9 @@
               <span aria-current="page">3D ICE</span>
             </nav>
             <nav class="explorer-page-nav" aria-label="本页导航">
-              <a href="#editions">版本</a>
-              <a href="#data-tower">数据集</a>
+              <a href="#explore">探索</a>
               <a href="#latest-updates">最新更新</a>
-              <a href="#source-data">源数据</a>
+              <a href="#source-data">数据</a>
               <a href="#feedback">反馈</a>
             </nav>
             <div class="explorer-topbar-actions">
@@ -171,29 +170,23 @@
               </button>
             </div>
           </div>
-          <p class="explorer-page-kicker">冰冻圈交互探索平台</p>
-          <h1 class="explorer-page-title">3D ICE：极地，触手可及</h1>
         </header>
 
         <main id="main" class="explorer-page-content explorer-landing explorer-landing--ice">
-          <div class="explorer-ice-hero explorer-ice-hero--split">
+          <div class="explorer-ice-hero">
             <div class="explorer-hero-copy">
-              <div class="explorer-ice-brand">
+              <h1 class="explorer-page-title">
                 <img class="explorer-ice-logo" src="/tools/3d-ice-logo-light.jpg" data-light-src="/tools/3d-ice-logo-light.jpg" data-dark-src="/tools/3d-ice-logo.jpg" alt="3D ICE：冰冻圈交互探索平台" width="2631" height="1166" fetchpriority="high" />
-              </div>
-              <p class="explorer-ice-lead">以前所未有的方式，探索南极洲与格陵兰。</p>
+                <span class="explorer-hero-title"><span class="visually-hidden">：</span>极地，触手可及</span>
+              </h1>
+              <p class="explorer-ice-lead">以 3D 方式探索南极洲与格陵兰：从深埋在数千米冰层之下的基岩，到环绕冰盖的洋流。</p>
               <div class="explorer-actions explorer-actions--hero">
                 <a class="explorer-button explorer-button--primary" href="./explore/?tour=1">开始导览</a>
                 <a class="explorer-button explorer-button--ghost" href="./tools/3D-interactive-cryosphere-explorer.html">打开专业版</a>
               </div>
-              <p class="explorer-showcase-note">
-                导览约需六分钟，手机和电脑均可。不确定选哪个？<a href="#editions">比较两个版本</a>。
-              </p>
-              <p class="explorer-summary">
-                3D ICE 将前沿的南极与格陵兰数据集，转化为可在浏览器中自由探索的 3D 世界：从深埋在数千米冰层之下的基岩，到环绕冰盖的洋流。它提供两个版本：带有导览的科普版，以及包含全部数据集与图层的专业版。
-              </p>
+              <p class="explorer-hero-meta">导览约六分钟 · 手机和电脑均可 · 无需安装</p>
             </div>
-            <div class="explorer-showcase-breakout explorer-showcase-breakout--hero">
+            <div class="explorer-showcase">
               <div class="explorer-showcase-frame explorer-showcase-frame--mobile-linkout">
                 <iframe title="3D ICE 南极交互展示" src="./tools/3D-interactive-cryosphere-explorer.html?mode=showcase&amp;preset=tools-hero&amp;mobileLinkout=1&amp;desktopInteractive=1&amp;recording=1&amp;recordingSpeed=0.60&amp;recordingZoomAmount=10" loading="eager" referrerpolicy="no-referrer"></iframe>
                 <a class="explorer-showcase-mobile-link" href="./explore/">
@@ -203,23 +196,177 @@
             </div>
           </div>
 
-          <section id="editions" class="explorer-section explorer-edition-section" aria-labelledby="editions-title">
-            <div class="explorer-region-intro">
-              <p class="explorer-region-label">版本</p>
-              <h2 id="editions-title">两种探索方式</h2>
-              <p>
-                两个版本运行同一个探索器，使用同样的数据。初次了解冰盖，建议从科普版开始；需要全部数据集和图层时，请打开专业版。
-              </p>
+          <section id="explore" class="explorer-section explorer-explore-section" aria-labelledby="explore-title">
+            <div class="explorer-section-head">
+              <p class="explorer-eyebrow">探索</p>
+              <h2 id="explore-title">每一个数据集，两种探索方式</h2>
+              <p class="explorer-lede">数据塔的每一层都是 3D ICE 中的一个数据集，取自探索器加载的同一批文件。点击任意一层即可打开它。标有“科普版”的图层在科普版中也有，并配有导览；专业版包含全部图层。</p>
             </div>
-            <div class="explorer-edition-grid">
+
+            <div id="data-tower" class="explorer-tower" data-tower data-entry-source="data-tower">
+              <div class="explorer-tower-bar">
+                <div class="explorer-tower-controls" data-tower-controls hidden>
+                  <div class="explorer-tower-switch" role="group" aria-label="冰盖">
+                    <button type="button" data-tower-region-button="antarctica" aria-pressed="true">南极洲</button>
+                    <button type="button" data-tower-region-button="greenland" aria-pressed="false">格陵兰</button>
+                  </div>
+                  <p class="explorer-tower-hint"><span class="explorer-tower-hint-mouse">拖动旋转 · 点击图层即可打开</span><span class="explorer-tower-hint-touch">滑动旋转 · 轻点图层，再点一次即可打开</span></p>
+                </div>
+                <p class="explorer-tower-key">
+                  <span><span class="explorer-tower-tag explorer-tower-tag--public">科普版</span> 两个版本都有</span>
+                  <span><span class="explorer-tower-tag explorer-tower-tag--research">专业版</span> 仅专业版</span>
+                </p>
+              </div>
+              <div class="explorer-tower-stage" data-tower-stage>
+                <canvas class="explorer-tower-canvas" data-tower-canvas aria-hidden="true"></canvas>
+                <ol class="explorer-tower-layers" data-tower-region="antarctica" data-shadow-src="/tools/media/3d-ice/tower/antarctica-shadow.webp" aria-label="南极洲的数据集，自上而下">
+                  <li class="explorer-tower-layer" data-tower-layer="ice-surface" data-src="/tools/media/3d-ice/tower/antarctica-ice-surface.webp">
+                    <a href="./explore/?region=antarctica&amp;preset=antarctica-ice-surface" data-opens="public">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>冰表面</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                      <span class="explorer-tower-layer-source">BedMachine Antarctica v4</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="surface-change" data-src="/tools/media/3d-ice/tower/antarctica-surface-change.webp">
+                    <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-surface-change" data-opens="research">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>1995 年以来的冰面高程变化</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                      <span class="explorer-tower-layer-source">CPOM 雷达测高</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="velocity" data-src="/tools/media/3d-ice/tower/antarctica-velocity.webp">
+                    <a href="./explore/?region=antarctica&amp;preset=antarctica-velocity-flowlines" data-opens="public">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>冰流速度</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                      <span class="explorer-tower-layer-source">MEaSUREs 相位法冰速</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="projection" data-src="/tools/media/3d-ice/tower/antarctica-projection.webp">
+                    <a href="./explore/?region=antarctica&amp;preset=antarctica-projection" data-opens="public">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>至 2300 年的冰厚变化</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                      <span class="explorer-tower-layer-source">ISMIP6，高排放情景</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="sea-ice" data-src="/tools/media/3d-ice/tower/antarctica-sea-ice.webp">
+                    <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-sea-ice" data-opens="research">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>海冰</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                      <span class="explorer-tower-layer-source">NOAA/NSIDC 气候数据记录</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="ocean" data-src="/tools/media/3d-ice/tower/antarctica-ocean.webp">
+                    <a href="./explore/?region=antarctica&amp;preset=antarctica-ocean-circulations" data-opens="public">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>海洋环流</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                      <span class="explorer-tower-layer-source">WAOM2 海洋模式</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="basal-melt" data-src="/tools/media/3d-ice/tower/antarctica-basal-melt.webp">
+                    <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-basal-melt" data-opens="research">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>冰架底部融化</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                      <span class="explorer-tower-layer-source">Galton-Fenzi 等（2025）</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="basal-friction" data-src="/tools/media/3d-ice/tower/antarctica-basal-friction.webp">
+                    <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-basal-friction" data-opens="research">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>基底摩擦</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                      <span class="explorer-tower-layer-source">AISEFI 集合反演</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="subglacial" data-src="/tools/media/3d-ice/tower/antarctica-subglacial.webp">
+                    <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-subglacial-features" data-opens="research">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>冰下水文</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                      <span class="explorer-tower-layer-source">Ehrenfeucht 等（2025）</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="bed" data-src="/tools/media/3d-ice/tower/antarctica-bed.webp">
+                    <a href="./explore/?region=antarctica&amp;preset=antarctica-bed-topography" data-opens="public">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>基岩高程</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                      <span class="explorer-tower-layer-source">BedMachine Antarctica v4</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="rebound" data-src="/tools/media/3d-ice/tower/antarctica-rebound.webp">
+                    <a href="./explore/?region=antarctica&amp;preset=antarctica-isostatic-rebound" data-opens="public">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>无冰状态下的地壳回弹</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                      <span class="explorer-tower-layer-source">Paxman 等（2022）</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="basins" data-src="/tools/media/3d-ice/tower/antarctica-basins.webp">
+                    <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-basin-boundary" data-opens="research">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>流域边界</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                      <span class="explorer-tower-layer-source">MEaSUREs 南极边界</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="grounding-line" data-src="/tools/media/3d-ice/tower/antarctica-grounding-line.webp">
+                    <a href="./explore/?region=antarctica&amp;preset=antarctica-grounding-line" data-opens="public">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>接地线</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                      <span class="explorer-tower-layer-source">BedMachine Antarctica v4</span>
+                    </a>
+                  </li>
+                </ol>
+                <ol class="explorer-tower-layers" data-tower-region="greenland" data-shadow-src="/tools/media/3d-ice/tower/greenland-shadow.webp" aria-label="格陵兰的数据集，自上而下">
+                  <li class="explorer-tower-layer" data-tower-layer="ice-surface" data-src="/tools/media/3d-ice/tower/greenland-ice-surface.webp">
+                    <a href="./explore/?region=greenland&amp;preset=greenland-ice-surface" data-opens="public">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>冰表面</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                      <span class="explorer-tower-layer-source">BedMachine Greenland v6</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="velocity" data-src="/tools/media/3d-ice/tower/greenland-velocity.webp">
+                    <a href="./explore/?region=greenland&amp;preset=greenland-velocity-flowlines" data-opens="public">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>冰流速度</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                      <span class="explorer-tower-layer-source">ITS_LIVE 冰速镶嵌图</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="sea-ice" data-src="/tools/media/3d-ice/tower/greenland-sea-ice.webp">
+                    <a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-sea-ice" data-opens="research">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>海冰</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                      <span class="explorer-tower-layer-source">NOAA/NSIDC 气候数据记录</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="ocean" data-src="/tools/media/3d-ice/tower/greenland-ocean.webp">
+                    <a href="./explore/?region=greenland&amp;preset=greenland-ocean-circulations" data-opens="public">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>海洋环流</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                      <span class="explorer-tower-layer-source">哥白尼海洋服务分析数据</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="basal-friction" data-src="/tools/media/3d-ice/tower/greenland-basal-friction.webp">
+                    <a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-basal-friction" data-opens="research">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>基底摩擦</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                      <span class="explorer-tower-layer-source">GrISEFI 集合反演</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="bed" data-src="/tools/media/3d-ice/tower/greenland-bed.webp">
+                    <a href="./explore/?region=greenland&amp;preset=greenland-bed-topography" data-opens="public">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>基岩高程</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                      <span class="explorer-tower-layer-source">BedMachine Greenland v6</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="rebound" data-src="/tools/media/3d-ice/tower/greenland-rebound.webp">
+                    <a href="./explore/?region=greenland&amp;preset=greenland-isostatic-rebound" data-opens="public">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>无冰状态下的地壳回弹</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                      <span class="explorer-tower-layer-source">Paxman 等（2022）</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="basins" data-src="/tools/media/3d-ice/tower/greenland-basins.webp">
+                    <a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-basin-boundary" data-opens="research">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>流域边界</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
+                      <span class="explorer-tower-layer-source">Mouginot 与 Rignot（2019）</span>
+                    </a>
+                  </li>
+                  <li class="explorer-tower-layer" data-tower-layer="grounding-line" data-src="/tools/media/3d-ice/tower/greenland-grounding-line.webp">
+                    <a href="./explore/?region=greenland&amp;preset=greenland-grounding-line" data-opens="public">
+                      <span class="explorer-tower-layer-name"><span data-tower-name>接地线</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
+                      <span class="explorer-tower-layer-source">BedMachine Greenland v6</span>
+                    </a>
+                  </li>
+                </ol>
+                <p class="explorer-tower-open" data-tower-open data-template="打开{layer}" hidden><a class="explorer-button explorer-button--primary"></a></p>
+              </div>
+            </div>
+
+            <div id="editions" class="explorer-edition-grid" data-entry-source="editions">
               <article class="explorer-edition-card explorer-edition-card--public" data-edition="public" aria-labelledby="public-edition-title">
-                <p class="explorer-edition-audience">面向大众</p>
+                <p class="explorer-edition-audience"><span class="explorer-tower-tag explorer-tower-tag--public" aria-hidden="true">科普版</span> 面向大众</p>
                 <h3 id="public-edition-title">科普版</h3>
                 <p class="explorer-edition-lead">带你初识冰盖，边看边讲解背后的科学。</p>
                 <ul class="explorer-edition-points" role="list">
-                  <li>九站导览：从冰雪大陆出发，探访冰层下隐藏的陆地、南大洋和南极的未来，再到格陵兰</li>
+                  <li>九站导览：从冰雪大陆出发，探访南极的未来，再到格陵兰</li>
                   <li>每个图层旁都有通俗易懂的说明，并注明所用数据的来源</li>
-                  <li>冰的流动、洋流、海平面、南极到 2300 年的未来，以及冰盖消失后抬升的陆地</li>
                   <li>适合手机、平板、课堂教学和科普展台</li>
                 </ul>
                 <p class="explorer-edition-meta">约六分钟 · 中文与 <span lang="en">English</span></p>
@@ -229,16 +376,14 @@
                 </div>
               </article>
               <article class="explorer-edition-card explorer-edition-card--research" data-edition="research" aria-labelledby="research-edition-title">
-                <p class="explorer-edition-audience">面向科研人员</p>
+                <p class="explorer-edition-audience"><span class="explorer-tower-tag explorer-tower-tag--research" aria-hidden="true">专业版</span> 面向科研人员</p>
                 <h3 id="research-edition-title">专业版</h3>
                 <p class="explorer-edition-lead">全部数据集、分辨率与图层，并附数据来源。</p>
                 <ul class="explorer-edition-points" role="list">
-                  <li>南极的 BedMachine 与 Bedmap3、格陵兰的 BedMachine 与 QRF 基岩地形，各有两种分辨率</li>
-                  <li>两大冰盖的冰速、基底摩擦，以及分四个深度层的洋流</li>
-                  <li>南极另有冰下有效压力与水文通道，以及基于 BedMachine 地形的冰架底部融化与热驱动</li>
-                  <li>南极冰盖在三种 ISMIP6 情景下到 2300 年的预估：八个冰盖模型的平均，并给出海平面贡献的范围</li>
-                  <li>基于已发表的 Paxman 等（2022）响应的无冰回弹，并提供理想化的 ELRA 与 Airy 模型作对比</li>
-                  <li>数据快照为当前显示的数据集链接来源；点击任意冰流线，即可查看冰面、冰底与基岩的沿流剖面</li>
+                  <li>每个冰盖都有两种基岩地形与两种网格分辨率</li>
+                  <li>基底摩擦，以及南极的冰下水文与冰架底部融化</li>
+                  <li>1978 年以来的海冰观测，以及 1995 年以来的南极冰面高程变化</li>
+                  <li>数据快照为当前显示的数据集链接来源</li>
                 </ul>
                 <p class="explorer-edition-meta">建议在电脑上使用 · 中文与 <span lang="en">English</span></p>
                 <div class="explorer-actions">
@@ -247,6 +392,7 @@
                 </div>
               </article>
             </div>
+
             <details class="explorer-edition-compare">
               <summary>比较两个版本</summary>
               <div class="explorer-edition-table-wrap" role="region" tabindex="0" aria-labelledby="edition-compare-caption">
@@ -286,6 +432,11 @@
                       <td>有；冰下水文与冰架融化仅限南极</td>
                     </tr>
                     <tr>
+                      <th scope="row">海冰与冰面高程变化观测</th>
+                      <td>无</td>
+                      <td>有；冰面高程变化仅限南极</td>
+                    </tr>
+                    <tr>
                       <th scope="row">南极的未来（ISMIP6，至 2300 年）</th>
                       <td>三种情景，按冰厚变化着色</td>
                       <td>同上，或按接地冰/漂浮冰着色，数据快照列出方法与模型</td>
@@ -298,7 +449,7 @@
                     <tr>
                       <th scope="row">地点搜索、地名与科考站</th>
                       <td>有</td>
-                      <td>有，另含冰盖流域</td>
+                      <td>有，另含冰盖流域与冰芯站点</td>
                     </tr>
                     <tr>
                       <th scope="row">数据来源</th>
@@ -316,444 +467,265 @@
             </details>
           </section>
 
-          <section id="data-tower" class="explorer-section explorer-tower-section" aria-labelledby="data-tower-title" data-tower>
-            <div class="explorer-region-intro">
-              <p class="explorer-region-label">数据集</p>
-              <h2 id="data-tower-title">逐层看懂 3D ICE 的每一个数据集</h2>
-              <p>数据塔的每一层都是 3D ICE 中的一个数据集，取自探索器加载的同一批文件，配色也与探索器一致。拖动可以旋转数据塔，点击某一层即可打开它：科普版中有的图层在科普版中打开，其余的在专业版中打开。</p>
-            </div>
-            <div class="explorer-tower-controls" data-tower-controls hidden>
-              <div class="explorer-tower-switch" role="group" aria-label="冰盖">
-                <button type="button" data-tower-region-button="antarctica" aria-pressed="true">南极洲</button>
-                <button type="button" data-tower-region-button="greenland" aria-pressed="false">格陵兰</button>
-              </div>
-              <p class="explorer-tower-hint"><span class="explorer-tower-hint-mouse">拖动旋转数据塔 · 点击图层即可打开</span><span class="explorer-tower-hint-touch">滑动旋转数据塔 · 轻点图层，再点一次即可打开</span></p>
-            </div>
-            <div class="explorer-tower-stage" data-tower-stage>
-              <canvas class="explorer-tower-canvas" data-tower-canvas aria-hidden="true"></canvas>
-              <ol class="explorer-tower-layers" data-tower-region="antarctica" data-shadow-src="/tools/media/3d-ice/tower/antarctica-shadow.webp" aria-label="南极洲的数据集，自上而下">
-                <li class="explorer-tower-layer" data-tower-layer="ice-surface" data-src="/tools/media/3d-ice/tower/antarctica-ice-surface.webp">
-                  <a href="./explore/?region=antarctica&amp;preset=antarctica-ice-surface" data-opens="public">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>冰表面</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
-                    <span class="explorer-tower-layer-source">BedMachine Antarctica v4</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="surface-change" data-src="/tools/media/3d-ice/tower/antarctica-surface-change.webp">
-                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-surface-change" data-opens="research">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>1995 年以来的冰面高程变化</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
-                    <span class="explorer-tower-layer-source">CPOM 雷达测高</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="velocity" data-src="/tools/media/3d-ice/tower/antarctica-velocity.webp">
-                  <a href="./explore/?region=antarctica&amp;preset=antarctica-velocity-flowlines" data-opens="public">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>冰流速度</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
-                    <span class="explorer-tower-layer-source">MEaSUREs 相位法冰速</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="projection" data-src="/tools/media/3d-ice/tower/antarctica-projection.webp">
-                  <a href="./explore/?region=antarctica&amp;preset=antarctica-projection" data-opens="public">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>至 2300 年的冰厚变化</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
-                    <span class="explorer-tower-layer-source">ISMIP6，高排放情景</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="sea-ice" data-src="/tools/media/3d-ice/tower/antarctica-sea-ice.webp">
-                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-sea-ice" data-opens="research">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>海冰</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
-                    <span class="explorer-tower-layer-source">NOAA/NSIDC 气候数据记录</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="ocean" data-src="/tools/media/3d-ice/tower/antarctica-ocean.webp">
-                  <a href="./explore/?region=antarctica&amp;preset=antarctica-ocean-circulations" data-opens="public">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>海洋环流</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
-                    <span class="explorer-tower-layer-source">WAOM2 海洋模式</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="basal-melt" data-src="/tools/media/3d-ice/tower/antarctica-basal-melt.webp">
-                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-basal-melt" data-opens="research">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>冰架底部融化</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
-                    <span class="explorer-tower-layer-source">Galton-Fenzi 等（2025）</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="basal-friction" data-src="/tools/media/3d-ice/tower/antarctica-basal-friction.webp">
-                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-basal-friction" data-opens="research">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>基底摩擦</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
-                    <span class="explorer-tower-layer-source">AISEFI 集合反演</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="subglacial" data-src="/tools/media/3d-ice/tower/antarctica-subglacial.webp">
-                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-subglacial-features" data-opens="research">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>冰下水文</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
-                    <span class="explorer-tower-layer-source">Ehrenfeucht 等（2025）</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="bed" data-src="/tools/media/3d-ice/tower/antarctica-bed.webp">
-                  <a href="./explore/?region=antarctica&amp;preset=antarctica-bed-topography" data-opens="public">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>基岩高程</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
-                    <span class="explorer-tower-layer-source">BedMachine Antarctica v4</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="rebound" data-src="/tools/media/3d-ice/tower/antarctica-rebound.webp">
-                  <a href="./explore/?region=antarctica&amp;preset=antarctica-isostatic-rebound" data-opens="public">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>无冰状态下的地壳回弹</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
-                    <span class="explorer-tower-layer-source">Paxman 等（2022）</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="basins" data-src="/tools/media/3d-ice/tower/antarctica-basins.webp">
-                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-basin-boundary" data-opens="research">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>流域边界</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
-                    <span class="explorer-tower-layer-source">MEaSUREs 南极边界</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="grounding-line" data-src="/tools/media/3d-ice/tower/antarctica-grounding-line.webp">
-                  <a href="./explore/?region=antarctica&amp;preset=antarctica-grounding-line" data-opens="public">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>接地线</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
-                    <span class="explorer-tower-layer-source">BedMachine Antarctica v4</span>
-                  </a>
-                </li>
-              </ol>
-              <ol class="explorer-tower-layers" data-tower-region="greenland" data-shadow-src="/tools/media/3d-ice/tower/greenland-shadow.webp" aria-label="格陵兰的数据集，自上而下">
-                <li class="explorer-tower-layer" data-tower-layer="ice-surface" data-src="/tools/media/3d-ice/tower/greenland-ice-surface.webp">
-                  <a href="./explore/?region=greenland&amp;preset=greenland-ice-surface" data-opens="public">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>冰表面</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
-                    <span class="explorer-tower-layer-source">BedMachine Greenland v6</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="velocity" data-src="/tools/media/3d-ice/tower/greenland-velocity.webp">
-                  <a href="./explore/?region=greenland&amp;preset=greenland-velocity-flowlines" data-opens="public">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>冰流速度</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
-                    <span class="explorer-tower-layer-source">ITS_LIVE 冰速镶嵌图</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="sea-ice" data-src="/tools/media/3d-ice/tower/greenland-sea-ice.webp">
-                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-sea-ice" data-opens="research">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>海冰</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
-                    <span class="explorer-tower-layer-source">NOAA/NSIDC 气候数据记录</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="ocean" data-src="/tools/media/3d-ice/tower/greenland-ocean.webp">
-                  <a href="./explore/?region=greenland&amp;preset=greenland-ocean-circulations" data-opens="public">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>海洋环流</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
-                    <span class="explorer-tower-layer-source">哥白尼海洋服务分析数据</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="basal-friction" data-src="/tools/media/3d-ice/tower/greenland-basal-friction.webp">
-                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-basal-friction" data-opens="research">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>基底摩擦</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
-                    <span class="explorer-tower-layer-source">GrISEFI 集合反演</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="bed" data-src="/tools/media/3d-ice/tower/greenland-bed.webp">
-                  <a href="./explore/?region=greenland&amp;preset=greenland-bed-topography" data-opens="public">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>基岩高程</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
-                    <span class="explorer-tower-layer-source">BedMachine Greenland v6</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="rebound" data-src="/tools/media/3d-ice/tower/greenland-rebound.webp">
-                  <a href="./explore/?region=greenland&amp;preset=greenland-isostatic-rebound" data-opens="public">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>无冰状态下的地壳回弹</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
-                    <span class="explorer-tower-layer-source">Paxman 等（2022）</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="basins" data-src="/tools/media/3d-ice/tower/greenland-basins.webp">
-                  <a href="./tools/3D-interactive-cryosphere-explorer.html?region=greenland&amp;preset=greenland-basin-boundary" data-opens="research">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>流域边界</span> <span class="explorer-tower-tag explorer-tower-tag--research">专业版</span></span>
-                    <span class="explorer-tower-layer-source">Mouginot 与 Rignot（2019）</span>
-                  </a>
-                </li>
-                <li class="explorer-tower-layer" data-tower-layer="grounding-line" data-src="/tools/media/3d-ice/tower/greenland-grounding-line.webp">
-                  <a href="./explore/?region=greenland&amp;preset=greenland-grounding-line" data-opens="public">
-                    <span class="explorer-tower-layer-name"><span data-tower-name>接地线</span> <span class="explorer-tower-tag explorer-tower-tag--public">科普版</span></span>
-                    <span class="explorer-tower-layer-source">BedMachine Greenland v6</span>
-                  </a>
-                </li>
-              </ol>
-              <p class="explorer-tower-open" data-tower-open data-template="打开{layer}" hidden><a class="explorer-button explorer-button--primary"></a></p>
-            </div>
-          </section>
-
           <section id="latest-updates" class="explorer-section explorer-update-section" aria-labelledby="latest-updates-title">
-            <div class="explorer-region-intro">
-              <p class="explorer-region-label">最新更新</p>
-              <h2 id="latest-updates-title">3D ICE 最近更新</h2>
-              <p>在这里了解极地数据探索功能的最新改进，并通过发布日期快速掌握每次更新。</p>
+            <div class="explorer-section-head explorer-section-head--split">
+              <div>
+                <p class="explorer-eyebrow">最新更新</p>
+                <h2 id="latest-updates-title">近期更新</h2>
+              </div>
+              <a class="explorer-button explorer-button--ghost explorer-drawer-open" href="#all-updates" data-drawer-open="all-updates" aria-haspopup="dialog">全部更新</a>
             </div>
             <ol class="explorer-update-list">
               <li>
-                <article class="explorer-update-card" aria-labelledby="projection-update-title">
-                  <div class="explorer-update-meta">
-                    <time class="explorer-update-date" datetime="2026-10-06">2026年10月6日</time>
-                    <span class="explorer-update-badge">两个版本</span>
-                  </div>
-                  <div class="explorer-update-body">
-                    <h3 id="projection-update-title">看南极冰盖演变到 2300 年</h3>
-                    <p>
-                      年份滑块从 2015 年播放到 2300 年，展示低排放、高排放以及高排放并伴随冰架崩解三种情景下南极冰盖的变化。每幅图都是八个 ISMIP6 冰盖模型（Seroussi 等，2024）的平均变化，套用到今天的冰盖上，并给出各模型对海平面的贡献及其范围。
-                    </p>
-                    <ul class="explorer-update-highlights">
-                      <li><strong>情景：</strong>UKESM1-0-LL 气候强迫下的 SSP1-2.6 与 SSP5-8.5，以及冰架因表面融化而崩解的 SSP5-8.5。</li>
-                      <li><strong>冰流线：</strong>冰流线贴合预估的冰面，并在模型中冰川加速的地方加速。</li>
-                      <li><strong>导览：</strong>新增一站，用十五秒播放高排放下的未来。</li>
-                    </ul>
-                    <div class="explorer-actions">
-                      <a class="explorer-button explorer-button--primary" href="./tools/3D-interactive-cryosphere-explorer.html">打开专业版</a>
-                    </div>
-                  </div>
+                <article class="explorer-update-card" aria-labelledby="grounding-line-update-title">
+                  <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-03">2026年11月3日</time> <span class="explorer-update-badge explorer-update-badge--both">两个版本</span></p>
+                  <h3 id="grounding-line-update-title">接地线</h3>
+                  <p>一条深色线标出接地冰与漂浮冰或海洋的交界，由屏幕上的地形逐格追踪得到；播放 2300 年预估时，它会随冰盖一起后退。</p>
+                  <a class="explorer-update-link" href="./explore/?region=antarctica&amp;preset=antarctica-grounding-line">在科普版中查看</a>
                 </article>
               </li>
               <li>
-                <article class="explorer-update-card" aria-labelledby="public-edition-update-title">
-                  <div class="explorer-update-meta">
-                    <time class="explorer-update-date" datetime="2026-09-30">2026年9月30日</time>
-                    <span class="explorer-update-badge">科普版</span>
-                  </div>
-                  <div class="explorer-update-body">
-                    <h3 id="public-edition-update-title">科普版上线：跟随导览认识冰盖</h3>
-                    <p>
-                      3D ICE 现在提供两个版本。全新的科普版保留探索器的核心功能，面向访客、课堂和科普展台，边看边讲解背后的科学，支持中文与英文。专业版保留全部数据集与图层，网址不变。
-                    </p>
-                    <ul class="explorer-update-highlights">
-                      <li><strong>导览：</strong>九站导览，从冰雪大陆一路探访冰层下的基岩、南大洋、南极的未来和格陵兰。</li>
-                      <li><strong>图层说明：</strong>点击任一图层旁的 (i)，用通俗的语言了解它展示了什么、依据哪些数据。</li>
-                      <li><strong>移除冰层：</strong>三秒内看冰盖消融、下方的陆地缓缓抬升。</li>
-                    </ul>
-                    <div class="explorer-actions">
-                      <a class="explorer-button explorer-button--primary" href="./explore/?tour=1">开始导览</a>
-                    </div>
-                  </div>
+                <article class="explorer-update-card" aria-labelledby="edition-switch-update-title">
+                  <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-02">2026年11月2日</time> <span class="explorer-update-badge explorer-update-badge--both">两个版本</span></p>
+                  <h3 id="edition-switch-update-title">在两个版本之间切换</h3>
+                  <p>每个面板都新增“科普版 | 专业版”切换，可在相同语言、相同区域下打开另一个版本。科普版面板也换上了专业版更简洁的外观。</p>
+                  <a class="explorer-update-link" href="./explore/">打开科普版</a>
                 </article>
               </li>
               <li>
-                <article class="explorer-update-card" aria-labelledby="isostatic-rebound-update-title">
-                  <div class="explorer-update-meta">
-                    <time class="explorer-update-date" datetime="2026-09-22">2026年9月22日</time>
-                    <span class="explorer-update-badge">交互式探索器</span>
-                  </div>
-                  <div class="explorer-update-body">
-                    <h3 id="isostatic-rebound-update-title">看基岩在冰消失后回弹</h3>
-                    <p>
-                      新的地壳均衡回弹图层展示移除现有冰载荷后固体地球回弹的幅度，让你看到哪些今天位于海平面以下的基岩会升出水面，南极洲与格陵兰均可查看。
-                    </p>
-                    <ul class="explorer-update-highlights">
-                      <li><strong>情景：</strong>拖动<strong>冰消与回弹进度</strong>，从现今一直推进到完全平衡态。</li>
-                      <li><strong>地球响应：</strong>默认采用 Paxman 等（2022）已发表的响应，区域挠曲与局地 Airy 地壳均衡作为理想化的假设情景。</li>
-                      <li><strong>出露：</strong>高亮新出露的陆地，并查看抬升量、面积、等效海平面等数值及模型假设。</li>
-                    </ul>
-                    <div class="explorer-actions">
-                      <a class="explorer-button explorer-button--primary" href="./tools/3D-interactive-cryosphere-explorer.html">打开专业版</a>
-                    </div>
-                  </div>
-                </article>
-              </li>
-              <li>
-                <article class="explorer-update-card" aria-labelledby="polar-place-search-update-title">
-                  <div class="explorer-update-meta">
-                    <time class="explorer-update-date" datetime="2026-08-13">2026年8月13日</time>
-                    <span class="explorer-update-badge">交互式探索器</span>
-                  </div>
-                  <div class="explorer-update-body">
-                    <h3 id="polar-place-search-update-title">搜索极地地点与地理特征</h3>
-                    <p>南极洲与格陵兰探索器现已将科考站、精选地理名称和细化流域整合到同一套可搜索体验中。</p>
-                    <ul class="explorer-update-highlights">
-                      <li><strong>图层：</strong>按需选择<strong>地点与地理特征</strong>中的图层。</li>
-                      <li><strong>搜索：</strong>按名称查找地点和地理特征，包括细化流域。</li>
-                      <li><strong>定位：</strong>在南极洲与格陵兰之间切换，并直接移动到搜索结果。</li>
-                    </ul>
-                    <div class="explorer-actions">
-                      <a class="explorer-button explorer-button--primary" href="./tools/3D-interactive-cryosphere-explorer.html">打开专业版</a>
-                    </div>
-                  </div>
+                <article class="explorer-update-card" aria-labelledby="observed-records-update-title">
+                  <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-01">2026年11月1日</time> <span class="explorer-update-badge explorer-update-badge--research">专业版</span></p>
+                  <h3 id="observed-records-update-title">海冰与冰面高程变化观测</h3>
+                  <p>两大冰盖周边自 1978 年以来的逐月海冰（NOAA/NSIDC 气候数据记录），以及 CPOM 雷达测高得到的 1995 年以来南极冰面高程变化。</p>
+                  <a class="explorer-update-link" href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-sea-ice">打开专业版</a>
                 </article>
               </li>
             </ol>
           </section>
 
-          <section id="key-features" class="explorer-section explorer-feature-section" aria-labelledby="key-features-title">
-            <div class="explorer-region-intro">
-              <p class="explorer-region-label">核心特性</p>
-              <h2 id="key-features-title">3D ICE 的独特之处</h2>
-            </div>
-            <div class="explorer-feature-grid">
-              <article class="explorer-feature-card">
-                <h3>浏览器里的真 3D</h3>
-                <p>自由旋转、缩放和倾斜冰盖，让冰层变得透明，还能夸大地形起伏，宛如将真实的冰盖模型托于掌心。无需安装任何软件，支持 WebGL 的浏览器即可使用。</p>
-              </article>
-              <article class="explorer-feature-card">
-                <h3>每一层都可溯源</h3>
-                <p>每个图层都来自已发表的数据集、模型或预印本，并注明出处，你看到的一切都能追溯到原始数据产品。</p>
-              </article>
-              <article class="explorer-feature-card">
-                <h3>两大冰盖，一处尽览</h3>
-                <p>在同一环境中切换南极洲与格陵兰，两者使用相同的控件和相同的核心图层：陆地、冰盖、海洋，以及冰盖消失后的回弹。冰下水文、冰架融化与 2300 年预估仅限南极。</p>
-              </article>
-              <article class="explorer-feature-card">
-                <h3>手机流畅，大屏清晰</h3>
-                <p>标准地形让手机和平板运行流畅；在桌面大屏上，专业版的高清地形（南极 4 km，格陵兰 1 km）可呈现更精细的细节。</p>
-              </article>
-            </div>
-          </section>
-
           <section id="source-data" class="explorer-section explorer-source-section" aria-labelledby="source-data-title">
-            <div class="explorer-region-intro">
-              <p class="explorer-region-label">源数据</p>
-              <h2 id="source-data-title">3D ICE 背后的数据集</h2>
-              <p>
-                每个图层都来自已发表的数据集、模型或预印本。专业版的数据快照为当前显示的数据集链接来源，科普版的图层说明也注明了所用数据。3D ICE 的代码以及生成数据包的脚本以 MIT 许可证在 <a href="https://github.com/yuwang115/3d-ice" target="_blank" rel="noopener">GitHub</a> 上开源；数据本身仍遵循其提供方的许可与条款，详见 <a href="https://github.com/yuwang115/3d-ice/blob/main/DATA_LICENSES.md" target="_blank" rel="noopener" lang="en">DATA_LICENSES.md</a>。
+            <div class="explorer-section-head">
+              <p class="explorer-eyebrow">数据</p>
+              <h2 id="source-data-title">3D ICE 背后的数据</h2>
+              <p class="explorer-lede">
+                每个图层都来自已发表的数据集、模型或预印本。3D ICE 的代码以 MIT 许可证在
+                <a href="https://github.com/yuwang115/3d-ice" target="_blank" rel="noopener">GitHub</a> 上开源；数据本身仍遵循其提供方的许可与条款，详见
+                <a href="https://github.com/yuwang115/3d-ice/blob/main/DATA_LICENSES.md" target="_blank" rel="noopener" lang="en">DATA_LICENSES.md</a>。
               </p>
             </div>
             <div class="explorer-source-columns">
-              <article class="explorer-source-column">
-                <h3>南极洲</h3>
+              <div class="explorer-source-group">
+                <h3>地形</h3>
                 <ul class="explorer-source-list">
-                  <li><a href="https://nsidc.org/data/NSIDC-0756/versions/4" target="_blank" rel="noopener" lang="en">MEaSUREs BedMachine Antarctica, Version 4</a></li>
-                  <li><a href="https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2" target="_blank" rel="noopener">Bedmap3 南极洲，版本 1.0</a></li>
-                  <li><a href="https://nsidc.org/data/NSIDC-0709/versions/2" target="_blank" rel="noopener" lang="en">MEaSUREs Antarctic Boundaries for IPY 2007-2009 from Satellite Radar, Version 2</a></li>
-                  <li><a href="https://nsidc.org/data/NSIDC-0754/versions/1" target="_blank" rel="noopener" lang="en">MEaSUREs Phase-Based Antarctica Ice Velocity Map, Version 1</a></li>
-                  <li><a href="https://doi.org/10.5281/zenodo.18508904" target="_blank" rel="noopener" lang="en">Antarctic Ice Sheet Ensemble Friction Inversion (AISEFI): Basal Shear Stress with Uncertainties (Jager, 2026)</a></li>
-                  <li><a href="https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1" target="_blank" rel="noopener" lang="en">Insights from an Ensemble Inverse Method to Quantify Basal Friction Uncertainties for Ice-Sheet Models, Part 2: Antarctic Ice Sheet (Jager et al., 2026, preprint)</a></li>
-                  <li><a href="https://doi.org/10.5281/zenodo.12738170" target="_blank" rel="noopener" lang="en">Data for: Antarctic Wide Subglacial Hydrology Modeling (Ehrenfeucht, 2024)</a></li>
-                  <li><a href="https://doi.org/10.1029/2024GL111386" target="_blank" rel="noopener" lang="en">Antarctic Wide Subglacial Hydrology Modeling (Ehrenfeucht et al., 2025)</a></li>
-                  <li><a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full" target="_blank" rel="noopener" lang="en">WAOM2 Annual-Mean Antarctic Ocean Circulation Fields</a></li>
-                  <li><a href="https://doi.org/10.26179/q0rh-gt74" target="_blank" rel="noopener" lang="en">Multi-Model Estimate of Antarctic Ice-Shelf Basal Melting and Ocean Drivers: Data (Galton-Fenzi, 2025)</a></li>
-                  <li><a href="https://doi.org/10.5194/tc-19-6507-2025" target="_blank" rel="noopener" lang="en">Multi-Model Estimate of Antarctic Ice-Shelf Basal Mass Budget and Ocean Drivers (Galton-Fenzi et al., 2025)</a></li>
-                  <li><a href="https://doi.org/10.18739/A22Z12R8C" target="_blank" rel="noopener">格陵兰与南极冰盖完全卸载总均衡响应的网格文件，第 3 版（Paxman、Austermann 与 Hollyday，2026）</a></li>
-                  <li><a href="https://doi.org/10.1038/s41598-022-15440-y" target="_blank" rel="noopener">格陵兰与南极冰盖完全卸载后的总均衡响应（Paxman、Austermann 与 Hollyday，2022）</a></li>
-                  <li><a href="https://doi.org/10.5281/zenodo.13135599" target="_blank" rel="noopener">ISMIP6 南极冰盖 2300 年预估（Nowicki 与 ISMIP6 团队，2024；Seroussi 等，2024）</a></li>
-                  <li><a href="https://www.cpom.ucl.ac.uk/landice/" target="_blank" rel="noopener">南极冰盖多卫星雷达测高冰面高程变化，1.0 版（CPOM，2026；ESA ERS-2、Envisat 和 CryoSat-2 数据）</a></li>
-                  <li><a href="https://doi.org/10.1029/2019GL082182" target="_blank" rel="noopener">南极冰盖高程与质量变化趋势（Shepherd 等，2019）</a></li>
-                  <li><a href="https://doi.org/10.7265/b18j-z797" target="_blank" rel="noopener">NOAA/NSIDC 被动微波海冰密集度气候数据记录，第 6 版（Meier 等，2026）</a></li>
-                  <li><a href="https://doi.org/10.3189/S0260305500013586" target="_blank" rel="noopener">不同地壳均衡处理方法的比较：以末次冰期旋回南极冰盖模拟为例（Le Meur &amp; Huybrechts, 1996）</a></li>
-                  <li><a href="https://www.comnap.aq/antarctic-facilities-information" target="_blank" rel="noopener">COMNAP 南极设施名录（COMNAP 2025；仅限教育与非商业用途）</a></li>
-                  <li><a href="https://placenames.aq/information" target="_blank" rel="noopener">SCAR 南极综合地名录</a></li>
-                  <li><a href="https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-physical-labels/" target="_blank" rel="noopener">Natural Earth 自然地理标注</a></li>
-                  <li><a href="https://www.ncei.noaa.gov/products/paleoclimatology/ice-core" target="_blank" rel="noopener">NOAA NCEI 古气候冰芯数据库</a></li>
-                  <li><a href="https://doi.org/10.5281/zenodo.7076469" target="_blank" rel="noopener">部分冰芯的钻探与存档位置数据（Davidge、Brooks 与 Mah，2022）</a></li>
+                  <li><a href="https://nsidc.org/data/NSIDC-0756/versions/4" target="_blank" rel="noopener" lang="en">BedMachine Antarctica v4</a></li>
+                  <li><a href="https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2" target="_blank" rel="noopener" lang="en">Bedmap3 v1.0</a> <span class="explorer-source-note">南极洲</span></li>
+                  <li><a href="https://nsidc.org/data/idbmg4/versions/6" target="_blank" rel="noopener" lang="en">BedMachine Greenland v6</a></li>
+                  <li><a href="https://doi.org/10.1017/jog.2025.10071" target="_blank" rel="noopener">QRF 冰下地形</a> <span class="explorer-source-note">格陵兰，Palmer 等（2025）</span></li>
                 </ul>
-              </article>
-              <article class="explorer-source-column">
-                <h3>格陵兰</h3>
+              </div>
+              <div class="explorer-source-group">
+                <h3>冰的流动</h3>
                 <ul class="explorer-source-list">
-                  <li><a href="https://nsidc.org/data/idbmg4/versions/6" target="_blank" rel="noopener" lang="en">IceBridge BedMachine Greenland, Version 6</a></li>
-                  <li><a href="https://doi.org/10.1017/jog.2025.10071" target="_blank" rel="noopener">格陵兰 QRF 冰下地形（2025）</a></li>
-                  <li><a href="https://doi.org/10.7280/D1WT11" target="_blank" rel="noopener">格陵兰冰盖冰川汇水流域（Mouginot &amp; Rignot, 2019）</a></li>
-                  <li><a href="https://its-live.jpl.nasa.gov/" target="_blank" rel="noopener" lang="en">ITS_LIVE V02.1 Summary Velocity Mosaic, 2014–2024 (NASA MEaSUREs ITS_LIVE)</a></li>
-                  <li><a href="https://nsidc.org/data/NSIDC-0776/versions/2" target="_blank" rel="noopener" lang="en">MEaSUREs ITS_LIVE Regional Glacier and Ice Sheet Surface Velocities, Version 2 (Gardner et al., 2025)</a></li>
-                  <li><a href="https://doi.org/10.5194/tc-12-521-2018" target="_blank" rel="noopener" lang="en">auto-RIFT: Increased West Antarctic and Unchanged East Antarctic Ice Discharge over the Last 7 Years (Gardner et al., 2018)</a></li>
-                  <li><a href="https://doi.org/10.5281/zenodo.18508850" target="_blank" rel="noopener" lang="en">Greenland Ice Sheet Ensemble Friction Inversion (GrISEFI): Basal Shear Stress with Uncertainties (Jager, 2026)</a></li>
-                  <li><a href="https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1" target="_blank" rel="noopener" lang="en">Insights from an Ensemble Inverse Method to Quantify Basal Friction Uncertainties for Ice-Sheet Models, Part 1: Greenland Ice Sheet (Jager et al., 2026, preprint)</a></li>
-                  <li><a href="https://doi.org/10.48670/moi-00001" target="_blank" rel="noopener" lang="en">Arctic Ocean Physics Analysis and Forecast, generated using E.U. Copernicus Marine Service Information</a></li>
-                  <li><a href="https://doi.org/10.7265/b18j-z797" target="_blank" rel="noopener">NOAA/NSIDC 被动微波海冰密集度气候数据记录，第 6 版（Meier 等，2026）</a></li>
-                  <li><a href="https://doi.org/10.18739/A22Z12R8C" target="_blank" rel="noopener">格陵兰与南极冰盖完全卸载总均衡响应的网格文件，第 3 版（Paxman、Austermann 与 Hollyday，2026）</a></li>
-                  <li><a href="https://doi.org/10.1038/s41598-022-15440-y" target="_blank" rel="noopener">格陵兰与南极冰盖完全卸载后的总均衡响应（Paxman、Austermann 与 Hollyday，2022）</a></li>
-                  <li><a href="https://doi.org/10.3189/S0260305500013586" target="_blank" rel="noopener">不同地壳均衡处理方法的比较：以末次冰期旋回南极冰盖模拟为例（Le Meur &amp; Huybrechts, 1996）</a></li>
-                  <li><a href="https://www.interact-gis.org/" target="_blank" rel="noopener">INTERACT 科考站名录</a></li>
-                  <li><a href="https://kort.nunagis.gl/refserver/rest/services/PlacenamesRegister/PlacenamesRegisterSearch/MapServer/1" target="_blank" rel="noopener">格陵兰地名登记册（NunaGIS）</a></li>
-                  <li><a href="https://www.gebco.net/data-products/undersea-feature-names" target="_blank" rel="noopener">IHO-IOC GEBCO 海底地名录</a></li>
-                  <li><a href="https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-physical-labels/" target="_blank" rel="noopener">Natural Earth 自然地理标注</a></li>
-                  <li><a href="https://www.ncei.noaa.gov/products/paleoclimatology/ice-core" target="_blank" rel="noopener">NOAA NCEI 古气候冰芯数据库</a></li>
-                  <li><a href="https://doi.org/10.5281/zenodo.7076469" target="_blank" rel="noopener">部分冰芯的钻探与存档位置数据（Davidge、Brooks 与 Mah，2022）</a></li>
+                  <li><a href="https://nsidc.org/data/NSIDC-0754/versions/1" target="_blank" rel="noopener">MEaSUREs 相位法冰速</a> <span class="explorer-source-note">南极洲</span></li>
+                  <li><a href="https://its-live.jpl.nasa.gov/" target="_blank" rel="noopener">ITS_LIVE V02.1 冰速镶嵌图，2014–2024</a> <span class="explorer-source-note">格陵兰；由 auto-RIFT（<a href="https://doi.org/10.5194/tc-12-521-2018" target="_blank" rel="noopener">Gardner 等，2018</a>）生成，NASA MEaSUREs ITS_LIVE 项目提供（<a href="https://nsidc.org/data/NSIDC-0776/versions/2" target="_blank" rel="noopener">Gardner 等，2025</a>）</span></li>
                 </ul>
-              </article>
+              </div>
+              <div class="explorer-source-group">
+                <h3>冰盖之下</h3>
+                <ul class="explorer-source-list">
+                  <li><a href="https://doi.org/10.5281/zenodo.18508904" target="_blank" rel="noopener" lang="en">Antarctic Ice Sheet Ensemble Friction Inversion (AISEFI): Basal Shear Stress with Uncertainties</a> <span class="explorer-source-note">南极洲基底摩擦，Jager（2026）· <a href="https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1" target="_blank" rel="noopener">预印本</a></span></li>
+                  <li><a href="https://doi.org/10.5281/zenodo.18508850" target="_blank" rel="noopener" lang="en">Greenland Ice Sheet Ensemble Friction Inversion (GrISEFI): Basal Shear Stress with Uncertainties</a> <span class="explorer-source-note">格陵兰基底摩擦，Jager（2026）· <a href="https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1" target="_blank" rel="noopener">预印本</a></span></li>
+                  <li><a href="https://doi.org/10.1029/2024GL111386" target="_blank" rel="noopener">冰下水文</a> <span class="explorer-source-note">南极洲，Ehrenfeucht 等（2025）· <a href="https://doi.org/10.5281/zenodo.12738170" target="_blank" rel="noopener">数据</a></span></li>
+                </ul>
+              </div>
+              <div class="explorer-source-group">
+                <h3>海洋与海冰</h3>
+                <ul class="explorer-source-list">
+                  <li><a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full" target="_blank" rel="noopener">WAOM2 海洋环流</a> <span class="explorer-source-note">南极洲，Boeira Dias 等（2023）</span></li>
+                  <li><a href="https://doi.org/10.48670/moi-00001" target="_blank" rel="noopener">北冰洋物理分析与预报</a> <span class="explorer-source-note">格陵兰；<span lang="en">generated using E.U. Copernicus Marine Service Information</span></span></li>
+                  <li><a href="https://doi.org/10.5194/tc-19-6507-2025" target="_blank" rel="noopener">冰架底部融化</a> <span class="explorer-source-note">南极洲，Galton-Fenzi 等（2025）· <a href="https://doi.org/10.26179/q0rh-gt74" target="_blank" rel="noopener">数据</a></span></li>
+                  <li><a href="https://doi.org/10.7265/b18j-z797" target="_blank" rel="noopener">NOAA/NSIDC 海冰密集度 v6</a> <span class="explorer-source-note">Meier 等（2026）</span></li>
+                </ul>
+              </div>
+              <div class="explorer-source-group">
+                <h3>变化与未来</h3>
+                <ul class="explorer-source-list">
+                  <li><a href="https://www.cpom.ucl.ac.uk/landice/" target="_blank" rel="noopener">CPOM 冰面高程变化 v1.0</a> <span class="explorer-source-note">南极洲；ERS-2、Envisat 与 CryoSat-2 · <a href="https://doi.org/10.1029/2019GL082182" target="_blank" rel="noopener">Shepherd 等（2019）</a></span></li>
+                  <li><a href="https://doi.org/10.5281/zenodo.13135599" target="_blank" rel="noopener">ISMIP6 至 2300 年预估</a> <span class="explorer-source-note">南极洲，Seroussi 等（2024）</span></li>
+                </ul>
+              </div>
+              <div class="explorer-source-group">
+                <h3>地壳回弹</h3>
+                <ul class="explorer-source-list">
+                  <li><a href="https://doi.org/10.1038/s41598-022-15440-y" target="_blank" rel="noopener">Paxman、Austermann 与 Hollyday（2022）</a> <span class="explorer-source-note"><a href="https://doi.org/10.18739/A22Z12R8C" target="_blank" rel="noopener">网格文件 v3</a></span></li>
+                  <li><a href="https://doi.org/10.3189/S0260305500013586" target="_blank" rel="noopener">Le Meur 与 Huybrechts（1996）</a> <span class="explorer-source-note">理想化的 ELRA 与 Airy 模型</span></li>
+                </ul>
+              </div>
+              <div class="explorer-source-group">
+                <h3>流域</h3>
+                <ul class="explorer-source-list">
+                  <li><a href="https://nsidc.org/data/NSIDC-0709/versions/2" target="_blank" rel="noopener">MEaSUREs 南极边界 v2</a></li>
+                  <li><a href="https://doi.org/10.7280/D1WT11" target="_blank" rel="noopener">格陵兰冰川流域</a> <span class="explorer-source-note">Mouginot 与 Rignot（2019）</span></li>
+                </ul>
+              </div>
+              <div class="explorer-source-group">
+                <h3>地点</h3>
+                <ul class="explorer-source-list">
+                  <li>科考站：<a href="https://www.comnap.aq/antarctic-facilities-information" target="_blank" rel="noopener">COMNAP</a> <span class="explorer-source-note">（仅限教育与非商业用途）</span> · <a href="https://www.interact-gis.org/" target="_blank" rel="noopener">INTERACT</a></li>
+                  <li>地名：<a href="https://placenames.aq/information" target="_blank" rel="noopener">SCAR 南极地名录</a> · <a href="https://kort.nunagis.gl/refserver/rest/services/PlacenamesRegister/PlacenamesRegisterSearch/MapServer/1" target="_blank" rel="noopener">NunaGIS</a> · <a href="https://www.gebco.net/data-products/undersea-feature-names" target="_blank" rel="noopener">GEBCO</a> · <a href="https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-physical-labels/" target="_blank" rel="noopener">Natural Earth</a></li>
+                  <li>冰芯：<a href="https://www.ncei.noaa.gov/products/paleoclimatology/ice-core" target="_blank" rel="noopener">NOAA NCEI</a> · <a href="https://doi.org/10.5281/zenodo.7076469" target="_blank" rel="noopener">Davidge 等（2022）</a></li>
+                </ul>
+              </div>
             </div>
           </section>
 
-          <section id="feedback" class="explorer-section explorer-feedback-only explorer-community-section" aria-labelledby="feedback-title">
-            <div class="explorer-community-grid">
-              <div class="explorer-community-copy">
-                <p class="explorer-region-label">社区</p>
-                <h2 id="feedback-title">一起打造终极冰冻圈平台</h2>
-                <p>3D ICE 仍在持续演进，我非常期待来自冰川学社区的反馈，以帮助我继续完善它。</p>
-                <ul class="explorer-community-list">
-                  <li><strong>有数据想分享？</strong>如果你希望我把其他数据集整合进 3D ICE，欢迎联系我。</li>
-                  <li><strong>欢迎传播分享：</strong>如果 3D ICE 能为你的研究、教学或科普工作带来便利，请不要吝啬，将它分享给身边需要的人。</li>
-                </ul>
+          <section id="feedback" class="explorer-section explorer-feedback-section" aria-labelledby="feedback-title">
+            <div class="explorer-feedback-grid">
+              <div class="explorer-feedback-copy">
+                <p class="explorer-eyebrow">反馈</p>
+                <h2 id="feedback-title">一起完善 3D ICE</h2>
+                <p class="explorer-lede">告诉我哪些内容有效、哪里出了问题，或者你希望 3D ICE 接下来展示哪个南极或格陵兰数据集。欢迎使用中文或英文。</p>
+                <p class="explorer-feedback-more"><a href="https://yuwang.blog/tools/#tools-demo" rel="nofollow">浏览其他研究工具</a></p>
               </div>
-              <div class="explorer-feedback-panel explorer-feedback-panel--faq-style">
-                <div class="tool-feedback-root">
-                  <div class="tool-feedback-card">
-                    <div class="tool-feedback-card-inner">
-                      <div class="tool-feedback-heading">
-                        <div class="tool-feedback-body">
-                          如果你对 3D ICE 有想法、数据集建议、Bug 报告或可用性反馈，可以在这里快速留言。欢迎使用中文或英文。
-                        </div>
-                      </div>
-                      <div id="faq-feedback-3d-ice-success" class="tool-feedback-success" aria-live="polite" tabindex="-1">
-                        <h3>感谢反馈。</h3>
-                        <p>你的反馈已发送。我会阅读这些消息，用来改进工具并修复问题。</p>
-                        <button type="button" class="tool-feedback-reset" data-feedback-reset="faq-feedback-3d-ice-form">再发一条</button>
-                      </div>
-                      <div id="faq-feedback-3d-ice-error" class="tool-feedback-alert" aria-live="polite">
-                        <h3>提交失败。</h3>
-                        <p>刚才未能成功发送你的消息。请稍后重试；如果问题持续存在，也可以直接发邮件给我。</p>
-                      </div>
-                      <form
-                        id="faq-feedback-3d-ice-form"
-                        class="tool-feedback-form"
-                        action="https://usebasin.com/f/53e802e0991e"
-                        method="POST"
-                        accept-charset="UTF-8"
-                        data-basin-form
-                        data-basin-success-action="render"
-                        data-basin-success-id="faq-feedback-3d-ice-success"
-                        data-basin-error-id="faq-feedback-3d-ice-error"
-                        data-default-tool="3D ICE：冰冻圈交互探索平台"
-                        data-label-submit="发送反馈"
-                        data-label-sending="发送中..."
-                        data-status-sending="正在提交反馈..."
-                        data-status-sent="感谢反馈，消息已发送。"
-                        data-status-failed="提交失败，请重试或直接邮件联系我。"
-                      >
-                        <input type="hidden" name="source_page" value="/zh/" />
-                        <input type="hidden" name="source_section" value="tools-feedback" data-feedback-source-section />
-                        <input type="hidden" name="page_url" data-feedback-page-url />
-                        <input type="hidden" name="page_title" value="3D ICE:冰冻圈交互探索平台" />
-                        <input type="hidden" name="site_lang" value="zh" />
-                        <div class="tool-feedback-honeypot" aria-hidden="true">
-                          <label for="faq-feedback-3d-ice-website">请留空此字段</label>
-                          <input id="faq-feedback-3d-ice-website" type="text" name="website" tabindex="-1" autocomplete="off" />
-                        </div>
-                        <div class="tool-feedback-grid">
-                          <div class="tool-feedback-field">
-                            <label class="tool-feedback-label" for="faq-feedback-3d-ice-tool">工具</label>
-                            <select id="faq-feedback-3d-ice-tool" class="tool-feedback-select" name="tool" required data-feedback-tool-select>
-                              <option value="" disabled>选择工具</option>
-                              <option value="3D ICE：冰冻圈交互探索平台" selected>3D ICE：冰冻圈交互探索平台</option>
-                              <option value="Regularised Coulomb Sliding Law demo">Regularised Coulomb Sliding Law demo</option>
-                              <option value="Marine Ice Sheet Flowline Lab">Marine Ice Sheet Flowline Lab</option>
-                              <option value="通用工具/站点反馈">通用工具/站点反馈</option>
-                            </select>
-                          </div>
-                          <div class="tool-feedback-field">
-                            <label class="tool-feedback-label" for="faq-feedback-3d-ice-email">
-                              邮箱 <span class="tool-feedback-hint">可选，如希望收到回复</span>
-                            </label>
-                            <input id="faq-feedback-3d-ice-email" class="tool-feedback-input" type="email" name="email" inputmode="email" autocomplete="email" placeholder="you@example.com" />
-                          </div>
-                          <div class="tool-feedback-field tool-feedback-field--full">
-                            <label class="tool-feedback-label" for="faq-feedback-3d-ice-message">留言</label>
-                            <textarea id="faq-feedback-3d-ice-message" class="tool-feedback-textarea" name="message" required placeholder="告诉我哪些内容有效，哪些地方令人困惑，哪里出了问题，或者你希望我新增什么功能。" data-feedback-message></textarea>
-                          </div>
-                        </div>
-                        <div class="tool-feedback-actions">
-                          <div class="tool-feedback-actions-left">
-                            <button type="submit" class="tool-feedback-submit">发送反馈</button>
-                            <a class="tool-feedback-secondary" href="mailto:wangyu@uchicago.edu">改发邮件</a>
-                          </div>
-                          <div id="faq-feedback-3d-ice-status" class="tool-feedback-status" role="status"></div>
-                        </div>
-                      </form>
+              <div class="explorer-feedback-panel">
+                <div id="faq-feedback-3d-ice-success" class="tool-feedback-success" aria-live="polite" tabindex="-1">
+                  <h3>感谢反馈。</h3>
+                  <p>你的反馈已发送。我会阅读这些消息，用来改进工具并修复问题。</p>
+                  <button type="button" class="tool-feedback-reset" data-feedback-reset="faq-feedback-3d-ice-form">再发一条</button>
+                </div>
+                <div id="faq-feedback-3d-ice-error" class="tool-feedback-alert" aria-live="polite">
+                  <h3>提交失败。</h3>
+                  <p>刚才未能成功发送你的消息。请稍后重试；如果问题持续存在，也可以直接发邮件给我。</p>
+                </div>
+                <form
+                  id="faq-feedback-3d-ice-form"
+                  class="tool-feedback-form"
+                  action="https://usebasin.com/f/53e802e0991e"
+                  method="POST"
+                  accept-charset="UTF-8"
+                  data-basin-form
+                  data-basin-success-action="render"
+                  data-basin-success-id="faq-feedback-3d-ice-success"
+                  data-basin-error-id="faq-feedback-3d-ice-error"
+                  data-default-tool="3D ICE：冰冻圈交互探索平台"
+                  data-label-submit="发送反馈"
+                  data-label-sending="发送中..."
+                  data-status-sending="正在提交反馈..."
+                  data-status-sent="感谢反馈，消息已发送。"
+                  data-status-failed="提交失败，请重试或直接邮件联系我。"
+                >
+                  <input type="hidden" name="source_page" value="/zh/" />
+                  <input type="hidden" name="source_section" value="tools-feedback" data-feedback-source-section />
+                  <input type="hidden" name="page_url" data-feedback-page-url />
+                  <input type="hidden" name="page_title" value="3D ICE:冰冻圈交互探索平台" />
+                  <input type="hidden" name="site_lang" value="zh" />
+                  <div class="tool-feedback-honeypot" aria-hidden="true">
+                    <label for="faq-feedback-3d-ice-website">请留空此字段</label>
+                    <input id="faq-feedback-3d-ice-website" type="text" name="website" tabindex="-1" autocomplete="off" />
+                  </div>
+                  <div class="tool-feedback-grid">
+                    <div class="tool-feedback-field">
+                      <label class="tool-feedback-label" for="faq-feedback-3d-ice-tool">工具</label>
+                      <select id="faq-feedback-3d-ice-tool" class="tool-feedback-select" name="tool" required data-feedback-tool-select>
+                        <option value="" disabled>选择工具</option>
+                        <option value="3D ICE：冰冻圈交互探索平台" selected>3D ICE：冰冻圈交互探索平台</option>
+                        <option value="Regularised Coulomb Sliding Law demo">Regularised Coulomb Sliding Law demo</option>
+                        <option value="Marine Ice Sheet Flowline Lab">Marine Ice Sheet Flowline Lab</option>
+                        <option value="通用工具/站点反馈">通用工具/站点反馈</option>
+                      </select>
+                    </div>
+                    <div class="tool-feedback-field">
+                      <label class="tool-feedback-label" for="faq-feedback-3d-ice-email">
+                        邮箱 <span class="tool-feedback-hint">可选，如希望收到回复</span>
+                      </label>
+                      <input id="faq-feedback-3d-ice-email" class="tool-feedback-input" type="email" name="email" inputmode="email" autocomplete="email" placeholder="you@example.com" />
+                    </div>
+                    <div class="tool-feedback-field tool-feedback-field--full">
+                      <label class="tool-feedback-label" for="faq-feedback-3d-ice-message">留言</label>
+                      <textarea id="faq-feedback-3d-ice-message" class="tool-feedback-textarea" name="message" required placeholder="告诉我哪些内容有效，哪些地方令人困惑，哪里出了问题，或者你希望我新增什么功能。" data-feedback-message></textarea>
                     </div>
                   </div>
-                </div>
+                  <div class="tool-feedback-actions">
+                    <div class="tool-feedback-actions-left">
+                      <button type="submit" class="tool-feedback-submit">发送反馈</button>
+                      <a class="tool-feedback-secondary" href="mailto:wangyu@uchicago.edu">改发邮件</a>
+                    </div>
+                    <div id="faq-feedback-3d-ice-status" class="tool-feedback-status" role="status"></div>
+                  </div>
+                </form>
               </div>
             </div>
           </section>
 
-          <div class="explorer-community-cta-standalone">
-            <div class="explorer-community-cta-row">
-              <a class="explorer-button explorer-button--community-utility" href="./explore/?tour=1">开始导览</a>
-              <a class="explorer-button explorer-button--browse-spotlight" href="https://yuwang.blog/tools/#tools-demo" rel="nofollow">浏览其他研究工具</a>
+          <dialog id="all-updates" class="explorer-drawer" aria-labelledby="all-updates-title" data-entry-source="all-updates">
+            <div class="explorer-drawer-head">
+              <div>
+                <p class="explorer-eyebrow">最新更新</p>
+                <h2 id="all-updates-title">全部更新</h2>
+              </div>
+              <a class="explorer-drawer-close" href="#latest-updates" data-drawer-close aria-label="关闭全部更新">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg>
+              </a>
             </div>
-          </div>
+            <ol class="explorer-drawer-list">
+              <li class="explorer-drawer-item">
+                <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-03">2026年11月3日</time> <span class="explorer-update-badge explorer-update-badge--both">两个版本</span></p>
+                <h3>接地线</h3>
+                <p>一条深色线标出接地冰与漂浮冰或海洋的交界，由屏幕上的地形逐格追踪得到。播放 2300 年预估时，它会逐帧重新追踪并随冰盖后退；导览中介绍冰架的一站也会显示它。</p>
+              </li>
+              <li class="explorer-drawer-item">
+                <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-02">2026年11月2日</time> <span class="explorer-update-badge explorer-update-badge--both">两个版本</span></p>
+                <h3>在两个版本之间切换</h3>
+                <p>语言切换旁新增“科普版 | 专业版”切换，可在相同语言、相同区域下打开另一个版本。科普版的面板换上了专业版的外观，每个图例都位于对应图层下方。</p>
+              </li>
+              <li class="explorer-drawer-item">
+                <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-01">2026年11月1日</time> <span class="explorer-update-badge explorer-update-badge--research">专业版</span> <span class="explorer-update-version">版本 0.4.0</span></p>
+                <h3>海冰观测，1978–2026 年</h3>
+                <p>NOAA/NSIDC 气候数据记录中南极洲与格陵兰周边的逐月海冰密集度，从 1978 年 11 月到 2026 年 9 月。读数给出当月的海冰范围及其在历年中的排名，橙色线标出 1981–2010 年的中位冰缘线。</p>
+              </li>
+              <li class="explorer-drawer-item">
+                <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-01">2026年11月1日</time> <span class="explorer-update-badge explorer-update-badge--research">专业版</span> <span class="explorer-update-version">版本 0.4.0</span></p>
+                <h3>1995 年以来的南极冰面高程变化</h3>
+                <p>CPOM 基于 ERS-2、Envisat 与 CryoSat-2 雷达测高的冰面高程变化记录，可从 1995 年播放到 2026 年，或以变化速率显示，并为 18 个流域分别绘制质量变化曲线。</p>
+              </li>
+              <li class="explorer-drawer-item">
+                <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-01">2026年11月1日</time> <span class="explorer-update-badge explorer-update-badge--research">专业版</span> <span class="explorer-update-version">版本 0.4.0</span></p>
+                <h3>冰芯站点</h3>
+                <p>54 个钻探站点，从 Vostok、EPICA Dome C 到 Camp Century 与 EastGRIP。每个站点的卡片列出冰芯深度与记录跨度，并链接其发表文献。</p>
+              </li>
+              <li class="explorer-drawer-item">
+                <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-01">2026年11月1日</time> <span class="explorer-update-badge explorer-update-badge--research">专业版</span> <span class="explorer-update-version">版本 0.4.0</span></p>
+                <h3>重新设计的专业版面板</h3>
+                <p>面板改为一列可折叠的分组，每个图例都位于对应图层下方，一次只显示一个时间特征。未开启任何图层时，面板高度不到原来的一半。</p>
+              </li>
+              <li class="explorer-drawer-item">
+                <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-10-22">2026年10月22日</time> <span class="explorer-update-badge explorer-update-badge--both">两个版本</span> <span class="explorer-update-version">版本 0.3.1</span></p>
+                <h3>审查后的修正</h3>
+                <p>南极洋流现在沿模拟的流向分布，垂直夸张滑块显示真实倍数，冰下水文通道图层找回了此前遗漏的通道，等效海平面改用淡水密度换算。</p>
+              </li>
+              <li class="explorer-drawer-item">
+                <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-10-06">2026年10月6日</time> <span class="explorer-update-badge explorer-update-badge--both">两个版本</span> <span class="explorer-update-version">版本 0.3.0</span></p>
+                <h3>看南极冰盖演变到 2300 年</h3>
+                <p>年份滑块从 2015 年播放到 2300 年，展示低排放、高排放以及高排放并伴随冰架崩解三种情景：八个 ISMIP6 冰盖模型（Seroussi 等，2024）的平均变化，并给出海平面贡献及其范围。导览新增一站，用十五秒播放高排放下的未来。</p>
+              </li>
+              <li class="explorer-drawer-item">
+                <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-09-30">2026年9月30日</time> <span class="explorer-update-badge explorer-update-badge--public">科普版</span></p>
+                <h3>科普版上线：跟随导览认识冰盖</h3>
+                <p>面向访客、课堂和科普展台的第二个版本，支持中文与英文，带有导览，每个图层旁都有通俗易懂的说明。专业版保留全部数据集，网址不变。</p>
+              </li>
+              <li class="explorer-drawer-item">
+                <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-09-22">2026年9月22日</time> <span class="explorer-update-badge explorer-update-badge--both">两个版本</span></p>
+                <h3>无冰状态下的地壳回弹</h3>
+                <p>看冰盖消失后基岩如何抬升、今天位于海平面以下的哪些陆地会出露，默认采用 Paxman 等（2022）已发表的响应。专业版另提供理想化的挠曲与 Airy 模型。</p>
+              </li>
+              <li class="explorer-drawer-item">
+                <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-08-13">2026年8月13日</time> <span class="explorer-update-badge explorer-update-badge--both">两个版本</span></p>
+                <h3>搜索极地地点与地理特征</h3>
+                <p>在同一个搜索中查找两大冰盖的科考站与地理名称；专业版另含细化流域。</p>
+              </li>
+            </ol>
+            <p class="explorer-drawer-foot">每次更新的详细内容，见 GitHub 上的<a href="https://github.com/yuwang115/3d-ice/blob/main/CHANGELOG.md" target="_blank" rel="noopener">更新日志</a>。</p>
+          </dialog>
         </main>
       </div>
     </div>

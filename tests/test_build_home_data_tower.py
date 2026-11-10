@@ -214,7 +214,7 @@ class TestPackagesAndImages:
 
     def test_every_region_draws_the_layers_its_page_lists(self):
         for locale in ("en", "zh"):
-            tower_section = parse(locale).find("section", id="data-tower")
+            tower_section = parse(locale).find(id="data-tower")
             for node in tower_section.find_all("ol", cls="explorer-tower-layers"):
                 region = node.attrs["data-tower-region"]
                 assert list(tower.LAYERS[region]) == TOWER_LAYERS[region], f"{locale} {region}"

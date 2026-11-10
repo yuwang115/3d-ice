@@ -7,6 +7,8 @@
  * (drawn by scripts/build_home_data_tower.py). This script draws those images into the canvas,
  * sets the list beside the stack as its labels, and ties hover, focus and clicks between the
  * two. A click on a layer clicks its link, so it opens the same view and is counted the same.
+ * emphasise("public") fades the layers only the research edition has (each link's data-opens
+ * says which edition it opens), so a card for that edition can show what it holds.
  *
  * Loaded by 3d-ice-home.js with import() once the section nears the screen.
  */
@@ -50,6 +52,8 @@ const CRUISE_FRAME_MS = 30;
 const MASK_SIZE = 192;
 const MASK_ALPHA = 24;
 const SWITCH_SECONDS = 0.95;
+// How far a layer the emphasised edition lacks fades: to a seventh of its opacity.
+const MUTED_FADE = 0.86;
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -64,6 +68,8 @@ function readRegions(stage) {
         key: item.dataset.towerLayer,
         item,
         link: item.querySelector("a[href]"),
+        opens: item.querySelector("a[href]")?.dataset.opens || "public",
+        muted: 0,
         src: item.dataset.src,
         image: null,
         mask: null,
@@ -192,6 +198,8 @@ export function mountDataTower(section) {
     idleSince: -Infinity,
     hover: -1,
     labelFocus: -1,
+    // The edition whose layers stand out, or null for all of them.
+    edition: null,
     selected: -1,
     selectedAt: null,
     drag: null,
@@ -208,6 +216,8 @@ export function mountDataTower(section) {
   };
 
   const focusIndex = () => (state.labelFocus >= 0 ? state.labelFocus : state.selected >= 0 ? state.selected : state.hover);
+  // A layer the emphasised edition does not have. Only the public edition lacks any.
+  const isMuted = (layer) => state.edition === "public" && layer.opens !== "public";
 
   function resize() {
     const rect = stage.getBoundingClientRect();
@@ -249,10 +259,11 @@ export function mountDataTower(section) {
       const style = focusStyle(i, focus);
       layer.focus.opacity = approach(layer.focus.opacity, style.opacity, state.dt, 0.12);
       layer.focus.lift = approach(layer.focus.lift, style.lift, state.dt, 0.12);
+      layer.muted = approach(layer.muted, region === state.region && isMuted(layer) ? 1 : 0, state.dt, 0.12);
       const arrival = presence(i);
       layer.shown = approach(layer.shown, layer.image ? 1 : 0, state.dt, 0.18);
       const y = heights[i] + LIFT * layer.focus.lift + (1 - arrival.offset) * 0.9;
-      const opacity = layer.shown * layer.focus.opacity * arrival.opacity;
+      const opacity = layer.shown * layer.focus.opacity * arrival.opacity * (1 - MUTED_FADE * layer.muted);
       const image = layer.image;
       return {
         layer,
@@ -475,7 +486,8 @@ export function mountDataTower(section) {
       return (
         (layer.image && layer.shown < 0.997) ||
         Math.abs(layer.focus.opacity - target.opacity) > 0.003 ||
-        Math.abs(layer.focus.lift - target.lift) > 0.003
+        Math.abs(layer.focus.lift - target.lift) > 0.003 ||
+        Math.abs(layer.muted - (isMuted(layer) ? 1 : 0)) > 0.003
       );
     });
   }
@@ -493,8 +505,23 @@ export function mountDataTower(section) {
 
   function setLabelState() {
     const focus = focusIndex();
-    state.region.layers.forEach((layer, i) => layer.item.classList.toggle("is-focused", i === focus));
+    state.region.layers.forEach((layer, i) => {
+      layer.item.classList.toggle("is-focused", i === focus);
+      layer.item.classList.toggle("is-muted", isMuted(layer));
+    });
     stage.classList.toggle("has-focus", focus >= 0);
+  }
+
+  /** Lets an edition's layers stand out ("public" or "research"), or all of them (null). */
+  function emphasise(edition) {
+    const next = edition === "public" || edition === "research" ? edition : null;
+    if (state.edition === next) return;
+    state.edition = next;
+    // Not data-edition, which names the edition cards themselves.
+    if (next) stage.dataset.emphasis = next;
+    else delete stage.dataset.emphasis;
+    setLabelState();
+    wake();
   }
 
   function showOpenChip() {
@@ -656,7 +683,10 @@ export function mountDataTower(section) {
     state.selected = -1;
     for (const region of regions.values()) region.list.hidden = region !== next;
     for (const button of buttons) button.setAttribute("aria-pressed", String(button.dataset.towerRegionButton === key));
-    for (const layer of next.layers) layer.shown = layer.image ? 1 : 0;
+    for (const layer of next.layers) {
+      layer.shown = layer.image ? 1 : 0;
+      layer.muted = isMuted(layer) ? 1 : 0;
+    }
     state.labelHeights = null;
     showOpenChip();
     setLabelState();
@@ -697,11 +727,13 @@ export function mountDataTower(section) {
     pitch: state.pitch,
     velocity: state.velocity,
     focus: focusIndex() >= 0 ? state.region.layers[focusIndex()].key : null,
+    edition: state.edition,
+    muted: state.region.layers.filter(isMuted).map((layer) => layer.key),
     visible: state.visible,
     side: state.side,
     loaded: state.region.layers.every((layer) => layer.image),
   });
   // For tests and the console, as the explorer's window.render_game_to_text() is.
   Object.defineProperty(section, "dataTowerState", { value: snapshot, configurable: true });
-  return { showRegion, snapshot };
+  return { showRegion, snapshot, emphasise };
 }

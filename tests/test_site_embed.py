@@ -105,8 +105,21 @@ def embedded_parts(doc: Node) -> tuple[Node, Node]:
 class TestHomePageEmbedContract:
     def test_the_shell_holds_exactly_one_header_and_one_main(self, locale):
         header, main = embedded_parts(parse(locale))
-        assert header.find("h1", cls="explorer-page-title")
+        # The page title opens the hero, in the main content, which yuwang.blog copies whole.
+        assert not header.find_all("h1")
+        assert len(main.find_all("h1", cls="explorer-page-title")) == 1
         assert main.find_all("section")
+        # yuwang.blog finds the header by its class, and the theme switch it drops inside it.
+        assert header.find("button", id="themeToggle")
+        for element in main.iter():
+            assert "explorer-page-header" not in element.classes, "a second page header would confuse yuwang.blog"
+
+    def test_the_updates_drawer_travels_with_the_main_content(self, locale):
+        _, main = embedded_parts(parse(locale))
+        drawer = main.find("dialog", id="all-updates")
+        triggers = [a for a in main.find_all("a") if a.attrs.get("data-drawer-open") == "all-updates"]
+        assert triggers and all(a.attrs["href"] == "#all-updates" for a in triggers)
+        assert drawer.find(attrs_present="data-drawer-close")
 
     def test_every_local_link_in_the_embedded_parts_is_served_by_the_bundle(self, locale):
         header, main = embedded_parts(parse(locale))

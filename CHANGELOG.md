@@ -45,6 +45,37 @@ All notable changes to 3D ICE are recorded here. The format follows
 
 ### Changed
 
+- The home pages are rebuilt in the editorial manner of yuwang.blog, in the same sea-ice
+  colours: open sections under hairline rules, letter-spaced eyebrows, Playfair Display
+  headings and flat surfaces. In a 1440 × 900 window the English page is 4,610 px tall
+  against 9,146 px, and 7,377 px against 18,577 px on a phone; its visible text is down from
+  about 1,970 words to 810.
+  - The hero holds the page title under the logo, a one-line lead, the two ways in and a
+    meta line, beside the live explorer; the header keeps only the top bar.
+  - *Editions* and *Datasets* become one section, *Explore*: the data tower, then the two
+    editions as its doors. A key says what the tower's Public and Research tags mean, the
+    edition cards wear the same tags, and a card under the pointer or in focus shows its
+    edition in the stack: the public one fades the six Antarctic layers only the research
+    edition has. The cards keep three or four short points each, and the comparison table,
+    with a row for the observed records, stays folded under them.
+  - *Latest updates* shows the three newest updates, up to the grounding line, and *All
+    updates* opens a drawer from the right edge with every one of them, newest first, back
+    to August 2026. It is a modal `<dialog>`: Escape, its close button or a click beside it
+    closes it and gives focus back, and an address ending in `#all-updates` opens it.
+    Without the script the link still reaches the list, shown in place.
+  - *Key Features* is gone.
+  - *Source data* lists one line per dataset, with its paper or data beside it, in eight
+    groups by what they show (terrain, ice flow, beneath the ice, ocean and sea ice, change
+    and the future, rebound, basins, places): 22 lines in place of two columns of 42 titles.
+    Every source the explorer cites is still linked, and the credits the data ask for
+    (ITS_LIVE, Copernicus Marine, COMNAP) still stand beside them.
+  - The feedback section is the form and three lines beside it; the closing buttons are gone.
+  - The data tower now sits within a screen of the hero, so it starts once the page has
+    loaded, after the hero's live explorer.
+  - The analytics keep counting entries from the tower and the edition cards as
+    `home-data-tower` and `home-editions`: a part of a section can name itself with
+    `data-entry-source`.
+  - The footer's styles apply on 3d-ice.com only; yuwang.blog styles its own footer.
 - Choosing *Basal melt* or *Thermal driving* now unticks *Ice base* as well as *Ice surface*,
   so the ice-shelf base colouring is seen without the ice base drawn over it. Setting the
   choice back to Off ticks each one again, unless the reader changed it in the meantime.

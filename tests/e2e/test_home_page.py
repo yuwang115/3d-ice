@@ -285,8 +285,10 @@ def _hover_a_layer(page) -> tuple[float, float, dict]:
 
 class TestDataTower:
     def test_the_tower_loads_only_once_its_section_nears_the_screen(self, playwright_browser, server):
+        # The tower sits right under the hero, within a screen of it on a laptop; a short window
+        # keeps it more than a screen away at first.
         requested: list[str] = []
-        context, page, errors, failed = _open(playwright_browser, server + "/", requests=requested)
+        context, page, errors, failed = _open(playwright_browser, server + "/", viewport=(1440, 420), requests=requested)
         try:
             page.wait_for_timeout(800)
             assert TOWER_MODULE not in requested, "the first screen is the hero; the tower can wait"
@@ -383,6 +385,151 @@ class TestDataTower:
             first = page.locator('[data-tower-region="antarctica"] .explorer-tower-layer').first.bounding_box()
             assert first["y"] >= canvas["y"] + canvas["height"], "the labels follow the stack"
             assert page.evaluate("document.documentElement.scrollWidth") <= 390
+        finally:
+            context.close()
+
+
+# Antarctica's layers that only the research edition has (tests/test_home_page.py lists them all).
+RESEARCH_ONLY_ANTARCTICA = ["surface-change", "sea-ice", "basal-melt", "basal-friction", "subglacial", "basins"]
+TOWER_STATE = "(tower) => tower.dataTowerState()"
+
+
+class TestEditionsAndTheTower:
+    def test_the_public_card_fades_the_layers_only_the_research_edition_has(self, playwright_browser, server, home_locale):
+        context, page, errors, _failed = _open(playwright_browser, server + HOME_PATHS[home_locale])
+        try:
+            _show_tower(page)
+            tower = page.locator("[data-tower]")
+            page.locator('.explorer-edition-card[data-edition="public"] h3').hover()
+            state = tower.evaluate(TOWER_STATE)
+            assert state["edition"] == "public"
+            assert state["muted"] == RESEARCH_ONLY_ANTARCTICA
+            muted = page.locator('[data-tower-region="antarctica"] .explorer-tower-layer.is-muted')
+            assert muted.evaluate_all("(items) => items.map((item) => item.dataset.towerLayer)") == RESEARCH_ONLY_ANTARCTICA
+            page.locator('.explorer-edition-card[data-edition="research"] h3').hover()
+            state = tower.evaluate(TOWER_STATE)
+            assert (state["edition"], state["muted"]) == ("research", [])
+            page.mouse.move(2, 2)
+            assert tower.evaluate(TOWER_STATE)["edition"] is None
+            assert muted.count() == 0
+            assert errors == []
+        finally:
+            context.close()
+
+    def test_a_keyboard_user_in_an_edition_card_sees_its_layers(self, playwright_browser, server):
+        context, page, _errors, _failed = _open(playwright_browser, server + "/")
+        try:
+            _show_tower(page)
+            tower = page.locator("[data-tower]")
+            # The last layer's label, then Tab: the public card's first button.
+            page.locator('[data-tower-region="antarctica"] [data-tower-layer="grounding-line"] a').focus()
+            page.keyboard.press("Tab")
+            assert page.evaluate("document.activeElement.closest('[data-edition]')?.dataset.edition") == "public"
+            assert tower.evaluate(TOWER_STATE)["edition"] == "public"
+            page.keyboard.press("Shift+Tab")
+            assert tower.evaluate(TOWER_STATE)["edition"] is None
+        finally:
+            context.close()
+
+    def test_a_click_in_an_edition_card_does_not_hold_the_emphasis(self, playwright_browser, server):
+        context, page, _errors, _failed = _open(playwright_browser, server + "/")
+        try:
+            _show_tower(page)
+            link = page.locator('.explorer-edition-card[data-edition="research"] a[href="#source-data"]')
+            # A middle click leaves the page where it is and focus in the card.
+            link.click(button="middle")
+            page.mouse.move(2, 2)
+            assert page.locator("[data-tower]").evaluate(TOWER_STATE)["edition"] is None
+        finally:
+            context.close()
+
+
+DRAWER_OPEN = "() => document.getElementById('all-updates').open"
+
+
+class TestUpdatesDrawer:
+    @pytest.mark.parametrize("closing", ["escape", "close-button", "backdrop"])
+    def test_the_drawer_opens_from_its_link_and_closes(self, playwright_browser, server, home_locale, closing):
+        context, page, errors, _failed = _open(playwright_browser, server + HOME_PATHS[home_locale])
+        try:
+            trigger = page.locator('[data-drawer-open="all-updates"]')
+            drawer = page.locator("#all-updates")
+            assert not drawer.is_visible()
+            trigger.click()
+            assert page.evaluate(DRAWER_OPEN) and drawer.is_visible()
+            assert page.evaluate("getComputedStyle(document.documentElement).overflow") == "hidden", "the page holds still"
+            assert urlparse(page.url).fragment == "", "the address stays as it was"
+            box = drawer.bounding_box()
+            assert abs(box["x"] + box["width"] - 1440) <= 1 and box["height"] >= 899, "a panel along the right edge"
+            assert drawer.locator(".explorer-drawer-item").count() >= 8
+            if closing == "escape":
+                page.keyboard.press("Escape")
+            elif closing == "close-button":
+                drawer.locator("[data-drawer-close]").click()
+            else:
+                page.mouse.click(box["x"] / 2, 450)
+            page.wait_for_function("() => !document.getElementById('all-updates').open", timeout=5_000)
+            assert not drawer.is_visible()
+            # Focus comes back in the dialog's close event, a task after it closes.
+            page.wait_for_function("() => document.activeElement.dataset.drawerOpen === 'all-updates'", timeout=5_000)
+            assert page.evaluate("window.location.hash") == ""
+            assert errors == []
+        finally:
+            context.close()
+
+    def test_the_drawer_slides_out_rather_than_vanishing(self, playwright_browser, server):
+        context, page, _errors, _failed = _open(playwright_browser, server + "/", reduced_motion="no-preference")
+        try:
+            page.locator('[data-drawer-open="all-updates"]').click()
+            page.wait_for_timeout(400)
+            page.keyboard.press("Escape")
+            assert page.locator("#all-updates").evaluate("(drawer) => drawer.open && drawer.classList.contains('is-closing')")
+            page.wait_for_function("() => !document.getElementById('all-updates').open", timeout=5_000)
+        finally:
+            context.close()
+
+    def test_an_address_naming_the_drawer_opens_it_over_its_section(self, playwright_browser, server, home_locale):
+        context, page, errors, _failed = _open(playwright_browser, server + HOME_PATHS[home_locale] + "#all-updates")
+        try:
+            page.wait_for_function(DRAWER_OPEN, timeout=5_000)
+            section = page.locator("#latest-updates").bounding_box()
+            # At the top of the window, less the sections' scroll margin (1.25rem).
+            assert 0 <= section["y"] <= 24, "the page behind it shows the updates, not its foot"
+            page.keyboard.press("Escape")
+            page.wait_for_function("() => !document.getElementById('all-updates').open", timeout=5_000)
+            assert not page.locator("#all-updates").is_visible(), "a closed drawer does not stay in the page"
+            # The dialog's close event, which clears the address and returns focus, comes a task later.
+            page.wait_for_function("() => document.activeElement.dataset.drawerOpen === 'all-updates'", timeout=5_000)
+            assert page.evaluate("window.location.hash") == "", "a reload does not open it again"
+            assert errors == []
+        finally:
+            context.close()
+
+    def test_space_on_the_close_button_closes_the_drawer(self, playwright_browser, server):
+        context, page, _errors, _failed = _open(playwright_browser, server + "/")
+        try:
+            page.locator('[data-drawer-open="all-updates"]').click()
+            close = page.locator("#all-updates [data-drawer-close]")
+            assert close.get_attribute("role") == "button"
+            close.focus()
+            page.keyboard.press("Space")
+            page.wait_for_function("() => !document.getElementById('all-updates').open", timeout=5_000)
+        finally:
+            context.close()
+
+    def test_without_the_script_the_link_still_reaches_every_update(self, playwright_browser, server):
+        # Reduced motion: no smooth scroll to the drawer, which would keep its links moving.
+        context = playwright_browser.new_context(viewport={"width": 1440, "height": 900}, java_script_enabled=False, reduced_motion="reduce")
+        try:
+            page = context.new_page()
+            page.goto(server + "/", wait_until="load", timeout=NAVIGATION_TIMEOUT_MS)
+            drawer = page.locator("#all-updates")
+            assert not drawer.is_visible()
+            page.locator('[data-drawer-open="all-updates"]').click()
+            assert drawer.is_visible()
+            assert drawer.evaluate("(el) => getComputedStyle(el).position") == "static", "shown in place, not as a modal"
+            drawer.locator("[data-drawer-close]").click()
+            assert not drawer.is_visible()
         finally:
             context.close()
 
