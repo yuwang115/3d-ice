@@ -193,6 +193,10 @@ def test_playback_runs_month_by_month_across_the_gap_and_stops_on_a_month(page):
     _pick(page, 1987, 10)
     page.locator("#seaIcePlay").click()
     assert _state(page)["seaIce"]["playing"]
+    # Pause from inside the page, in the same task as the steps. While playback runs, a headless
+    # browser without a GPU takes seconds to draw each frame, and a Playwright click waits on
+    # several frames: on CI the Pause click ran past its 30 s timeout. Play is a real click on
+    # the same button.
     months = page.evaluate(
         """() => {
             const seen = [];
@@ -202,6 +206,7 @@ def test_playback_runs_month_by_month_across_the_gap_and_stops_on_a_month(page):
                 const label = `${s.year}-${String(s.month).padStart(2, '0')}`;
                 if (seen[seen.length - 1] !== label) seen.push(label);
             }
+            document.getElementById('seaIcePlay').click();
             return seen;
         }"""
     )
@@ -209,10 +214,10 @@ def test_playback_runs_month_by_month_across_the_gap_and_stops_on_a_month(page):
     assert months == sorted(months)
     assert "1987-11" in months and "1988-02" in months
     assert "1987-12" not in months and "1988-01" not in months, "playback names no empty month"
-    page.locator("#seaIcePlay").click()
     state = _state(page)["seaIce"]
     assert not state["playing"]
     assert state["position"] == int(state["position"]), "playback stops on a whole month"
+    assert f"{state['year']}-{state['month']:02d}" == months[-1], "playback stops on the month it named"
     assert errors == []
 
 
