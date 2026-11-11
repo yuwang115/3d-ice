@@ -14,3 +14,6 @@ htmlcov/
 
 # JOSS draft output (published by GitHub Actions as an artifact)
 paper.pdf
+
+# Local editor and assistant settings, which hold machine-specific paths
+.claude/
