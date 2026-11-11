@@ -14,7 +14,7 @@ fixed, and unloading raises it by hundreds of metres. 3D ICE answers the questio
 isostatic-rebound layer, whose default Earth response is the published one of Paxman,
 Austermann & Hollyday (2022), shipped as a package on each terrain grid; idealised responses
 solved from the terrain package are available for comparison (both routes are described in
-the [README](../README.md#isostatic-rebound-ice-free-equilibrium)).
+[data-layers.md](data-layers.md#isostatic-rebound-ice-free-equilibrium)).
 
 ### In the browser
 
