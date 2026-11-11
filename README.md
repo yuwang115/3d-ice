@@ -33,18 +33,6 @@
   <a href="https://github.com/yuwang115/3d-ice/releases">Releases</a>
 </p>
 
-<p align="center">
-  <a href="https://github.com/yuwang115/3d-ice/actions/workflows/deploy-pages.yml">
-    <img src="https://github.com/yuwang115/3d-ice/actions/workflows/deploy-pages.yml/badge.svg" alt="Deploy Pages workflow">
-  </a>
-  <a href="https://github.com/yuwang115/3d-ice/actions/workflows/release-compat-bundle.yml">
-    <img src="https://github.com/yuwang115/3d-ice/actions/workflows/release-compat-bundle.yml/badge.svg" alt="Release compat bundle workflow">
-  </a>
-  <img src="https://img.shields.io/badge/Node-22.12%2B-0f766e?style=flat-square" alt="Node 22.12+">
-  <img src="https://img.shields.io/badge/Runtime-WebGL%20in%20the%20browser-0a7ea4?style=flat-square" alt="WebGL browser runtime">
-  <img src="https://img.shields.io/badge/Scope-Antarctica%20%2B%20Greenland-175cd3?style=flat-square" alt="Antarctica and Greenland">
-</p>
-
 ## Overview
 
 3D ICE is a standalone source repository for the full 3D ICE experience: the GitHub Pages site,
@@ -57,12 +45,6 @@ from the visualization to the underlying source products.
 
 <p align="center">
   <a href="https://www.youtube.com/watch?v=J81vJ7ODy6I">
-    <img src="https://img.shields.io/badge/Watch%20Demo%20on-YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch demo on YouTube">
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://www.youtube.com/watch?v=J81vJ7ODy6I">
     <img src="static/tools/media/3d-ice/readme-demo-preview.png" alt="3D ICE demo preview. Click to watch the video on YouTube." width="720">
   </a>
   <br>
@@ -71,7 +53,7 @@ from the visualization to the underlying source products.
   </sub>
 </p>
 
-## Two Editions
+## Two editions
 
 3D ICE comes in two editions that share one runtime:
 
@@ -80,346 +62,22 @@ from the visualization to the underlying source products.
 | Public | [`/explore/`](https://3d-ice.com/explore/), [`/zh/explore/`](https://3d-ice.com/zh/explore/) | Everyone: visitors, classrooms, outreach stands | Each region's default terrain, animated ice flowlines coloured by speed, ocean currents, sea level, the ice-free rebound (the ice melts away over three seconds the first time it is switched on) and Antarctica's projected future to 2300, with a nine-stop guided tour and a plain-language explainer, with sources, for every layer. |
 | Research | [`/tools/3D-interactive-cryosphere-explorer.html`](https://3d-ice.com/tools/3D-interactive-cryosphere-explorer.html), `/zh/tools/…` | Researchers | Every dataset, resolution and layer, the data-snapshot panel, flowline profiles, the idealised rebound models and the recording mode. |
 
-A page names its edition with `<html data-edition>`, and `static/tools/js/editions.js` turns
-that into the datasets, layers and behaviours on offer. Restricting a layer also drops the
-URLs of its packages, so the public pages never fetch a research-only package. The tour's
-stops and all the public edition's words, in English and Chinese, are in
-`static/tools/js/explore-content.js`. `?tour=1` opens the tour when the page loads, and
-`?tour=<stop id>` opens it at that stop.
+## What you can explore
 
-## Why This Repo Exists
-
-- Publish `static/` directly to GitHub Pages as a standalone site.
-- Preserve the legacy `/tools/...` public paths used by the main personal site.
-- Ship a compatibility bundle for downstream deployment into another repo.
-- Keep runtime assets, prepared data products, and data-preparation tooling together.
-
-## Experience Highlights
-
-| Capability | What 3D ICE provides |
+| Region | Layers |
 | --- | --- |
-| Fully interactive 3D viewing | Rotate, zoom, and inspect Antarctica and Greenland as if handling a physical model. |
-| Layered cryosphere exploration | Combine bed topography, surface velocity, basin boundaries, basal friction, subglacial hydrology, and ocean streamlines in one scene. |
-| Antarctica-specific overlays | Explore WAOM2 ocean circulation, the refined drainage basins of MEaSUREs Antarctic Boundaries v2, subglacial channels, and RISE basal melt plus thermal-driving fields. |
-| Greenland-specific overlays | Explore the ITS_LIVE V02.1 velocity mosaic, Greenland basin boundaries, basal friction fields, and clipped Arctic ocean circulation around Greenland. |
-| Research-friendly workflow | The research edition's *Data and sources* list links the source products of the datasets in view, and the public edition's explainers cite them, so the visual layer stays connected to the original scientific products. |
-| Cross-platform delivery | Balanced presets support mobile touchscreens, while HD options target larger desktop displays. |
-| Flexible deployment | The runtime auto-detects project-path prefixes, so it works both at a site root and under GitHub Pages project paths such as `/3d-ice/tools/...`. |
+| Antarctica | Bed topography, surface elevation and ice thickness (BedMachine Antarctica v4 or Bedmap3), grounding line, refined drainage basins, ice velocity, basal friction, subglacial hydrology, WAOM2 ocean streamlines, RISE basal melt and thermal driving, isostatic rebound, ISMIP6 projections to 2300, observed surface elevation change (1995–2026) and observed sea ice (1978–2026) |
+| Greenland | Bed topography, surface elevation and ice thickness (BedMachine Greenland v6 or QRF), grounding line, basin boundaries, the ITS_LIVE V02.1 velocity mosaic (2014–2024), basal friction, Arctic ocean streamlines, isostatic rebound and observed sea ice (1978–2026) |
 
-## Documentation
+Balanced presets support mobile touchscreens, while HD options target larger desktop displays.
+The research edition's *Data and sources* list links the source products of the datasets in
+view, and the public edition's explainers cite them. [docs/data-layers.md](docs/data-layers.md)
+describes every layer, its source products and how it is prepared, and
+[DATA_LICENSES.md](DATA_LICENSES.md) gives each data package's licence and terms.
 
-| Document | Contents |
-| --- | --- |
-| [docs/architecture.md](docs/architecture.md) | The two-stage design, module boundaries, deployment and verification |
-| [docs/data-contract.md](docs/data-contract.md) | The binary and metadata format every data package follows |
-| [docs/data-pipeline.md](docs/data-pipeline.md) | Where each package's source product comes from and how to rebuild it |
-| [docs/example.md](docs/example.md) | Worked examples that run from a clean clone |
-| [CHANGELOG.md](CHANGELOG.md) | Changes by release |
+## Getting started
 
-## Quick Start
-
-### Preview the site locally
-
-The site itself is static. A simple local file server is enough:
-
-```bash
-cd static
-python3 -m http.server 4173
-```
-
-Then open:
-
-- `http://127.0.0.1:4173/`
-- `http://127.0.0.1:4173/explore/` (public edition)
-- `http://127.0.0.1:4173/tools/3D-interactive-cryosphere-explorer.html` (research edition)
-
-### Build the compatibility bundle
-
-The bundling scripts need no npm packages: they use Node built-ins and the system `tar`, and run
-on Node 20 (the release workflow's version) or newer.
-
-```bash
-npm run bundle:compat
-npm run smoke:compat
-```
-
-This produces:
-
-- `dist/3d-ice-compat.tar.gz`
-- `dist/3d-ice-compat.tar.gz.sha256`
-- `dist/3d-ice-compat-manifest.json`
-
-The tarball holds the files a host serves at the same paths as 3d-ice.com, so it can be
-mounted at a site root:
-
-- `tools/`: the research edition, the runtime, data, media and vendored libraries, so legacy
-  `/tools/...` URLs keep working;
-- `explore/`, `zh/explore/` and `zh/tools/3D-interactive-cryosphere-explorer.html`: the
-  public edition and the Chinese research page;
-- `css/`, `js/` and `fonts/`: what the home page loads.
-
-It also holds the two home pages as `home/en-US.html` and `home/zh-CN.html`, for a host that
-builds its own copy of the home page. They sit under `home/` so that mounting the bundle cannot
-replace the host's own home page. yuwang.blog builds its `/tools/3d-ice/` page this way, and
-`tests/test_site_embed.py` pins what it relies on.
-
-## Repository Layout
-
-| Path | Purpose |
-| --- | --- |
-| `static/index.html`, `static/zh/index.html` | Home pages (English and Chinese): the hero, *Explore* (the data tower with the two editions under it), the latest updates with a drawer holding all of them, the source data and feedback. |
-| `static/js/3d-ice-data-tower.js`, `3d-ice-data-tower-geometry.js` | The home page's data tower: every dataset as one layer of a turning stack, each opening its view. Its layer images are drawn by `scripts/build_home_data_tower.py`. |
-| `static/css/3d-ice-home.css`, `static/css/3d-ice-type.css`, `static/js/3d-ice-home.js` | Home-page styles, typefaces and behaviour (theme, preview videos, feedback form, language switcher). |
-| `static/fonts/` | Self-hosted Space Grotesk and Playfair Display (SIL Open Font License). |
-| `static/tools/3D-interactive-cryosphere-explorer.html`, `static/zh/tools/…` | Research-edition explorer pages (English and Chinese). |
-| `static/explore/index.html`, `static/zh/explore/index.html` | Public-edition explorer pages (English and Chinese). |
-| `static/tools/js/explorer-app.js`, `static/tools/css/explorer.css` | The explorer runtime and styles that every explorer page loads. |
-| `static/tools/js/editions.js` | What each edition offers: datasets, layers and runtime behaviours. |
-| `static/tools/js/explore-guide.js`, `explore-content.js`, `explore-tour.js`, `static/tools/css/explore.css` | The public edition's guided tour and layer explainers: interface, copy, camera and tour logic, and styles. |
-| `static/tools/js/` (other modules) | Data-package decoder, polar projections, vertical scale, layer statistics, overlay cell rules, source links, isostatic-rebound solver, and place and feature search. |
-| `static/tools/*-worker.js` | Web Workers for overlay geometry and the rebound solve. |
-| `static/js/3d-ice-locale.js` | English and Chinese interface strings. |
-| `static/tools/data/` | Prepared data packages (`.bin` + `.meta.json`) and feature catalogues. |
-| `static/tools/media/3d-ice/` | Preview stills and loop videos, and in `tower/` the data tower's layer images. |
-| `static/tools/vendor/three/` | Vendored Three.js r161. |
-| `scripts/` | Data preparation, bundle and release utilities, and trailer capture. |
-| `tests/` | Python, JavaScript and browser tests. |
-| `docs/`, `examples/` | Design documentation and runnable examples. |
-| `dist/` | Generated compatibility bundle (not committed). |
-| `.github/workflows/` | CI, the JOSS paper draft, GitHub Pages deployment and release automation. |
-
-## Core Data Layers
-
-| Region | Layers in the experience | Representative source products |
-| --- | --- | --- |
-| Antarctica | Bed topography, surface elevation, thickness, mask, grounding line, refined basins, velocity, basal friction, subglacial hydrology, ocean streamlines, basal melt, thermal driving, isostatic rebound, ice-sheet projections to 2300, observed surface elevation change 1995–2026, observed sea ice 1978–2026 | [BedMachine Antarctica v4](https://nsidc.org/data/NSIDC-0756/versions/4), [Bedmap3 v1.0](https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2) (CC BY 4.0), [MEaSUREs Antarctic Boundaries v2, refined basins](https://nsidc.org/data/NSIDC-0709/versions/2), [MEaSUREs Phase-Based Antarctica Velocity v1](https://nsidc.org/data/NSIDC-0754/versions/1), [AISEFI basal shear stress](https://doi.org/10.5281/zenodo.18508904) (CC BY 4.0; method: [Jager et al. 2026, preprint](https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1)), [GlaDS Antarctic subglacial hydrology](https://doi.org/10.5281/zenodo.12738170) (CC BY 4.0; [Ehrenfeucht et al. 2025](https://doi.org/10.1029/2024GL111386)), [WAOM2](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full), [RISE data](https://doi.org/10.26179/q0rh-gt74) (CC BY 4.0; [Galton-Fenzi et al. 2025](https://doi.org/10.5194/tc-19-6507-2025)), [Paxman et al. (2022)](https://doi.org/10.1038/s41598-022-15440-y) isostatic response, [grid files v3](https://doi.org/10.18739/A22Z12R8C) (CC BY 4.0), [ISMIP6 Antarctica 2300 projections](https://doi.org/10.5281/zenodo.13135599) (CC BY 4.0; [Seroussi et al. 2024](https://doi.org/10.1029/2024EF004561)), [CPOM surface elevation change](https://www.cpom.ucl.ac.uk/landice/) (CC BY 4.0; [Shepherd et al. 2019](https://doi.org/10.1029/2019GL082182)), [NOAA/NSIDC sea-ice concentration CDR v6](https://doi.org/10.7265/b18j-z797) |
-| Greenland | Bed topography, surface elevation, thickness, mask, grounding line, basin boundaries, velocity, basal friction, ocean streamlines, isostatic rebound, observed sea ice 1978–2026 | [BedMachine Greenland v6](https://nsidc.org/data/idbmg4/versions/6) (v7 was released in October 2026), [QRF Greenland subglacial topography (2025)](https://doi.org/10.1017/jog.2025.10071), [ITS_LIVE V02.1 summary velocity mosaic, 2014–2024](https://its-live.jpl.nasa.gov/) (velocity data generated using auto-RIFT and provided by the NASA MEaSUREs ITS_LIVE project; archived as [NSIDC-0776 v2](https://nsidc.org/data/NSIDC-0776/versions/2)), [Greenland basins](https://doi.org/10.7280/D1WT11) (Mouginot & Rignot 2019, CC BY 4.0), [GrISEFI basal shear stress](https://doi.org/10.5281/zenodo.18508850) (CC BY 4.0; method: [Jager et al. 2026, preprint](https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1)), [Copernicus Marine Arctic Ocean Physics](https://doi.org/10.48670/moi-00001) (generated using E.U. Copernicus Marine Service Information), [Paxman et al. (2022)](https://doi.org/10.1038/s41598-022-15440-y) isostatic response, [grid files v3](https://doi.org/10.18739/A22Z12R8C) (CC BY 4.0), [NOAA/NSIDC sea-ice concentration CDR v6](https://doi.org/10.7265/b18j-z797) |
-
-Bedmap3 is available as a 10 km Balanced or 4 km HD Antarctica terrain alternative. Both modes support velocity, flowlines, basal friction, effective pressure, subglacial channels, refined basins, and WAOM2 ocean streamlines. Its velocity, basal-friction and hydrology layers are nearest-cell copies of the BedMachine-aligned 10 km and 4 km packages, moved onto Bedmap3's grid, whose origin is offset by 250 m (subglacial-channel endpoints are reprojected); the projected WAOM2 streamlines are clipped against the active terrain at runtime. RISE basal melt and thermal-driving fields remain exclusive to BedMachine v4.
-
-Greenland QRF subglacial topography (2025) is available as 3 km Balanced and 1 km HD terrain alternatives. The 300 m QRF GeoTIFF is sampled at pixel centres. The package replaces bed elevation only for grounded ice where the QRF prediction is valid, keeps BedMachine Greenland v6 surface elevation and mask, derives internally consistent thickness from those two fields, and falls back to BedMachine values over QRF gaps, ocean, and floating ice. Velocity, flowlines, basal friction, basins, and ocean streamlines reuse their existing BedMachine-aligned grids. The upstream data repository does not state a standalone data licence; see [DATA_LICENSES.md](DATA_LICENSES.md).
-
-### Ice-sheet projections (ISMIP6, to 2300)
-
-The projection layer plays Antarctica forward from 2015 to 2300 under three ISMIP6
-scenarios, all forced by UKESM1-0-LL: low emissions (SSP1-2.6), high emissions (SSP5-8.5),
-and high emissions with ice-shelf collapse driven by surface melt. Each scenario is the
-equal-weight mean of the eight ice sheet models that ran all three, out of the sixteen
-groups in Seroussi et al. (2024). Every model's change in thickness and in depth-averaged
-ice speed since 2015 is resampled conservatively onto the explorer's 10 km grid. The mean
-change is then applied to today's BedMachine v4 ice, so the first frame is the ice already on
-screen. Thickening is added as it is. Thinning is scaled by BedMachine thickness over the
-models' own 2015 thickness, so each cell keeps the share of its ice that the models keep;
-where the models average less than 10 m of ice, it is gone. Adding the thinning outright
-would riddle the ice shelves with holes, because the models' shelves start out thicker than
-BedMachine's in some cells and thinner in others.
-
-The browser rebuilds the surface and base by flotation on the BedMachine bed. It colours the
-ice by its thickness change and keeps the flowlines on: they ride the projected surface,
-recolour and speed up with today's speed plus the mean change, and drop out where the ice
-is gone. Switching the projection on switches the flowlines on, and switching it off
-switches them off again unless they were changed in between. On the research pages *Ice flow →
-Flowlines* is the one switch for them, and the projection, the isostatic rebound and the
-observed records share the panel's *Change over time* group, one at a time. Each switches off
-the layers drawn against today's ice or bed that it replaces, says so on their rows, and puts
-them back, with the sea plane and flowlines as they were, when the reader returns to the
-present day or moves straight to another; switching one of those layers on instead ends it,
-and nothing else comes back. The public page keeps a switch at the end of the projection's
-controls, the same layer as its *Ice flow* toggle.
-
-The sea-level number and chart are the mean of the models' own published results, with
-their range. Because flotation is not linear, the averaged ice on the map implies more
-sea-level rise than that mean: by 2300 it is 0.15 m against 0.05 m (SSP1-2.6), 1.93 m
-against 1.46 m (SSP5-8.5) and 3.12 m against 2.43 m (with collapse). The packages record
-both figures. The packages,
-the pipeline (`docs/data-pipeline.md`) and the browser module
-(`static/tools/js/ice-projection.js`) are tested in `tests/test_prepare_ismip6_projection.py`,
-`tests/test_ismip6_2300_hpc_scripts.py`, `tests/js/ice-projection.test.mjs` and
-`tests/e2e/test_ice_projection.py`.
-
-### Observed elevation change (CPOM, 1995–2026)
-
-The research edition shows CPOM's record of Antarctic surface elevation change from
-multi-mission radar altimetry (ERS-2, Envisat and CryoSat-2; product version 1.0, CC BY 4.0;
-Shepherd et al. 2019) as a colour on today's ice surface, under *Change over time*. *Change
-since 1995* plays the 81 cumulative 140-day epochs on the Balanced dataset; *Rate, 1995–2026*
-shows the linear trend on the Balanced and HD datasets. CPOM's 5 km cells are averaged by
-area onto each explorer cell they cover by at least half. The product covers grounded ice
-only, so ice shelves, islands and ice rises have no colour. Changes within twice their
-uncertainty are faded, a fade that can be switched off, and the polar cap that CPOM
-extrapolates always is: south of 81.5°S until CryoSat-2 data arrive in late 2010, and south
-of 88°S throughout. The readout quotes
-CPOM's own mass change for the ice sheet and the IMBIE regions, not sums over the resampled
-grid. Clicking the ice, or the basin list, picks one of CPOM's 18 IMBIE drainage basins
-(numbered as in CPOM's `basin_id`) or a region: the map outlines it, and a chart plots its mass change since
-1995 with its 1σ band, in both views. The layer is exclusive with the velocity colour and, as one of the
-features of *Change over time*, with the projection, the observed sea ice and the rebound. The
-packer (`scripts/prepare_cpom_land_ice.py`) and the browser module
-(`static/tools/js/surface-change.js`) are tested in `tests/test_prepare_cpom_land_ice.py`,
-`tests/js/surface-change.test.mjs` and `tests/e2e/test_surface_change.py`.
-
-### Observed sea ice (NOAA/NSIDC, 1978–2026)
-
-The research edition shows the NOAA/NSIDC climate data record of sea-ice concentration from
-passive microwave radiometers (G02202 Version 6; Meier et al. 2026) on the sea surface around
-Antarctica and Greenland, every month from November 1978, under *Change over time*. A month
-slider shows the seasons and a year slider the same month across the years; Play runs the record
-month by month. Water with less than 15 % ice is left clear, and an orange line marks the month's
-1981–2010 median ice edge. The readout quotes the extent of the whole hemisphere from the same
-record (the Greenland grid holds only part of the Arctic), its departure from the 1981–2010
-average and its rank among the years, and a chart plots the month's extent in every year with its
-least-squares trend. NSIDC's 25 km grids are resampled onto a 25 km grid in each region's own
-projection and clipped to the terrain's ocean; near the coast, where NSIDC masks the cells as land,
-the concentration comes from the nearest observed cells. As one of the features of *Change over
-time*, the layer is exclusive with the projection, the observed elevation change and the rebound.
-The packer (`scripts/prepare_nsidc_sea_ice.py`) and the browser module
-(`static/tools/js/sea-ice.js`) are tested in `tests/test_prepare_nsidc_sea_ice.py`,
-`tests/js/sea-ice.test.mjs` and `tests/e2e/test_sea_ice.py`.
-
-### Isostatic rebound (ice-free equilibrium)
-
-The isostatic-rebound layer answers "what would the bed look like with the ice gone and
-rebound complete?" By default it shows the **published** total isostatic response of
-Paxman, Austermann & Hollyday (2022), loaded from packages sampled at each terrain grid's
-nodes. Two **idealised** responses, solved in the browser from the loaded terrain, stay
-available as what-ifs.
-
-**Published response (default).** Paxman et al. compute the fully re-equilibrated response
-to removing both ice sheets: flexure of an elastic plate whose effective elastic thickness
-varies laterally (Swain & Kirby 2021 for Antarctica, Steffen et al. 2018 for Greenland),
-plus the post-LGM disequilibrium still to come (the mean of 24 self-gravitating
-viscoelastic Earth models driven by ICE-6G_C) and the load of the seawater that floods the
-rebounded bed. The sea surface rises by the 65.3 m eustatic contribution of both ice sheets
-plus the residual post-LGM geoid change, 73–91 m in all above the grounded Antarctic ice and
-43–51 m above Greenland's. Version 3 of their grid files ([doi:10.18739/A22Z12R8C](https://doi.org/10.18739/A22Z12R8C),
-CC BY 4.0) is computed on the same BedMachine Antarctica v4, Bedmap3 and BedMachine
-Greenland v6 grids the terrain packages are point-sampled from, so
-`scripts/prepare_isostatic_response.py` samples it at exactly the terrain nodes, with no
-interpolation, and writes one `*_isostatic_response_*` package per terrain package. Each
-stores three fields at 0.1 m: the topography change `T = R − G` (the published total
-response), the solid-surface displacement `R` and the Earth-model spread `σ`. The script
-checks each download against the repository's MD5 and checks that the fields satisfy the
-published identities `T = R − G` and `T = ice unloading + post-LGM + water loading`
-(residuals below 1e-4 m).
-
-The explorer draws the bed at `bed + T`, so heights and emergence read directly against the
-ice-free sea surface however much that surface varies, and it reports uplift as `R`, as the
-solver does. The sea-level datum slider is disabled in this mode because the model fixes its
-own sea surface. On the 10 km BedMachine Antarctica v4 grid the peak solid-surface uplift is
-1028.6 m, the peak rise above the ice-free sea surface 940.6 m, and 2.94 million km² of
-today's sub-sea-level bed emerges; on the 3 km BedMachine Greenland v6 grid the figures are
-829.0 m, 784.4 m and 0.394 million km². The QRF Greenland terrain has no published grid of
-its own and borrows the BedMachine v6 response on the same grid; computing the flexure for
-the QRF ice load instead changes it by about 10 m RMS, well inside the model spread.
-
-**Idealised responses (what-ifs).** The solver below computes the equilibrium vertical
-displacement of the solid Earth after the present ice load is removed, from the thin-plate
-flexure equation
-
-```
-D grad^4 u + rho_m g u = sigma_now - sigma_after
-```
-
-solved in the spectral domain, where `u` is uplift (positive up), `D` is flexural
-rigidity and `sigma` is the vertical stress the overburden applies to the bed. Two Earth
-responses are offered: **regional flexure** (an elastic lithosphere over a fluid
-asthenosphere, the ELRA steady state, `D = 1e25 N m`, flexural length scale 133 km) and
-**local Airy isostasy** (`D = 0`), which bounds the peak uplift from above.
-
-The present-day load is case-split by mask, which matters: grounded ice contributes
-`rho_i g H`; a subglacial lake adds its own fresh-water column; and floating ice
-contributes exactly the load of the seawater it displaces, so removing an ice shelf
-produces no rebound at all. After deglaciation each column is either dry or flooded to
-the chosen sea-level datum, but only where it still drains to the open ocean — basins that
-rebound into closed hollows carry no marine water. Both the flooded depth and the flooded
-footprint depend on the uplift, so the system is non-linear and is closed by Picard
-iteration, which contracts at `rho_w / rho_m ~ 0.31` and converges to centimetre residuals
-in about eight iterations.
-
-**Numerical choices.** The deflection is band-limited near the flexural length scale, so
-the transform is taken on a ~16–20 km grid and bicubically upsampled with half-cell
-registration; against a native-resolution solve this moves the peak uplift by under 0.1 %.
-The water load is evaluated against each coarse cell's sub-cell bathymetry rather than its
-mean bed, which removes a Jensen bias worth roughly 3 m RMS of uplift and half a percent
-of the emergent-area figure. Areas are integrated with the polar-stereographic point scale
-factor: a nominally equal grid cell covers about 5.7 % more ground at the pole and about 8 %
-less at 60°S. The test suite
-checks the solver against the analytic point-load Kelvin-function solution: it agrees to
-within 10⁻⁴ of the peak beyond half a flexural length, and to about 0.1 % under the load
-itself, where the solve grid's Nyquist limit cuts off the kernel. Local isostasy reproduces
-the closed-form Airy uplift exactly.
-
-**What the idealised responses are not.** They are steady states, so they say where the bed
-ends up and not how it gets there: neither is a transient GIA simulation nor a sea-level
-projection. They assume the present bed is in balance with the present load, which it is
-not: part of the post-LGM rebound is still to come (Paxman et al. put it at up to +68 m of
-bed elevation under the Ross and Weddell embayments, while the collapsing Laurentide
-forebulge lowers Greenland by up to 25 m), and the Amundsen Sea Embayment is rising at up to
-41 mm/yr in response to recent ice loss over a low-viscosity mantle (Barletta et al. 2018).
-They omit the sea-level equation, geoid change and rotational feedback, and replace real
-lateral Earth structure with a single rigidity and mantle density. Against the published
-response, regional flexure differs by 68 m RMS over grounded Antarctic ice and 69 m over
-Greenland, mostly because of its uniform rigidity (`D = 1e25 N m` is an elastic thickness of
-about 104 km, stiffer than any of Paxman et al.'s cases) and the missing post-LGM term. The
-UI states these assumptions alongside the figures.
-
-The scenario slider advances ice thinning and bed relaxation together, which is an
-illustrative coupling rather than a simulated deglaciation path; for the published response
-it has no time axis, since that response has no single relaxation time. Because every other
-overlay is baked onto the present-day bed or ice surface, enabling this layer clears them.
-
-**Cost.** The published response is one fetch per terrain package (2.7 MB on the Balanced
-grids, 17–25 MB on the HD grids), decoded and summarised once and then cached. The
-idealised solve runs once per (region, dataset, Earth response, sea-level datum) in a
-dedicated module worker, and takes 0.2–0.9 s across the shipped packages; there is a
-main-thread fallback for browsers without module workers. Moving the scenario slider
-afterwards only rewrites vertex heights and colours from the cached uplift field, holding
-~13 ms frames on the 10 km Antarctic grid.
-
-**Where the code lives.** `scripts/prepare_isostatic_response.py` (published packages),
-`static/tools/js/gia-rebound.js` (`summarisePublishedResponse` and the idealised physics),
-`static/tools/js/gia-grid.js` (coarsening, upsampling, connectivity, area weighting),
-`static/tools/js/fft2d.js` (transform) and `static/tools/gia-rebound-worker.js` (module
-worker). Unit tests: `tests/test_prepare_isostatic_response.py` and
-`tests/js/gia-rebound.test.mjs` (`npm run test:gia-rebound`). Browser tests:
-`tests/e2e/test_isostatic_rebound.py`.
-
-Key references: Paxman, Austermann & Hollyday (2022) for the published response, with
-Swain & Kirby (2021) and Steffen et al. (2018) for the elastic-thickness models it uses;
-Turcotte & Schubert (2002) for plate flexure; Le Meur & Huybrechts (1996) for the ELRA
-formulation and parameter defaults; Lingle & Clark (1985) and Bueler et al. (2007) for the
-deformable-Earth response and its spectral solution; Brotchie & Silvester (1969) for the
-Kelvin-function validation case; Whitehouse et al. (2019) and Barletta et al. (2018) for
-present-day Antarctic uplift and lateral viscosity structure.
-
-## Standalone GitHub Pages Site
-
-This repository publishes `static/` directly to GitHub Pages. That serves:
-
-- `/` as the standalone landing page
-- `/css/3d-ice-home.css` as the home-page stylesheet
-- `/explore/` as the public edition, with the guided tour
-- `/tools/3D-interactive-cryosphere-explorer.html` as the research edition
-- `/tools/data/*`, `/tools/media/3d-ice/*`, `/tools/vendor/*`, and `/tools/3d-antarctica/` as supporting assets
-
-The Pages workflow writes `static/.nojekyll` before deployment so the project-path asset layout is
-preserved exactly as shipped.
-
-## Release Flow
-
-1. Push to `main` to deploy `static/` to GitHub Pages.
-2. Push a tag like `v0.1.0` to build and publish compatibility assets to a GitHub release.
-3. Use `workflow_dispatch` when you want either workflow to run manually.
-
-The release workflow uploads and optionally publishes:
-
-- `dist/3d-ice-compat.tar.gz`
-- `dist/3d-ice-compat.tar.gz.sha256`
-- `dist/3d-ice-compat-manifest.json`
-
-## Installation
-
-### Browser runtime (no install needed)
+### In the browser (no install needed)
 
 Visit the [public edition](https://3d-ice.com/explore/) or the
 [research edition](https://3d-ice.com/tools/3D-interactive-cryosphere-explorer.html) in a
@@ -430,75 +88,42 @@ python3 -m http.server 4173 --directory static
 # open http://127.0.0.1:4173/explore/ or http://127.0.0.1:4173/tools/3D-interactive-cryosphere-explorer.html
 ```
 
-### Development environment
+### For development
 
-- **Python 3.10 or newer** for the data-preparation scripts and the Python tests. Dependencies
-  are declared in `pyproject.toml`.
-- **Node.js 22.12 or newer** for the JavaScript tests; CI uses Node 24. The runtime has no npm
-  dependencies, and the bundle scripts also run on Node 20.
+You need Python 3.10 or newer, and Node.js 22.12 or newer for the JavaScript tests. The
+runtime itself has no npm dependencies.
 
 ```bash
+git clone https://github.com/yuwang115/3d-ice.git
+cd 3d-ice
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e ".[dev]"
-```
-
-### Data preparation pipeline
-
-The prepared packages are committed, so nothing needs rebuilding to run the explorer or the
-tests. [docs/data-pipeline.md](docs/data-pipeline.md) gives, for every package, its source
-product, where to obtain it and the exact command, and lists the steps that rebuild packages
-from the repository alone. For example:
-
-```bash
-# Rebuild the six Bedmap3 overlay packages from committed inputs (identical payloads)
-python scripts/prepare_bedmap3_antarctica_overlays.py
-
-# Rebuild BedMachine Antarctica from the NSIDC file: Balanced, then HD
-python scripts/prepare_bedmachine_antarctica.py --input BedMachineAntarctica_V4.nc
-python scripts/prepare_bedmachine_antarctica.py --input BedMachineAntarctica_V4.nc --step 8 --basename bedmachine_antarctica_v4_741
-```
-
-Scripts write into `static/tools/data/` by default and overwrite the committed package of the
-same name.
-
-### Running tests
-
-With the environment active:
-
-```bash
 python -m pytest tests/ --ignore=tests/e2e     # Python unit and integration tests
 npm run test:js                                 # JavaScript unit, data-contract and example tests
-npm run bundle:compat && npm run smoke:compat   # build and check the distributable bundle
-
-# Browser end-to-end tests (Playwright; about 25 minutes on a laptop)
-python -m pip install -e ".[e2e]"
-python -m playwright install chromium           # on Linux, add --with-deps as CI does
-python -m pytest tests/e2e/
 ```
+
+The browser tests, rebuilding the data packages, the compatibility bundle and releases are in
+the [development guide](docs/development.md).
 
 ### Worked examples
 
 `node examples/isostatic-rebound.mjs` reproduces the isostatic-rebound figures the explorer shows
-for Antarctica, with the explorer's own decoder and rebound module: the published response by
-default, or an idealised solve with `--model flexural|local`. [docs/example.md](docs/example.md)
+for Antarctica, with the explorer's own decoder and rebound module. [docs/example.md](docs/example.md)
 walks through it and through a rebuild of part of the data pipeline from the repository alone.
 
-## JOSS Paper Draft
+## Documentation
 
-Changes to `paper.md`, `paper.bib`, or the paper workflow trigger the
-[Draft JOSS PDF workflow](https://github.com/yuwang115/3d-ice/actions/workflows/draft-pdf.yml).
-The compiled `paper.pdf` is available from each workflow run as the
-`joss-paper` artifact. To use the same Open Journals toolchain locally when
-Docker is available:
-
-```bash
-docker run --rm \
-  --volume "$PWD:/data" \
-  --user "$(id -u):$(id -g)" \
-  --env JOURNAL=joss \
-  openjournals/inara -o pdf paper.md
-```
+| Document | Contents |
+| --- | --- |
+| [docs/data-layers.md](docs/data-layers.md) | What each layer shows, its source products and how it is prepared |
+| [docs/development.md](docs/development.md) | Setup, tests, rebuilding data, the compatibility bundle, deployment, releases and the repository layout |
+| [docs/example.md](docs/example.md) | Worked examples that run from a clean clone |
+| [docs/architecture.md](docs/architecture.md) | The two-stage design, module boundaries, deployment and verification |
+| [docs/data-contract.md](docs/data-contract.md) | The binary and metadata format every data package follows |
+| [docs/data-pipeline.md](docs/data-pipeline.md) | Where each package's source product comes from and how to rebuild it |
+| [DATA_LICENSES.md](DATA_LICENSES.md) | The licence and terms of every data package |
+| [CHANGELOG.md](CHANGELOG.md) | Changes by release |
 
 ## Citation
 
@@ -516,9 +141,11 @@ software release. The repository also includes a machine-readable
 }
 ```
 
-## Contributing
+## Contributing and support
 
 We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Questions, bug reports and feature requests go to
+[GitHub Issues](https://github.com/yuwang115/3d-ice/issues).
 
 This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
 
@@ -528,17 +155,3 @@ The code is licensed under the [MIT License](LICENSE). The data packages in `sta
 not: each stays under its source dataset's licence and terms, listed in
 [DATA_LICENSES.md](DATA_LICENSES.md). The WAOM2 ocean streamlines are redistributed with the
 written permission of F. Boeira Dias.
-
-## Project Scope
-
-This repo is intentionally focused on the standalone 3D ICE experience and related distribution
-artifacts. It is the source of truth for:
-
-- the browser runtime
-- the standalone landing page
-- prepared data bundles
-- preview media
-- compatibility packaging for downstream deployment
-
-If you are looking for the broader personal site that consumes the compatibility bundle, this repo
-is the upstream asset and runtime source rather than the final umbrella website.

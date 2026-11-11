@@ -20,6 +20,7 @@ RUNTIME = STATIC / "tools" / "js" / "explorer-app.js"
 PUBLIC_COPY = STATIC / "tools" / "js" / "explore-content.js"
 HOME_PAGES = (STATIC / "index.html", STATIC / "zh" / "index.html")
 README = ROOT / "README.md"
+DATA_LAYERS = ROOT / "docs" / "data-layers.md"
 
 AISEFI = ("Antarctic Ice Sheet Ensemble Friction Inversion (AISEFI): Basal shear stress with uncertainties", "https://doi.org/10.5281/zenodo.18508904")
 GRISEFI = ("Greenland Ice Sheet Ensemble Friction Inversion (GrISEFI): Basal shear stress with uncertainties", "https://doi.org/10.5281/zenodo.18508850")
@@ -80,7 +81,7 @@ def test_the_refined_basins_are_not_called_imbie():
     texts = [text for text, _ in runtime_links()]
     assert not any("IMBIE refined" in text for text in texts)
     assert any("MEaSUREs Antarctic Boundaries v2, refined basins" in text for text in texts)
-    for doc in (README, ROOT / "docs" / "architecture.md"):
+    for doc in (README, DATA_LAYERS, ROOT / "docs" / "architecture.md"):
         assert "IMBIE-refined" not in doc.read_text(encoding="utf-8")
         assert "IMBIE refined" not in doc.read_text(encoding="utf-8")
 
@@ -148,11 +149,11 @@ def test_paxman_links_open_the_work_their_labels_name(source):
 def test_its_live_is_named_as_the_v02_1_mosaic_everywhere():
     # The archived NSIDC-0776 Version 2 may still be credited; the mosaic shown may not be
     # called version 2.
-    places = [RUNTIME, PUBLIC_COPY, README, *HOME_PAGES, ROOT / "docs" / "architecture.md"]
+    places = [RUNTIME, PUBLIC_COPY, README, DATA_LAYERS, *HOME_PAGES, ROOT / "docs" / "architecture.md"]
     mislabels = re.compile(r"velocity mosaic, version 2|速度镶嵌图，第 2 版|ITS_LIVE v2\b|ITS_LIVE v2 velocity|MEaSUREs ITS_LIVE v2\]")
     for place in places:
         assert not mislabels.search(place.read_text(encoding="utf-8")), place
-    for place in (RUNTIME, PUBLIC_COPY, README, *HOME_PAGES):
+    for place in (RUNTIME, PUBLIC_COPY, README, DATA_LAYERS, *HOME_PAGES):
         source = place.read_text(encoding="utf-8")
         assert "V02.1" in source and "2014–2024" in source, place
     assert links_to(runtime_links(), ITS_LIVE), "the explorer links ITS_LIVE, whose archive serves the mosaic"

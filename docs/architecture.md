@@ -281,4 +281,4 @@ current Chrome, Edge, Firefox and Safari (Chrome and Edge 89+, Firefox 114+, Saf
 | Both home pages link each edition, list every source the runtime cites and share one structure across locales | pytest | `tests/test_home_page.py`, `tests/test_home_latest_updates.py` | Python unit tests |
 | The explorer loads, renders and responds in a real browser; the research panel fits its height budget, and every row of its exclusivity table holds, restore included; the public edition requests no research-only package, plays its whole tour and shows it in Chinese; the home pages reach both editions from the first screen | Playwright | `tests/e2e/` | Browser E2E tests |
 
-Commands for running each suite locally are in the [README](../README.md#running-tests).
+Commands for running each suite locally are in the [development guide](development.md#running-tests).
