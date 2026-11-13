@@ -67,7 +67,7 @@ from the visualization to the underlying source products.
 | Region | Layers |
 | --- | --- |
 | Antarctica | Bed topography, surface elevation and ice thickness (BedMachine Antarctica v4 or Bedmap3), grounding line, refined drainage basins, ice velocity, basal friction, subglacial hydrology, WAOM2 ocean streamlines, RISE basal melt and thermal driving, isostatic rebound, ISMIP6 projections to 2300, observed surface elevation change (1995–2026) and observed sea ice (1978–2026) |
-| Greenland | Bed topography, surface elevation and ice thickness (BedMachine Greenland v6 or QRF), grounding line, basin boundaries, the ITS_LIVE V02.1 velocity mosaic (2014–2024), basal friction, Arctic ocean streamlines, isostatic rebound and observed sea ice (1978–2026) |
+| Greenland | Bed topography, surface elevation and ice thickness (BedMachine Greenland v6 or QRF), grounding line, basin boundaries (Mouginot & Rignot's regions or Mankoff's outlet catchments), the ITS_LIVE V02.1 velocity mosaic (2014–2024), basal friction, Arctic ocean streamlines, isostatic rebound and observed sea ice (1978–2026) |
 
 Balanced presets support mobile touchscreens, while HD options target larger desktop displays.
 The research edition's *Data and sources* list links the source products of the datasets in

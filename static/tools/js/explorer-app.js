@@ -22,7 +22,8 @@ const hasResearchPanel = document.documentElement.dataset.edition !== "public";
 // Fetched together: none of these modules needs another to load first.
 const [
   { createPolarFeaturesController },
-  { fetchRefinedBasinJson },
+  { fetchRefinedBasinJson, validateRefinedBasinDataset },
+  { decodeBasinDivides, isBasinDivideDataset, validateBasinDivideDataset },
   { decodeFieldToFloat32, parseField },
   { applyEditionToRegions, getEditionProfile, getStandInSpec, withLightPackages },
   { projectLatLon },
@@ -39,6 +40,7 @@ const [
 ] = await Promise.all([
   import(assetUrl("js/polar-features.js")),
   import(assetUrl("js/polar-refined-basins.js")),
+  import(assetUrl("js/basin-divides.js")),
   import(assetUrl("js/data-contract.js")),
   import(assetUrl("js/editions.js")),
   import(assetUrl("js/polar-projection.js")),
@@ -447,6 +449,29 @@ const ALL_REGIONS = {
     refinedBasinsUrl: assetUrl("data/greenland_basins_ps_v1_4_2.json"),
     basinToggleLabel: "Basins",
     basinStatusLabel: "basins",
+    // The basin layer's choice of set; the first is the default, the one sources.basins
+    // credits and the place search's basins belong to.
+    basinSets: [
+      {
+        key: "mouginot2019",
+        url: assetUrl("data/greenland_basins_ps_v1_4_2.json"),
+      },
+      {
+        key: "mankoff2020",
+        url: assetUrl("data/greenland_mankoff_ice_basins_k1.json?v=20261113-k1-v8"),
+        source: [
+          {
+            text: "Mankoff (2020) Streams, Outlets, Basins, and Discharge [k=1.0], GEUS Dataverse, version 8, CC0 1.0",
+            url: "https://doi.org/10.22008/FK2/XKQVL7",
+          },
+          "; ",
+          {
+            text: "Mankoff et al. (2020), Earth Syst. Sci. Data",
+            url: "https://doi.org/10.5194/essd-12-2811-2020",
+          },
+        ],
+      },
+    ],
     defaultDatasetKey: "3km",
     capabilities: {
       velocity: true,
@@ -849,6 +874,9 @@ const controlsUI = {
   showOceanLayerLower: resolveControl("showOceanLayerLower"),
   showRefinedBasins: resolveControl("showRefinedBasins"),
   showRefinedBasinsLabel: resolveControl("showRefinedBasinsLabel"),
+  basinSetControls: resolveControl("basinSetControls"),
+  basinSet: resolveControl("basinSet"),
+  basinSetNote: resolveControl("basinSetNote"),
   showEffectivePressure: resolveControl("showEffectivePressure"),
   showSubglacialChannels: resolveControl("showSubglacialChannels"),
   showSea: resolveControl("showSea"),
@@ -1048,8 +1076,12 @@ let refinedBasinBedLabels;
 let refinedBasinSurfaceLabels;
 let polarFeaturesController = null;
 let currentRefinedBasinData = null;
+// The package the basin overlays on screen were built from, so a change of set rebuilds them.
+let refinedBasinOverlayUrl = null;
 let refinedBasinLoadPromise = null;
 let refinedBasinLoadingUrl = null;
+// Counts basin loads, so only the latest one started may build or report a failure.
+let refinedBasinLoadToken = 0;
 let velocityField;
 let reboundModule = null;
 let reboundModulePromise = null;
@@ -1531,8 +1563,102 @@ function canUseMainThreadOceanCurrentFallback(oceanMeta, oceanBuffer) {
   return segmentSafe && streamlineSafe && bufferSafe;
 }
 
+// ------------------------------------------------------------------ basin sets
+//
+// A region may offer more than one basin set (Greenland: Mouginot & Rignot's seven regions,
+// or Mankoff's outlet catchments). The first is the default; the choice is the reader's,
+// per region, for the session.
+const basinSetSelectionByRegion = {};
+
+function getRegionBasinSets(regionKey) {
+  const sets = REGIONS[regionKey]?.basinSets;
+  return Array.isArray(sets) ? sets : [];
+}
+
+/** The region's basin set in use, or null where the region has its one basin layer only. */
+function getActiveBasinSet(regionKey) {
+  const sets = getRegionBasinSets(regionKey);
+  return sets.find((set) => set.key === basinSetSelectionByRegion[regionKey]) || sets[0] || null;
+}
+
+/** The package of the basins a dataset shows: its region's chosen set, else its one layer. */
+function getBasinUrl(dataset) {
+  return getActiveBasinSet(dataset?.regionKey)?.url || dataset?.refinedBasinsUrl || "";
+}
+
+/** Choose a region's basin set; an unknown key chooses the default. True if it changed. */
+function setBasinSetSelection(regionKey, setKey) {
+  const sets = getRegionBasinSets(regionKey);
+  const next = sets.find((set) => set.key === setKey) || sets[0];
+  if (!next) return false;
+  const changed = getActiveBasinSet(regionKey)?.key !== next.key;
+  basinSetSelectionByRegion[regionKey] = next.key;
+  return changed;
+}
+
+function getBasinSetLabel(setKey) {
+  return setKey === "mankoff2020"
+    ? t("explorer.basinSets.mankoff2020Label")
+    : t("explorer.basinSets.mouginot2019Label");
+}
+
+/** What the chosen set shows, from its package once it is in. */
+function describeBasinSet(set, payload) {
+  if (!set || !payload) return "";
+  if (!isBasinDivideDataset(payload)) return t("explorer.basinSets.mouginot2019Note");
+  const fmt = (value) => Math.round(Number(value)).toLocaleString(numberLocale);
+  return t("explorer.basinSets.mankoff2020Note", {
+    large: fmt(payload.large_basin_count),
+    total: fmt(payload.basin_count),
+    minArea: fmt(payload.min_area_km2),
+    areaPercent: fmt(Number(payload.large_area_fraction) * 100),
+  });
+}
+
+/** The set chooser under the basin toggle: shown while the layer is on and has a choice. */
+function updateBasinSetControls() {
+  const { basinSetControls: controls, basinSet: select, showRefinedBasins: toggle } = controlsUI;
+  // A page without the chooser (the public edition) gets stand-in inputs, not a <select>.
+  if (!controls || !(select instanceof HTMLSelectElement)) return;
+  const sets = getRegionBasinSets(currentRegionKey);
+  const active = getActiveBasinSet(currentRegionKey);
+  controls.hidden = !(sets.length > 1 && toggle.checked && !toggle.disabled);
+  const wanted = sets.map((set) => set.key).join("|");
+  if (select.dataset.sets !== wanted) {
+    select.replaceChildren(
+      ...sets.map((set) => {
+        const option = document.createElement("option");
+        option.value = set.key;
+        option.textContent = getBasinSetLabel(set.key);
+        return option;
+      })
+    );
+    select.dataset.sets = wanted;
+  }
+  for (const option of select.options) {
+    const set = sets.find((candidate) => candidate.key === option.value);
+    option.disabled = Boolean(set && refinedBasinUnavailableUrls.has(set.url));
+  }
+  if (active) select.value = active.key;
+  if (controlsUI.basinSetNote) {
+    const payload = active && refinedBasinOverlayUrl === active.url ? currentRefinedBasinData : null;
+    controlsUI.basinSetNote.textContent = describeBasinSet(active, payload);
+  }
+}
+
+function onBasinSetChange() {
+  if (!setBasinSetSelection(currentRegionKey, controlsUI.basinSet.value)) return;
+  clearRefinedBasinOverlays();
+  updateRegionLayerAvailability(currentRegionKey);
+  if (controlsUI.showRefinedBasins.checked && !controlsUI.showRefinedBasins.disabled) {
+    ensureRefinedBasinsLoaded({ trigger: "toggle" });
+  } else {
+    updateMetaFromCurrentState();
+  }
+}
+
 function getDatasetBasinUnavailable(dataset) {
-  const basinsUrl = typeof dataset?.refinedBasinsUrl === "string" ? dataset.refinedBasinsUrl : "";
+  const basinsUrl = getBasinUrl(dataset);
   return basinsUrl ? refinedBasinUnavailableUrls.has(basinsUrl) : false;
 }
 
@@ -1655,6 +1781,7 @@ function updateRegionLayerAvailability(regionKey) {
   updateSurfaceChangeAvailability();
   updateSeaIceAvailability();
   updateOceanCurrentLayerControls();
+  updateBasinSetControls();
   syncLayerReasons(region.key);
   updateLegendVisibility();
 }
@@ -1821,6 +1948,8 @@ function applyExplorerPresetControls(preset) {
   if (controlsUI.reboundSeaLevel) controlsUI.reboundSeaLevel.value = "0";
   if (controlsUI.reboundModel) controlsUI.reboundModel.value = REBOUND_MODEL_KEYS.published;
   if (controlsUI.highlightEmergentLand) controlsUI.highlightEmergentLand.checked = true;
+
+  if (preset.regionKey) setBasinSetSelection(preset.regionKey, preset.basinSet);
 
   const oceanLayers = preset.oceanLayers;
   if (oceanLayers) {
@@ -2624,6 +2753,9 @@ const REFINED_BASIN_BED_LABEL_OFFSET_M = 36;
 const REFINED_BASIN_SURFACE_LABEL_OFFSET_M = 42;
 const REFINED_BASIN_LABEL_WORLD_SCALE = 0.0076;
 const GREENLAND_REFINED_BASIN_LABEL_WORLD_SCALE = 0.0104;
+// A divide package draws thousands of catchments, so its ribbons are half as wide.
+const BASIN_DIVIDE_LINE_WIDTH_M = 2500;
+const BASIN_DIVIDE_MIN_ICE_THICKNESS_M = 150;
 const MAX_REFINED_BASIN_LABELS = 220;
 const MAX_REFINED_BASIN_LABEL_CANVAS_WIDTH = 1600;
 const MAX_REFINED_BASIN_LABEL_TEXTURE_PIXELS = 12_000_000;
@@ -5726,6 +5858,7 @@ function collectExplorerState() {
     },
     captureMotion: getRecordingStateSnapshot(),
     groundingLine: collectGroundingLineState(),
+    basins: collectBasinState(),
     isostaticRebound: {
       enabled: Boolean(controlsUI.showIsostaticRebound?.checked),
       available: Boolean(controlsUI.showIsostaticRebound && !controlsUI.showIsostaticRebound.disabled),
@@ -5894,6 +6027,7 @@ function clearRefinedBasinOverlays() {
   for (const texture of refinedBasinLabelTextureCache.values()) texture.dispose();
   refinedBasinLabelTextureCache.clear();
   refinedBasinLabelTexturePixels = 0;
+  refinedBasinOverlayUrl = null;
 }
 
 function clearModelMeshes() {
@@ -6052,6 +6186,16 @@ function oceanPointInOpenWater(context, index, depth, bedHeight) {
   );
 }
 
+/** Whether the grid cell nearest (col, row) holds ice at least `minThicknessM` thick. */
+function isIceCellNearest(context, col, row, minThicknessM = 0) {
+  const c = Math.round(col);
+  const r = Math.round(row);
+  if (c < 0 || r < 0 || c >= context.nx || r >= context.ny) return false;
+  const index = r * context.nx + c;
+  if (!context.iceValid?.[index]) return false;
+  return !(minThicknessM > 0) || Number(context.thickness?.[index]) >= minThicknessM;
+}
+
 function sampleGridHeightNearest(context, col, row, layerKey) {
   const c = Math.round(col);
   const r = Math.round(row);
@@ -6117,10 +6261,11 @@ function loadRefinedBasinDataset(basinsUrl) {
   if (cached) return Promise.resolve(cached);
   const pending = refinedBasinDataLoadPromises.get(basinsUrl);
   if (pending) return pending;
-  const loadPromise = fetchRefinedBasinJson(
-    basinsUrl,
-    errorLabel("explorer.errors.failedToLoadBasinBoundaries"),
-  )
+  const loadPromise = fetchRefinedBasinJson(basinsUrl, errorLabel("explorer.errors.failedToLoadBasinBoundaries"), {
+    // Named basins, or the divides of a set too large to ship basin by basin.
+    validate: (payload) =>
+      isBasinDivideDataset(payload) ? validateBasinDivideDataset(payload) : validateRefinedBasinDataset(payload),
+  })
     .then((basinData) => {
       refinedBasinDataCache.set(basinsUrl, basinData);
       return basinData;
@@ -6132,7 +6277,15 @@ function loadRefinedBasinDataset(basinsUrl) {
 
 async function activateRefinedBasinFeature(_feature, isCancelled = () => false) {
   const context = currentCoreContext;
-  if (!context || !context.dataset.capabilities.refinedBasins || controlsUI.showRefinedBasins.disabled) {
+  if (!context || !context.dataset.capabilities.refinedBasins) {
+    throw new Error("Refined basins are unavailable for the selected dataset.");
+  }
+  // The place search finds the basins of the region's default set, so show that set.
+  if (setBasinSetSelection(currentRegionKey, getRegionBasinSets(currentRegionKey)[0]?.key)) {
+    clearRefinedBasinOverlays();
+    updateRegionLayerAvailability(currentRegionKey);
+  }
+  if (controlsUI.showRefinedBasins.disabled) {
     throw new Error("Refined basins are unavailable for the selected dataset.");
   }
   if (!controlsUI.showBed.checked && !controlsUI.showIce.checked) {
@@ -6140,6 +6293,7 @@ async function activateRefinedBasinFeature(_feature, isCancelled = () => false) 
     syncIceSurfaceVisibilityFromControls();
   }
   controlsUI.showRefinedBasins.checked = true;
+  updateBasinSetControls();
   const loaded = await ensureRefinedBasinsLoaded({ trigger: "toggle" });
   if (isCancelled() || !loaded) return false;
   updateRefinedBasinVisibility();
@@ -6190,9 +6344,12 @@ function initializePolarFeatures() {
   polarFeaturesController.initialize();
 }
 
-function sampleRefinedBasinPoint(context, xMeters, yMeters, layerKey, offsetMeters) {
+function sampleRefinedBasinPoint(context, xMeters, yMeters, layerKey, offsetMeters, minIceThicknessM = null) {
   const gridPoint = projectPs71PointToGrid(context, xMeters, yMeters);
   if (!gridPoint) return null;
+  if (minIceThicknessM !== null && !isIceCellNearest(context, gridPoint.col, gridPoint.row, minIceThicknessM)) {
+    return null;
+  }
   const heightMeters = sampleGridHeightNearest(context, gridPoint.col, gridPoint.row, layerKey);
   if (!Number.isFinite(heightMeters)) return null;
   const scenePoint = gridToSceneXZ(context, gridPoint.col, gridPoint.row);
@@ -6289,6 +6446,7 @@ function buildRefinedBasinLineGroup(context, basins, layerKey, options = {}) {
   const depthTest = options.depthTest !== false;
   const polygonOffsetFactor = Number.isFinite(options.polygonOffsetFactor) ? options.polygonOffsetFactor : -2;
   const polygonOffsetUnits = Number.isFinite(options.polygonOffsetUnits) ? options.polygonOffsetUnits : -2;
+  const minIceThicknessM = Number.isFinite(options.minIceThicknessM) ? options.minIceThicknessM : null;
   const positions = [];
 
   for (const basin of basins) {
@@ -6301,7 +6459,14 @@ function buildRefinedBasinLineGroup(context, basins, layerKey, options = {}) {
           prev = null;
           continue;
         }
-        const sample = sampleRefinedBasinPoint(context, Number(point[0]), Number(point[1]), layerKey, offsetMeters);
+        const sample = sampleRefinedBasinPoint(
+          context,
+          Number(point[0]),
+          Number(point[1]),
+          layerKey,
+          offsetMeters,
+          minIceThicknessM
+        );
         if (!sample) {
           prev = null;
           continue;
@@ -6434,9 +6599,49 @@ function updateRefinedBasinVisibility() {
   if (refinedBasinSurfaceLines) refinedBasinSurfaceLines.visible = showSurface;
   if (refinedBasinBedLabels) refinedBasinBedLabels.visible = showBedLabels;
   if (refinedBasinSurfaceLabels) refinedBasinSurfaceLabels.visible = showSurface;
+  // The time features switch the layer off in script, with no change event: the set
+  // chooser follows here, where every such path ends.
+  updateBasinSetControls();
+}
+
+/**
+ * A divide package's lines: one ribbon per surface, thinner than a few named basins'
+ * outlines, and no labels (the catchments have no names).
+ */
+function buildBasinDivideOverlays(context, dataset) {
+  const divides = decodeBasinDivides(dataset);
+  if (!divides.length) return false;
+  clearRefinedBasinOverlays();
+  const lines = [{ segments_xy_m: divides }];
+  // They divide ice, so they are drawn where the terrain has ice of some thickness: draped on
+  // the coastal mountains that the thin glaciers' divides also cross, a 1–3 km grid at the
+  // explorer's exaggeration would stand them up as walls.
+  refinedBasinBedLines = buildRefinedBasinLineGroup(context, lines, "bed", {
+    minIceThicknessM: BASIN_DIVIDE_MIN_ICE_THICKNESS_M,
+    offsetMeters: REFINED_BASIN_BED_OFFSET_M,
+    widthMeters: BASIN_DIVIDE_LINE_WIDTH_M,
+    color: 0xf6d365,
+    opacity: 0.85,
+    polygonOffsetFactor: -12,
+    polygonOffsetUnits: -12,
+    renderOrder: 38,
+  });
+  refinedBasinSurfaceLines = buildRefinedBasinLineGroup(context, lines, "surface", {
+    minIceThicknessM: BASIN_DIVIDE_MIN_ICE_THICKNESS_M,
+    offsetMeters: REFINED_BASIN_SURFACE_OFFSET_M,
+    widthMeters: BASIN_DIVIDE_LINE_WIDTH_M,
+    color: 0xff5f56,
+    opacity: 0.9,
+    renderOrder: 39,
+  });
+  if (refinedBasinBedLines) scene.add(refinedBasinBedLines);
+  if (refinedBasinSurfaceLines) scene.add(refinedBasinSurfaceLines);
+  updateRefinedBasinVisibility();
+  return Boolean(refinedBasinBedLines || refinedBasinSurfaceLines);
 }
 
 function buildRefinedBasinOverlays(context, dataset) {
+  if (isBasinDivideDataset(dataset)) return buildBasinDivideOverlays(context, dataset);
   const basins = Array.isArray(dataset?.basins) ? dataset.basins : [];
   if (!basins.length) return false;
 
@@ -6634,29 +6839,60 @@ function collectGroundingLineState() {
   };
 }
 
+/** The basin layer as built: which set, what kind of package, and how much it draws. */
+function collectBasinState() {
+  const set = getActiveBasinSet(currentRegionKey);
+  const data = refinedBasinOverlayUrl ? currentRefinedBasinData : null;
+  const isDivides = isBasinDivideDataset(data);
+  const vertexCount = (mesh) => mesh?.geometry?.getAttribute("position")?.count ?? 0;
+  return {
+    set: set?.key ?? null,
+    sets: getRegionBasinSets(currentRegionKey).map((candidate) => candidate.key),
+    chooserVisible: Boolean(controlsUI.basinSetControls && !controlsUI.basinSetControls.hidden),
+    builtForSet: Boolean(set && refinedBasinOverlayUrl === set.url),
+    kind: data ? (isDivides ? "divides" : "basins") : null,
+    basinCount: Number.isFinite(data?.basin_count) ? data.basin_count : null,
+    largeBasinCount: isDivides ? data.large_basin_count : null,
+    labels: (refinedBasinSurfaceLabels?.children.length ?? 0) + (refinedBasinBedLabels?.children.length ?? 0),
+    surfaceTriangles: vertexCount(refinedBasinSurfaceLines) / 3,
+    note: controlsUI.basinSetNote?.textContent || "",
+  };
+}
+
 async function ensureRefinedBasinsLoaded({ trigger = "prefetch" } = {}) {
   const context = currentCoreContext;
   if (!context || context.generation !== loadGeneration) return false;
   if (!context.dataset.capabilities.refinedBasins) return false;
-  const basinsUrl = context.dataset.refinedBasinsUrl;
+  const basinsUrl = getBasinUrl(context.dataset);
   if (!basinsUrl) return false;
   if (refinedBasinUnavailableUrls.has(basinsUrl)) return false;
 
   const basinStatusLabel = String(context.dataset.basinStatusLabel || "refined basins");
   const basinStatusTitle = basinStatusLabel.charAt(0).toUpperCase() + basinStatusLabel.slice(1);
 
-  const overlaysReady = refinedBasinBedLines || refinedBasinSurfaceLines || refinedBasinBedLabels || refinedBasinSurfaceLabels;
-  if (overlaysReady) {
+  const overlaysBuilt = refinedBasinBedLines || refinedBasinSurfaceLines || refinedBasinBedLabels || refinedBasinSurfaceLabels;
+  if (overlaysBuilt && refinedBasinOverlayUrl === basinsUrl) {
     currentRefinedBasinData = refinedBasinDataCache.get(basinsUrl) || currentRefinedBasinData;
     updateRefinedBasinLabelPositionsForExaggeration();
     updateRefinedBasinVisibility();
+    updateBasinSetControls();
     updateMetaFromCurrentState();
     return true;
   }
+  if (overlaysBuilt) clearRefinedBasinOverlays();
 
   if (refinedBasinLoadPromise && refinedBasinLoadingUrl === basinsUrl) {
     return refinedBasinLoadPromise;
   }
+
+  // Still the load to act on: no later one has started (the reader may choose another set,
+  // and back, while a package loads), on the terrain it was started for.
+  const token = ++refinedBasinLoadToken;
+  const isWanted = () =>
+    token === refinedBasinLoadToken &&
+    context === currentCoreContext &&
+    context.generation === loadGeneration &&
+    getBasinUrl(context.dataset) === basinsUrl;
 
   const pendingPromise = (async () => {
     const showStatus = trigger === "toggle";
@@ -6665,28 +6901,37 @@ async function ensureRefinedBasinsLoaded({ trigger = "prefetch" } = {}) {
     }
 
     const basinData = await loadRefinedBasinDataset(basinsUrl);
-    currentRefinedBasinData = basinData;
-
-    if (context !== currentCoreContext || context.generation !== loadGeneration) return false;
+    if (!isWanted()) return false;
     const built = buildRefinedBasinOverlays(context, basinData);
     if (!built) {
       throw new Error("Basin dataset is empty.");
     }
+    currentRefinedBasinData = basinData;
+    refinedBasinOverlayUrl = basinsUrl;
 
     if (showStatus) {
       statusEl.textContent = getReadyStatusText(context);
     }
+    updateBasinSetControls();
     updateMetaFromCurrentState();
     return true;
   })()
     .catch((error) => {
       console.error("Basin layer load failed:", error);
-      if (context === currentCoreContext && context.generation === loadGeneration) {
+      // A load overtaken by another, or by a change of terrain, leaves the package to be
+      // tried again; the one still wanted marks it unavailable for the session.
+      if (isWanted()) {
         refinedBasinUnavailableUrls.add(basinsUrl);
-        controlsUI.showRefinedBasins.checked = false;
-        clearRefinedBasinOverlays();
         const readyText = getReadyStatusText(context);
         const transientText = t("explorer.status.refinedBasinsUnavailable", { label: basinStatusTitle });
+        clearRefinedBasinOverlays();
+        // A set other than the default gives way to the default; with none left, the layer is off.
+        const fallback = getRegionBasinSets(context.dataset.regionKey).find((set) => !refinedBasinUnavailableUrls.has(set.url));
+        if (fallback) {
+          setBasinSetSelection(context.dataset.regionKey, fallback.key);
+        } else {
+          controlsUI.showRefinedBasins.checked = false;
+        }
         statusEl.textContent = transientText;
         updateRegionLayerAvailability(currentRegionKey);
         window.setTimeout(() => {
@@ -6694,6 +6939,7 @@ async function ensureRefinedBasinsLoaded({ trigger = "prefetch" } = {}) {
             statusEl.textContent = readyText;
           }
         }, 1800);
+        if (fallback && controlsUI.showRefinedBasins.checked) ensureRefinedBasinsLoaded({ trigger });
       }
       return false;
     })
@@ -8144,7 +8390,9 @@ function bindUI() {
       updateMetaFromCurrentState();
     });
   }
+  controlsUI.basinSet?.addEventListener("change", onBasinSetChange);
   controlsUI.showRefinedBasins.addEventListener("change", () => {
+    updateBasinSetControls();
     if (!controlsUI.showRefinedBasins.checked) {
       updateRefinedBasinVisibility();
       return;
@@ -8437,7 +8685,12 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
         timeZone: "UTC",
       })
     : "";
-  const refinedBasinCount = Number(currentRefinedBasinData?.basin_count);
+  // The basins built, not a set still loading; a divide package counts the basins whose
+  // divides it draws, as the small ones are not drawn.
+  const builtBasinData = refinedBasinOverlayUrl ? currentRefinedBasinData : null;
+  const refinedBasinCount = Number(
+    isBasinDivideDataset(builtBasinData) ? builtBasinData.large_basin_count : builtBasinData?.basin_count
+  );
   const stepKm = Math.abs(grid.dx_m) / 1000;
   const fmtInt = (value) => Math.round(Number(value)).toLocaleString(numberLocale);
   const fmtMpa = (value) =>
@@ -8691,7 +8944,9 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   };
   addSource(null, renderSourceLine(t("explorer.meta.sourceBedIceGeometry"), dataset.sources.geometry));
   if (capabilities.refinedBasins && dataset.sources.basins) {
-    addSource("basins", renderSourceLine(t("explorer.meta.sourceBasinBoundaries"), dataset.sources.basins));
+    // The region's default set is the one sources.basins credits; another set credits itself.
+    const basinSource = getActiveBasinSet(dataset.regionKey)?.source || dataset.sources.basins;
+    addSource("basins", renderSourceLine(t("explorer.meta.sourceBasinBoundaries"), basinSource));
   }
   if (capabilities.velocity && dataset.sources.velocity) {
     addSource("velocity", renderSourceLine(t("explorer.meta.sourceSurfaceVelocity"), dataset.sources.velocity));

@@ -24,7 +24,7 @@ STOP_TIMEOUT_MS = 120_000
 
 # Packages only the research edition may fetch: its extra layers and its other terrain grids.
 RESEARCH_ONLY_PACKAGE = re.compile(
-    r"basal_friction|rise_antarctica|hydrology|refined_basins|imbie|greenland_basins|bedmap3|"
+    r"basal_friction|rise_antarctica|hydrology|refined_basins|imbie|greenland_basins|mankoff|bedmap3|"
     r"_741\.|_1km\.|qrf|cmocean|cpom_|nsidc_sea_ice|ice_cores"
 )
 

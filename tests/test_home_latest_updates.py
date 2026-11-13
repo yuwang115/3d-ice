@@ -22,6 +22,7 @@ HOME_PAGES = {
 # (datetime, the date as the locale prints it, terms its entry in the drawer carries)
 ANNOUNCED = {
     "en": (
+        ("2026-11-13", "November 13, 2026", ("Mankoff et al. (2020)", "outlet catchments", "Mouginot & Rignot")),
         ("2026-11-03", "November 3, 2026", ("grounding line", "2300 projection")),
         ("2026-11-01", "November 1, 2026", ("NOAA/NSIDC", "1981–2010 median ice edge")),
         ("2026-10-06", "October 6, 2026", ("ISMIP6", "Seroussi et al., 2024", "ice-shelf collapse")),
@@ -30,6 +31,7 @@ ANNOUNCED = {
         ("2026-08-13", "August 13, 2026", ("Research stations", "refined drainage basins")),
     ),
     "zh": (
+        ("2026-11-13", "2026年11月13日", ("Mankoff 等（2020）", "出口集水区", "Mouginot 与 Rignot")),
         ("2026-11-03", "2026年11月3日", ("接地线", "2300 年预估")),
         ("2026-11-01", "2026年11月1日", ("NOAA/NSIDC", "1981–2010 年的中位冰缘线")),
         ("2026-10-06", "2026年10月6日", ("ISMIP6", "Seroussi 等，2024", "冰架崩解")),

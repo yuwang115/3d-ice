@@ -29,6 +29,8 @@ RISE_ARTICLE = "https://doi.org/10.5194/tc-19-6507-2025"
 GLADS_DATA = ("Data for: Antarctic wide subglacial hydrology modeling", "https://doi.org/10.5281/zenodo.12738170")
 GLADS_ARTICLE = "https://doi.org/10.1029/2024GL111386"
 GREENLAND_BASINS = ("Mouginot & Rignot (2019)", "https://doi.org/10.7280/D1WT11")
+MANKOFF_DATA = ("Streams, Outlets, Basins, and Discharge [k=1.0]", "https://doi.org/10.22008/FK2/XKQVL7")
+MANKOFF_ARTICLE = "https://doi.org/10.5194/essd-12-2811-2020"
 PAXMAN_ARTICLE = "https://doi.org/10.1038/s41598-022-15440-y"
 PAXMAN_GRIDS = "https://doi.org/10.18739/A22Z12R8C"
 ITS_LIVE = "https://its-live.jpl.nasa.gov/"
@@ -90,6 +92,19 @@ def test_the_explorer_credits_the_greenland_basins():
     label, url = GREENLAND_BASINS
     assert any(label in text for text in links_to(runtime_links(), url))
     assert "Greenland Basins PS v1.4.2 catchment boundaries" not in RUNTIME.read_text(encoding="utf-8")
+
+
+def test_the_mankoff_catchments_are_credited_by_their_data_set_and_article():
+    title, url = MANKOFF_DATA
+    links = runtime_links()
+    assert any(title in text and "version 8" in text for text in links_to(links, url))
+    assert links_to(links, MANKOFF_ARTICLE)
+    for page in HOME_PAGES:
+        page_links_ = page_links(page)
+        assert links_to(page_links_, url), f"{page} does not list the Mankoff data set"
+        assert links_to(page_links_, MANKOFF_ARTICLE), f"{page} does not link the Mankoff article"
+    licences = (ROOT / "DATA_LICENSES.md").read_text(encoding="utf-8")
+    assert url in licences and "greenland_mankoff_ice_basins_k1.json" in licences
 
 
 def test_the_data_snapshot_lists_basin_boundaries_for_both_ice_sheets():

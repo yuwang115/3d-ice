@@ -145,6 +145,13 @@
           unavailable: "Fullscreen Unavailable",
           blocked: "Fullscreen request was blocked",
         },
+        basinSets: {
+          mouginot2019Label: "Regions: Mouginot & Rignot (2019)",
+          mankoff2020Label: "Catchments: Mankoff et al. (2020)",
+          mouginot2019Note: "The ice sheet's seven drainage regions, each labelled; the place search finds them.",
+          mankoff2020Note:
+            "Each catchment is the ice that drains to one outlet at the margin of the ice sheet or of a glacier around it, with water routed at ice-overburden pressure (k = 1.0). Lines divide the {large} of {total} catchments of at least {minArea} km², {areaPercent}% of the ice area; the smaller ones, along the margin, are not drawn.",
+        },
         status: {
           loadingIsostaticRebound: "Solving isostatic rebound...",
           loadingIsostaticResponse: "Loading the published isostatic response...",
@@ -733,6 +740,13 @@
           exit: "退出全屏",
           unavailable: "当前无法全屏",
           blocked: "全屏请求被浏览器拦截",
+        },
+        basinSets: {
+          mouginot2019Label: "分区：Mouginot & Rignot (2019)",
+          mankoff2020Label: "集水区：Mankoff 等 (2020)",
+          mouginot2019Note: "冰盖的七个流域分区，均有标注；可在地点搜索中找到。",
+          mankoff2020Note:
+            "每个集水区是流向冰盖或周边冰川边缘某一出口的冰体范围，水流按冰覆压力路由（k = 1.0）。线条为 {total} 个集水区中面积不小于 {minArea} km² 的 {large} 个之间的分水线，占冰体面积的 {areaPercent}%；冰缘较小的集水区未绘出。",
         },
         status: {
           loadingIsostaticRebound: "正在求解地壳回弹...",

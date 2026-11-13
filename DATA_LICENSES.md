@@ -36,6 +36,12 @@ you reuse the data; the references are below and in [paper.bib](paper.bib).
 | --- | --- |
 | NOAA/NSIDC Climate Data Record of Passive Microwave Sea Ice Concentration, Version 6 (G02202), Meier et al. (2026) ([doi:10.7265/b18j-z797](https://doi.org/10.7265/b18j-z797)). The files state "No constraints on data access or use"; NSIDC asks that the data set be cited as a condition of use | `nsidc_sea_ice_antarctica`, `nsidc_sea_ice_greenland` |
 
+## Public domain (CC0 1.0; cite the data set)
+
+| Data | Packages |
+| --- | --- |
+| Mankoff (2020), Streams, Outlets, Basins, and Discharge [k=1.0], GEUS Dataverse, version 8 ([doi:10.22008/FK2/XKQVL7](https://doi.org/10.22008/FK2/XKQVL7)), described in Mankoff et al. (2020) ([doi:10.5194/essd-12-2811-2020](https://doi.org/10.5194/essd-12-2811-2020)); the dataset page asks for that citation | `greenland_mankoff_ice_basins_k1.json` |
+
 ## Other terms
 
 - **Copernicus Marine Service licence.** The Greenland ocean currents

@@ -1,7 +1,8 @@
 /**
  * Named views of the explorer: the home page's showcase heroes (`mode=showcase`) and the
  * research page's `?preset=` views. Each names a region and dataset, the layer toggles to
- * set, the vertical exaggeration and the ice opacity, and for a showcase the camera.
+ * set, the vertical exaggeration and the ice opacity, and for a showcase the camera. A view
+ * may also name the basin layer's set (`basinSet`); one that does not shows the default.
  *
  * No DOM or scene dependencies: this module runs unchanged under Node's test runner, where
  * a test holds every view to the panel's one-of choices.
@@ -99,6 +100,20 @@ const EXPLORER_PRESETS_DRAFT = {
       showIceBottom: true,
       showRefinedBasins: true,
     },
+  },
+  // Mankoff et al. (2020)'s outlet catchments, the Greenland basin layer's second set.
+  "greenland-outlet-catchments": {
+    regionKey: "greenland",
+    datasetKey: "3km",
+    exaggeration: 4.2,
+    iceOpacity: 1,
+    toggles: {
+      showBed: true,
+      showIce: true,
+      showIceBottom: true,
+      showRefinedBasins: true,
+    },
+    basinSet: "mankoff2020",
   },
   "antarctica-subglacial-features": {
     regionKey: "antarctica",

@@ -8,6 +8,16 @@ All notable changes to 3D ICE are recorded here. The format follows
 
 ### Added
 
+- A second set of Greenland basins in the research edition: the outlet catchments of
+  Mankoff et al. (2020), the ice that drains to each outlet at the margin of the ice sheet
+  and the glaciers around it, routed at ice-overburden water pressure (k = 1.0; GEUS
+  Dataverse, version 8, CC0). A *Basin set* chooser under *Basins* switches between them
+  and Mouginot & Rignot's seven regions, which stay the default and the ones the place
+  search finds; `?preset=greenland-outlet-catchments` opens on them. Of the 23,906 catchments
+  on Mankoff's 100 m grid, most are a few cells at the margin, so the layer draws the
+  divides between the 3,126 of at least 10 km² (97% of the ice area), on ice at least 150 m
+  thick, unlabelled. `scripts/prepare_mankoff_basins.py` stores each divide once, simplified
+  to 250 m, in a 332 KB package (118 KB compressed), and `js/basin-divides.js` decodes it.
 - The grounding line, in both editions: the edge of grounded ice wherever it meets floating
   ice or the ocean, drawn as a dark line on the ice surface. It is traced in the browser from
   the grounded and floating ice of the terrain on screen, every terrain of both regions, so
