@@ -30,6 +30,15 @@ export function wrapYaw(yaw) {
 }
 
 /**
+ * The turn a sideways drag of `dx` pixels gives the stack. A larger yaw carries the front of
+ * the stack to the left (its near edge sits at x = -sin(yaw) on screen), so the turn has the
+ * drag's opposite sign: the front follows the pointer.
+ */
+export function dragTurn(dx, radiansPerPx) {
+  return -dx * radiansPerPx;
+}
+
+/**
  * Half-extents of a layer whose image is `aspect` (width / height) wide, scaled so its half
  * diagonal is `radius`: a square and a tall rectangle then turn inside the same circle.
  */
