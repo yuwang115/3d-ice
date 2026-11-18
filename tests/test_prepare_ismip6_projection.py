@@ -104,7 +104,152 @@ def test_speed_change_needs_enough_models_and_remaining_ice(mod):
     n_speed = np.array([[[4, 3, 8, 8]]])
     frames = np.array([[100.0, 100.0, 100.0, 0.0]])
     out = mod.speed_change_frames(dspeed, n_speed, domain, frames, min_models=4)
-    np.testing.assert_allclose(out, [[10.0, 0.0, 0.0, 0.0]])
+    np.testing.assert_allclose(out.frames, [[10.0, 0.0, 0.0, 0.0]])
+    np.testing.assert_array_equal(out.too_few_models, [[False, True, True, False]])
+    assert not out.carried.any()  # no flow given, nothing carried
+
+
+@pytest.mark.unit
+def test_flow_in_grid_steps_follows_the_grid_axes(mod):
+    # Rows run towards -y (dy_m < 0): ice moving north (+y) moves towards the row above.
+    vx = np.array([[500.0, 0.0, 0.5, 1.0, np.nan]])
+    vy = np.array([[0.0, 300.0, 0.5, 0.0, 10.0]])
+    cols, rows = mod.flow_in_grid_steps(vx, vy, GRID)
+    np.testing.assert_allclose(cols[0, :2], [0.05, 0.0])
+    np.testing.assert_allclose(rows[0, :2], [0.0, -0.03])
+    # Ice moving 1 m/yr or less (in whole m/yr its direction is only an axis), or with no
+    # observed velocity, has no usable direction.
+    assert np.isnan(cols[0, 2:]).all() and np.isnan(rows[0, 2:]).all()
+    assert mod.MIN_FLOW_SPEED_M_PER_YR == 1.0
+
+
+@pytest.mark.unit
+def test_speed_change_is_carried_down_the_flow_where_too_few_models_have_ice(mod):
+    # A glacier flowing east: two cells where all eight models still have ice, then two whose
+    # ice most models have lost (the few left barely speed up), then open water. The change of
+    # the last cell where enough models remain is carried down the trunk, not today's speed.
+    domain = np.ones((1, 5), dtype=bool)
+    dspeed = np.array([[[1000.0, 2000.0, 50.0, 10.0, np.nan]]])
+    n_speed = np.array([[[8, 8, 2, 1, 0]]])
+    frames = np.array([[500.0, 400.0, 300.0, 200.0, 0.0]])
+    flow = mod.flow_in_grid_steps(np.full((1, 5), 500.0), np.zeros((1, 5)), GRID)
+    out = mod.speed_change_frames(dspeed, n_speed, domain, frames, min_models=4, flow=flow)
+    np.testing.assert_allclose(out.frames, [[1000.0, 2000.0, 2000.0, 2000.0, 0.0]])
+    np.testing.assert_array_equal(out.too_few_models, [[False, False, True, True, False]])
+    np.testing.assert_array_equal(out.carried, out.too_few_models)
+
+
+@pytest.mark.unit
+def test_speed_change_mixes_the_upwind_neighbours_by_the_flow(mod):
+    # The top-right cell has too few models. Ice reaches it from the west (vx = 300 m/yr, from
+    # a cell whose change is +100) and from the south (vy = +100 m/yr, from the row below, +400).
+    domain = np.array([[True, True], [False, True]])
+    dspeed = np.array([[[100.0, 0.0], [np.nan, 400.0]]])
+    n_speed = np.array([[[8, 1], [0, 8]]])
+    frames = np.array([[300.0, 300.0, 300.0]])  # the three domain cells, row-major
+    flow = mod.flow_in_grid_steps(np.full((2, 2), 300.0), np.full((2, 2), 100.0), GRID)
+    out = mod.speed_change_frames(dspeed, n_speed, domain, frames, min_models=4, flow=flow)
+    np.testing.assert_allclose(out.frames, [[100.0, (3 * 100.0 + 400.0) / 4, 400.0]])
+
+
+@pytest.mark.unit
+def test_speed_change_is_never_carried_upstream_or_from_open_water(mod):
+    # Flow east along one row: a cell upstream of the only good cell, which must not take its
+    # change; one downstream, which does; one fed only by open water; and one with no observed
+    # velocity. All but the second keep today's speed.
+    domain = np.ones((1, 6), dtype=bool)
+    dspeed = np.array([[[5.0, 500.0, 7.0, np.nan, 9.0, 3.0]]])
+    n_speed = np.array([[[1, 8, 2, 0, 1, 2]]])
+    frames = np.array([[100.0, 100.0, 100.0, 0.0, 100.0, 100.0]])
+    vx = np.array([[500.0, 500.0, 500.0, 500.0, 500.0, np.nan]])
+    flow = mod.flow_in_grid_steps(vx, np.zeros((1, 6)), GRID)
+    out = mod.speed_change_frames(dspeed, n_speed, domain, frames, min_models=4, flow=flow)
+    np.testing.assert_allclose(out.frames, [[0.0, 500.0, 500.0, 0.0, 0.0, 0.0]])
+    np.testing.assert_array_equal(out.carried, [[False, False, True, False, False, False]])
+
+
+@pytest.mark.unit
+def test_speed_change_is_carried_westward_and_never_against_the_flow(mod):
+    # Flow towards -x: a good cell at the east end feeds the three to its west; the same cell
+    # at the west end feeds none of them, as they lie upstream of it.
+    domain = np.ones((1, 4), dtype=bool)
+    frames = np.full((1, 4), 100.0)
+    flow = mod.flow_in_grid_steps(np.full((1, 4), -500.0), np.zeros((1, 4)), GRID)
+    east = mod.speed_change_frames(
+        np.array([[[0.0, 0.0, 0.0, 700.0]]]), np.array([[[1, 1, 1, 8]]]), domain, frames, 4, flow=flow
+    )
+    np.testing.assert_allclose(east.frames, [[700.0, 700.0, 700.0, 700.0]])
+    west = mod.speed_change_frames(
+        np.array([[[700.0, 0.0, 0.0, 0.0]]]), np.array([[[8, 1, 1, 1]]]), domain, frames, 4, flow=flow
+    )
+    np.testing.assert_allclose(west.frames, [[700.0, 0.0, 0.0, 0.0]])
+    assert not west.carried.any()
+
+
+@pytest.mark.unit
+def test_speed_change_reaches_the_end_of_a_long_trunk_and_the_sweeps_are_capped(mod, monkeypatch):
+    # Each sweep carries the change one cell further, so a 300-cell trunk needs about 300; a
+    # cap below that must fail loudly rather than leave the far end at today's speed.
+    domain = np.ones((1, 300), dtype=bool)
+    dspeed = np.zeros((1, 1, 300))
+    dspeed[0, 0, 0] = 1000.0
+    n_speed = np.ones((1, 1, 300), dtype=int)
+    n_speed[0, 0, 0] = 8
+    frames = np.full((1, 300), 100.0)
+    flow = mod.flow_in_grid_steps(np.full((1, 300), 500.0), np.zeros((1, 300)), GRID)
+    out = mod.speed_change_frames(dspeed, n_speed, domain, frames, 4, flow=flow)
+    np.testing.assert_allclose(out.frames, 1000.0)
+    monkeypatch.setattr(mod, "CARRY_MAX_SWEEPS", 50)
+    with pytest.raises(RuntimeError):
+        mod.speed_change_frames(dspeed, n_speed, domain, frames, 4, flow=flow)
+
+
+@pytest.mark.unit
+def test_speed_change_carried_round_a_bend_stays_within_the_inflow(mod):
+    # Ice turning from east to south over a 3 x 3 block, fed from two good cells on the west
+    # side with +1000 and +3000: all seven other cells lie downstream of them and are reached,
+    # and every carried value lies between the two.
+    domain = np.ones((3, 3), dtype=bool)
+    dspeed = np.zeros((1, 3, 3))
+    dspeed[0, 0, 0], dspeed[0, 1, 0] = 1000.0, 3000.0
+    n_speed = np.ones((1, 3, 3), dtype=int)
+    n_speed[0, 0, 0] = n_speed[0, 1, 0] = 8
+    frames = np.full((1, 9), 200.0)
+    vx = np.array([[400.0, 300.0, 100.0]] * 3)
+    vy = -np.array([[50.0, 200.0, 400.0]] * 3)  # southward, towards the rows below
+    flow = mod.flow_in_grid_steps(vx, vy, GRID)
+    out = mod.speed_change_frames(dspeed, n_speed, domain, frames, min_models=4, flow=flow)
+    carried = out.frames[0][out.carried[0]]
+    assert out.carried[0].sum() == 7
+    assert carried.min() >= 1000.0 and carried.max() <= 3000.0
+    # Where both neighbours feed a cell, the flow weights them: the centre cell takes 3/5 of
+    # the +3000 from the west (vx = 300) and 2/5 of the +1000 from the north (vy = -200).
+    np.testing.assert_allclose(out.frames[0, 4], 0.6 * 3000.0 + 0.4 * 1000.0)
+
+
+@pytest.mark.unit
+def test_read_flow_checks_the_grid_and_skips_entries_without_data(mod, tmp_path):
+    shape = (GRID["ny"], GRID["nx"])
+    vx = np.full(shape, 200, dtype="<i2")
+    vy = np.full(shape, -100, dtype="<i2")
+    vx[0, 0] = -32768
+    blobs = [vx.tobytes(), vy.tobytes()]
+    meta = {
+        "grid": GRID,
+        "quantization": {"int16_fill_value": -32768, "scale": 1, "offset": 0},
+        "fields": [
+            {"name": "vx", "dtype": "int16", "byte_offset": 0, "byte_length": len(blobs[0])},
+            {"name": "vy", "dtype": "int16", "byte_offset": len(blobs[0]), "byte_length": len(blobs[1])},
+            {"name": "speed", "unit": "m/year"},  # statistics only, as in the explorer's velocity package
+        ],
+    }
+    (tmp_path / "v.bin").write_bytes(b"".join(blobs))
+    (tmp_path / "v.meta.json").write_text(json.dumps(meta))
+    cols, rows = mod.read_flow(tmp_path / "v.meta.json", GRID)
+    assert np.isnan(cols[0, 0]) and np.isnan(rows[0, 0])
+    np.testing.assert_allclose([cols[1, 1], rows[1, 1]], [0.02, 0.01])
+    with pytest.raises(ValueError):
+        mod.read_flow(tmp_path / "v.meta.json", {**GRID, "x0_m": GRID["x0_m"] + 10000.0})
 
 
 # ------------------------------------------------------------------ sea level

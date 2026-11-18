@@ -91,7 +91,8 @@ archive (8 TB) on an HPC system, the third in this repository:
    carry unphysical speeds.
 3. `scripts/prepare_ismip6_projection.py` applies the mean change to BedMachine v4 Balanced
    ice (present-day ice cells only), keeps the speed change where at least four models
-   contribute, attaches the published sea-level mean and spread, and writes the package.
+   contribute and carries it down today's flow where ice remains but fewer do, attaches the
+   published sea-level mean and spread, and writes the package.
    Thickening is added as it is. Thinning is scaled by BedMachine thickness over the models'
    mean 2015 thickness, so each cell keeps the share of its ice that the models keep of
    theirs. Ice is gone where the models' mean thickness falls below 10 m, and ice that
@@ -116,7 +117,21 @@ By 2300 under SSP5-8.5 that left 872 holes in the shelves, most of them a single
 scaled frames leave 41, all of them where the models' mean thickness has fallen below 10 m:
 there the shelves read as open water rather than a few metres of film.
 
-The packer records two checks in `validation`. The packed frames change the ice volume by
+The speed change is carried downstream because the models that keep ice longest are the ones
+that change least. Late in the high-emission runs, the models that retreat furthest have lost
+the lower trunks of the retreating glaciers (Thwaites, the Siple Coast and Ronne-side streams),
+while the mean geometry still has ice there. Fewer than four models then have a usable speed,
+and the few left barely speed up, so today's speed, or their mean, showed the ice slowing down
+just below ice that had sped up by about 3 km/yr. Instead, each such cell takes the
+flow-weighted mean of its upwind neighbours in today's flow (MEaSUREs phase-based velocity,
+`antarctic_ice_velocity_phase_v01_480`): the steady first-order upwind solution of
+u · ∇Δv = 0, fed by the cells where at least four models remain. Cells that no such ice
+reaches, or that move 1 m/yr or less today, keep today's speed. By 2300 this covers 12.6 % of
+the ice in `expAE05` (93 % of those cells reached from upstream), 13.1 % in `expAE14` (70 %)
+and 0.6 % in `expAE10` (72 %).
+
+The packer records three checks in `validation`. `speed_change_carried` counts the cells of
+the last keyframe that take the carried speed change. The packed frames change the ice volume by
 100-105 % of the models' mean change: scaling moves ice loss towards the cells where
 BedMachine is the thicker. The geometry's own volume above flotation implies more sea-level
 rise by 2300 than the published mean:

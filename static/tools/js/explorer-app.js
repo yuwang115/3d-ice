@@ -1164,20 +1164,20 @@ let reboundSeaLevelDebounce = null;
 const ICE_PROJECTION_SCENARIOS = Object.freeze([
   Object.freeze({
     key: "ae10",
-    packageMetaUrl: assetUrl("data/ismip6_2300_mean8_ae10_480.meta.json?v=20261002-mean8-v2"),
-    packageBinUrl: assetUrl("data/ismip6_2300_mean8_ae10_480.bin?v=20261002-mean8-v2"),
+    packageMetaUrl: assetUrl("data/ismip6_2300_mean8_ae10_480.meta.json?v=20261117-mean8-v3"),
+    packageBinUrl: assetUrl("data/ismip6_2300_mean8_ae10_480.bin?v=20261117-mean8-v3"),
     color: "#2f7fb8",
   }),
   Object.freeze({
     key: "ae05",
-    packageMetaUrl: assetUrl("data/ismip6_2300_mean8_ae05_480.meta.json?v=20261002-mean8-v2"),
-    packageBinUrl: assetUrl("data/ismip6_2300_mean8_ae05_480.bin?v=20261002-mean8-v2"),
+    packageMetaUrl: assetUrl("data/ismip6_2300_mean8_ae05_480.meta.json?v=20261117-mean8-v3"),
+    packageBinUrl: assetUrl("data/ismip6_2300_mean8_ae05_480.bin?v=20261117-mean8-v3"),
     color: "#c2412d",
   }),
   Object.freeze({
     key: "ae14",
-    packageMetaUrl: assetUrl("data/ismip6_2300_mean8_ae14_480.meta.json?v=20261002-mean8-v2"),
-    packageBinUrl: assetUrl("data/ismip6_2300_mean8_ae14_480.bin?v=20261002-mean8-v2"),
+    packageMetaUrl: assetUrl("data/ismip6_2300_mean8_ae14_480.meta.json?v=20261117-mean8-v3"),
+    packageBinUrl: assetUrl("data/ismip6_2300_mean8_ae14_480.bin?v=20261117-mean8-v3"),
     color: "#7b2d6b",
   }),
 ]);

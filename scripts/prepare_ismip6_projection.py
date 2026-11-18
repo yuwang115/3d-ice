@@ -13,8 +13,12 @@ explorer already draws:
                       thickness, so thinning keeps the fraction of ice the models keep.
                       0 where the models' mean thickness drops below 10 m; at least 1 m
                       where ice remains
-    speed_change(t) = mean dSpeed(t)                      where at least `--min-speed-models`
-                                                          models have ice with a valid speed
+    speed_change(t) = mean dSpeed(t)          where at least `--min-speed-models` models have
+                                              ice with a valid speed
+                    = the change upstream,    where ice remains but fewer models do (the few
+                      carried down today's    left are the ones that barely retreat)
+                      flow
+                    = 0                       where no such ice feeds the cell or no ice remains
 
 The package uses the same sparse time-series layout as the ISMIP7 projection packages
 (docs/data-contract.md, "Ice-sheet projections"), with one extra frame-major field,
@@ -31,6 +35,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -43,6 +48,13 @@ PRESENT_DAY_ICE_FLAGS = (2, 3, 4)  # BedMachine: grounded ice, floating ice, Lak
 DEFAULT_MIN_SPEED_MODELS = 4
 # Well above any modelled or observed ice speed change; only guards the int16 storage.
 SPEED_CHANGE_LIMIT_M_PER_YR = 30000.0
+# Ice must move faster than this for its direction to say which cell is upstream: the velocity
+# package stores whole m/yr, so a speed of 1 m/yr can only point along a grid axis.
+MIN_FLOW_SPEED_M_PER_YR = 1.0
+# Carrying the speed change downstream stops once no value moves by more than this (the
+# package stores whole m/yr); the sweeps are capped so that a fault cannot loop for ever.
+CARRY_TOLERANCE_M_PER_YR = 0.05
+CARRY_MAX_SWEEPS = 10000
 # Ice counts as lost where the models' mean thickness falls below this (the thickness below
 # which the ensemble step already ignores a model's speed), and comes back only once it
 # regrows past the second value, so cells near the threshold do not blink during playback.
@@ -99,6 +111,10 @@ SOURCES = {
         "citation": "Morlighem, M. et al. (2020): Deep glacial troughs and stabilizing ridges unveiled beneath the margins of the Antarctic ice sheet. Nat. Geosci. 13, 132-137 (BedMachine Antarctica v4).",
         "doi": "10.1038/s41561-019-0510-8",
     },
+    "present_day_flow": {
+        "citation": "Mouginot, J., Rignot, E. and Scheuchl, B. (2019): MEaSUREs Phase-Based Antarctica Ice Velocity Map, Version 1. NASA NSIDC DAAC (the speed change is carried along its flow where too few models remain).",
+        "doi": "10.5067/PZ3NJ5RXRH10",
+    },
     "also_cite": [
         "Barthel, A. et al. (2020), The Cryosphere 14, 855-879, doi:10.5194/tc-14-855-2020 (CMIP model selection)",
         "Jourdain, N. C. et al. (2020), The Cryosphere 14, 3111-3134, doi:10.5194/tc-14-3111-2020 (basal melt)",
@@ -120,14 +136,33 @@ def read_terrain(meta_path: Path) -> tuple[dict, dict[str, np.ndarray]]:
     fill = quant.get("int16_fill_value", INT16_FILL)
     fields = {}
     for field in meta["fields"]:
+        if field.get("dtype") not in ("int16", "uint8"):
+            continue  # e.g. the velocity package's `speed`, statistics with no data of its own
         start, length = field["byte_offset"], field["byte_length"]
         if field["dtype"] == "int16":
             codes = np.frombuffer(raw, dtype="<i2", count=length // 2, offset=start).reshape(shape)
             values = codes.astype(np.float64) * quant.get("scale", 1.0) + quant.get("offset", 0.0)
             fields[field["name"]] = np.where(codes == fill, np.nan, values)
-        elif field["dtype"] == "uint8":
+        else:
             fields[field["name"]] = np.frombuffer(raw, dtype=np.uint8, count=length, offset=start).reshape(shape)
     return meta, fields
+
+
+def read_flow(meta_path: Path, grid: dict) -> tuple[np.ndarray, np.ndarray]:
+    """Today's ice velocity from an explorer velocity package (`vx`, `vy`), in grid steps per year."""
+    meta, fields = read_terrain(meta_path)
+    if any(meta["grid"][key] != grid[key] for key in ("nx", "ny", "x0_m", "y0_m", "dx_m", "dy_m")):
+        raise ValueError("velocity grid differs from the terrain package")
+    return flow_in_grid_steps(fields["vx"], fields["vy"], grid)
+
+
+def flow_in_grid_steps(vx: np.ndarray, vy: np.ndarray, grid: dict) -> tuple[np.ndarray, np.ndarray]:
+    """Velocity (m/yr) as (columns per year, rows per year); NaN where unknown or barely moving.
+
+    Rows run towards -y when `dy_m` is negative, so ice moving north moves to lower rows.
+    """
+    moving = np.isfinite(vx) & np.isfinite(vy) & (np.hypot(vx, vy) > MIN_FLOW_SPEED_M_PER_YR)
+    return np.where(moving, vx / grid["dx_m"], np.nan), np.where(moving, vy / grid["dy_m"], np.nan)
 
 
 def read_ensemble(path: Path) -> dict:
@@ -236,13 +271,107 @@ def lost_ice(models_now: np.ndarray, eligible: np.ndarray) -> np.ndarray:
     return lost
 
 
+@dataclass(frozen=True)
+class SpeedChange:
+    """Keyframes x domain cells: the speed change to pack (m/yr) and where it comes from.
+
+    `carried` is a subset of `too_few_models`: the cells that took the change from upstream.
+    """
+
+    frames: np.ndarray
+    too_few_models: np.ndarray  # ice remains but fewer than the minimum of models qualify
+    carried: np.ndarray  # of those, the cells given the change carried down from upstream
+
+
 def speed_change_frames(
-    dspeed: np.ndarray, n_speed: np.ndarray, domain: np.ndarray, frames: np.ndarray, min_models: int
-) -> np.ndarray:
-    """Mean speed change where enough models agree there is moving ice and ice remains; else 0."""
+    dspeed: np.ndarray,
+    n_speed: np.ndarray,
+    domain: np.ndarray,
+    frames: np.ndarray,
+    min_models: int,
+    flow: tuple[np.ndarray, np.ndarray] | None = None,
+) -> SpeedChange:
+    """The models' mean speed change where enough of them still have moving ice; 0 elsewhere.
+
+    Late in the high-emission runs the models that retreat furthest have lost the lower trunks
+    of the retreating glaciers, while the mean geometry still has ice there. The few models
+    that keep it are the ones that barely change, so their mean, or today's speed where fewer
+    than `min_models` remain, would show the ice slowing down just below ice that has sped up
+    by kilometres a year. Given `flow` (today's velocity from `flow_in_grid_steps`), such cells
+    take instead the change of the ice that feeds them, carried down the flow from the cells
+    where enough models remain; cells that no such ice reaches keep 0, today's speed. Without
+    `flow` nothing is carried, and every such cell keeps 0 (the packages before 2026-11-17).
+    """
     values = dspeed[:, domain]
-    usable = (n_speed[:, domain] >= min_models) & np.isfinite(values) & (frames > 0)
-    return np.clip(np.where(usable, values, 0.0), -SPEED_CHANGE_LIMIT_M_PER_YR, SPEED_CHANGE_LIMIT_M_PER_YR)
+    has_ice = frames > 0
+    usable = (n_speed[:, domain] >= min_models) & np.isfinite(values) & has_ice
+    too_few = has_ice & ~usable
+    if flow is None:
+        packed, carried = np.where(usable, values, 0.0), np.zeros(values.shape, dtype=bool)
+    else:
+        per_frame = [carry_frame(values[k], usable[k], too_few[k], domain, flow) for k in range(values.shape[0])]
+        packed = np.array([change for change, _ in per_frame])
+        carried = np.array([reached for _, reached in per_frame])
+    limit = SPEED_CHANGE_LIMIT_M_PER_YR
+    return SpeedChange(np.clip(packed, -limit, limit), too_few, carried)
+
+
+def carry_frame(
+    values: np.ndarray,
+    usable: np.ndarray,
+    too_few: np.ndarray,
+    domain: np.ndarray,
+    flow: tuple[np.ndarray, np.ndarray],
+) -> tuple[np.ndarray, np.ndarray]:
+    """One keyframe's domain cells: usable values kept, too-few cells carried from upstream."""
+    known = to_grid(domain, np.where(usable, values, np.nan), np.nan)
+    filled = carry_downstream(known, to_grid(domain, too_few, False), flow)[domain]
+    reached = too_few & np.isfinite(filled)
+    return np.where(usable, values, np.where(reached, filled, 0.0)), reached
+
+
+def to_grid(domain: np.ndarray, cell_values: np.ndarray, fill) -> np.ndarray:
+    """A new grid holding the domain cells' values (row-major order) and `fill` elsewhere."""
+    grid = np.full(domain.shape, fill, dtype=np.asarray(cell_values).dtype)
+    grid[domain] = cell_values
+    return grid
+
+
+def carry_downstream(values: np.ndarray, need: np.ndarray, flow: tuple[np.ndarray, np.ndarray]) -> np.ndarray:
+    """`values` (a grid, NaN where unknown) with the `need` cells filled from upstream.
+
+    The steady first-order upwind solution of u . grad(value) = 0 over the need cells, with the
+    known values as the inflow: each need cell takes the flow-weighted mean of its upwind
+    neighbours along the columns and the rows (weights |u| in grid steps per year) that hold a
+    value; a neighbour without one, or off the grid, is left out and the weights renormalised.
+    So a carried value stays within the range of the values feeding it. Need cells that no
+    known value reaches from upstream, or with no usable flow, stay NaN.
+
+    The sweeps stop once no value moves by more than CARRY_TOLERANCE_M_PER_YR. Where two cells
+    feed each other (diverging flow), the last sweeps converge slowly, and the result can then
+    sit a little short of the exact solution; that error stays far below the 1 m/yr packing.
+    """
+    cols_per_yr, rows_per_yr = flow
+    ny, nx = values.shape
+    rows, cols = np.nonzero(need & np.isfinite(cols_per_yr) & np.isfinite(rows_per_yr))
+    u, v = cols_per_yr[rows, cols], rows_per_yr[rows, cols]
+    up_col, up_row = cols - np.sign(u).astype(int), rows - np.sign(v).astype(int)
+    from_x = (u != 0) & (up_col >= 0) & (up_col < nx)
+    from_y = (v != 0) & (up_row >= 0) & (up_row < ny)
+    up_col, up_row = np.where(from_x, up_col, cols), np.where(from_y, up_row, rows)
+    out = np.where(need, np.nan, values)
+    for _ in range(CARRY_MAX_SWEEPS):
+        a, b = out[rows, up_col], out[up_row, cols]
+        use_a, use_b = from_x & np.isfinite(a), from_y & np.isfinite(b)
+        weight = np.where(use_a, np.abs(u), 0.0) + np.where(use_b, np.abs(v), 0.0)
+        total = np.where(use_a, np.abs(u) * a, 0.0) + np.where(use_b, np.abs(v) * b, 0.0)
+        new = np.divide(total, weight, out=np.full(weight.shape, np.nan), where=weight > 0)
+        old = out[rows, cols]
+        settled = (np.isnan(new) & np.isnan(old)) | (np.abs(new - old) <= CARRY_TOLERANCE_M_PER_YR)
+        out[rows, cols] = new
+        if settled.all():
+            return out
+    raise RuntimeError(f"carrying the speed change downstream did not settle in {CARRY_MAX_SWEEPS} sweeps")
 
 
 def flotation_vaf_m3(bed: np.ndarray, frames: np.ndarray, density_ratio: float, cell_area_m2: float) -> np.ndarray:
@@ -347,6 +476,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--experiment", required=True, choices=sorted(EXPERIMENTS))
     parser.add_argument("--scalars", type=Path, required=True, help="unzipped ComputedScalars (Zenodo 10528582)")
     parser.add_argument("--terrain-meta", type=Path, default=Path("static/tools/data/bedmachine_antarctica_v4_480.meta.json"))
+    parser.add_argument(
+        "--velocity-meta", type=Path, default=Path("static/tools/data/antarctic_ice_velocity_phase_v01_480.meta.json"),
+        help="today's ice velocity on the same grid, along which the speed change is carried where too few models remain",
+    )
     parser.add_argument("--min-speed-models", type=int, default=DEFAULT_MIN_SPEED_MODELS)
     parser.add_argument("--output-dir", type=Path, default=Path("static/tools/data"))
     parser.add_argument("--basename", required=True)
@@ -366,7 +499,10 @@ def main() -> None:
 
     domain = present_day_ice(terrain["thickness"], terrain["mask"])
     frames = thickness_frames(terrain["thickness"], domain, ensemble["dthickness"], ensemble["start_thickness"])
-    speed = speed_change_frames(ensemble["dspeed"], ensemble["n_speed"], domain, frames, args.min_speed_models)
+    flow = read_flow(args.velocity_meta, grid)
+    speed = speed_change_frames(
+        ensemble["dspeed"], ensemble["n_speed"], domain, frames, args.min_speed_models, flow=flow
+    )
     bed = terrain["bed"][domain]
     if np.any(~np.isfinite(bed)):
         raise ValueError("some present-day ice cells have no BedMachine bed")
@@ -391,7 +527,8 @@ def main() -> None:
             "thickness": "BedMachine v4 thickness carrying the equal-weight mean, over the models, of each model's change in cell-mean thickness since its 2015 record: thickening is added as it is; thinning is scaled by BedMachine thickness over the models' mean 2015 thickness, so each cell keeps the fraction of its ice that the models keep of theirs (H = H_bm * (H_2015 + dH) / H_2015). Present-day ice cells only (no new ice)",
             "lost_ice": f"ice is removed where the models' mean thickness falls below {LOST_ICE_THICKNESS_M:g} m from at least that in 2015 (the film scaling would leave there is ice the models have all but lost), and returns only once their mean regrows past {REGROWN_ICE_THICKNESS_M:g} m so that cells near the threshold do not blink; remaining ice is at least {MIN_ICE_THICKNESS_M:g} m, the packing resolution",
             "thinning_scaled_because": "the models start from their own 2015 ice, which on the ice shelves is 26 % thinner to 18 % thicker than BedMachine cell by cell (10th to 90th percentile); where they thin a shelf by nearly its whole thickness, adding their mean thinning outright empties every cell in which it exceeds BedMachine thickness, riddling the shelf with holes, and leaves ice they have lost wherever BedMachine is the thicker",
-            "speed_change": f"equal-weight mean of each model's change in depth-averaged speed since 2015 (ice-area-weighted within each 10 km cell), over the models with usable speeds in the cell at both times; set to 0 where fewer than {args.min_speed_models} models qualify or no ice remains",
+            "speed_change": f"equal-weight mean of each model's change in depth-averaged speed since 2015 (ice-area-weighted within each 10 km cell), over the models with usable speeds in the cell at both times, where at least {args.min_speed_models} models qualify; where ice remains but fewer qualify, the change of the ice upstream carried down today's flow (MEaSUREs phase-based velocity): the steady first-order upwind solution of u . grad(change) = 0, with the cells where enough models qualify as the inflow; 0 where no such cell lies upstream or no ice remains",
+            "speed_change_carried_because": f"late in the high-emission runs the models that retreat furthest have lost the lower trunks of the retreating glaciers (Thwaites, the Siple Coast and Ronne-side streams) while the mean geometry still has ice there; the few models that keep it are those that barely change, so their mean, or today's speed where fewer than {args.min_speed_models} remain, showed the ice slowing down just below ice that has sped up by kilometres a year",
             "speed_filter": ensemble["speed_filter"] or "none recorded",
             "regridding": "conservative area-weighted resampling of every model from its own grid (4-32 km) to the explorer's 10 km grid, done on NCI Gadi with regrid_ismip6_2300_run.py and combine_ismip6_2300_mean.py",
             "geometry": "the browser rebuilds surface and base from thickness and the BedMachine bed by flotation: base = max(bed, -H * rho_ice/rho_seawater), surface = base + H",
@@ -404,7 +541,11 @@ def main() -> None:
             "density_ratio": density_ratio,
             "gt_per_mm_sle": GT_PER_MM_SLE,
         },
-        "source_package": {"grid_from": args.terrain_meta.name, "ensemble_file": args.ensemble.name},
+        "source_package": {
+            "grid_from": args.terrain_meta.name,
+            "ensemble_file": args.ensemble.name,
+            "flow_from": args.velocity_meta.name,
+        },
         "keyframes": {"interval_years": int(years[1] - years[0]), "interpolation": "linear in thickness and in speed change"},
         "validation": {
             "sea_level_of_packed_geometry_m": {
@@ -419,6 +560,12 @@ def main() -> None:
                 "end_packed_km3": round(float(packed_volume[-1]), 1),
                 "end_ensemble_km3": round(float(ensemble_volume[-1]), 1),
             },
+            "speed_change_carried": {
+                "note": f"in the last keyframe: the cells with ice, those where fewer than {args.min_speed_models} models have a usable speed, and how many of those take the change carried down today's flow (the rest keep today's speed)",
+                "end_ice_cells": int((frames[-1] > 0).sum()),
+                "end_too_few_models": int(speed.too_few_models[-1].sum()),
+                "end_carried": int(speed.carried[-1].sum()),
+            },
         },
         "series": {
             "years": published["years"],
@@ -431,7 +578,7 @@ def main() -> None:
     }
     meta = write_package(
         args.output_dir, args.basename, grid=grid, domain=domain, bed=bed, thickness=frames,
-        speed_change=speed, years=years, extra_meta=extra_meta,
+        speed_change=speed.frames, years=years, extra_meta=extra_meta,
     )
     size = (args.output_dir / f"{args.basename}.bin").stat().st_size
     print(f"Wrote {args.basename}: {meta['domain']['cell_count']} cells x {len(years)} keyframes, {size} bytes")

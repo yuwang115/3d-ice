@@ -123,6 +123,19 @@ All notable changes to 3D ICE are recorded here. The format follows
 - `css/research-panel.css` becomes `css/panel.css`, which every explorer page loads, and the
   ⓘ menu and region buttons move from `js/research-panel.js` to `js/panel-masthead.js`.
 
+### Fixed
+
+- The ISMIP6 projection's flow lines no longer slow down below the glaciers that retreat. Late
+  in the high-emission runs, the lower trunks of Thwaites and of the Siple Coast and Ronne-side
+  streams turned blue, back to today's speed, just below ice that had sped up by about 3 km/yr.
+  Where fewer than four of the eight models still had ice with a usable speed, the packages fell
+  back on today's speed, and the few models left there are the ones that barely retreat. Such
+  cells now take
+  the change in speed of the ice that feeds them, carried down today's flow (MEaSUREs) from the
+  cells upstream where at least four models remain: by 2300, 12.6 % of the ice under SSP5-8.5,
+  13.1 % with ice-shelf collapse and 0.6 % under SSP1-2.6. The ice and the sea-level numbers are
+  unchanged. `scripts/prepare_ismip6_projection.py` rebuilt the three packages.
+
 ## [0.4.0] — 2026-11-01
 
 Two observed records, ice-core sites and a rebuilt panel for the research edition, and

@@ -150,7 +150,8 @@ that they start on even offsets. `frames.years` lists the keyframe years in incr
 single-model one. The committed packages (`ismip6_2300_mean8_ae{05,10,14}_480`) are ISMIP6
 Antarctica 2300 multi-model means: `thickness` is BedMachine v4 thickness plus the mean
 change of eight models, `bed` is the BedMachine bed, `speed_change` the mean change in
-depth-averaged ice speed since 2015 that the flowlines follow, and `series` the mean, minimum
+depth-averaged ice speed since 2015 that the flowlines follow (carried down today's flow where
+fewer than four models still have ice), and `series` the mean, minimum
 and maximum of the models' published sea-level contribution. `experiment`, `models`,
 `sources`, `method` and `validation` record the scenario, the models averaged, the citations
 (CC BY 4.0), how the mean was formed, and how much of the mean volume change the packed frames

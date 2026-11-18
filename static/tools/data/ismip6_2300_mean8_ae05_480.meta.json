@@ -43,6 +43,10 @@
       "citation": "Morlighem, M. et al. (2020): Deep glacial troughs and stabilizing ridges unveiled beneath the margins of the Antarctic ice sheet. Nat. Geosci. 13, 132-137 (BedMachine Antarctica v4).",
       "doi": "10.1038/s41561-019-0510-8"
     },
+    "present_day_flow": {
+      "citation": "Mouginot, J., Rignot, E. and Scheuchl, B. (2019): MEaSUREs Phase-Based Antarctica Ice Velocity Map, Version 1. NASA NSIDC DAAC (the speed change is carried along its flow where too few models remain).",
+      "doi": "10.5067/PZ3NJ5RXRH10"
+    },
     "also_cite": [
       "Barthel, A. et al. (2020), The Cryosphere 14, 855-879, doi:10.5194/tc-14-855-2020 (CMIP model selection)",
       "Jourdain, N. C. et al. (2020), The Cryosphere 14, 3111-3134, doi:10.5194/tc-14-3111-2020 (basal melt)"
@@ -53,7 +57,8 @@
     "thickness": "BedMachine v4 thickness carrying the equal-weight mean, over the models, of each model's change in cell-mean thickness since its 2015 record: thickening is added as it is; thinning is scaled by BedMachine thickness over the models' mean 2015 thickness, so each cell keeps the fraction of its ice that the models keep of theirs (H = H_bm * (H_2015 + dH) / H_2015). Present-day ice cells only (no new ice)",
     "lost_ice": "ice is removed where the models' mean thickness falls below 10 m from at least that in 2015 (the film scaling would leave there is ice the models have all but lost), and returns only once their mean regrows past 20 m so that cells near the threshold do not blink; remaining ice is at least 1 m, the packing resolution",
     "thinning_scaled_because": "the models start from their own 2015 ice, which on the ice shelves is 26 % thinner to 18 % thicker than BedMachine cell by cell (10th to 90th percentile); where they thin a shelf by nearly its whole thickness, adding their mean thinning outright empties every cell in which it exceeds BedMachine thickness, riddling the shelf with holes, and leaves ice they have lost wherever BedMachine is the thicker",
-    "speed_change": "equal-weight mean of each model's change in depth-averaged speed since 2015 (ice-area-weighted within each 10 km cell), over the models with usable speeds in the cell at both times; set to 0 where fewer than 4 models qualify or no ice remains",
+    "speed_change": "equal-weight mean of each model's change in depth-averaged speed since 2015 (ice-area-weighted within each 10 km cell), over the models with usable speeds in the cell at both times, where at least 4 models qualify; where ice remains but fewer qualify, the change of the ice upstream carried down today's flow (MEaSUREs phase-based velocity): the steady first-order upwind solution of u . grad(change) = 0, with the cells where enough models qualify as the inflow; 0 where no such cell lies upstream or no ice remains",
+    "speed_change_carried_because": "late in the high-emission runs the models that retreat furthest have lost the lower trunks of the retreating glaciers (Thwaites, the Siple Coast and Ronne-side streams) while the mean geometry still has ice there; the few models that keep it are those that barely change, so their mean, or today's speed where fewer than 4 remain, showed the ice slowing down just below ice that has sped up by kilometres a year",
     "speed_filter": {
       "min_cell_mean_thickness_m": 10.0,
       "max_speed_m_per_yr": 20000.0
@@ -71,7 +76,8 @@
   },
   "source_package": {
     "grid_from": "bedmachine_antarctica_v4_480.meta.json",
-    "ensemble_file": "ismip6_2300_mean8_expAE05_10km.nc"
+    "ensemble_file": "ismip6_2300_mean8_expAE05_10km.nc",
+    "flow_from": "antarctic_ice_velocity_phase_v01_480.meta.json"
   },
   "keyframes": {
     "interval_years": 5,
@@ -89,6 +95,12 @@
       "end_ratio": 1.0038,
       "end_packed_km3": -1853597.3,
       "end_ensemble_km3": -1846651.4
+    },
+    "speed_change_carried": {
+      "note": "in the last keyframe: the cells with ice, those where fewer than 4 models have a usable speed, and how many of those take the change carried down today's flow (the rest keep today's speed)",
+      "end_ice_cells": 130516,
+      "end_too_few_models": 16448,
+      "end_carried": 15301
     }
   },
   "series": {
@@ -1361,7 +1373,7 @@
       "stats_m_per_year": {
         "min": -789.825927734375,
         "max": 6092.78515625,
-        "mean": 29.746592274771185
+        "mean": 49.38656518788493
       }
     },
     {
