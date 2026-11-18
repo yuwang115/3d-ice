@@ -1,6 +1,6 @@
 # Worked examples
 
-Both examples run from a clean clone with the data that ships in the repository; neither
+All three examples run from a clean clone with the data that ships in the repository; none
 needs a download.
 
 ## 1. The ice-free bed after isostatic rebound
@@ -124,11 +124,100 @@ With Python 3.13 and NumPy 2.4, all twelve files (six packages, each a `.bin` an
 which changes the last digits of a recorded mean in the metadata; the six payloads are
 identical regardless.
 
+## 3. Where the ISMIP6 ensemble loses ice by 2300
+
+**Question.** Under the ISMIP6 Antarctic projections to 2300, how much grounded ice does the
+ensemble lose under low and high emissions, which drainage basins lose it, and how does the
+sea-level rise implied by the explorer's geometry compare with what the same models
+published?
+
+The explorer's *Future projection* layer carries three ISMIP6-2300 experiments (Seroussi et
+al., 2024): expAE10 (UKESM1-0-LL, SSP1-2.6), expAE05 (UKESM1-0-LL, SSP5-8.5) and expAE14
+(SSP5-8.5 with ice-shelf collapse). Each package holds the equal-weight mean, over the eight
+models that ran all three, of the change in ice thickness since 2015, applied to BedMachine
+Antarctica v4 and stored every five years ([data-layers.md](data-layers.md) and the
+packages' `method` block give the details). The browser rebuilds the surface and base from
+that thickness and the static BedMachine bed by flotation.
+
+### In the browser
+
+1. Open the research edition and, under **Change over time**, switch on **Future projection**.
+2. Choose a **Scenario** and drag the **Year** slider, or press **Play**. *Colour ice by*
+   switches between thickness change since 2015 and grounded versus floating ice.
+3. The chart under the slider draws the mean and range of the eight models' published
+   sea-level contributions, and the readout gives the grounded area of the frame on screen.
+
+### From the command line
+
+```bash
+node examples/ismip6-projection.mjs                     # expAE05, 2015-2300
+node examples/ismip6-projection.mjs --scenario ae10     # or ae14
+node examples/ismip6-projection.mjs --years 2100,2300 --top 5 --json
+```
+
+For expAE05 it prints:
+
+```text
+Year   Grounded (10^6 km²)  Floating (10^6 km²)  Implied SLE (m)  Published mean [min, max] (m)
+2015       12.281                1.561             0.000        0.000 [0.000, 0.000]
+2100       12.157                1.674             0.018        -0.025 [-0.217, 0.130]
+2150       11.919                1.869             0.229        0.113 [-0.264, 0.500]
+2200       11.648                1.971             0.689        0.453 [-0.188, 1.469]
+2250       11.389                2.073             1.296        0.923 [-0.085, 2.669]
+2300       11.192                2.166             1.974        1.463 [-0.084, 3.990]
+```
+
+followed by the drainage basins of MEaSUREs Antarctic Boundaries v2 (Mouginot et al., 2017),
+ranked by their contribution in the last year: Thwaites (0.333 m by 2300), Pine Island
+(0.186 m), the Siple Coast ice streams MacAyeal, Whillans, Kamb and Bindschadler
+(0.120-0.148 m each), Cook (0.099 m) and Institute (0.098 m). Two rows close the table so that
+its parts add up to the ice sheet:
+
+```text
+Ice rises and islands           0.000      0.015      0.033      0.054      0.067      0.073   -99,528
+Outside every outline           0.000      0.001      0.003      0.004      0.005      0.005   -14,211
+```
+
+By 2300 expAE10 implies 0.151 m (published mean 0.052 m) and expAE14 3.190 m (published mean
+2.429 m).
+
+### Reading the result
+
+- *Implied SLE* is the loss of ice above flotation since 2015, converted with
+  ρ<sub>ice</sub> = 917 kg m⁻³ and the package's 362.5 Gt per mm. Each 10 km cell counts its
+  ground area, the nominal 100 km² corrected by the polar stereographic scale factor.
+  `--cell-area grid` uses nominal cells instead, which gives figures about 2.5 % lower and
+  reproduces the `validation` block of each package (1.926 m for expAE05).
+- The rows are per MEaSUREs polygon. The product records its ice rises and islands as one
+  entry of 656 rings ("Islands"), which is not a drainage basin, so it is reported beside
+  the basins rather than ranked with them. Some basins are split into several polygons
+  (Ross East1–5, Wilkes Land1–2 and others); a sector total is their sum. About 25,000 km² of
+  grounded ice in 2015 lies in cells whose centres fall inside no outline, almost all of them
+  next to floating ice or open ocean, and is reported as its own row.
+- The implied rise and the published values measure the same quantity, the loss of ice
+  above flotation since 2015 with the control run not subtracted, but on different
+  geometries. The implied rise exceeds the published mean in all three experiments. One
+  cause is certain in sign: thickness above flotation, max(0, H − H<sub>f</sub>), is convex in
+  H, so on a common baseline the mean geometry loses at least as much as the mean of the
+  models. The example does not measure how much of the gap that explains. The fixed
+  BedMachine bed (some of the models deform theirs), the difference between BedMachine's
+  2015 ice and each model's own, and the removal of ice where the models' mean falls below
+  10 m may contribute too; separating them needs each model's geometry, which the packages
+  do not hold.
+- The figures describe the ensemble mean only; no single model followed this path. The
+  published per-model range in 2300, from −0.08 to 3.99 m under expAE05, is far wider than
+  either mean.
+
 ## How these examples are kept honest
 
 - `tests/js/examples.test.mjs` runs example 1 and pins the figures quoted above, for the
   published response and for the idealised one, so a change to the rebound module, the
   decoder, a terrain package or a response package that moves them fails CI.
+- `tests/js/ismip6-example.test.mjs` runs example 3 for all three scenarios and pins the
+  figures quoted above. It checks that the basins, the islands and the cells outside every
+  outline add up to the ice sheet in every year, that nominal grid cells reproduce the
+  packages' own validation figures, and that a package without a published series still
+  reports its own geometry.
 - `tests/test_prepare_isostatic_response.py` checks the script that builds the response
   packages: that it samples the same nodes as the terrain packages, enforces the published
   identities, and records provenance. The script itself verifies each 5 GB grid file against

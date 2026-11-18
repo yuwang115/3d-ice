@@ -109,8 +109,11 @@ the [development guide](docs/development.md).
 ### Worked examples
 
 `node examples/isostatic-rebound.mjs` reproduces the isostatic-rebound figures the explorer shows
-for Antarctica, with the explorer's own decoder and rebound module. [docs/example.md](docs/example.md)
-walks through it and through a rebuild of part of the data pipeline from the repository alone.
+for Antarctica, with the explorer's own decoder and rebound module, and
+`node examples/ismip6-projection.mjs` reports the grounded-ice loss and implied sea-level rise
+of the ISMIP6 projections to 2300, for the whole ice sheet and by drainage basin.
+[docs/example.md](docs/example.md) walks through both and through a rebuild of part of the
+data pipeline from the repository alone.
 
 ## Documentation
 
