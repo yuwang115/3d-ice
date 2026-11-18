@@ -7,7 +7,7 @@ rebuild each package is in [data-pipeline.md](data-pipeline.md).
 
 | Region | Layers in the experience | Representative source products |
 | --- | --- | --- |
-| Antarctica | Bed topography, surface elevation, thickness, mask, grounding line, refined basins, velocity, basal friction, subglacial hydrology, ocean streamlines, basal melt, thermal driving, isostatic rebound, ice-sheet projections to 2300, observed surface elevation change 1995–2026, observed sea ice 1978–2026 | [BedMachine Antarctica v4](https://nsidc.org/data/NSIDC-0756/versions/4), [Bedmap3 v1.0](https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2) (CC BY 4.0), [MEaSUREs Antarctic Boundaries v2, refined basins](https://nsidc.org/data/NSIDC-0709/versions/2), [MEaSUREs Phase-Based Antarctica Velocity v1](https://nsidc.org/data/NSIDC-0754/versions/1), [AISEFI basal shear stress](https://doi.org/10.5281/zenodo.18508904) (CC BY 4.0; method: [Jager et al. 2026, preprint](https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1)), [GlaDS Antarctic subglacial hydrology](https://doi.org/10.5281/zenodo.12738170) (CC BY 4.0; [Ehrenfeucht et al. 2025](https://doi.org/10.1029/2024GL111386)), [WAOM2](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full), [RISE data](https://doi.org/10.26179/q0rh-gt74) (CC BY 4.0; [Galton-Fenzi et al. 2025](https://doi.org/10.5194/tc-19-6507-2025)), [Paxman et al. (2022)](https://doi.org/10.1038/s41598-022-15440-y) isostatic response, [grid files v3](https://doi.org/10.18739/A22Z12R8C) (CC BY 4.0), [ISMIP6 Antarctica 2300 projections](https://doi.org/10.5281/zenodo.13135599) (CC BY 4.0; [Seroussi et al. 2024](https://doi.org/10.1029/2024EF004561)), [CPOM surface elevation change](https://www.cpom.ucl.ac.uk/landice/) (CC BY 4.0; [Shepherd et al. 2019](https://doi.org/10.1029/2019GL082182)), [NOAA/NSIDC sea-ice concentration CDR v6](https://doi.org/10.7265/b18j-z797) |
+| Antarctica | Bed topography, surface elevation, thickness, mask, grounding line, refined basins, velocity, basal friction, subglacial hydrology, ocean streamlines, basal melt, thermal driving, observed seafloor water and ocean profiles 1970–2025, isostatic rebound, ice-sheet projections to 2300, observed surface elevation change 1995–2026, observed sea ice 1978–2026 | [BedMachine Antarctica v4](https://nsidc.org/data/NSIDC-0756/versions/4), [Bedmap3 v1.0](https://doi.org/10.5285/2d0e4791-8e20-46a3-80e4-f5f6716025d2) (CC BY 4.0), [MEaSUREs Antarctic Boundaries v2, refined basins](https://nsidc.org/data/NSIDC-0709/versions/2), [MEaSUREs Phase-Based Antarctica Velocity v1](https://nsidc.org/data/NSIDC-0754/versions/1), [AISEFI basal shear stress](https://doi.org/10.5281/zenodo.18508904) (CC BY 4.0; method: [Jager et al. 2026, preprint](https://essopenarchive.org/doi/full/10.22541/essoar.177099457.70593031/v1)), [GlaDS Antarctic subglacial hydrology](https://doi.org/10.5281/zenodo.12738170) (CC BY 4.0; [Ehrenfeucht et al. 2025](https://doi.org/10.1029/2024GL111386)), [WAOM2](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2023.1027704/full), [RISE data](https://doi.org/10.26179/q0rh-gt74) (CC BY 4.0; [Galton-Fenzi et al. 2025](https://doi.org/10.5194/tc-19-6507-2025)), [Paxman et al. (2022)](https://doi.org/10.1038/s41598-022-15440-y) isostatic response, [grid files v3](https://doi.org/10.18739/A22Z12R8C) (CC BY 4.0), [ISMIP6 Antarctica 2300 projections](https://doi.org/10.5281/zenodo.13135599) (CC BY 4.0; [Seroussi et al. 2024](https://doi.org/10.1029/2024EF004561)), [CPOM surface elevation change](https://www.cpom.ucl.ac.uk/landice/) (CC BY 4.0; [Shepherd et al. 2019](https://doi.org/10.1029/2019GL082182)), [NOAA/NSIDC sea-ice concentration CDR v6](https://doi.org/10.7265/b18j-z797), [OCEAN ICE Southern Ocean Climatology](https://doi.org/10.17882/103946) and [profile compilation](https://doi.org/10.17882/99787) (CC BY 4.0; [Zhou et al. 2025](https://doi.org/10.5194/essd-17-5693-2025), [2026](https://doi.org/10.5194/essd-2025-727)) |
 | Greenland | Bed topography, surface elevation, thickness, mask, grounding line, basin boundaries, velocity, basal friction, ocean streamlines, isostatic rebound, observed sea ice 1978–2026 | [BedMachine Greenland v6](https://nsidc.org/data/idbmg4/versions/6) (v7 was released in October 2026), [QRF Greenland subglacial topography (2025)](https://doi.org/10.1017/jog.2025.10071), [ITS_LIVE V02.1 summary velocity mosaic, 2014–2024](https://its-live.jpl.nasa.gov/) (velocity data generated using auto-RIFT and provided by the NASA MEaSUREs ITS_LIVE project; archived as [NSIDC-0776 v2](https://nsidc.org/data/NSIDC-0776/versions/2)), [Greenland basins](https://doi.org/10.7280/D1WT11) (Mouginot & Rignot 2019, CC BY 4.0) or [outlet catchments](https://doi.org/10.22008/FK2/XKQVL7) (Mankoff et al. 2020, CC0), [GrISEFI basal shear stress](https://doi.org/10.5281/zenodo.18508850) (CC BY 4.0; method: [Jager et al. 2026, preprint](https://essopenarchive.org/doi/full/10.22541/essoar.177099472.28419248/v1)), [Copernicus Marine Arctic Ocean Physics](https://doi.org/10.48670/moi-00001) (generated using E.U. Copernicus Marine Service Information), [Paxman et al. (2022)](https://doi.org/10.1038/s41598-022-15440-y) isostatic response, [grid files v3](https://doi.org/10.18739/A22Z12R8C) (CC BY 4.0), [NOAA/NSIDC sea-ice concentration CDR v6](https://doi.org/10.7265/b18j-z797) |
 
 Bedmap3 is available as a 10 km Balanced or 4 km HD Antarctica terrain alternative. Both modes support velocity, flowlines, basal friction, effective pressure, subglacial channels, refined basins, and WAOM2 ocean streamlines. Its velocity, basal-friction and hydrology layers are nearest-cell copies of the BedMachine-aligned 10 km and 4 km packages, moved onto Bedmap3's grid, whose origin is offset by 250 m (subglacial-channel endpoints are reprojected); the projected WAOM2 streamlines are clipped against the active terrain at runtime. RISE basal melt and thermal-driving fields remain exclusive to BedMachine v4.
@@ -90,6 +90,46 @@ time*, the layer is exclusive with the projection, the observed elevation change
 The packer (`scripts/prepare_nsidc_sea_ice.py`) and the browser module
 (`static/tools/js/sea-ice.js`) are tested in `tests/test_prepare_nsidc_sea_ice.py`,
 `tests/js/sea-ice.test.mjs` and `tests/e2e/test_sea_ice.py`.
+
+## Observed ocean (OCEAN ICE)
+
+The research edition draws two of the OCEAN ICE project's observational compilations of the
+ocean around Antarctica under *Ocean and ice shelves*, beside the WAOM2 model's streamlines.
+
+**Seafloor water.** The OCEAN ICE Southern Ocean Climatology (Zhou, Dutrieux & Giulivi 2024,
+version 2) maps about 819,000 ship CTD, Argo and instrumented-seal profiles onto a 0.2° × 0.1°
+grid at 10 dbar, with ellipses of influence that follow sea-surface-height contours offshore
+and the bathymetry on the shelf, so that shelf seas are not filled with water from the deep
+ocean (Zhou et al. 2026). The layer shows the mean of each column's lowest 150 dbar, the
+shelf-bottom metric of Schmidtko et al. (2014), as Conservative Temperature or Absolute
+Salinity, for the climatology of every profile (1972–2023) or of the profiles since 2000. It is
+resampled onto the 10 km BedMachine grid and sampled bilinearly at the open-ocean nodes of the
+terrain on screen, so the colour lies on the drawn seafloor; the seafloor of the climatology is
+its own (RTopo-2.0.4), and the readout gives its pressure. Ice-shelf cavities are left empty:
+the climatology extrapolates into some of them, but no profile was taken there. Where none of
+a column's seafloor levels had a profile inside the mapping ellipse, the value comes from
+profiles further along the isobaths (the climatology's error is 10¹⁰ there), and the layer
+draws a screen-door stipple, which keeps the colour; 39 % of the domain is stippled, mostly in
+the deep ocean. The post-2000 climatology marks no such levels, so both periods are stippled
+by the full record's support, the least the post-2000 view should be. The two periods differ by
+more than 0.05 °C on 9 % of the cells, and by their sampling as much as by any change, so the
+layer offers no difference map.
+
+**Ocean profiles.** The OCEAN ICE hydrography compilation (Zhou et al. 2026) holds
+quality-controlled, de-duplicated ship CTD, Argo and seal profiles south of 45°S, 1970–2025;
+442,829 of them lie in the explorer's Antarctic domain. Each is a point on the sea surface,
+coloured by platform, shown a year at a time (with playback) or all at once, and a chart
+counts them per year and platform. The points are sorted by date, so a year is one draw range.
+A click shows the profile's temperature and salinity at 16 standard depths above its deepest
+measurement and at that measurement, from a second package fetched on the first click.
+Profiles the compilation flags as bad, and 199 temperature and 15 salinity bins outside
+plausible ranges, are left out.
+
+Both layers are drawn against today's bed and sea surface, so the projection and the rebound
+switch them off. The packers (`scripts/prepare_ocean_ice_{seafloor,profiles}.py`) and the
+browser modules (`static/tools/js/ocean-{seafloor,profiles}.js`) are tested in
+`tests/test_prepare_ocean_ice_*.py`, `tests/js/ocean-*.test.mjs` and
+`tests/e2e/test_observed_ocean.py`.
 
 ## Isostatic rebound (ice-free equilibrium)
 

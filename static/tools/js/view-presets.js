@@ -147,6 +147,19 @@ const EXPLORER_PRESETS_DRAFT = {
       lower: true,
     },
   },
+  // The OCEAN ICE seafloor water: Circumpolar Deep Water on the Amundsen and Bellingshausen shelves.
+  "antarctica-seafloor-water": {
+    regionKey: "antarctica",
+    datasetKey: "balanced",
+    exaggeration: 4.8,
+    iceOpacity: 1,
+    toggles: {
+      showBed: true,
+      showIce: true,
+      showIceBottom: true,
+      showOceanSeafloor: true,
+    },
+  },
   "greenland-velocity-flowlines": {
     regionKey: "greenland",
     datasetKey: "3km",

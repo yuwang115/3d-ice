@@ -61,3 +61,34 @@ export function projectLatLon(latDeg, lonDeg, regionKey) {
     y: (north ? -1 : 1) * radius * Math.cos(delta),
   };
 }
+
+/**
+ * Latitude and longitude of a point on a region's polar stereographic grid: the inverse of
+ * projectLatLon (Snyder 1987, eqs. 7-9 and 21-38 to 21-40), iterated to below 1e-12 rad.
+ *
+ * @param {number} x projected metres
+ * @param {number} y projected metres
+ * @param {"antarctica" | "greenland"} regionKey
+ * @returns {{ lat: number, lon: number }} degrees, longitude in [-180, 180)
+ */
+export function unprojectXY(x, y, regionKey) {
+  const projection = POLAR_PROJECTIONS[regionKey];
+  if (!projection) throw new RangeError(`No polar projection for region: ${String(regionKey)}`);
+  if (!Number.isFinite(x) || !Number.isFinite(y)) throw new RangeError(`Invalid point: ${x}, ${y}`);
+  const north = projection.hemisphere === "north";
+  const standardParallel = projection.standardParallelDeg * DEG;
+  const sinStandard = Math.sin(standardParallel);
+  const mStandard = Math.cos(standardParallel) / Math.sqrt(1 - ECCENTRICITY ** 2 * sinStandard ** 2);
+  const t = (Math.hypot(x, y) * isometricT(standardParallel)) / (SEMI_MAJOR_AXIS_M * mStandard);
+  let phi = Math.PI / 2 - 2 * Math.atan(t);
+  for (let i = 0; i < 20; i += 1) {
+    const sinPhi = Math.sin(phi);
+    const next = Math.PI / 2 - 2 * Math.atan(t * ((1 - ECCENTRICITY * sinPhi) / (1 + ECCENTRICITY * sinPhi)) ** (ECCENTRICITY / 2));
+    const done = Math.abs(next - phi) < 1e-12;
+    phi = next;
+    if (done) break;
+  }
+  const delta = Math.atan2(x, north ? -y : y) / DEG;
+  const lon = ((((delta + projection.centralMeridianDeg + 180) % 360) + 360) % 360) - 180;
+  return { lat: (north ? 1 : -1) * (phi / DEG), lon };
+}

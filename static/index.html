@@ -117,7 +117,7 @@
             "name": "What data can I explore in 3D ICE?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Bed topography, ice thickness and flow, the grounding line, ocean circulation, sea level and the ice-free isostatic rebound for Antarctica and Greenland, and projections of the Antarctic ice sheet to 2300 from eight ISMIP6 models. The research edition adds basal friction, observed sea ice since 1978 and, for Antarctica, subglacial hydrology, ice-shelf basal melt and observed surface elevation change since 1995. Every layer comes from a published dataset, model or preprint."
+              "text": "Bed topography, ice thickness and flow, the grounding line, ocean circulation, sea level and the ice-free isostatic rebound for Antarctica and Greenland, and projections of the Antarctic ice sheet to 2300 from eight ISMIP6 models. The research edition adds basal friction, observed sea ice since 1978 and, for Antarctica, subglacial hydrology, ice-shelf basal melt, observed surface elevation change since 1995 and the observed ocean: seafloor water and ocean profiles. Every layer comes from a published dataset, model or preprint."
             }
           },
           {
@@ -382,7 +382,7 @@
                 <ul class="explorer-edition-points" role="list">
                   <li>Two terrains and two grid sizes for each ice sheet</li>
                   <li>Basal friction, and in Antarctica subglacial water and ice-shelf melt</li>
-                  <li>Observed sea ice since 1978 and Antarctic elevation change since 1995</li>
+                  <li>Observed sea ice since 1978; in Antarctica, elevation change since 1995 and ocean observations</li>
                   <li>A data snapshot that links the datasets in view to their sources</li>
                 </ul>
                 <p class="explorer-edition-meta">Best on a computer · English and <span lang="zh-CN">中文</span></p>
@@ -432,9 +432,9 @@
                       <td>Yes; subglacial water and ice-shelf melt in Antarctica only</td>
                     </tr>
                     <tr>
-                      <th scope="row">Observed sea ice and elevation change</th>
+                      <th scope="row">Observed sea ice, elevation change and ocean</th>
                       <td>No</td>
-                      <td>Yes; elevation change in Antarctica only</td>
+                      <td>Yes; elevation change, seafloor water and ocean profiles in Antarctica only</td>
                     </tr>
                     <tr>
                       <th scope="row">Antarctica’s future (ISMIP6, to 2300)</th>
@@ -477,6 +477,14 @@
             </div>
             <ol class="explorer-update-list">
               <li>
+                <article class="explorer-update-card" aria-labelledby="observed-ocean-update-title">
+                  <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-17">November 17, 2026</time> <span class="explorer-update-badge explorer-update-badge--research">Research edition</span></p>
+                  <h3 id="observed-ocean-update-title">Observed ocean around Antarctica</h3>
+                  <p>Two layers from the OCEAN ICE compilations: the temperature or salinity of the water over the seafloor, warm on the Amundsen Sea shelf, and where some 443,000 ship, Argo and seal profiles were taken from 1970 to 2025.</p>
+                  <a class="explorer-update-link" href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-seafloor-water">Open the research edition</a>
+                </article>
+              </li>
+              <li>
                 <article class="explorer-update-card" aria-labelledby="outlet-catchments-update-title">
                   <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-13">November 13, 2026</time> <span class="explorer-update-badge explorer-update-badge--research">Research edition</span></p>
                   <h3 id="outlet-catchments-update-title">Greenland’s outlet catchments</h3>
@@ -490,14 +498,6 @@
                   <h3 id="grounding-line-update-title">The grounding line</h3>
                   <p>A dark line marks where grounded ice meets floating ice or the ocean, traced from the terrain on screen. It retreats with the ice as the 2300 projection plays.</p>
                   <a class="explorer-update-link" href="./explore/?region=antarctica&amp;preset=antarctica-grounding-line">See it in the public edition</a>
-                </article>
-              </li>
-              <li>
-                <article class="explorer-update-card" aria-labelledby="edition-switch-update-title">
-                  <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-02">November 2, 2026</time> <span class="explorer-update-badge explorer-update-badge--both">Both editions</span></p>
-                  <h3 id="edition-switch-update-title">Switch between editions</h3>
-                  <p>A Public | Research switch in each panel opens the other edition in the same language and region. The public panel takes the research edition’s cleaner look.</p>
-                  <a class="explorer-update-link" href="./explore/">Open the public edition</a>
                 </article>
               </li>
             </ol>
@@ -545,6 +545,7 @@
                   <li><a href="https://doi.org/10.48670/moi-00001" target="_blank" rel="noopener">Arctic Ocean Physics Analysis</a> <span class="explorer-source-note">Greenland; generated using E.U. Copernicus Marine Service Information</span></li>
                   <li><a href="https://doi.org/10.5194/tc-19-6507-2025" target="_blank" rel="noopener">Ice-shelf basal melt</a> <span class="explorer-source-note">Antarctica, Galton-Fenzi et al. (2025) · <a href="https://doi.org/10.26179/q0rh-gt74" target="_blank" rel="noopener">data</a></span></li>
                   <li><a href="https://doi.org/10.7265/b18j-z797" target="_blank" rel="noopener">NOAA/NSIDC sea-ice concentration v6</a> <span class="explorer-source-note">Meier et al. (2026)</span></li>
+                  <li><a href="https://doi.org/10.17882/103946" target="_blank" rel="noopener">OCEAN ICE observations</a> <span class="explorer-source-note">Antarctica, Zhou et al.: seafloor-water climatology (2024) and <a href="https://doi.org/10.17882/99787" target="_blank" rel="noopener">profile compilation</a> (2026), <a href="https://doi.org/10.5194/essd-2025-727" target="_blank" rel="noopener">paper</a></span></li>
                 </ul>
               </div>
               <div class="explorer-source-group">
@@ -669,6 +670,11 @@
               </a>
             </div>
             <ol class="explorer-drawer-list">
+              <li class="explorer-drawer-item">
+                <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-17">November 17, 2026</time> <span class="explorer-update-badge explorer-update-badge--research">Research edition</span></p>
+                <h3>Observed ocean around Antarctica</h3>
+                <p>Two layers under Ocean and ice shelves, from the OCEAN ICE project’s compilations of observations (Zhou et al., CC BY 4.0). Seafloor water: the Conservative Temperature or Absolute Salinity of the lowest 150 m of the water column, from the OCEAN ICE Southern Ocean Climatology, for every profile from 1972 to 2023 or those since 2000. It shows warm Circumpolar Deep Water on the Amundsen and Bellingshausen shelves (+1.07 °C in Pine Island Bay) and stipples the water no profile came near. Ocean profiles: where and when 442,829 ship CTD, Argo float and instrumented-seal profiles were taken, 1970–2025, a year at a time or all at once; click one for its temperature and salinity against depth.</p>
+              </li>
               <li class="explorer-drawer-item">
                 <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-13">November 13, 2026</time> <span class="explorer-update-badge explorer-update-badge--research">Research edition</span></p>
                 <h3>Greenland’s outlet catchments</h3>

@@ -63,3 +63,23 @@ test("coordinates outside a region's hemisphere or range are rejected", () => {
   assert.throws(() => projectLatLon(Number.NaN, 0, "antarctica"), RangeError);
   assert.throws(() => projectLatLon(-70, 0, "mars"), RangeError);
 });
+
+test("unprojectXY inverts projectLatLon on both grids", async () => {
+  const { projectLatLon, unprojectXY } = await import("../../static/tools/js/polar-projection.js");
+  const cases = [
+    ["antarctica", -74.9, -102.5],
+    ["antarctica", -60, 140],
+    ["antarctica", -89.5, 10],
+    ["antarctica", -65, 179.9],
+    ["greenland", 72.5, -38.5],
+    ["greenland", 61, -45],
+  ];
+  for (const [region, lat, lon] of cases) {
+    const { x, y } = projectLatLon(lat, lon, region);
+    const back = unprojectXY(x, y, region);
+    assert.ok(Math.abs(back.lat - lat) < 1e-9, `${region} ${lat}: ${back.lat}`);
+    assert.ok(Math.abs(((back.lon - lon + 540) % 360) - 180) < 1e-9, `${region} ${lon}: ${back.lon}`);
+  }
+  assert.throws(() => unprojectXY(0, 0, "mars"), RangeError);
+  assert.throws(() => unprojectXY(Number.NaN, 0, "antarctica"), RangeError);
+});

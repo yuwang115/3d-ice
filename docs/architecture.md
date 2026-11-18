@@ -54,6 +54,8 @@ by 250 m, and hybridising a bed product with another product's surface and mask.
 | `prepare_ismip6_projection.py` | the 8-model mean change, BedMachine v4 Balanced, the published scalars | `ismip6_2300_mean8_ae{05,10,14}_480` |
 | `prepare_cpom_land_ice.py` | CPOM Antarctic surface elevation change from multi-mission radar altimetry (1995–2026 rate, 81 cumulative epochs, mass-change series of the ice sheet, its regions and its 18 IMBIE basins) | `cpom_antarctica_dhdt_{480,741}`, `cpom_antarctica_dh_480` |
 | `prepare_nsidc_sea_ice.py` | NOAA/NSIDC monthly sea-ice concentration CDR, Version 6 (passive microwave, November 1978 onwards), both hemispheres | `nsidc_sea_ice_antarctica`, `nsidc_sea_ice_greenland` |
+| `prepare_ocean_ice_seafloor.py` | OCEAN ICE Southern Ocean Climatology, version 2 (every profile, and the profiles since 2000): the mean of each column's lowest 150 dbar | `ocean_ice_seafloor_antarctica` |
+| `prepare_ocean_ice_profiles.py` | OCEAN ICE hydrography profile compilation (Conservative Temperature and Absolute Salinity files) | `ocean_ice_profiles_antarctica`, `ocean_ice_profiles_antarctica_curves` |
 | `prepare_polar_features.py` | Research-station and place-name catalogues | `*_research_stations.json`, `*_geographic_names.json` |
 | `prepare_ice_cores.py` | The hand-checked ice-core site table, `scripts/data/ice_core_sites.json` | `*_ice_cores.json` |
 | `prepare_refined_basin_search.mjs` | MEaSUREs Antarctic Boundaries v2 refined basins; the Greenland basins above | `*_refined_basins_search.json` |
@@ -64,7 +66,8 @@ The `480`/`10km` and `741`/`4km` suffixes are the Antarctic Balanced (667 × 667
 drawn on, so overlay and terrain cells correspond one to one in the browser. The sea-ice
 packages are the exception: a 25 km grid of their own in the region's projection, drawn as a
 texture on the sea surface and clipped to the terrain's ocean, so that one package serves every
-terrain of its region.
+terrain of its region. The seafloor-water package is the other: it holds the 10 km BedMachine grid, and the runtime
+samples it bilinearly at the open-ocean nodes of whichever Antarctic terrain is shown.
 
 Source products are large and several require registration to download, so they are not
 in the repository. The prepared packages are. Each package's metadata names the product
@@ -103,6 +106,7 @@ bibliography.
 | `static/tools/js/gia-rebound.js`, `gia-grid.js`, `fft2d.js` | Published-response summary, flexural and Airy isostasy solver, grid utilities and 2-D FFT |
 | `static/tools/js/surface-change.js` | Observed surface elevation change: package decoding, epoch interpolation, the extrapolated polar cap, significance against the uncertainty, regional readout and colour scale, basin selection and the basin chart's geometry |
 | `static/tools/js/sea-ice.js` | Observed sea ice: package decoding, months and the frames that show them, blending between months across months without data, the median ice edge, the hemisphere's extent readout and rank, the extent chart's geometry and the ice colours |
+| `static/tools/js/ocean-seafloor.js`, `ocean-profiles.js` | The OCEAN ICE observations: the seafloor water's decoding, bilinear sampling onto a terrain and colour ramps (the shader's GLSL built from the same stops); the profiles' decoding, year ranges, nearest-point search, curves and chart geometry |
 | `static/tools/js/ice-projection.js` | Ice-sheet projection playback: package decoding, keyframe interpolation, flotation geometry from the level the ice rests on (the lake over Lake Vostok), scale-corrected cell areas, triangles, normals, speed change along the flowlines and colour scale |
 | `static/tools/js/polar-feature-search.js`, `polar-feature-label-style.js`, `polar-feature-details.js`, `polar-refined-basins.js`, `polar-features.js` | Place and feature search, label and marker styling, the details card and its text, refined-basin validation, and the controller that binds them to the scene |
 | `static/tools/js/basin-divides.js` | Validation and decoding of a basin set stored as its divides (Greenland's Mankoff catchments) |
@@ -224,6 +228,17 @@ layer on shows the sea plane, and switching it off hides the plane again unless 
 in between. The layer is in the research edition only, and is exclusive with the projection and
 the rebound, which move the ice front and the sea surface.
 
+**Observed ocean** draws two OCEAN ICE compilations of observations around Antarctica,
+research edition only. The seafloor water (Conservative Temperature or Absolute Salinity of the
+lowest 150 dbar, every profile or those since 2000) is sampled from its package onto the open-ocean
+nodes of the terrain on screen and drawn on an overlay of the bed, as the RISE fields are drawn
+on the ice-shelf base: a data texture of value, presence and support, and a shader that
+interpolates it, colours it and stipples the cells without a nearby profile. The profiles are one `THREE.Points` of every profile on the sea surface,
+sorted by date, so the year slider only sets the draw range. A click falls through the place
+markers, the flowlines and the CPOM basins to a profile (the grid index around where the click ray meets the sea surface) and the
+seafloor (a ray cast on its overlay); the profile's curve comes from a second package fetched on
+the first click. The projection and the rebound switch both off.
+
 **Asset base.** Asset URLs resolve against a base taken, in order, from the `assetBase`
 query parameter, `window.__ICE_ASSET_BASE__`, a `<meta name="3d-ice-asset-base">` tag,
 or the `/tools/` segment of the page's own path. This is what lets the same files serve
@@ -268,6 +283,7 @@ current Chrome, Edge, Firefox and Safari (Chrome and Edge 89+, Firefox 114+, Saf
 | Projection decoding, interpolation, flotation (including over Lake Vostok), cell areas, triangles, normals, speed change; the ISMIP6 packer's frames, sea-level series and package layout | node:test, pytest | `tests/js/ice-projection.test.mjs`, `tests/test_prepare_ismip6_projection.py` | JavaScript and Python unit tests |
 | Observed elevation change: decoding, epoch interpolation, the extrapolated polar cap, significance, readout and colours, basin selection and chart geometry; the CPOM packer's row flip, area-weighted resampling, CryoSat-2 detection, basin names and series, and package layout | node:test, pytest | `tests/js/surface-change.test.mjs`, `tests/test_prepare_cpom_land_ice.py` | JavaScript and Python unit tests |
 | Observed sea ice: decoding, months and frames, blending across empty months, the median edge, the readout and rank, chart geometry and colours; the NSIDC packer's projections against NSIDC's own cell positions, resampling, coastal fill, hemisphere totals, reference frequency, trends and package layout | node:test, pytest | `tests/js/sea-ice.test.mjs`, `tests/test_prepare_nsidc_sea_ice.py` | JavaScript and Python unit tests |
+| Observed ocean: the seafloor package's decoding, bilinear sampling and ramps; the profiles' decoding, year ranges, nearest-point search, curves and charts; the two packers' seafloor window, support, resampling across the antimeridian, implausible samples, curve layout and package layout | node:test, pytest | `tests/js/ocean-*.test.mjs`, `tests/test_prepare_ocean_ice_*.py` | JavaScript and Python unit tests |
 | Place search, label styling, the details card, refined-basin validation | node:test | `tests/js/polar-features.test.mjs` | JavaScript unit tests |
 | Basin divides: the Mankoff packer's lattice edges, chains and simplification, and the package's validation and decoding | pytest, node:test | `tests/test_prepare_mankoff_basins.py`, `tests/js/basin-divides.test.mjs` | Python and JavaScript unit tests |
 | The grounding line: cell classes, tracing (half-way to floating ice, along the ice front at the ocean, none against land, saddles split as the meshes are), smoothing, mesh heights, the ribbon; every traced point of three shipped terrains on an edge of grounded ice facing floating ice or the ocean | node:test | `tests/js/grounding-line.test.mjs` | JavaScript unit tests |

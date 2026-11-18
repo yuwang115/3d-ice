@@ -746,6 +746,50 @@ select:focus {
   stroke-dasharray: 2 2;
 }
 
+/* The OCEAN ICE observations: readouts in prose or as a table, the platform legend of the
+   profiles, and a clicked profile's chart. */
+.projection-readout.ocean-readout {
+  display: block;
+}
+
+.ocean-readout p,
+.ocean-profile-detail p {
+  margin: 2px 0;
+}
+
+.ocean-profiles-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 0.76rem;
+  color: var(--meta-text);
+}
+
+.ocean-profiles-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ocean-profiles-legend__dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.ocean-profile-detail {
+  margin-top: 8px;
+  font-size: 0.76rem;
+  color: var(--meta-text);
+}
+
+.ocean-profile-chart .ocean-profile-chart__frame {
+  fill: none;
+  stroke: var(--legend-note);
+  stroke-width: 0.6;
+}
+
 /* The least-squares trend under the sea-ice extent line. */
 .projection-chart .trend {
   fill: none;

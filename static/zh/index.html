@@ -117,7 +117,7 @@
             "name": "我可以在 3D ICE 中探索哪些数据？",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "南极洲与格陵兰的基岩地形、冰厚与冰的流动、接地线、海洋环流、海平面以及无冰状态下的地壳均衡回弹，以及基于八个 ISMIP6 模型的南极冰盖 2300 年预估。专业版还提供基底摩擦、1978 年以来的海冰观测，以及南极的冰下水文、冰架底部融化和 1995 年以来的冰面高程变化观测。每个图层都来自已发表的数据集、模型或预印本。"
+              "text": "南极洲与格陵兰的基岩地形、冰厚与冰的流动、接地线、海洋环流、海平面以及无冰状态下的地壳均衡回弹，以及基于八个 ISMIP6 模型的南极冰盖 2300 年预估。专业版还提供基底摩擦、1978 年以来的海冰观测，以及南极的冰下水文、冰架底部融化、1995 年以来的冰面高程变化观测和海洋观测（海床水体与海洋剖面）。每个图层都来自已发表的数据集、模型或预印本。"
             }
           },
           {
@@ -382,7 +382,7 @@
                 <ul class="explorer-edition-points" role="list">
                   <li>每个冰盖都有两种基岩地形与两种网格分辨率</li>
                   <li>基底摩擦，以及南极的冰下水文与冰架底部融化</li>
-                  <li>1978 年以来的海冰观测，以及 1995 年以来的南极冰面高程变化</li>
+                  <li>1978 年以来的海冰观测；南极 1995 年以来的冰面高程变化与海洋观测</li>
                   <li>数据快照为当前显示的数据集链接来源</li>
                 </ul>
                 <p class="explorer-edition-meta">建议在电脑上使用 · 中文与 <span lang="en">English</span></p>
@@ -432,9 +432,9 @@
                       <td>有；冰下水文与冰架融化仅限南极</td>
                     </tr>
                     <tr>
-                      <th scope="row">海冰与冰面高程变化观测</th>
+                      <th scope="row">海冰、冰面高程变化与海洋观测</th>
                       <td>无</td>
-                      <td>有；冰面高程变化仅限南极</td>
+                      <td>有；冰面高程变化、海床水体和海洋剖面仅限南极</td>
                     </tr>
                     <tr>
                       <th scope="row">南极的未来（ISMIP6，至 2300 年）</th>
@@ -477,6 +477,14 @@
             </div>
             <ol class="explorer-update-list">
               <li>
+                <article class="explorer-update-card" aria-labelledby="observed-ocean-update-title">
+                  <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-17">2026年11月17日</time> <span class="explorer-update-badge explorer-update-badge--research">专业版</span></p>
+                  <h3 id="observed-ocean-update-title">南极周边的海洋观测</h3>
+                  <p>来自 OCEAN ICE 汇编的两个图层：海床上方水体的温度或盐度（阿蒙森海陆架上是暖水），以及 1970–2025 年约 44.3 万条船载、Argo 和海豹剖面的测量位置与时间。</p>
+                  <a class="explorer-update-link" href="./tools/3D-interactive-cryosphere-explorer.html?region=antarctica&amp;preset=antarctica-seafloor-water">打开专业版</a>
+                </article>
+              </li>
+              <li>
                 <article class="explorer-update-card" aria-labelledby="outlet-catchments-update-title">
                   <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-13">2026年11月13日</time> <span class="explorer-update-badge explorer-update-badge--research">专业版</span></p>
                   <h3 id="outlet-catchments-update-title">格陵兰出口集水区</h3>
@@ -490,14 +498,6 @@
                   <h3 id="grounding-line-update-title">接地线</h3>
                   <p>一条深色线标出接地冰与漂浮冰或海洋的交界，由屏幕上的地形逐格追踪得到；播放 2300 年预估时，它会随冰盖一起后退。</p>
                   <a class="explorer-update-link" href="./explore/?region=antarctica&amp;preset=antarctica-grounding-line">在科普版中查看</a>
-                </article>
-              </li>
-              <li>
-                <article class="explorer-update-card" aria-labelledby="edition-switch-update-title">
-                  <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-02">2026年11月2日</time> <span class="explorer-update-badge explorer-update-badge--both">两个版本</span></p>
-                  <h3 id="edition-switch-update-title">在两个版本之间切换</h3>
-                  <p>每个面板都新增“科普版 | 专业版”切换，可在相同语言、相同区域下打开另一个版本。科普版面板也换上了专业版更简洁的外观。</p>
-                  <a class="explorer-update-link" href="./explore/">打开科普版</a>
                 </article>
               </li>
             </ol>
@@ -545,6 +545,7 @@
                   <li><a href="https://doi.org/10.48670/moi-00001" target="_blank" rel="noopener">北冰洋物理分析与预报</a> <span class="explorer-source-note">格陵兰；<span lang="en">generated using E.U. Copernicus Marine Service Information</span></span></li>
                   <li><a href="https://doi.org/10.5194/tc-19-6507-2025" target="_blank" rel="noopener">冰架底部融化</a> <span class="explorer-source-note">南极洲，Galton-Fenzi 等（2025）· <a href="https://doi.org/10.26179/q0rh-gt74" target="_blank" rel="noopener">数据</a></span></li>
                   <li><a href="https://doi.org/10.7265/b18j-z797" target="_blank" rel="noopener">NOAA/NSIDC 海冰密集度 v6</a> <span class="explorer-source-note">Meier 等（2026）</span></li>
+                  <li><a href="https://doi.org/10.17882/103946" target="_blank" rel="noopener">OCEAN ICE 海洋观测</a> <span class="explorer-source-note">南极，Zhou 等：海床水体气候态（2024）与<a href="https://doi.org/10.17882/99787" target="_blank" rel="noopener">剖面汇编</a>（2026），<a href="https://doi.org/10.5194/essd-2025-727" target="_blank" rel="noopener">论文</a></span></li>
                 </ul>
               </div>
               <div class="explorer-source-group">
@@ -669,6 +670,11 @@
               </a>
             </div>
             <ol class="explorer-drawer-list">
+              <li class="explorer-drawer-item">
+                <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-17">2026年11月17日</time> <span class="explorer-update-badge explorer-update-badge--research">专业版</span></p>
+                <h3>南极周边的海洋观测</h3>
+                <p>“海洋与冰架”下新增两个图层，来自 OCEAN ICE 项目的观测汇编（Zhou 等，CC BY 4.0）。海床水体：水柱最底部 150 m 的保守温度或绝对盐度，取自 OCEAN ICE 南大洋气候态，可选 1972–2023 年全部剖面或 2000 年以来的剖面。它显示阿蒙森海和别林斯高晋海陆架上的暖绕极深层水（松岛湾为 +1.07 °C），附近没有剖面的水体以点状纹理标出。海洋剖面：1970–2025 年 442,829 条船载 CTD、Argo 浮标和海豹剖面的测量位置与时间，可逐年查看或一次显示全部；点击一条剖面可查看它的温度和盐度随深度的变化。</p>
+              </li>
               <li class="explorer-drawer-item">
                 <p class="explorer-update-meta"><time class="explorer-update-date" datetime="2026-11-13">2026年11月13日</time> <span class="explorer-update-badge explorer-update-badge--research">专业版</span></p>
                 <h3>格陵兰出口集水区</h3>

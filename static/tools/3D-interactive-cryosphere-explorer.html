@@ -369,6 +369,61 @@
             </div>
             <div class="ocean-legend-note">Streamlines start in four depth bands, at 3–18 %, 18–40 %, 40–70 % and 70–95 % of the local water depth (Surface, Upper, Mid, Lower), and then follow the flow.</div>
           </div>
+          <div id="oceanSeafloorRow" class="rp-feature">
+            <label class="rp-row"><input id="showOceanSeafloor" type="checkbox" data-layer /> <span class="rp-row__label">Seafloor water, observed</span> <span class="rp-row__meta">1972–2023</span></label>
+            <div id="oceanSeafloorControls" class="toggle-group" hidden>
+              <div class="control">
+                <label for="oceanSeafloorVariable">Colour by</label>
+                <select id="oceanSeafloorVariable">
+                  <option value="temperature" selected>Temperature</option>
+                  <option value="salinity">Salinity</option>
+                </select>
+              </div>
+              <div class="control">
+                <label for="oceanSeafloorPeriod">Profiles</label>
+                <select id="oceanSeafloorPeriod">
+                  <option value="full" selected>All years, 1972–2023</option>
+                  <option value="post2000">Since 2000</option>
+                </select>
+              </div>
+              <label class="toggle toggle--sub"><input id="oceanSeafloorFade" type="checkbox" checked /> Fade where no profile was taken nearby</label>
+              <div id="oceanSeafloorLegendSection" class="rp-legend rp-legend--flush" hidden>
+                <p id="oceanSeafloorLegendTitle" class="rp-legend__caption">Seafloor water temperature, °C</p>
+                <div id="oceanSeafloorLegendBar" class="legend" aria-hidden="true"></div>
+                <div id="oceanSeafloorLegendLabels" class="legend-labels"></div>
+              </div>
+              <div id="oceanSeafloorReadout" class="projection-readout ocean-readout" aria-live="polite"></div>
+              <details class="rp-about">
+                <summary>About this record</summary>
+                <div id="oceanSeafloorNote" class="legend-note"></div>
+              </details>
+            </div>
+          </div>
+          <div id="oceanProfilesRow" class="rp-feature">
+            <label class="rp-row"><input id="showOceanProfiles" type="checkbox" data-layer /> <span class="rp-row__label">Ocean profiles</span> <span class="rp-row__meta">1970–2025</span></label>
+            <div id="oceanProfilesControls" class="toggle-group" hidden>
+              <div id="oceanProfilesLegendSection" class="rp-legend rp-legend--flush" hidden>
+                <p class="rp-legend__caption">Where temperature and salinity were measured</p>
+                <div id="oceanProfilesLegendItems" class="ocean-profiles-legend"></div>
+              </div>
+              <label class="toggle toggle--sub"><input id="oceanProfilesAllYears" type="checkbox" /> Every year at once</label>
+              <div id="oceanProfilesTimeControl" class="control">
+                <label for="oceanProfilesYear">Year <span id="oceanProfilesYearValue" class="mono"></span></label>
+                <div class="projection-timeline">
+                  <button id="oceanProfilesPlay" type="button" class="projection-play" aria-label="Play">Play</button>
+                  <input id="oceanProfilesYear" type="range" min="1970" max="2025" step="1" value="2024" />
+                </div>
+              </div>
+              <div id="oceanProfilesReadout" class="projection-readout ocean-readout" aria-live="polite"></div>
+              <svg id="oceanProfilesChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="Profiles measured each year"></svg>
+              <div id="oceanProfilesChartNote" class="legend-note"></div>
+              <div id="oceanProfilesDetail" class="ocean-profile-detail" hidden></div>
+              <details class="rp-about">
+                <summary>About this record</summary>
+                <div id="oceanProfilesNote" class="legend-note"></div>
+              </details>
+            </div>
+          </div>
           <div class="rp-field" data-choice="shelf">
             <span id="shelfBaseLabel" class="rp-field__label">Ice-shelf base</span>
             <div class="rp-choice" role="group" aria-labelledby="shelfBaseLabel">

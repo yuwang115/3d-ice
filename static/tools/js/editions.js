@@ -40,6 +40,14 @@ const CAPABILITY_URL_KEYS = Object.freeze({
     "surfaceChangeSeriesUrl",
   ]),
   seaIce: Object.freeze(["seaIceMetaUrl", "seaIceBinUrl"]),
+  observedOcean: Object.freeze([
+    "oceanSeafloorMetaUrl",
+    "oceanSeafloorBinUrl",
+    "oceanProfilesMetaUrl",
+    "oceanProfilesBinUrl",
+    "oceanProfileCurvesMetaUrl",
+    "oceanProfileCurvesBinUrl",
+  ]),
 });
 
 /** Package URL keys and the keys of their light versions, which phones load instead. */
@@ -85,9 +93,19 @@ const PROFILES = deepFreeze({
       antarctica: ["balanced"],
       greenland: ["3km"],
     },
-    // The observed elevation change and the observed sea ice wait for tour stops and
-    // explainers of their own; the ice-core sites are a research-page place layer.
-    disabledCapabilities: ["basalFriction", "rise", "hydrology", "refinedBasins", "surfaceChange", "seaIce", "iceCores"],
+    // The observed elevation change, the observed sea ice and the OCEAN ICE observations wait
+    // for tour stops and explainers of their own; the ice-core sites are a research-page place
+    // layer.
+    disabledCapabilities: [
+      "basalFriction",
+      "rise",
+      "hydrology",
+      "refinedBasins",
+      "surfaceChange",
+      "seaIce",
+      "observedOcean",
+      "iceCores",
+    ],
     standInControls: true,
     // State of the controls this edition's page leaves out. Anything not listed stands in
     // as an unchecked checkbox, so the layer it drives stays off.
