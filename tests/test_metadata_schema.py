@@ -39,6 +39,10 @@ class TestMetadataSchema:
         if meta.get("geometry_type") in ("streamlines_3d",):
             assert "sampling" in meta
             return
+        # Point packages (the ocean profiles) count their points instead of a grid
+        if meta.get("geometry_type") == "points":
+            assert isinstance(meta.get("points", {}).get("count"), int)
+            return
         assert "grid" in meta
         grid = meta["grid"]
         for key in ("nx", "ny", "x0_m", "y0_m", "dx_m", "dy_m"):

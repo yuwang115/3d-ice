@@ -241,12 +241,14 @@ test("stored fields tile each payload exactly, in declared order", async (t) => 
 });
 
 const SPARSE_TIME_SERIES = "sparse_grid_time_series";
+const SPARSE_GRID = "sparse_grid";
+const POINTS = "points";
 
 test("gridded int16 fields and masks cover the declared grid", async (t) => {
   for (const name of PACKAGE_NAMES) {
     const { meta } = loadPackage(name);
     if (!Number.isInteger(meta.grid?.nx) || !Number.isInteger(meta.grid?.ny)) continue;
-    if (meta.geometry_type === SPARSE_TIME_SERIES) continue;
+    if (meta.geometry_type === SPARSE_TIME_SERIES || meta.geometry_type === SPARSE_GRID) continue;
     await t.test(name, () => {
       const cells = meta.grid.nx * meta.grid.ny;
       for (const field of storedFields(meta)) {
@@ -291,6 +293,42 @@ test("sparse time-series packages cover their domain at every keyframe", async (
       }
       for (let i = 1; i < meta.frames.years.length; i += 1) {
         assert.ok(meta.frames.years[i] > meta.frames.years[i - 1], "frame years must increase");
+      }
+    });
+  }
+});
+
+// Sparse grids (the observed seafloor water, ocean_ice_seafloor_antarctica) hold one value per
+// domain cell in every field but the mask; point packages (the ocean profiles) one value per
+// point, or, for a curve package, one per curve value.
+test("sparse grid packages hold one value per domain cell", async (t) => {
+  const sparse = PACKAGE_NAMES.filter((name) => loadPackage(name).meta.geometry_type === SPARSE_GRID);
+  assert.ok(sparse.length >= 1, "expected the seafloor-water package");
+  for (const name of sparse) {
+    await t.test(name, () => {
+      const { meta, buffer } = loadPackage(name);
+      const domain = parseField(meta, buffer, "domain_mask");
+      assert.equal(domain.length, meta.grid.nx * meta.grid.ny, "domain_mask vs grid");
+      const count = domain.reduce((sum, value) => sum + (value ? 1 : 0), 0);
+      assert.equal(count, meta.domain.cell_count, "domain_mask vs domain.cell_count");
+      for (const field of storedFields(meta)) {
+        if (field.name === "domain_mask") continue;
+        assert.equal(parseField(meta, buffer, field.name).length, count, `${field.name} vs domain`);
+      }
+    });
+  }
+});
+
+test("point packages hold one value per point or per curve value", async (t) => {
+  const points = PACKAGE_NAMES.filter((name) => loadPackage(name).meta.geometry_type === POINTS);
+  assert.ok(points.length >= 2, "expected the ocean-profile packages");
+  for (const name of points) {
+    await t.test(name, () => {
+      const { meta, buffer } = loadPackage(name);
+      const expected = meta.points.value_count ?? meta.points.count;
+      assert.ok(Number.isInteger(expected) && expected > 0, "points.count");
+      for (const field of storedFields(meta)) {
+        assert.equal(parseField(meta, buffer, field.name).length, expected, `${field.name} vs points`);
       }
     });
   }

@@ -366,6 +366,61 @@
             </div>
             <div class="ocean-legend-note">流线分别从当地水深的 3–18 %、18–40 %、40–70 % 和 70–95 % 四个深度带出发（表层、上层、中层、下层），然后随水流运动。</div>
           </div>
+          <div id="oceanSeafloorRow" class="rp-feature">
+            <label class="rp-row"><input id="showOceanSeafloor" type="checkbox" data-layer /> <span class="rp-row__label">海床水体（观测）</span> <span class="rp-row__meta">1972–2023</span></label>
+            <div id="oceanSeafloorControls" class="toggle-group" hidden>
+              <div class="control">
+                <label for="oceanSeafloorVariable">配色</label>
+                <select id="oceanSeafloorVariable">
+                  <option value="temperature" selected>温度</option>
+                  <option value="salinity">盐度</option>
+                </select>
+              </div>
+              <div class="control">
+                <label for="oceanSeafloorPeriod">剖面</label>
+                <select id="oceanSeafloorPeriod">
+                  <option value="full" selected>全部年份，1972–2023</option>
+                  <option value="post2000">2000 年以来</option>
+                </select>
+              </div>
+              <label class="toggle toggle--sub"><input id="oceanSeafloorFade" type="checkbox" checked /> 附近没有剖面处淡化显示</label>
+              <div id="oceanSeafloorLegendSection" class="rp-legend rp-legend--flush" hidden>
+                <p id="oceanSeafloorLegendTitle" class="rp-legend__caption">海床水体温度，°C</p>
+                <div id="oceanSeafloorLegendBar" class="legend" aria-hidden="true"></div>
+                <div id="oceanSeafloorLegendLabels" class="legend-labels"></div>
+              </div>
+              <div id="oceanSeafloorReadout" class="projection-readout ocean-readout" aria-live="polite"></div>
+              <details class="rp-about">
+                <summary>关于这份记录</summary>
+                <div id="oceanSeafloorNote" class="legend-note"></div>
+              </details>
+            </div>
+          </div>
+          <div id="oceanProfilesRow" class="rp-feature">
+            <label class="rp-row"><input id="showOceanProfiles" type="checkbox" data-layer /> <span class="rp-row__label">海洋剖面</span> <span class="rp-row__meta">1970–2025</span></label>
+            <div id="oceanProfilesControls" class="toggle-group" hidden>
+              <div id="oceanProfilesLegendSection" class="rp-legend rp-legend--flush" hidden>
+                <p class="rp-legend__caption">温度和盐度的测量位置</p>
+                <div id="oceanProfilesLegendItems" class="ocean-profiles-legend"></div>
+              </div>
+              <label class="toggle toggle--sub"><input id="oceanProfilesAllYears" type="checkbox" /> 同时显示所有年份</label>
+              <div id="oceanProfilesTimeControl" class="control">
+                <label for="oceanProfilesYear">年份 <span id="oceanProfilesYearValue" class="mono"></span></label>
+                <div class="projection-timeline">
+                  <button id="oceanProfilesPlay" type="button" class="projection-play" aria-label="播放">播放</button>
+                  <input id="oceanProfilesYear" type="range" min="1970" max="2025" step="1" value="2024" />
+                </div>
+              </div>
+              <div id="oceanProfilesReadout" class="projection-readout ocean-readout" aria-live="polite"></div>
+              <svg id="oceanProfilesChart" class="projection-chart" viewBox="0 0 260 96" role="img" aria-label="每年测得的剖面数"></svg>
+              <div id="oceanProfilesChartNote" class="legend-note"></div>
+              <div id="oceanProfilesDetail" class="ocean-profile-detail" hidden></div>
+              <details class="rp-about">
+                <summary>关于这份记录</summary>
+                <div id="oceanProfilesNote" class="legend-note"></div>
+              </details>
+            </div>
+          </div>
           <div class="rp-field" data-choice="shelf">
             <span id="shelfBaseLabel" class="rp-field__label">冰架底部</span>
             <div class="rp-choice" role="group" aria-labelledby="shelfBaseLabel">
@@ -541,6 +596,13 @@
           <label class="rp-row"><input id="showGeographicNames" type="checkbox" data-layer /> <span class="rp-row__label">地名</span></label>
           <label class="rp-row"><input id="showIceCores" type="checkbox" data-layer /> <span class="rp-row__label">冰芯钻探点</span></label>
           <label class="rp-row"><input id="showRefinedBasins" type="checkbox" data-layer /> <span id="showRefinedBasinsLabel" class="rp-row__label">细化流域</span></label>
+          <div id="basinSetControls" class="toggle-group" hidden>
+            <div class="control">
+              <label for="basinSet">流域数据集</label>
+              <select id="basinSet"></select>
+            </div>
+            <div id="basinSetNote" class="legend-note"></div>
+          </div>
         </div>
       </details>
 

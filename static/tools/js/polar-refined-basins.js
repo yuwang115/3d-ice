@@ -103,10 +103,18 @@ async function readResponseBytes(response, maximumBytes) {
   return bytes;
 }
 
+/**
+ * Fetch a basin package within the size limit and validate it: by default as named basins,
+ * or with `validate` as another shape of package (js/basin-divides.js).
+ */
 export async function fetchRefinedBasinJson(
   url,
   errorLabel,
-  { fetchImpl = globalThis.fetch, maximumBytes = MAX_REFINED_BASIN_RESPONSE_BYTES } = {},
+  {
+    fetchImpl = globalThis.fetch,
+    maximumBytes = MAX_REFINED_BASIN_RESPONSE_BYTES,
+    validate = validateRefinedBasinDataset,
+  } = {},
 ) {
   if (typeof fetchImpl !== "function") throw new Error("A fetch implementation is required");
   const response = await fetchImpl(url, { cache: "force-cache" });
@@ -118,5 +126,5 @@ export async function fetchRefinedBasinJson(
   } catch (_error) {
     throw new Error(`${errorLabel} (invalid JSON)`);
   }
-  return validateRefinedBasinDataset(payload);
+  return validate(payload);
 }

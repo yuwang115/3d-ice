@@ -22,10 +22,11 @@ const hasResearchPanel = document.documentElement.dataset.edition !== "public";
 // Fetched together: none of these modules needs another to load first.
 const [
   { createPolarFeaturesController },
-  { fetchRefinedBasinJson },
+  { fetchRefinedBasinJson, validateRefinedBasinDataset },
+  { decodeBasinDivides, isBasinDivideDataset, validateBasinDivideDataset },
   { decodeFieldToFloat32, parseField },
   { applyEditionToRegions, getEditionProfile, getStandInSpec, withLightPackages },
-  { projectLatLon },
+  { projectLatLon, unprojectXY },
   { easeInOutCubic, flightDurationMs, framePose, interpolatePose, orbitPose },
   { BASE_HORIZONTAL_VERTICAL_SCALE_RATIO, formatVerticalExaggeration },
   { summariseMasked },
@@ -39,6 +40,7 @@ const [
 ] = await Promise.all([
   import(assetUrl("js/polar-features.js")),
   import(assetUrl("js/polar-refined-basins.js")),
+  import(assetUrl("js/basin-divides.js")),
   import(assetUrl("js/data-contract.js")),
   import(assetUrl("js/editions.js")),
   import(assetUrl("js/polar-projection.js")),
@@ -170,6 +172,16 @@ if (shouldUseMobileDrawer()) {
   document.body.classList.add("mobile-drawer");
 }
 
+/** The region-level package URLs of the OCEAN ICE observations, which every dataset shares. */
+const OBSERVED_OCEAN_URL_KEYS = Object.freeze([
+  "oceanSeafloorMetaUrl",
+  "oceanSeafloorBinUrl",
+  "oceanProfilesMetaUrl",
+  "oceanProfilesBinUrl",
+  "oceanProfileCurvesMetaUrl",
+  "oceanProfileCurvesBinUrl",
+]);
+
 /** Values of the Earth-response select; `published` loads Paxman et al. (2022) as data. */
 const REBOUND_MODEL_KEYS = Object.freeze({
   published: "paxman2022",
@@ -201,6 +213,7 @@ const ALL_REGIONS = {
       iceProjection: false,
       surfaceChange: true,
       seaIce: true,
+      observedOcean: true,
     },
     sources: {
       geometry: {
@@ -284,7 +297,32 @@ const ALL_REGIONS = {
         text: "NOAA/NSIDC Climate Data Record of Passive Microwave Sea Ice Concentration, Version 6 (Meier et al., 2026), monthly, 25 km",
         url: "https://doi.org/10.7265/b18j-z797",
       },
+      // The OCEAN ICE observations (CC BY 4.0): each line credits the data set and its article.
+      oceanSeafloor: [
+        {
+          text: "Zhou, Dutrieux & Giulivi (2024) The OCEAN ICE Southern Ocean Climatology, version 2, CC BY 4.0",
+          url: "https://doi.org/10.17882/103946",
+        },
+        "; ",
+        { text: "Zhou et al. (2026), Earth System Science Data Discussions", url: "https://doi.org/10.5194/essd-2025-727" },
+      ],
+      oceanProfiles: [
+        {
+          text: "Zhou et al. (2026) Southern Ocean conservative temperature and absolute salinity profiles compilation (OCEAN ICE D1.1), CC BY 4.0",
+          url: "https://doi.org/10.17882/99787",
+        },
+        "; ",
+        { text: "Zhou et al. (2026), Earth System Science Data Discussions", url: "https://doi.org/10.5194/essd-2025-727" },
+      ],
     },
+    // The OCEAN ICE observations: seafloor water on the 10 km BedMachine grid, which every
+    // terrain samples; the profiles and, for a clicked one, its curve.
+    oceanSeafloorMetaUrl: assetUrl("data/ocean_ice_seafloor_antarctica.meta.json?v=20261117-oi-v2"),
+    oceanSeafloorBinUrl: assetUrl("data/ocean_ice_seafloor_antarctica.bin?v=20261117-oi-v2"),
+    oceanProfilesMetaUrl: assetUrl("data/ocean_ice_profiles_antarctica.meta.json?v=20261117-oi"),
+    oceanProfilesBinUrl: assetUrl("data/ocean_ice_profiles_antarctica.bin?v=20261117-oi"),
+    oceanProfileCurvesMetaUrl: assetUrl("data/ocean_ice_profiles_antarctica_curves.meta.json?v=20261117-oi"),
+    oceanProfileCurvesBinUrl: assetUrl("data/ocean_ice_profiles_antarctica_curves.bin?v=20261117-oi"),
     // Monthly sea-ice concentration on a 25 km grid of its own, which every terrain of the
     // region draws on its own ocean.
     seaIceMetaUrl: assetUrl("data/nsidc_sea_ice_antarctica.meta.json?v=20261030-cdr-v6"),
@@ -447,6 +485,29 @@ const ALL_REGIONS = {
     refinedBasinsUrl: assetUrl("data/greenland_basins_ps_v1_4_2.json"),
     basinToggleLabel: "Basins",
     basinStatusLabel: "basins",
+    // The basin layer's choice of set; the first is the default, the one sources.basins
+    // credits and the place search's basins belong to.
+    basinSets: [
+      {
+        key: "mouginot2019",
+        url: assetUrl("data/greenland_basins_ps_v1_4_2.json"),
+      },
+      {
+        key: "mankoff2020",
+        url: assetUrl("data/greenland_mankoff_ice_basins_k1.json?v=20261113-k1-v8"),
+        source: [
+          {
+            text: "Mankoff (2020) Streams, Outlets, Basins, and Discharge [k=1.0], GEUS Dataverse, version 8, CC0 1.0",
+            url: "https://doi.org/10.22008/FK2/XKQVL7",
+          },
+          "; ",
+          {
+            text: "Mankoff et al. (2020), Earth Syst. Sci. Data",
+            url: "https://doi.org/10.5194/essd-12-2811-2020",
+          },
+        ],
+      },
+    ],
     defaultDatasetKey: "3km",
     capabilities: {
       velocity: true,
@@ -685,6 +746,7 @@ function getDatasetConfig(regionKey, datasetKey) {
     refinedBasinsUrl: dataset.refinedBasinsUrl || region.refinedBasinsUrl || null,
     seaIceMetaUrl: dataset.seaIceMetaUrl || region.seaIceMetaUrl || null,
     seaIceBinUrl: dataset.seaIceBinUrl || region.seaIceBinUrl || null,
+    ...Object.fromEntries(OBSERVED_OCEAN_URL_KEYS.map((key) => [key, dataset[key] || region[key] || null])),
     basinToggleLabel: dataset.basinToggleLabel || region.basinToggleLabel || t("explorer.regions.antarctica.basinToggleLabel"),
     basinStatusLabel: dataset.basinStatusLabel || region.basinStatusLabel || t("explorer.regions.antarctica.basinStatusLabel"),
   };
@@ -849,6 +911,9 @@ const controlsUI = {
   showOceanLayerLower: resolveControl("showOceanLayerLower"),
   showRefinedBasins: resolveControl("showRefinedBasins"),
   showRefinedBasinsLabel: resolveControl("showRefinedBasinsLabel"),
+  basinSetControls: resolveControl("basinSetControls"),
+  basinSet: resolveControl("basinSet"),
+  basinSetNote: resolveControl("basinSetNote"),
   showEffectivePressure: resolveControl("showEffectivePressure"),
   showSubglacialChannels: resolveControl("showSubglacialChannels"),
   showSea: resolveControl("showSea"),
@@ -886,6 +951,33 @@ const controlsUI = {
   surfaceChangeLegendLabels: resolveControl("surfaceChangeLegendLabels"),
   surfaceChangeLegendNote: resolveControl("surfaceChangeLegendNote"),
   seaIceRow: resolveControl("seaIceRow"),
+  oceanSeafloorRow: resolveControl("oceanSeafloorRow"),
+  showOceanSeafloor: resolveControl("showOceanSeafloor"),
+  oceanSeafloorControls: resolveControl("oceanSeafloorControls"),
+  oceanSeafloorVariable: resolveControl("oceanSeafloorVariable"),
+  oceanSeafloorPeriod: resolveControl("oceanSeafloorPeriod"),
+  oceanSeafloorFade: resolveControl("oceanSeafloorFade"),
+  oceanSeafloorLegendSection: resolveControl("oceanSeafloorLegendSection"),
+  oceanSeafloorLegendTitle: resolveControl("oceanSeafloorLegendTitle"),
+  oceanSeafloorLegendBar: resolveControl("oceanSeafloorLegendBar"),
+  oceanSeafloorLegendLabels: resolveControl("oceanSeafloorLegendLabels"),
+  oceanSeafloorReadout: resolveControl("oceanSeafloorReadout"),
+  oceanSeafloorNote: resolveControl("oceanSeafloorNote"),
+  oceanProfilesRow: resolveControl("oceanProfilesRow"),
+  showOceanProfiles: resolveControl("showOceanProfiles"),
+  oceanProfilesControls: resolveControl("oceanProfilesControls"),
+  oceanProfilesLegendSection: resolveControl("oceanProfilesLegendSection"),
+  oceanProfilesLegendItems: resolveControl("oceanProfilesLegendItems"),
+  oceanProfilesAllYears: resolveControl("oceanProfilesAllYears"),
+  oceanProfilesTimeControl: resolveControl("oceanProfilesTimeControl"),
+  oceanProfilesYear: resolveControl("oceanProfilesYear"),
+  oceanProfilesYearValue: resolveControl("oceanProfilesYearValue"),
+  oceanProfilesPlay: resolveControl("oceanProfilesPlay"),
+  oceanProfilesReadout: resolveControl("oceanProfilesReadout"),
+  oceanProfilesChart: resolveControl("oceanProfilesChart"),
+  oceanProfilesChartNote: resolveControl("oceanProfilesChartNote"),
+  oceanProfilesDetail: resolveControl("oceanProfilesDetail"),
+  oceanProfilesNote: resolveControl("oceanProfilesNote"),
   showSeaIce: resolveControl("showSeaIce"),
   seaIceControls: resolveControl("seaIceControls"),
   seaIceMonth: resolveControl("seaIceMonth"),
@@ -1048,8 +1140,12 @@ let refinedBasinBedLabels;
 let refinedBasinSurfaceLabels;
 let polarFeaturesController = null;
 let currentRefinedBasinData = null;
+// The package the basin overlays on screen were built from, so a change of set rebuilds them.
+let refinedBasinOverlayUrl = null;
 let refinedBasinLoadPromise = null;
 let refinedBasinLoadingUrl = null;
+// Counts basin loads, so only the latest one started may build or report a failure.
+let refinedBasinLoadToken = 0;
 let velocityField;
 let reboundModule = null;
 let reboundModulePromise = null;
@@ -1068,20 +1164,20 @@ let reboundSeaLevelDebounce = null;
 const ICE_PROJECTION_SCENARIOS = Object.freeze([
   Object.freeze({
     key: "ae10",
-    packageMetaUrl: assetUrl("data/ismip6_2300_mean8_ae10_480.meta.json?v=20261002-mean8-v2"),
-    packageBinUrl: assetUrl("data/ismip6_2300_mean8_ae10_480.bin?v=20261002-mean8-v2"),
+    packageMetaUrl: assetUrl("data/ismip6_2300_mean8_ae10_480.meta.json?v=20261117-mean8-v3"),
+    packageBinUrl: assetUrl("data/ismip6_2300_mean8_ae10_480.bin?v=20261117-mean8-v3"),
     color: "#2f7fb8",
   }),
   Object.freeze({
     key: "ae05",
-    packageMetaUrl: assetUrl("data/ismip6_2300_mean8_ae05_480.meta.json?v=20261002-mean8-v2"),
-    packageBinUrl: assetUrl("data/ismip6_2300_mean8_ae05_480.bin?v=20261002-mean8-v2"),
+    packageMetaUrl: assetUrl("data/ismip6_2300_mean8_ae05_480.meta.json?v=20261117-mean8-v3"),
+    packageBinUrl: assetUrl("data/ismip6_2300_mean8_ae05_480.bin?v=20261117-mean8-v3"),
     color: "#c2412d",
   }),
   Object.freeze({
     key: "ae14",
-    packageMetaUrl: assetUrl("data/ismip6_2300_mean8_ae14_480.meta.json?v=20261002-mean8-v2"),
-    packageBinUrl: assetUrl("data/ismip6_2300_mean8_ae14_480.bin?v=20261002-mean8-v2"),
+    packageMetaUrl: assetUrl("data/ismip6_2300_mean8_ae14_480.meta.json?v=20261117-mean8-v3"),
+    packageBinUrl: assetUrl("data/ismip6_2300_mean8_ae14_480.bin?v=20261117-mean8-v3"),
     color: "#7b2d6b",
   }),
 ]);
@@ -1150,6 +1246,61 @@ let seaIcePlaying = false;
 let seaIceChartGeometry = null;
 // Whether switching the layer on raised the sea plane, so switching it off can lower it.
 let seaIceRaisedSea = false;
+
+// The OCEAN ICE observations (see the observed ocean section below).
+const OCEAN_SEAFLOOR_OFFSET_M = 6;
+const OCEAN_SEAFLOOR_RENDER_ORDER = 11;
+const OCEAN_PROFILE_RENDER_ORDER = 26;
+const OCEAN_SELECTION_RENDER_ORDER = 28;
+const OCEAN_PROFILE_POINT_PX = 3.5;
+const OCEAN_PROFILE_HEIGHT_M = 30;
+const OCEAN_PROFILE_PLAYBACK_YEARS_PER_SECOND = 2;
+const OCEAN_PICK_RADIUS_PX = 10;
+const OCEAN_PICK_TOUCH_RADIUS_PX = 22;
+const OCEAN_PROFILE_CHART = Object.freeze({ left: 34, right: 254, top: 12, bottom: 80 });
+const OCEAN_PROFILE_CURVE_CHART = Object.freeze({ left: 44, right: 232, top: 22, bottom: 166 });
+const OCEAN_CURVE_RGB = Object.freeze({ temperature: "rgb(255, 138, 92)", salinity: "rgb(82, 199, 184)" });
+const OBSERVED_OCEAN_LAYERS = Object.freeze([
+  Object.freeze({ key: "seafloor", toggle: "showOceanSeafloor", row: "oceanSeafloorRow", controls: "oceanSeafloorControls" }),
+  Object.freeze({ key: "profiles", toggle: "showOceanProfiles", row: "oceanProfilesRow", controls: "oceanProfilesControls" }),
+]);
+
+const observedOceanModules = {};
+const observedOceanModulePromises = new Map();
+const observedOceanRecords = new Map();
+const observedOceanLoads = {};
+let oceanSeafloorScene = null;
+let oceanProfileScene = null;
+let oceanProfileCurves = null;
+let oceanProfileYear = null;
+let oceanProfilePosition = Number.NaN;
+let oceanProfilePlaying = false;
+let oceanProfileSelection = -1;
+let oceanProfileChartGeometry = null;
+let oceanSeafloorPick = null;
+let oceanSelectionMarker = null;
+let oceanDotTexture = null;
+
+const OBSERVED_OCEAN_LOADERS = {
+  seafloor: (urls) =>
+    cachedObservedOceanRecord("seafloor", async () => {
+      const module = await loadObservedOceanModule("ocean-seafloor");
+      const { meta, buffer } = await fetchObservedOceanPackage(urls.oceanSeafloorMetaUrl, urls.oceanSeafloorBinUrl);
+      return { meta, record: module.decodeSeafloorRecord(meta, buffer) };
+    }),
+  profiles: (urls) =>
+    cachedObservedOceanRecord("profiles", async () => {
+      const module = await loadObservedOceanModule("ocean-profiles");
+      const { meta, buffer } = await fetchObservedOceanPackage(urls.oceanProfilesMetaUrl, urls.oceanProfilesBinUrl);
+      const record = module.decodeProfilePoints(meta, buffer);
+      return { meta, record, index: module.buildProfileIndex(record) };
+    }),
+};
+
+const OBSERVED_OCEAN_BUILDERS = {
+  seafloor: (context, loaded) => buildOceanSeafloorScene(context, loaded),
+  profiles: (context, loaded) => buildOceanProfileScene(context, loaded),
+};
 let velocityDataTexture = null;
 let velocityContinuousSamplingWarningIssued = false;
 let basalMeltDataTexture = null;
@@ -1344,6 +1495,8 @@ const LAYER_REQUIREMENTS = Object.freeze({
   showThermalDriving: (dataset) => dataset.capabilities.rise && dataset.riseMetaUrl && dataset.riseBinUrl,
   showSurfaceChange: (dataset) => isSurfaceChangeAvailable(dataset),
   showSeaIce: (dataset) => isSeaIceAvailable(dataset),
+  showOceanSeafloor: (dataset) => isObservedOceanAvailable(dataset),
+  showOceanProfiles: (dataset) => isObservedOceanAvailable(dataset),
   showIceProjection: (dataset) => dataset.capabilities.iceProjection,
   showIsostaticRebound: (dataset) => dataset.capabilities.isostaticRebound,
   showRefinedBasins: (dataset) => dataset.capabilities.refinedBasins && dataset.refinedBasinsUrl,
@@ -1531,8 +1684,102 @@ function canUseMainThreadOceanCurrentFallback(oceanMeta, oceanBuffer) {
   return segmentSafe && streamlineSafe && bufferSafe;
 }
 
+// ------------------------------------------------------------------ basin sets
+//
+// A region may offer more than one basin set (Greenland: Mouginot & Rignot's seven regions,
+// or Mankoff's outlet catchments). The first is the default; the choice is the reader's,
+// per region, for the session.
+const basinSetSelectionByRegion = {};
+
+function getRegionBasinSets(regionKey) {
+  const sets = REGIONS[regionKey]?.basinSets;
+  return Array.isArray(sets) ? sets : [];
+}
+
+/** The region's basin set in use, or null where the region has its one basin layer only. */
+function getActiveBasinSet(regionKey) {
+  const sets = getRegionBasinSets(regionKey);
+  return sets.find((set) => set.key === basinSetSelectionByRegion[regionKey]) || sets[0] || null;
+}
+
+/** The package of the basins a dataset shows: its region's chosen set, else its one layer. */
+function getBasinUrl(dataset) {
+  return getActiveBasinSet(dataset?.regionKey)?.url || dataset?.refinedBasinsUrl || "";
+}
+
+/** Choose a region's basin set; an unknown key chooses the default. True if it changed. */
+function setBasinSetSelection(regionKey, setKey) {
+  const sets = getRegionBasinSets(regionKey);
+  const next = sets.find((set) => set.key === setKey) || sets[0];
+  if (!next) return false;
+  const changed = getActiveBasinSet(regionKey)?.key !== next.key;
+  basinSetSelectionByRegion[regionKey] = next.key;
+  return changed;
+}
+
+function getBasinSetLabel(setKey) {
+  return setKey === "mankoff2020"
+    ? t("explorer.basinSets.mankoff2020Label")
+    : t("explorer.basinSets.mouginot2019Label");
+}
+
+/** What the chosen set shows, from its package once it is in. */
+function describeBasinSet(set, payload) {
+  if (!set || !payload) return "";
+  if (!isBasinDivideDataset(payload)) return t("explorer.basinSets.mouginot2019Note");
+  const fmt = (value) => Math.round(Number(value)).toLocaleString(numberLocale);
+  return t("explorer.basinSets.mankoff2020Note", {
+    large: fmt(payload.large_basin_count),
+    total: fmt(payload.basin_count),
+    minArea: fmt(payload.min_area_km2),
+    areaPercent: fmt(Number(payload.large_area_fraction) * 100),
+  });
+}
+
+/** The set chooser under the basin toggle: shown while the layer is on and has a choice. */
+function updateBasinSetControls() {
+  const { basinSetControls: controls, basinSet: select, showRefinedBasins: toggle } = controlsUI;
+  // A page without the chooser (the public edition) gets stand-in inputs, not a <select>.
+  if (!controls || !(select instanceof HTMLSelectElement)) return;
+  const sets = getRegionBasinSets(currentRegionKey);
+  const active = getActiveBasinSet(currentRegionKey);
+  controls.hidden = !(sets.length > 1 && toggle.checked && !toggle.disabled);
+  const wanted = sets.map((set) => set.key).join("|");
+  if (select.dataset.sets !== wanted) {
+    select.replaceChildren(
+      ...sets.map((set) => {
+        const option = document.createElement("option");
+        option.value = set.key;
+        option.textContent = getBasinSetLabel(set.key);
+        return option;
+      })
+    );
+    select.dataset.sets = wanted;
+  }
+  for (const option of select.options) {
+    const set = sets.find((candidate) => candidate.key === option.value);
+    option.disabled = Boolean(set && refinedBasinUnavailableUrls.has(set.url));
+  }
+  if (active) select.value = active.key;
+  if (controlsUI.basinSetNote) {
+    const payload = active && refinedBasinOverlayUrl === active.url ? currentRefinedBasinData : null;
+    controlsUI.basinSetNote.textContent = describeBasinSet(active, payload);
+  }
+}
+
+function onBasinSetChange() {
+  if (!setBasinSetSelection(currentRegionKey, controlsUI.basinSet.value)) return;
+  clearRefinedBasinOverlays();
+  updateRegionLayerAvailability(currentRegionKey);
+  if (controlsUI.showRefinedBasins.checked && !controlsUI.showRefinedBasins.disabled) {
+    ensureRefinedBasinsLoaded({ trigger: "toggle" });
+  } else {
+    updateMetaFromCurrentState();
+  }
+}
+
 function getDatasetBasinUnavailable(dataset) {
-  const basinsUrl = typeof dataset?.refinedBasinsUrl === "string" ? dataset.refinedBasinsUrl : "";
+  const basinsUrl = getBasinUrl(dataset);
   return basinsUrl ? refinedBasinUnavailableUrls.has(basinsUrl) : false;
 }
 
@@ -1654,7 +1901,9 @@ function updateRegionLayerAvailability(regionKey) {
   updateIceProjectionAvailability();
   updateSurfaceChangeAvailability();
   updateSeaIceAvailability();
+  updateObservedOceanAvailability();
   updateOceanCurrentLayerControls();
+  updateBasinSetControls();
   syncLayerReasons(region.key);
   updateLegendVisibility();
 }
@@ -1717,6 +1966,12 @@ function updateLegendVisibility() {
   if (controlsUI.seaIceLegendSection) {
     controlsUI.seaIceLegendSection.hidden = !isSeaIceShown();
   }
+  if (controlsUI.oceanSeafloorLegendSection) {
+    controlsUI.oceanSeafloorLegendSection.hidden = !isOceanSeafloorShown();
+  }
+  if (controlsUI.oceanProfilesLegendSection) {
+    controlsUI.oceanProfilesLegendSection.hidden = !isOceanProfilesShown();
+  }
   // Tick labels can only be laid out while their section is visible (a hidden one has no
   // width), so lay out again every tick legend whose section may just have been shown.
   for (const section of [
@@ -1728,6 +1983,7 @@ function updateLegendVisibility() {
     controlsUI.projectionLegendSection,
     controlsUI.surfaceChangeLegendSection,
     controlsUI.seaIceLegendSection,
+    controlsUI.oceanSeafloorLegendSection,
   ]) {
     if (section?.isConnected && !section.hidden) relayoutTickLegends(section);
   }
@@ -1792,6 +2048,8 @@ function applyExplorerPresetControls(preset) {
     showIceProjection: false,
     showSurfaceChange: false,
     showSeaIce: false,
+    showOceanSeafloor: false,
+    showOceanProfiles: false,
   };
   const presetToggles = preset.toggles || {};
   for (const [key, defaultValue] of Object.entries(toggleDefaults)) {
@@ -1821,6 +2079,8 @@ function applyExplorerPresetControls(preset) {
   if (controlsUI.reboundSeaLevel) controlsUI.reboundSeaLevel.value = "0";
   if (controlsUI.reboundModel) controlsUI.reboundModel.value = REBOUND_MODEL_KEYS.published;
   if (controlsUI.highlightEmergentLand) controlsUI.highlightEmergentLand.checked = true;
+
+  if (preset.regionKey) setBasinSetSelection(preset.regionKey, preset.basinSet);
 
   const oceanLayers = preset.oceanLayers;
   if (oceanLayers) {
@@ -2530,6 +2790,7 @@ function stepRuntime(deltaMs = 16) {
   stepIceProjectionPlayback(safeDeltaMs / 1000);
   stepSurfaceChangePlayback(safeDeltaMs / 1000);
   stepSeaIcePlayback(safeDeltaMs / 1000);
+  stepOceanProfilePlayback(safeDeltaMs / 1000);
   if (orbit) orbit.update();
 }
 
@@ -2624,6 +2885,9 @@ const REFINED_BASIN_BED_LABEL_OFFSET_M = 36;
 const REFINED_BASIN_SURFACE_LABEL_OFFSET_M = 42;
 const REFINED_BASIN_LABEL_WORLD_SCALE = 0.0076;
 const GREENLAND_REFINED_BASIN_LABEL_WORLD_SCALE = 0.0104;
+// A divide package draws thousands of catchments, so its ribbons are half as wide.
+const BASIN_DIVIDE_LINE_WIDTH_M = 2500;
+const BASIN_DIVIDE_MIN_ICE_THICKNESS_M = 150;
 const MAX_REFINED_BASIN_LABELS = 220;
 const MAX_REFINED_BASIN_LABEL_CANVAS_WIDTH = 1600;
 const MAX_REFINED_BASIN_LABEL_TEXTURE_PIXELS = 12_000_000;
@@ -5726,6 +5990,7 @@ function collectExplorerState() {
     },
     captureMotion: getRecordingStateSnapshot(),
     groundingLine: collectGroundingLineState(),
+    basins: collectBasinState(),
     isostaticRebound: {
       enabled: Boolean(controlsUI.showIsostaticRebound?.checked),
       available: Boolean(controlsUI.showIsostaticRebound && !controlsUI.showIsostaticRebound.disabled),
@@ -5765,6 +6030,7 @@ function collectExplorerState() {
     iceProjection: collectIceProjectionState(),
     surfaceChange: collectSurfaceChangeState(),
     seaIce: collectSeaIceState(),
+    observedOcean: collectObservedOceanState(),
     featureLayers: polarFeatureState.featureLayers,
     search: polarFeatureState.search,
     selectedFeature: polarFeatureState.selectedFeature,
@@ -5815,6 +6081,8 @@ function collectExplorerState() {
       iceProjection: Boolean(isIceProjectionActive() && iceMesh && iceMesh.visible),
       surfaceChange: isSurfaceChangeShown(),
       seaIce: isSeaIceShown(),
+      oceanSeafloor: isOceanSeafloorShown(),
+      oceanProfiles: isOceanProfilesShown(),
       ice: Boolean(iceMesh && iceMesh.visible),
       iceBottom: Boolean(iceBottomMesh && iceBottomMesh.visible),
       groundingLine: Boolean(groundingLineMesh && groundingLineMesh.visible),
@@ -5894,6 +6162,7 @@ function clearRefinedBasinOverlays() {
   for (const texture of refinedBasinLabelTextureCache.values()) texture.dispose();
   refinedBasinLabelTextureCache.clear();
   refinedBasinLabelTexturePixels = 0;
+  refinedBasinOverlayUrl = null;
 }
 
 function clearModelMeshes() {
@@ -5903,6 +6172,7 @@ function clearModelMeshes() {
   releaseSurfaceChangeScene();
   stopSeaIcePlayback();
   releaseSeaIceScene();
+  releaseObservedOceanScenes();
   bedMesh = disposeMesh(bedMesh);
   iceMesh = disposeMesh(iceMesh);
   iceBottomMesh = disposeMesh(iceBottomMesh);
@@ -6052,6 +6322,16 @@ function oceanPointInOpenWater(context, index, depth, bedHeight) {
   );
 }
 
+/** Whether the grid cell nearest (col, row) holds ice at least `minThicknessM` thick. */
+function isIceCellNearest(context, col, row, minThicknessM = 0) {
+  const c = Math.round(col);
+  const r = Math.round(row);
+  if (c < 0 || r < 0 || c >= context.nx || r >= context.ny) return false;
+  const index = r * context.nx + c;
+  if (!context.iceValid?.[index]) return false;
+  return !(minThicknessM > 0) || Number(context.thickness?.[index]) >= minThicknessM;
+}
+
 function sampleGridHeightNearest(context, col, row, layerKey) {
   const c = Math.round(col);
   const r = Math.round(row);
@@ -6117,10 +6397,11 @@ function loadRefinedBasinDataset(basinsUrl) {
   if (cached) return Promise.resolve(cached);
   const pending = refinedBasinDataLoadPromises.get(basinsUrl);
   if (pending) return pending;
-  const loadPromise = fetchRefinedBasinJson(
-    basinsUrl,
-    errorLabel("explorer.errors.failedToLoadBasinBoundaries"),
-  )
+  const loadPromise = fetchRefinedBasinJson(basinsUrl, errorLabel("explorer.errors.failedToLoadBasinBoundaries"), {
+    // Named basins, or the divides of a set too large to ship basin by basin.
+    validate: (payload) =>
+      isBasinDivideDataset(payload) ? validateBasinDivideDataset(payload) : validateRefinedBasinDataset(payload),
+  })
     .then((basinData) => {
       refinedBasinDataCache.set(basinsUrl, basinData);
       return basinData;
@@ -6132,7 +6413,15 @@ function loadRefinedBasinDataset(basinsUrl) {
 
 async function activateRefinedBasinFeature(_feature, isCancelled = () => false) {
   const context = currentCoreContext;
-  if (!context || !context.dataset.capabilities.refinedBasins || controlsUI.showRefinedBasins.disabled) {
+  if (!context || !context.dataset.capabilities.refinedBasins) {
+    throw new Error("Refined basins are unavailable for the selected dataset.");
+  }
+  // The place search finds the basins of the region's default set, so show that set.
+  if (setBasinSetSelection(currentRegionKey, getRegionBasinSets(currentRegionKey)[0]?.key)) {
+    clearRefinedBasinOverlays();
+    updateRegionLayerAvailability(currentRegionKey);
+  }
+  if (controlsUI.showRefinedBasins.disabled) {
     throw new Error("Refined basins are unavailable for the selected dataset.");
   }
   if (!controlsUI.showBed.checked && !controlsUI.showIce.checked) {
@@ -6140,6 +6429,7 @@ async function activateRefinedBasinFeature(_feature, isCancelled = () => false) 
     syncIceSurfaceVisibilityFromControls();
   }
   controlsUI.showRefinedBasins.checked = true;
+  updateBasinSetControls();
   const loaded = await ensureRefinedBasinsLoaded({ trigger: "toggle" });
   if (isCancelled() || !loaded) return false;
   updateRefinedBasinVisibility();
@@ -6190,9 +6480,12 @@ function initializePolarFeatures() {
   polarFeaturesController.initialize();
 }
 
-function sampleRefinedBasinPoint(context, xMeters, yMeters, layerKey, offsetMeters) {
+function sampleRefinedBasinPoint(context, xMeters, yMeters, layerKey, offsetMeters, minIceThicknessM = null) {
   const gridPoint = projectPs71PointToGrid(context, xMeters, yMeters);
   if (!gridPoint) return null;
+  if (minIceThicknessM !== null && !isIceCellNearest(context, gridPoint.col, gridPoint.row, minIceThicknessM)) {
+    return null;
+  }
   const heightMeters = sampleGridHeightNearest(context, gridPoint.col, gridPoint.row, layerKey);
   if (!Number.isFinite(heightMeters)) return null;
   const scenePoint = gridToSceneXZ(context, gridPoint.col, gridPoint.row);
@@ -6289,6 +6582,7 @@ function buildRefinedBasinLineGroup(context, basins, layerKey, options = {}) {
   const depthTest = options.depthTest !== false;
   const polygonOffsetFactor = Number.isFinite(options.polygonOffsetFactor) ? options.polygonOffsetFactor : -2;
   const polygonOffsetUnits = Number.isFinite(options.polygonOffsetUnits) ? options.polygonOffsetUnits : -2;
+  const minIceThicknessM = Number.isFinite(options.minIceThicknessM) ? options.minIceThicknessM : null;
   const positions = [];
 
   for (const basin of basins) {
@@ -6301,7 +6595,14 @@ function buildRefinedBasinLineGroup(context, basins, layerKey, options = {}) {
           prev = null;
           continue;
         }
-        const sample = sampleRefinedBasinPoint(context, Number(point[0]), Number(point[1]), layerKey, offsetMeters);
+        const sample = sampleRefinedBasinPoint(
+          context,
+          Number(point[0]),
+          Number(point[1]),
+          layerKey,
+          offsetMeters,
+          minIceThicknessM
+        );
         if (!sample) {
           prev = null;
           continue;
@@ -6434,9 +6735,49 @@ function updateRefinedBasinVisibility() {
   if (refinedBasinSurfaceLines) refinedBasinSurfaceLines.visible = showSurface;
   if (refinedBasinBedLabels) refinedBasinBedLabels.visible = showBedLabels;
   if (refinedBasinSurfaceLabels) refinedBasinSurfaceLabels.visible = showSurface;
+  // The time features switch the layer off in script, with no change event: the set
+  // chooser follows here, where every such path ends.
+  updateBasinSetControls();
+}
+
+/**
+ * A divide package's lines: one ribbon per surface, thinner than a few named basins'
+ * outlines, and no labels (the catchments have no names).
+ */
+function buildBasinDivideOverlays(context, dataset) {
+  const divides = decodeBasinDivides(dataset);
+  if (!divides.length) return false;
+  clearRefinedBasinOverlays();
+  const lines = [{ segments_xy_m: divides }];
+  // They divide ice, so they are drawn where the terrain has ice of some thickness: draped on
+  // the coastal mountains that the thin glaciers' divides also cross, a 1–3 km grid at the
+  // explorer's exaggeration would stand them up as walls.
+  refinedBasinBedLines = buildRefinedBasinLineGroup(context, lines, "bed", {
+    minIceThicknessM: BASIN_DIVIDE_MIN_ICE_THICKNESS_M,
+    offsetMeters: REFINED_BASIN_BED_OFFSET_M,
+    widthMeters: BASIN_DIVIDE_LINE_WIDTH_M,
+    color: 0xf6d365,
+    opacity: 0.85,
+    polygonOffsetFactor: -12,
+    polygonOffsetUnits: -12,
+    renderOrder: 38,
+  });
+  refinedBasinSurfaceLines = buildRefinedBasinLineGroup(context, lines, "surface", {
+    minIceThicknessM: BASIN_DIVIDE_MIN_ICE_THICKNESS_M,
+    offsetMeters: REFINED_BASIN_SURFACE_OFFSET_M,
+    widthMeters: BASIN_DIVIDE_LINE_WIDTH_M,
+    color: 0xff5f56,
+    opacity: 0.9,
+    renderOrder: 39,
+  });
+  if (refinedBasinBedLines) scene.add(refinedBasinBedLines);
+  if (refinedBasinSurfaceLines) scene.add(refinedBasinSurfaceLines);
+  updateRefinedBasinVisibility();
+  return Boolean(refinedBasinBedLines || refinedBasinSurfaceLines);
 }
 
 function buildRefinedBasinOverlays(context, dataset) {
+  if (isBasinDivideDataset(dataset)) return buildBasinDivideOverlays(context, dataset);
   const basins = Array.isArray(dataset?.basins) ? dataset.basins : [];
   if (!basins.length) return false;
 
@@ -6634,29 +6975,60 @@ function collectGroundingLineState() {
   };
 }
 
+/** The basin layer as built: which set, what kind of package, and how much it draws. */
+function collectBasinState() {
+  const set = getActiveBasinSet(currentRegionKey);
+  const data = refinedBasinOverlayUrl ? currentRefinedBasinData : null;
+  const isDivides = isBasinDivideDataset(data);
+  const vertexCount = (mesh) => mesh?.geometry?.getAttribute("position")?.count ?? 0;
+  return {
+    set: set?.key ?? null,
+    sets: getRegionBasinSets(currentRegionKey).map((candidate) => candidate.key),
+    chooserVisible: Boolean(controlsUI.basinSetControls && !controlsUI.basinSetControls.hidden),
+    builtForSet: Boolean(set && refinedBasinOverlayUrl === set.url),
+    kind: data ? (isDivides ? "divides" : "basins") : null,
+    basinCount: Number.isFinite(data?.basin_count) ? data.basin_count : null,
+    largeBasinCount: isDivides ? data.large_basin_count : null,
+    labels: (refinedBasinSurfaceLabels?.children.length ?? 0) + (refinedBasinBedLabels?.children.length ?? 0),
+    surfaceTriangles: vertexCount(refinedBasinSurfaceLines) / 3,
+    note: controlsUI.basinSetNote?.textContent || "",
+  };
+}
+
 async function ensureRefinedBasinsLoaded({ trigger = "prefetch" } = {}) {
   const context = currentCoreContext;
   if (!context || context.generation !== loadGeneration) return false;
   if (!context.dataset.capabilities.refinedBasins) return false;
-  const basinsUrl = context.dataset.refinedBasinsUrl;
+  const basinsUrl = getBasinUrl(context.dataset);
   if (!basinsUrl) return false;
   if (refinedBasinUnavailableUrls.has(basinsUrl)) return false;
 
   const basinStatusLabel = String(context.dataset.basinStatusLabel || "refined basins");
   const basinStatusTitle = basinStatusLabel.charAt(0).toUpperCase() + basinStatusLabel.slice(1);
 
-  const overlaysReady = refinedBasinBedLines || refinedBasinSurfaceLines || refinedBasinBedLabels || refinedBasinSurfaceLabels;
-  if (overlaysReady) {
+  const overlaysBuilt = refinedBasinBedLines || refinedBasinSurfaceLines || refinedBasinBedLabels || refinedBasinSurfaceLabels;
+  if (overlaysBuilt && refinedBasinOverlayUrl === basinsUrl) {
     currentRefinedBasinData = refinedBasinDataCache.get(basinsUrl) || currentRefinedBasinData;
     updateRefinedBasinLabelPositionsForExaggeration();
     updateRefinedBasinVisibility();
+    updateBasinSetControls();
     updateMetaFromCurrentState();
     return true;
   }
+  if (overlaysBuilt) clearRefinedBasinOverlays();
 
   if (refinedBasinLoadPromise && refinedBasinLoadingUrl === basinsUrl) {
     return refinedBasinLoadPromise;
   }
+
+  // Still the load to act on: no later one has started (the reader may choose another set,
+  // and back, while a package loads), on the terrain it was started for.
+  const token = ++refinedBasinLoadToken;
+  const isWanted = () =>
+    token === refinedBasinLoadToken &&
+    context === currentCoreContext &&
+    context.generation === loadGeneration &&
+    getBasinUrl(context.dataset) === basinsUrl;
 
   const pendingPromise = (async () => {
     const showStatus = trigger === "toggle";
@@ -6665,28 +7037,37 @@ async function ensureRefinedBasinsLoaded({ trigger = "prefetch" } = {}) {
     }
 
     const basinData = await loadRefinedBasinDataset(basinsUrl);
-    currentRefinedBasinData = basinData;
-
-    if (context !== currentCoreContext || context.generation !== loadGeneration) return false;
+    if (!isWanted()) return false;
     const built = buildRefinedBasinOverlays(context, basinData);
     if (!built) {
       throw new Error("Basin dataset is empty.");
     }
+    currentRefinedBasinData = basinData;
+    refinedBasinOverlayUrl = basinsUrl;
 
     if (showStatus) {
       statusEl.textContent = getReadyStatusText(context);
     }
+    updateBasinSetControls();
     updateMetaFromCurrentState();
     return true;
   })()
     .catch((error) => {
       console.error("Basin layer load failed:", error);
-      if (context === currentCoreContext && context.generation === loadGeneration) {
+      // A load overtaken by another, or by a change of terrain, leaves the package to be
+      // tried again; the one still wanted marks it unavailable for the session.
+      if (isWanted()) {
         refinedBasinUnavailableUrls.add(basinsUrl);
-        controlsUI.showRefinedBasins.checked = false;
-        clearRefinedBasinOverlays();
         const readyText = getReadyStatusText(context);
         const transientText = t("explorer.status.refinedBasinsUnavailable", { label: basinStatusTitle });
+        clearRefinedBasinOverlays();
+        // A set other than the default gives way to the default; with none left, the layer is off.
+        const fallback = getRegionBasinSets(context.dataset.regionKey).find((set) => !refinedBasinUnavailableUrls.has(set.url));
+        if (fallback) {
+          setBasinSetSelection(context.dataset.regionKey, fallback.key);
+        } else {
+          controlsUI.showRefinedBasins.checked = false;
+        }
         statusEl.textContent = transientText;
         updateRegionLayerAvailability(currentRegionKey);
         window.setTimeout(() => {
@@ -6694,6 +7075,7 @@ async function ensureRefinedBasinsLoaded({ trigger = "prefetch" } = {}) {
             statusEl.textContent = readyText;
           }
         }, 1800);
+        if (fallback && controlsUI.showRefinedBasins.checked) ensureRefinedBasinsLoaded({ trigger });
       }
       return false;
     })
@@ -7745,7 +8127,10 @@ function bindFlowlinePicking() {
       });
       if (pickedPlace) return;
       if (editionProfile.flowlinePicking && pickVisibleFlowlineAtClientPoint(event.clientX, event.clientY)) return;
-      pickSurfaceChangeBasinAtClientPoint(event.clientX, event.clientY);
+      const isTouch = event.pointerType === "touch";
+      if (pickObservedOceanAtClientPoint(event.clientX, event.clientY, { isTouch, points: true })) return;
+      if (pickSurfaceChangeBasinAtClientPoint(event.clientX, event.clientY)) return;
+      pickObservedOceanAtClientPoint(event.clientX, event.clientY, { isTouch, seafloor: true });
     },
     { passive: true }
   );
@@ -8007,6 +8392,7 @@ function bindUI() {
     if (refinedBasinBedLines) refinedBasinBedLines.scale.y = value;
     if (refinedBasinSurfaceLines) refinedBasinSurfaceLines.scale.y = value;
     if (groundingLineMesh) groundingLineMesh.scale.y = value;
+    setObservedOceanExaggeration(value);
     updateRefinedBasinLabelPositionsForExaggeration();
     updateReboundSeaPlane();
     polarFeaturesController?.updateExaggeration();
@@ -8144,7 +8530,9 @@ function bindUI() {
       updateMetaFromCurrentState();
     });
   }
+  controlsUI.basinSet?.addEventListener("change", onBasinSetChange);
   controlsUI.showRefinedBasins.addEventListener("change", () => {
+    updateBasinSetControls();
     if (!controlsUI.showRefinedBasins.checked) {
       updateRefinedBasinVisibility();
       return;
@@ -8293,6 +8681,7 @@ function bindUI() {
   });
   bindSurfaceChangeControls();
   bindSeaIceControls();
+  bindObservedOceanControls();
   bindResearchTimeFeatures();
   // Turning on a layer drawn against the present-day ice or bed hands the scene back.
   for (const key of ICE_PROJECTION_EXCLUSIVE_TOGGLES) {
@@ -8437,7 +8826,12 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
         timeZone: "UTC",
       })
     : "";
-  const refinedBasinCount = Number(currentRefinedBasinData?.basin_count);
+  // The basins built, not a set still loading; a divide package counts the basins whose
+  // divides it draws, as the small ones are not drawn.
+  const builtBasinData = refinedBasinOverlayUrl ? currentRefinedBasinData : null;
+  const refinedBasinCount = Number(
+    isBasinDivideDataset(builtBasinData) ? builtBasinData.large_basin_count : builtBasinData?.basin_count
+  );
   const stepKm = Math.abs(grid.dx_m) / 1000;
   const fmtInt = (value) => Math.round(Number(value)).toLocaleString(numberLocale);
   const fmtMpa = (value) =>
@@ -8678,6 +9072,8 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
     oceanCurrents: controlsUI.showOceanCurrents.checked,
     rise: controlsUI.showBasalMelt.checked || controlsUI.showThermalDriving.checked,
     isostaticResponse: Boolean(controlsUI.showIsostaticRebound?.checked),
+    oceanSeafloor: Boolean(controlsUI.showOceanSeafloor?.checked),
+    oceanProfiles: Boolean(controlsUI.showOceanProfiles?.checked),
   };
   const listed = (layer) => !layer || metaListsEveryDataset || onScreen[layer];
   const sourceLines = [];
@@ -8691,7 +9087,9 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   };
   addSource(null, renderSourceLine(t("explorer.meta.sourceBedIceGeometry"), dataset.sources.geometry));
   if (capabilities.refinedBasins && dataset.sources.basins) {
-    addSource("basins", renderSourceLine(t("explorer.meta.sourceBasinBoundaries"), dataset.sources.basins));
+    // The region's default set is the one sources.basins credits; another set credits itself.
+    const basinSource = getActiveBasinSet(dataset.regionKey)?.source || dataset.sources.basins;
+    addSource("basins", renderSourceLine(t("explorer.meta.sourceBasinBoundaries"), basinSource));
   }
   if (capabilities.velocity && dataset.sources.velocity) {
     addSource("velocity", renderSourceLine(t("explorer.meta.sourceSurfaceVelocity"), dataset.sources.velocity));
@@ -8857,6 +9255,15 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
   if (seaIceItems.length && dataset.sources.seaIce) {
     addSource(null, renderSourceLine(t("explorer.meta.sourceSeaIce"), dataset.sources.seaIce));
   }
+  if (capabilities.observedOcean) {
+    for (const [layer, key] of [
+      ["oceanSeafloor", "sourceOceanSeafloor"],
+      ["oceanProfiles", "sourceOceanProfiles"],
+    ]) {
+      if (dataset.sources[layer]) addSource(layer, renderSourceLine(t(`explorer.meta.${key}`), dataset.sources[layer]));
+    }
+  }
+  const observedOceanItems = buildObservedOceanMetaItems();
 
   const selectedFlowlineCard =
     capabilities.velocity && capabilities.flowline && controlsUI.showFlowline.checked
@@ -8887,6 +9294,7 @@ function updateMeta(meta, dataset, velocityMeta, basalFrictionMeta, riseMeta, hy
     renderMetaSection("sea-ice", t("explorer.meta.seaIceSection"), seaIceItems, {
       defaultOpen: true,
     }),
+    renderMetaSection("observed-ocean", t("explorer.meta.observedOceanSection"), observedOceanItems),
     renderMetaSection("sources", t("explorer.meta.sourcesSection"), sourceLines),
   ].filter(Boolean);
 
@@ -9258,6 +9666,8 @@ const REBOUND_EXCLUSIVE_TOGGLES = [
   "showSurfaceChange",
   "showSeaIce",
   "showGroundingLine",
+  "showOceanSeafloor",
+  "showOceanProfiles",
 ];
 
 function hideOverlaysForRebound() {
@@ -9274,6 +9684,7 @@ function hideOverlaysForRebound() {
   syncSurfaceChangeVisibility();
   updateSurfaceChangeControlsUi();
   leaveSeaIce();
+  leaveObservedOcean();
   if (velocitySurfaceMesh) velocitySurfaceMesh.visible = false;
   if (basalFrictionMesh) basalFrictionMesh.visible = false;
   if (effectivePressureMesh) effectivePressureMesh.visible = false;
@@ -9721,6 +10132,8 @@ const ICE_PROJECTION_EXCLUSIVE_TOGGLES = [
   "showIsostaticRebound",
   "showSurfaceChange",
   "showSeaIce",
+  "showOceanSeafloor",
+  "showOceanProfiles",
 ];
 
 function loadIceProjectionModule() {
@@ -10342,6 +10755,7 @@ function hideOverlaysForIceProjection() {
   syncSurfaceChangeVisibility();
   updateSurfaceChangeControlsUi();
   leaveSeaIce();
+  leaveObservedOcean();
   updateRiseOverlayVisibility();
   // The ice-shelf base colouring is gone, so the ice surface and ice base it hid come back.
   restoreIceAfterRiseOverlay();
@@ -12586,6 +13000,7 @@ async function loadAndBuildMeshes(datasetKey = currentDatasetKey) {
     if (controlsUI.showSeaIce?.checked && isSeaIceAvailable(currentCoreContext?.dataset)) {
       ensureSeaIceLoaded();
     }
+    ensureObservedOceanLayersLoaded();
     if (!isShowcaseMode && !isPreviewMode) {
       const warmupDelay = viewerInteracted ? 180 : 900;
       backgroundWarmupTimer = window.setTimeout(() => {
@@ -14692,6 +15107,955 @@ function bindSeaIceControls() {
   controlsUI.seaIceMedianEdge?.addEventListener("change", () => {
     const uniforms = seaIceScene?.mesh?.material?.uniforms;
     if (uniforms) uniforms.uShowEdge.value = controlsUI.seaIceMedianEdge.checked ? 1 : 0;
+  });
+}
+
+// ------------------------------------------------------------------ observed ocean
+//
+// The OCEAN ICE project's observations around Antarctica (docs/data-contract.md): the seafloor
+// water of its climatology (js/ocean-seafloor.js), drawn on the open-ocean seafloor of
+// whichever terrain is shown; and every profile of its hydrography compilation
+// (js/ocean-profiles.js), drawn as points on the sea surface a year at a time. Research
+// edition only. Both are drawn against the present-day bed and sea surface, so the
+// projection and the rebound switch them off.
+
+
+function loadObservedOceanModule(name) {
+  if (observedOceanModules[name]) return Promise.resolve(observedOceanModules[name]);
+  if (!observedOceanModulePromises.has(name)) {
+    observedOceanModulePromises.set(
+      name,
+      import(assetUrl(`js/${name}.js`)).then(
+        (module) => {
+          observedOceanModules[name] = module;
+          return module;
+        },
+        (error) => {
+          observedOceanModulePromises.delete(name);
+          throw error;
+        }
+      )
+    );
+  }
+  return observedOceanModulePromises.get(name);
+}
+
+/** The region's OCEAN ICE package URLs, or null where this page or region has none. */
+function getObservedOceanUrls(dataset = getActiveDatasetConfig()) {
+  if (isShowcaseMode || isPreviewMode || !dataset?.capabilities?.observedOcean) return null;
+  if (OBSERVED_OCEAN_URL_KEYS.some((key) => !dataset[key])) return null;
+  return Object.fromEntries(OBSERVED_OCEAN_URL_KEYS.map((key) => [key, dataset[key]]));
+}
+
+function isObservedOceanAvailable(dataset) {
+  return Boolean(getObservedOceanUrls(dataset));
+}
+
+function isOceanSeafloorShown() {
+  return Boolean(controlsUI.showOceanSeafloor?.checked && oceanSeafloorScene?.mesh?.visible);
+}
+
+function isOceanProfilesShown() {
+  return Boolean(controlsUI.showOceanProfiles?.checked && oceanProfileScene?.mesh?.visible);
+}
+
+function observedOceanSceneOf(key) {
+  return { seafloor: oceanSeafloorScene, profiles: oceanProfileScene }[key] || null;
+}
+
+function updateObservedOceanAvailability() {
+  const available = isObservedOceanAvailable();
+  for (const layer of OBSERVED_OCEAN_LAYERS) {
+    setUnavailableRowHidden(controlsUI[layer.row], !available);
+    setToggleAvailability(controlsUI[layer.toggle], available);
+  }
+  if (!available) stopOceanProfilePlayback();
+  syncObservedOceanVisibility();
+  updateObservedOceanControlsUi();
+}
+
+/** Each record once per page: they belong to the region, not to a terrain. */
+function cachedObservedOceanRecord(key, load) {
+  if (!observedOceanRecords.has(key)) {
+    observedOceanRecords.set(
+      key,
+      load().catch((error) => {
+        observedOceanRecords.delete(key);
+        throw error;
+      })
+    );
+  }
+  return observedOceanRecords.get(key);
+}
+
+async function fetchObservedOceanPackage(metaUrl, binUrl) {
+  const label = errorLabel("explorer.errors.failedToLoadObservedOcean");
+  const meta = await fetchJsonStrict(metaUrl, label);
+  const response = await fetch(binUrl, { cache: "force-cache" });
+  if (!response.ok) throw new Error(`${label} (${response.status})`);
+  return { meta, buffer: await response.arrayBuffer() };
+}
+
+
+
+function ensureObservedOceanLayersLoaded() {
+  for (const layer of OBSERVED_OCEAN_LAYERS) {
+    const toggle = controlsUI[layer.toggle];
+    if (toggle?.checked && !toggle.disabled) ensureObservedOceanLayer(layer.key);
+  }
+}
+
+async function ensureObservedOceanLayer(key) {
+  const context = currentCoreContext;
+  if (!context || context.generation !== loadGeneration || !THREE) return false;
+  const urls = getObservedOceanUrls(context.dataset);
+  if (!urls) return false;
+  if (observedOceanSceneOf(key)?.context === context) {
+    syncObservedOceanVisibility();
+    refreshObservedOceanUi();
+    return true;
+  }
+  const pending = observedOceanLoads[key];
+  if (pending?.context === context) return pending.promise;
+  const load = { context, promise: null };
+  observedOceanLoads[key] = load;
+  statusEl.textContent = t("explorer.status.loadingObservedOcean");
+  load.promise = (async () => {
+    const loaded = await OBSERVED_OCEAN_LOADERS[key](urls);
+    if (context !== currentCoreContext || context.generation !== loadGeneration) return false;
+    OBSERVED_OCEAN_BUILDERS[key](context, loaded);
+    statusEl.textContent = getReadyStatusText(context);
+    syncObservedOceanVisibility();
+    refreshObservedOceanUi();
+    return true;
+  })()
+    .catch((error) => {
+      console.error(`Observed ocean layer ${key} failed to load:`, error);
+      if (context === currentCoreContext && context.generation === loadGeneration) handleObservedOceanFailure(key, context);
+      return false;
+    })
+    .finally(() => {
+      if (observedOceanLoads[key] === load) observedOceanLoads[key] = null;
+    });
+  return load.promise;
+}
+
+function handleObservedOceanFailure(key, context) {
+  const layer = OBSERVED_OCEAN_LAYERS.find((entry) => entry.key === key);
+  if (layer && controlsUI[layer.toggle]) controlsUI[layer.toggle].checked = false;
+  releaseObservedOceanScene(key);
+  refreshObservedOceanUi();
+  const readyText = getReadyStatusText(context);
+  const transientText = t("explorer.status.observedOceanUnavailable");
+  statusEl.textContent = transientText;
+  window.setTimeout(() => {
+    if (statusEl.textContent === transientText) statusEl.textContent = readyText;
+  }, 1800);
+}
+
+/** Scene units of projected metres and depth, as the terrain meshes place their nodes. */
+function oceanSceneTransform(context) {
+  const grid = context.meta.grid;
+  const hm = context.baseConfig.horizontalMetersPerUnit;
+  const vm = context.baseConfig.verticalMetersPerUnit;
+  const xc = grid.x0_m + (grid.dx_m * (context.nx - 1)) / 2;
+  const yc = grid.y0_m + (grid.dy_m * (context.ny - 1)) / 2;
+  return {
+    toScene: (x, y, depth) => [(x - xc) / hm, -depth / vm, -(y - yc) / hm],
+    toProjected: (sceneX, sceneZ) => [sceneX * hm + xc, -sceneZ * hm + yc],
+    hm,
+  };
+}
+
+/** A soft round dot for point sprites. */
+function getOceanDotTexture() {
+  if (oceanDotTexture) return oceanDotTexture;
+  const size = 64;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const context2d = canvas.getContext("2d");
+  context2d.fillStyle = "#ffffff";
+  context2d.beginPath();
+  context2d.arc(size / 2, size / 2, size / 2 - 2, 0, Math.PI * 2);
+  context2d.fill();
+  oceanDotTexture = new THREE.CanvasTexture(canvas);
+  return oceanDotTexture;
+}
+
+// ------------------------------------------------------------------ seafloor water
+
+function getOceanSeafloorView() {
+  return {
+    variable: controlsUI.oceanSeafloorVariable?.value === "salinity" ? "salinity" : "temperature",
+    period: controlsUI.oceanSeafloorPeriod?.value === "post2000" ? "post2000" : "full",
+  };
+}
+
+/** Terrain nodes of the open ocean below sea level: the seafloor the layer is drawn on. */
+function oceanSeafloorCells(context) {
+  const wanted = new Uint8Array(context.cellCount);
+  for (let i = 0; i < context.cellCount; i += 1) {
+    wanted[i] = context.mask[i] === 0 && context.bedValid[i] && context.bedHeights[i] < -1 ? 1 : 0;
+  }
+  return wanted;
+}
+
+/** The view's value, presence and support at every terrain node, as an RGBA float texture. */
+function createOceanSeafloorTexture(sample, nx, ny) {
+  const textureType = getVelocityTextureType(renderer, nx, ny);
+  if (!textureType) return null;
+  const count = nx * ny;
+  const half = textureType !== THREE.FloatType;
+  const toHalf = THREE.DataUtils?.toHalfFloat;
+  if (half && typeof toHalf !== "function") return null;
+  const data = half ? new Uint16Array(count * 4) : new Float32Array(count * 4);
+  const encode = half ? toHalf : (value) => value;
+  for (let i = 0; i < count; i += 1) {
+    const valid = sample.valid[i] > 0;
+    data[4 * i] = encode(valid ? sample.values[i] : 0);
+    data[4 * i + 1] = encode(valid ? 1 : 0);
+    data[4 * i + 2] = encode(valid && Number.isFinite(sample.support[i]) ? sample.support[i] : 0);
+    data[4 * i + 3] = encode(0);
+  }
+  const texture = new THREE.DataTexture(data, nx, ny, THREE.RGBAFormat, textureType);
+  texture.minFilter = THREE.NearestFilter;
+  texture.magFilter = THREE.NearestFilter;
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.generateMipmaps = false;
+  texture.flipY = false;
+  texture.unpackAlignment = 1;
+  if ("colorSpace" in texture && "NoColorSpace" in THREE) texture.colorSpace = THREE.NoColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function createOceanSeafloorMaterial(texture, nx, ny, record) {
+  const module = observedOceanModules["ocean-seafloor"];
+  return new THREE.ShaderMaterial({
+    glslVersion: THREE.GLSL1,
+    uniforms: {
+      uFieldTex: { value: texture },
+      uFieldTexSize: { value: new THREE.Vector2(nx, ny) },
+      uMode: { value: 0 },
+      uRange: { value: new THREE.Vector2(...module.SEAFLOOR_STYLE.temperature.range) },
+      uFade: { value: 1 },
+      uFadeBelow: { value: record.fadeBelow },
+      uOpacity: { value: 0.97 },
+    },
+    vertexShader: `
+      precision highp float;
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      precision highp float;
+      uniform sampler2D uFieldTex;
+      uniform vec2 uFieldTexSize;
+      uniform float uMode;
+      uniform vec2 uRange;
+      uniform float uFade;
+      uniform float uFadeBelow;
+      uniform float uOpacity;
+      varying vec2 vUv;
+
+      ${module.seafloorRampGlsl("temperature", "temperatureRamp")}
+      ${module.seafloorRampGlsl("salinity", "salinityRamp")}
+
+      void main() {
+        vec2 texSize = max(uFieldTexSize, vec2(1.0));
+        vec2 texelPos = clamp(vUv, vec2(0.0), vec2(1.0)) * (texSize - 1.0);
+        vec2 base = clamp(floor(texelPos), vec2(0.0), max(texSize - 2.0, vec2(0.0)));
+        vec2 frac = clamp(texelPos - base, vec2(0.0), vec2(1.0));
+        vec2 texel = 1.0 / texSize;
+        vec4 s00 = texture2D(uFieldTex, (base + vec2(0.5, 0.5)) * texel);
+        vec4 s10 = texture2D(uFieldTex, (base + vec2(1.5, 0.5)) * texel);
+        vec4 s01 = texture2D(uFieldTex, (base + vec2(0.5, 1.5)) * texel);
+        vec4 s11 = texture2D(uFieldTex, (base + vec2(1.5, 1.5)) * texel);
+        if (s00.g < 0.5 || s10.g < 0.5 || s01.g < 0.5 || s11.g < 0.5) discard;
+        vec4 field = mix(mix(s00, s10, frac.x), mix(s01, s11, frac.x), frac.y);
+        float t = clamp((field.r - uRange.x) / max(1e-6, uRange.y - uRange.x), 0.0, 1.0);
+        vec3 color = uMode < 0.5 ? temperatureRamp(t) : salinityRamp(t);
+        float alpha = uOpacity;
+        // Where no profile lay inside the mapping ellipse the value is carried along the
+        // isobaths from further away: drawn as a screen-door stipple, which keeps the colour
+        // (a pale wash would pass for water near 0 degC) and lets the bed show through.
+        if (uFade > 0.5 && field.b < uFadeBelow) {
+          vec2 cell = floor(gl_FragCoord.xy / 2.0);
+          if (mod(cell.x + cell.y, 2.0) < 1.0) discard;
+          alpha *= 0.85;
+        }
+        gl_FragColor = vec4(color, alpha);
+      }
+    `,
+    transparent: true,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -1,
+  });
+}
+
+function buildOceanSeafloorScene(context, { meta, record }) {
+  releaseObservedOceanScene("seafloor");
+  const module = observedOceanModules["ocean-seafloor"];
+  const cells = oceanSeafloorCells(context);
+  const footprint = module.sampleSeafloorOnGrid(record, context.meta.grid, cells, { period: "full", variable: "temperature" });
+  const heights = new Float32Array(context.cellCount);
+  for (let i = 0; i < context.cellCount; i += 1) {
+    if (footprint.valid[i]) heights[i] = context.bedHeights[i] + OCEAN_SEAFLOOR_OFFSET_M;
+  }
+  const geometry = buildRiseOverlayGeometry(context, heights, footprint.valid);
+  if (!geometry) throw new Error("No seafloor cell of this terrain has seafloor water.");
+  const texture = createOceanSeafloorTexture(footprint, context.nx, context.ny);
+  if (!texture) {
+    geometry.dispose();
+    throw new Error("This browser cannot draw the seafloor water.");
+  }
+  const material = createOceanSeafloorMaterial(texture, context.nx, context.ny, record);
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.scale.y = Number(controlsUI.exaggeration.value);
+  mesh.renderOrder = OCEAN_SEAFLOOR_RENDER_ORDER;
+  mesh.visible = false;
+  scene.add(mesh);
+  oceanSeafloorScene = {
+    context,
+    meta,
+    record,
+    mesh,
+    texture,
+    cells,
+    view: { period: "full", variable: "temperature" },
+    drawnCells: footprint.valid.reduce((a, b) => a + b, 0),
+  };
+  oceanSeafloorPick = null;
+  writeOceanSeafloorView();
+}
+
+/** Sample the chosen variable and period onto the terrain and hand it to the shader. */
+function writeOceanSeafloorView() {
+  const state = oceanSeafloorScene;
+  const module = observedOceanModules["ocean-seafloor"];
+  if (!state || !module) return;
+  const view = getOceanSeafloorView();
+  const uniforms = state.mesh.material.uniforms;
+  if (!state.view || state.view.variable !== view.variable || state.view.period !== view.period) {
+    const sample = module.sampleSeafloorOnGrid(state.record, state.context.meta.grid, state.cells, view);
+    const texture = createOceanSeafloorTexture(sample, state.context.nx, state.context.ny);
+    if (texture) {
+      disposeTexture(state.texture);
+      state.texture = texture;
+      uniforms.uFieldTex.value = texture;
+    }
+    state.view = view;
+  }
+  uniforms.uMode.value = view.variable === "salinity" ? 1 : 0;
+  uniforms.uRange.value.set(...module.SEAFLOOR_STYLE[view.variable].range);
+  uniforms.uFade.value = controlsUI.oceanSeafloorFade?.checked === false ? 0 : 1;
+}
+
+function renderOceanSeafloorLegend() {
+  const module = observedOceanModules["ocean-seafloor"];
+  if (!module) return;
+  const { variable } = getOceanSeafloorView();
+  const style = module.SEAFLOOR_STYLE[variable];
+  updateContinuousLegend(controlsUI.oceanSeafloorLegendBar, (position) => module.seafloorRampColor(variable, position));
+  renderTickLegendLabels(
+    controlsUI.oceanSeafloorLegendLabels,
+    style.ticks,
+    (value) => module.seafloorRampPosition(variable, value),
+    (value) => formatCoord(value, variable === "salinity" ? 1 : 0)
+  );
+  if (controlsUI.oceanSeafloorLegendTitle) {
+    controlsUI.oceanSeafloorLegendTitle.textContent = t(
+      variable === "salinity" ? "explorer.observedOcean.seafloorSalinityTitle" : "explorer.observedOcean.seafloorTemperatureTitle"
+    );
+  }
+}
+
+function pickOceanSeafloorAtNdc() {
+  const state = oceanSeafloorScene;
+  const module = observedOceanModules["ocean-seafloor"];
+  if (!state || !module || !isOceanSeafloorShown()) return false;
+  const hit = flowlineRaycaster.intersectObject(state.mesh, false)[0];
+  if (!hit?.uv) return false;
+  const grid = state.context.meta.grid;
+  const x = grid.x0_m + hit.uv.x * (state.context.nx - 1) * grid.dx_m;
+  const y = grid.y0_m + hit.uv.y * (state.context.ny - 1) * grid.dy_m;
+  const view = getOceanSeafloorView();
+  const temperature = module.sampleSeafloor(state.record, x, y, { period: view.period, variable: "temperature" });
+  const salinity = module.sampleSeafloor(state.record, x, y, { period: view.period, variable: "salinity" });
+  if (!temperature || !salinity) return false;
+  selectObservedOcean({ seafloor: { x, y, temperature, salinity, period: view.period } });
+  return true;
+}
+
+function updateOceanSeafloorReadout() {
+  const el = controlsUI.oceanSeafloorReadout;
+  if (!el) return;
+  const pick = oceanSeafloorPick;
+  if (!pick || !isOceanSeafloorShown()) {
+    el.textContent = isOceanSeafloorShown() ? t("explorer.observedOcean.seafloorHint") : "";
+    return;
+  }
+  const { lat, lon } = unprojectXY(pick.x, pick.y, "antarctica");
+  el.textContent = t("explorer.observedOcean.seafloorReadout", {
+    place: formatLatLon(lat, lon),
+    temperature: formatCoord(pick.temperature.value, 2),
+    salinity: formatCoord(pick.salinity.value, 3),
+    depth: Math.round(pick.temperature.bottomPressure),
+    support: Math.round(pick.temperature.support * 100),
+  });
+}
+
+function formatLatLon(lat, lon) {
+  const latText = `${Math.abs(lat).toFixed(2)}°${lat < 0 ? "S" : "N"}`;
+  const lonText = `${Math.abs(lon).toFixed(2)}°${lon < 0 ? "W" : "E"}`;
+  return `${latText}, ${lonText}`;
+}
+
+// ------------------------------------------------------------------ profiles
+
+function buildOceanProfileScene(context, { meta, record, index }) {
+  releaseObservedOceanScene("profiles");
+  const module = observedOceanModules["ocean-profiles"];
+  const transform = oceanSceneTransform(context);
+  const positions = new Float32Array(record.count * 3);
+  const colors = new Uint8Array(record.count * 3);
+  const palette = new Map(module.PROFILE_PLATFORMS.map((platform) => [platform.code, platform.color.map((c) => Math.round(c * 255))]));
+  for (let i = 0; i < record.count; i += 1) {
+    positions.set(transform.toScene(record.x[i], record.y[i], -OCEAN_PROFILE_HEIGHT_M), i * 3);
+    colors.set(palette.get(record.platform[i]) || [200, 200, 200], i * 3);
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3, true));
+  const mesh = new THREE.Points(
+    geometry,
+    new THREE.PointsMaterial({
+      size: OCEAN_PROFILE_POINT_PX,
+      sizeAttenuation: false,
+      vertexColors: true,
+      map: getOceanDotTexture(),
+      alphaTest: 0.5,
+      transparent: true,
+      depthWrite: false,
+    })
+  );
+  mesh.scale.y = Number(controlsUI.exaggeration.value);
+  mesh.renderOrder = OCEAN_PROFILE_RENDER_ORDER;
+  mesh.frustumCulled = false;
+  mesh.visible = false;
+  scene.add(mesh);
+  oceanProfileScene = { context, meta, points: record, index, mesh, transform };
+  if (oceanProfileYear === null) oceanProfileYear = module.defaultProfileYear(record);
+  oceanProfileYear = clamp(oceanProfileYear, record.firstYear, record.lastYear);
+  if (!oceanProfilePlaying) oceanProfilePosition = oceanProfileYear;
+  oceanProfileSelection = -1;
+  syncOceanProfileSlider();
+  applyOceanProfileRange();
+}
+
+function getOceanProfileRange() {
+  const state = oceanProfileScene;
+  const module = observedOceanModules["ocean-profiles"];
+  if (!state || !module) return null;
+  return controlsUI.oceanProfilesAllYears?.checked ? module.yearRange(state.points) : module.yearRange(state.points, oceanProfileYear);
+}
+
+function applyOceanProfileRange() {
+  const state = oceanProfileScene;
+  const range = getOceanProfileRange();
+  if (!state || !range) return;
+  state.mesh.geometry.setDrawRange(range.start, range.count);
+  if (oceanProfileSelection >= 0 && (oceanProfileSelection < range.start || oceanProfileSelection >= range.start + range.count)) {
+    oceanProfileSelection = -1;
+    updateOceanSelectionMarker();
+  }
+}
+
+function syncOceanProfileSlider() {
+  const slider = controlsUI.oceanProfilesYear;
+  const points = oceanProfileScene?.points;
+  if (!slider || !points) return;
+  slider.min = String(points.firstYear);
+  slider.max = String(points.lastYear);
+  slider.value = String(oceanProfileYear);
+}
+
+function setOceanProfileYear(year) {
+  const points = oceanProfileScene?.points;
+  if (!points) return;
+  oceanProfileYear = clamp(Math.round(year), points.firstYear, points.lastYear);
+  syncOceanProfileSlider();
+  applyOceanProfileRange();
+  updateOceanProfilesUi();
+}
+
+function startOceanProfilePlayback() {
+  const points = oceanProfileScene?.points;
+  if (!points || controlsUI.oceanProfilesAllYears?.checked) return;
+  if (oceanProfileYear >= points.lastYear) oceanProfileYear = points.firstYear;
+  oceanProfilePosition = oceanProfileYear;
+  oceanProfilePlaying = true;
+  setOceanProfileYear(oceanProfileYear);
+}
+
+function stopOceanProfilePlayback() {
+  if (!oceanProfilePlaying) return;
+  oceanProfilePlaying = false;
+  updateOceanProfilesUi();
+}
+
+function stepOceanProfilePlayback(deltaSeconds) {
+  if (!oceanProfilePlaying) return;
+  const points = oceanProfileScene?.points;
+  if (!points || !isOceanProfilesShown()) {
+    stopOceanProfilePlayback();
+    return;
+  }
+  oceanProfilePosition += deltaSeconds * OCEAN_PROFILE_PLAYBACK_YEARS_PER_SECOND;
+  if (oceanProfilePosition >= points.lastYear + 0.999) {
+    oceanProfilePlaying = false;
+    setOceanProfileYear(points.lastYear);
+    return;
+  }
+  const year = Math.floor(oceanProfilePosition);
+  if (year !== oceanProfileYear) setOceanProfileYear(year);
+}
+
+function renderOceanProfilesLegend() {
+  const module = observedOceanModules["ocean-profiles"];
+  const el = controlsUI.oceanProfilesLegendItems;
+  if (!module || !el) return;
+  el.innerHTML = module.PROFILE_PLATFORMS.map((platform) => {
+    const rgb = platform.color.map((c) => Math.round(c * 255)).join(", ");
+    return `<span class="ocean-profiles-legend__item"><span class="ocean-profiles-legend__dot" style="background:rgb(${rgb})"></span>${escapeHtml(
+      t(`explorer.observedOcean.platform.${platform.key}`)
+    )}</span>`;
+  }).join("");
+}
+
+function renderOceanProfilesChart() {
+  const svg = controlsUI.oceanProfilesChart;
+  const state = oceanProfileScene;
+  const module = observedOceanModules["ocean-profiles"];
+  if (!svg) return;
+  if (!state || !module || !isOceanProfilesShown()) {
+    svg.innerHTML = "";
+    oceanProfileChartGeometry = null;
+    return;
+  }
+  const box = OCEAN_PROFILE_CHART;
+  const allYears = Boolean(controlsUI.oceanProfilesAllYears?.checked);
+  const geometry = module.countsChartGeometry(state.points, box, allYears ? null : oceanProfileYear);
+  oceanProfileChartGeometry = geometry;
+  const colorOf = new Map(module.PROFILE_PLATFORMS.map((platform) => [platform.key, `rgb(${platform.color.map((c) => Math.round(c * 255)).join(", ")})`]));
+  const bars = geometry.bars
+    .flatMap((bar) =>
+      bar.segments.map(
+        (segment) =>
+          `<rect x="${bar.x.toFixed(2)}" y="${segment.y.toFixed(2)}" width="${Math.max(0.6, bar.width - 0.4).toFixed(2)}" height="${segment.height.toFixed(
+            2
+          )}" fill="${colorOf.get(segment.key)}" />`
+      )
+    )
+    .join("");
+  const cursor =
+    geometry.cursor === null
+      ? ""
+      : `<line x1="${geometry.cursor.toFixed(2)}" x2="${geometry.cursor.toFixed(2)}" y1="${box.top - 4}" y2="${box.bottom}" class="cursor" />`;
+  const maxLabel = geometry.max.toLocaleString(numberLocale);
+  svg.innerHTML = `<line x1="${box.left}" x2="${box.right}" y1="${box.bottom}" y2="${box.bottom}" class="axis" />${bars}${cursor}
+<text x="${box.left - 4}" y="${box.top + 4}" text-anchor="end" class="label">${escapeHtml(maxLabel)}</text>
+<text x="${box.left - 4}" y="${box.bottom}" text-anchor="end" class="label">0</text>
+<text x="${box.left}" y="${box.bottom + 12}" class="label">${state.points.firstYear}</text>
+<text x="${box.right}" y="${box.bottom + 12}" text-anchor="end" class="label">${state.points.lastYear}</text>`;
+  svg.setAttribute("aria-label", t("explorer.observedOcean.profilesChartLabel", { first: state.points.firstYear, last: state.points.lastYear }));
+  if (controlsUI.oceanProfilesChartNote) controlsUI.oceanProfilesChartNote.textContent = t("explorer.observedOcean.profilesChartNote");
+}
+
+function updateOceanProfilesReadout() {
+  const el = controlsUI.oceanProfilesReadout;
+  const state = oceanProfileScene;
+  const module = observedOceanModules["ocean-profiles"];
+  if (!el) return;
+  if (!state || !module || !isOceanProfilesShown()) {
+    el.textContent = "";
+    return;
+  }
+  const range = getOceanProfileRange();
+  const counts = module.countByPlatform(state.points, range);
+  const allYears = Boolean(controlsUI.oceanProfilesAllYears?.checked);
+  el.textContent = t("explorer.observedOcean.profilesReadout", {
+    when: allYears ? `${state.points.firstYear}–${state.points.lastYear}` : String(oceanProfileYear),
+    total: counts.total.toLocaleString(numberLocale),
+    ship: counts.ship.toLocaleString(numberLocale),
+    argo: counts.argo.toLocaleString(numberLocale),
+    seal: counts.seal.toLocaleString(numberLocale),
+  });
+}
+
+function oceanWorldPerPixel(point) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  const distance = camera.position.distanceTo(point);
+  const fov = ((camera.fov || 45) * Math.PI) / 180;
+  return (2 * distance * Math.tan(fov / 2)) / Math.max(1, rect.height);
+}
+
+function pickOceanProfileAt(radiusPx) {
+  const state = oceanProfileScene;
+  const module = observedOceanModules["ocean-profiles"];
+  if (!state || !module || !isOceanProfilesShown()) return false;
+  const surfaceY = (-(-OCEAN_PROFILE_HEIGHT_M) / state.context.baseConfig.verticalMetersPerUnit) * state.mesh.scale.y;
+  const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -surfaceY);
+  const hit = new THREE.Vector3();
+  if (!flowlineRaycaster.ray.intersectPlane(plane, hit)) return false;
+  const [x, y] = state.transform.toProjected(hit.x, hit.z);
+  const radiusMeters = radiusPx * oceanWorldPerPixel(hit) * state.transform.hm;
+  const index = module.nearestProfile(state.points, state.index, x, y, radiusMeters, getOceanProfileRange());
+  if (index < 0) return false;
+  selectObservedOcean({ profile: index });
+  ensureOceanProfileCurves().then(() => updateOceanProfileDetail());
+  return true;
+}
+
+/** The curves package, fetched on the first click on a profile. */
+function ensureOceanProfileCurves() {
+  const urls = getObservedOceanUrls(currentCoreContext?.dataset);
+  const points = oceanProfileScene?.points;
+  if (!urls || !points) return Promise.resolve(null);
+  return cachedObservedOceanRecord("profileCurves", async () => {
+    const module = await loadObservedOceanModule("ocean-profiles");
+    const { meta, buffer } = await fetchObservedOceanPackage(urls.oceanProfileCurvesMetaUrl, urls.oceanProfileCurvesBinUrl);
+    return module.decodeProfileCurves(meta, buffer, points);
+  })
+    .then((curves) => {
+      oceanProfileCurves = curves;
+      return curves;
+    })
+    .catch((error) => {
+      console.error("Ocean profile curves failed to load:", error);
+      return null;
+    });
+}
+
+function updateOceanProfileDetail() {
+  const el = controlsUI.oceanProfilesDetail;
+  const state = oceanProfileScene;
+  const module = observedOceanModules["ocean-profiles"];
+  if (!el) return;
+  const index = oceanProfileSelection;
+  if (!state || !module || index < 0 || !isOceanProfilesShown()) {
+    el.hidden = true;
+    el.innerHTML = "";
+    return;
+  }
+  const points = state.points;
+  const platform = module.PROFILE_PLATFORMS.find((entry) => entry.code === points.platform[index]);
+  const { lat, lon } = unprojectXY(points.x[index], points.y[index], "antarctica");
+  const bottomT = points.bottomTemperature[index];
+  const bottomS = points.bottomSalinity[index];
+  const header = `<p><strong>${escapeHtml(platform ? t(`explorer.observedOcean.platform.${platform.key}`) : "")}</strong> · ${escapeHtml(
+    module.profileDate(points, index)
+  )} · ${escapeHtml(formatLatLon(lat, lon))}</p><p>${escapeHtml(
+    t("explorer.observedOcean.profileDeepest", {
+      depth: points.maxDepth[index],
+      temperature: Number.isFinite(bottomT) ? formatCoord(bottomT, 2) : "—",
+      salinity: Number.isFinite(bottomS) ? formatCoord(bottomS, 3) : "—",
+    })
+  )}</p>`;
+  let chart = `<p class="legend-note">${escapeHtml(t("explorer.observedOcean.profileLoading"))}</p>`;
+  if (oceanProfileCurves) {
+    const curve = module.profileCurve(oceanProfileCurves, points, index);
+    const box = OCEAN_PROFILE_CURVE_CHART;
+    const geometry = module.curveChartGeometry(curve, box);
+    const path = (line) => line.map(([px, py], k) => `${k ? "L" : "M"}${px.toFixed(1)},${py.toFixed(1)}`).join("");
+    chart = `<svg class="projection-chart ocean-profile-chart" viewBox="0 0 260 186" role="img" aria-label="${escapeHtml(
+      t("explorer.observedOcean.profileChartLabel")
+    )}">
+<rect x="${box.left}" y="${box.top}" width="${box.right - box.left}" height="${box.bottom - box.top}" class="ocean-profile-chart__frame" />
+<path d="${path(geometry.temperature)}" fill="none" stroke="${OCEAN_CURVE_RGB.temperature}" stroke-width="1.8" />
+<path d="${path(geometry.salinity)}" fill="none" stroke="${OCEAN_CURVE_RGB.salinity}" stroke-width="1.8" />
+<text x="${box.left}" y="${box.top - 10}" fill="${OCEAN_CURVE_RGB.temperature}" class="label">${formatCoord(geometry.tRange[0], 1)}</text>
+<text x="${box.right}" y="${box.top - 10}" text-anchor="end" fill="${OCEAN_CURVE_RGB.temperature}" class="label">${formatCoord(
+      geometry.tRange[1],
+      1
+    )} °C</text>
+<text x="${box.left}" y="${box.bottom + 14}" fill="${OCEAN_CURVE_RGB.salinity}" class="label">${formatCoord(geometry.sRange[0], 2)}</text>
+<text x="${box.right}" y="${box.bottom + 14}" text-anchor="end" fill="${OCEAN_CURVE_RGB.salinity}" class="label">${formatCoord(
+      geometry.sRange[1],
+      2
+    )} g/kg</text>
+<text x="${box.left - 4}" y="${box.top + 4}" text-anchor="end" class="label">0</text>
+<text x="${box.left - 4}" y="${box.bottom}" text-anchor="end" class="label">${Math.round(geometry.maxDepth)} m</text>
+</svg><p class="legend-note">${escapeHtml(t("explorer.observedOcean.profileChartNote"))}</p>`;
+  }
+  el.innerHTML = header + chart;
+  el.hidden = false;
+}
+
+// ------------------------------------------------------------------ shared
+
+function updateOceanSelectionMarker() {
+  const target = (() => {
+    if (oceanProfileSelection >= 0 && oceanProfileScene && isOceanProfilesShown()) {
+      const points = oceanProfileScene.points;
+      return { context: oceanProfileScene.context, x: points.x[oceanProfileSelection], y: points.y[oceanProfileSelection], depth: -OCEAN_PROFILE_HEIGHT_M };
+    }
+    return null;
+  })();
+  if (!target) {
+    if (oceanSelectionMarker) oceanSelectionMarker.visible = false;
+    return;
+  }
+  if (!oceanSelectionMarker) {
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(3), 3));
+    oceanSelectionMarker = new THREE.Points(
+      geometry,
+      new THREE.PointsMaterial({ size: 15, sizeAttenuation: false, color: 0xffffff, map: getOceanDotTexture(), alphaTest: 0.5, transparent: true, opacity: 0.85, depthTest: false })
+    );
+    oceanSelectionMarker.renderOrder = OCEAN_SELECTION_RENDER_ORDER;
+    scene.add(oceanSelectionMarker);
+  }
+  const position = oceanSceneTransform(target.context).toScene(target.x, target.y, target.depth);
+  oceanSelectionMarker.geometry.getAttribute("position").array.set(position);
+  oceanSelectionMarker.geometry.getAttribute("position").needsUpdate = true;
+  oceanSelectionMarker.geometry.computeBoundingSphere();
+  oceanSelectionMarker.scale.y = Number(controlsUI.exaggeration.value);
+  oceanSelectionMarker.visible = true;
+}
+
+/**
+ * A click the earlier pickers left. With `points`, a profile, which is picked within a few
+ * pixels and so goes before the CPOM basins; with `seafloor`, the seafloor
+ * water under the click, which covers the ocean and so goes last.
+ */
+function pickObservedOceanAtClientPoint(clientX, clientY, { isTouch = false, points = false, seafloor = false } = {}) {
+  if (!(renderer && camera && flowlineRaycaster && flowlinePointerNdc)) return false;
+  const wantPoints = points && isOceanProfilesShown();
+  const wantSeafloor = seafloor && isOceanSeafloorShown();
+  if (!wantPoints && !wantSeafloor) return false;
+  const rect = renderer.domElement.getBoundingClientRect();
+  if (!(rect.width > 0 && rect.height > 0)) return false;
+  if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) return false;
+  flowlinePointerNdc.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+  flowlineRaycaster.setFromCamera(flowlinePointerNdc, camera);
+  const radius = isTouch ? OCEAN_PICK_TOUCH_RADIUS_PX : OCEAN_PICK_RADIUS_PX;
+  const picked = wantPoints
+    ? pickOceanProfileAt(radius)
+    : pickOceanSeafloorAtNdc();
+  if (picked) updateObservedOceanSelectionUi();
+  return picked;
+}
+
+/** One thing is selected at a time: the marker and every readout follow the latest pick. */
+function selectObservedOcean({ profile = -1, seafloor = null }) {
+  oceanProfileSelection = profile;
+  oceanSeafloorPick = seafloor;
+}
+
+function updateObservedOceanSelectionUi() {
+  updateOceanSelectionMarker();
+  updateOceanSeafloorReadout();
+  updateOceanProfileDetail();
+}
+
+function syncObservedOceanVisibility() {
+  const context = currentCoreContext;
+  if (oceanSeafloorScene) oceanSeafloorScene.mesh.visible = Boolean(controlsUI.showOceanSeafloor?.checked && oceanSeafloorScene.context === context);
+  if (oceanProfileScene) oceanProfileScene.mesh.visible = Boolean(controlsUI.showOceanProfiles?.checked && oceanProfileScene.context === context);
+  updateOceanSelectionMarker();
+}
+
+function setObservedOceanExaggeration(value) {
+  if (oceanSeafloorScene) oceanSeafloorScene.mesh.scale.y = value;
+  if (oceanProfileScene) oceanProfileScene.mesh.scale.y = value;
+  if (oceanSelectionMarker) oceanSelectionMarker.scale.y = value;
+}
+
+function releaseObservedOceanScene(key) {
+  if (key === "seafloor" && oceanSeafloorScene) {
+    disposeMesh(oceanSeafloorScene.mesh);
+    disposeTexture(oceanSeafloorScene.texture);
+    oceanSeafloorScene = null;
+    oceanSeafloorPick = null;
+  }
+  if (key === "profiles" && oceanProfileScene) {
+    disposeMesh(oceanProfileScene.mesh);
+    oceanProfileScene = null;
+    oceanProfileSelection = -1;
+    oceanProfileChartGeometry = null;
+  }
+  updateOceanSelectionMarker();
+}
+
+function releaseObservedOceanScenes() {
+  stopOceanProfilePlayback();
+  for (const layer of OBSERVED_OCEAN_LAYERS) releaseObservedOceanScene(layer.key);
+}
+
+/** The projection or the rebound has switched the layers off: hide them and their controls. */
+function leaveObservedOcean() {
+  stopOceanProfilePlayback();
+  syncObservedOceanVisibility();
+  updateObservedOceanControlsUi();
+  updateLegendVisibility();
+}
+
+function updateOceanProfilesUi() {
+  const allYears = Boolean(controlsUI.oceanProfilesAllYears?.checked);
+  const loaded = Boolean(oceanProfileScene && isOceanProfilesShown());
+  if (controlsUI.oceanProfilesYear) controlsUI.oceanProfilesYear.disabled = !loaded || allYears;
+  if (controlsUI.oceanProfilesPlay) {
+    controlsUI.oceanProfilesPlay.disabled = !loaded || allYears;
+    const label = t(oceanProfilePlaying ? "explorer.projection.pause" : "explorer.projection.play");
+    controlsUI.oceanProfilesPlay.textContent = label;
+    controlsUI.oceanProfilesPlay.setAttribute("aria-label", label);
+  }
+  if (controlsUI.oceanProfilesYearValue) controlsUI.oceanProfilesYearValue.textContent = loaded && !allYears ? String(oceanProfileYear) : "";
+  updateOceanProfilesReadout();
+  renderOceanProfilesChart();
+  updateOceanProfileDetail();
+}
+
+function updateObservedOceanControlsUi() {
+  for (const layer of OBSERVED_OCEAN_LAYERS) {
+    const controls = controlsUI[layer.controls];
+    if (controls) controls.hidden = !controlsUI[layer.toggle]?.checked;
+  }
+  if (isOceanSeafloorShown()) renderOceanSeafloorLegend();
+  if (isOceanProfilesShown()) renderOceanProfilesLegend();
+  updateOceanSeafloorReadout();
+  updateOceanProfilesUi();
+  if (controlsUI.oceanSeafloorNote) controlsUI.oceanSeafloorNote.textContent = t("explorer.observedOcean.seafloorNote");
+  if (controlsUI.oceanProfilesNote) controlsUI.oceanProfilesNote.textContent = t("explorer.observedOcean.profilesNote");
+}
+
+function refreshObservedOceanUi() {
+  updateObservedOceanControlsUi();
+  updateLegendVisibility();
+  updateMetaFromCurrentState();
+}
+
+function buildObservedOceanMetaItems() {
+  const item = (label, value) => `<li class="meta-compact"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</li>`;
+  const items = [];
+  if (isOceanSeafloorShown()) {
+    const view = getOceanSeafloorView();
+    const support = oceanSeafloorScene.meta.support || {};
+    items.push(
+      item(
+        t("explorer.meta.oceanSeafloor"),
+        t("explorer.meta.oceanSeafloorValue", {
+          variable: t(`explorer.observedOcean.${view.variable}`),
+          period: t(view.period === "post2000" ? "explorer.observedOcean.periodPost2000" : "explorer.observedOcean.periodFull"),
+          faded: Math.round(Number(support.share_of_domain_below_fade || 0) * 100),
+        })
+      )
+    );
+  }
+  if (isOceanProfilesShown()) {
+    const points = oceanProfileScene.points;
+    items.push(
+      item(
+        t("explorer.meta.oceanProfiles"),
+        t("explorer.meta.oceanProfilesValue", {
+          count: points.count.toLocaleString(numberLocale),
+          first: points.firstYear,
+          last: points.lastYear,
+        })
+      )
+    );
+  }
+  return items;
+}
+
+function collectObservedOceanState() {
+  const range = getOceanProfileRange();
+  const view = getOceanSeafloorView();
+  return {
+    available: isObservedOceanAvailable(),
+    seafloor: {
+      enabled: Boolean(controlsUI.showOceanSeafloor?.checked),
+      shown: isOceanSeafloorShown(),
+      drawnCells: oceanSeafloorScene?.drawnCells ?? null,
+      variable: view.variable,
+      period: view.period,
+      fade: Boolean(oceanSeafloorScene?.mesh.material.uniforms.uFade.value > 0.5),
+      pick: oceanSeafloorPick
+        ? {
+            temperature: Number(oceanSeafloorPick.temperature.value.toFixed(3)),
+            salinity: Number(oceanSeafloorPick.salinity.value.toFixed(4)),
+            support: Number(oceanSeafloorPick.temperature.support.toFixed(3)),
+          }
+        : null,
+    },
+    profiles: {
+      enabled: Boolean(controlsUI.showOceanProfiles?.checked),
+      shown: isOceanProfilesShown(),
+      count: oceanProfileScene?.points.count ?? null,
+      year: oceanProfileYear,
+      allYears: Boolean(controlsUI.oceanProfilesAllYears?.checked),
+      drawn: range ? range.count : null,
+      playing: oceanProfilePlaying,
+      selected: oceanProfileSelection >= 0 ? oceanProfileSelection : null,
+      curvesLoaded: Boolean(oceanProfileCurves),
+      chartShown: Boolean(oceanProfileChartGeometry),
+    },
+  };
+}
+
+function bindObservedOceanControls() {
+  for (const layer of OBSERVED_OCEAN_LAYERS) {
+    controlsUI[layer.toggle]?.addEventListener("change", () => {
+      if (controlsUI[layer.toggle].checked) {
+        updateObservedOceanControlsUi();
+        ensureObservedOceanLayer(layer.key);
+        return;
+      }
+      if (layer.key === "profiles") stopOceanProfilePlayback();
+      syncObservedOceanVisibility();
+      refreshObservedOceanUi();
+    });
+  }
+  for (const control of [controlsUI.oceanSeafloorVariable, controlsUI.oceanSeafloorPeriod, controlsUI.oceanSeafloorFade]) {
+    control?.addEventListener("change", () => {
+      writeOceanSeafloorView();
+      if (oceanSeafloorPick) {
+        const module = observedOceanModules["ocean-seafloor"];
+        const view = getOceanSeafloorView();
+        const pick = oceanSeafloorPick;
+        const temperature = module?.sampleSeafloor(oceanSeafloorScene.record, pick.x, pick.y, { period: view.period, variable: "temperature" });
+        const salinity = module?.sampleSeafloor(oceanSeafloorScene.record, pick.x, pick.y, { period: view.period, variable: "salinity" });
+        oceanSeafloorPick = temperature && salinity ? { ...pick, temperature, salinity, period: view.period } : null;
+      }
+      refreshObservedOceanUi();
+    });
+  }
+  controlsUI.oceanProfilesYear?.addEventListener("input", () => {
+    const year = Number(controlsUI.oceanProfilesYear.value);
+    stopOceanProfilePlayback();
+    setOceanProfileYear(year);
+  });
+  controlsUI.oceanProfilesYear?.addEventListener("change", () => updateMetaFromCurrentState());
+  controlsUI.oceanProfilesAllYears?.addEventListener("change", () => {
+    stopOceanProfilePlayback();
+    applyOceanProfileRange();
+    updateOceanProfilesUi();
+  });
+  controlsUI.oceanProfilesPlay?.addEventListener("click", () => {
+    if (oceanProfilePlaying) {
+      stopOceanProfilePlayback();
+      return;
+    }
+    startOceanProfilePlayback();
   });
 }
 

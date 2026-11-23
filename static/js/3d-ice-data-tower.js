@@ -19,6 +19,7 @@ import {
   PITCH_MIN,
   approach,
   clamp,
+  dragTurn,
   easeInOut,
   farAndNearCorner,
   fitView,
@@ -607,11 +608,11 @@ export function mountDataTower(section) {
       setHover(-1);
     }
     const now = performance.now();
-    const stepX = event.clientX - drag.lastX;
-    state.yaw += stepX * DRAG_RADIANS_PER_PX;
+    const turn = dragTurn(event.clientX - drag.lastX, DRAG_RADIANS_PER_PX);
+    state.yaw += turn;
     state.pitch = clamp(state.pitch + (event.clientY - drag.lastY) * TILT_RADIANS_PER_PX, PITCH_MIN, PITCH_MAX);
     const elapsed = Math.max(1, now - drag.lastT) / 1000;
-    drag.velocity = 0.7 * drag.velocity + 0.3 * ((stepX * DRAG_RADIANS_PER_PX) / elapsed);
+    drag.velocity = 0.7 * drag.velocity + 0.3 * (turn / elapsed);
     drag.lastX = event.clientX;
     drag.lastY = event.clientY;
     drag.lastT = now;

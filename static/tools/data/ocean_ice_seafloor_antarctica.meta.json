@@ -1,0 +1,331 @@
+{
+  "title": "Seafloor water around Antarctica from the OCEAN ICE Southern Ocean Climatology (annual mean; every profile 1972-2023, and the profiles since 2000)",
+  "product_version": "The OCEAN ICE Southern Ocean Climatology, version 2 (annual mean, created 16 October 2025)",
+  "reference": "Zhou, S., Dutrieux, P. and Giulivi, C. (2024). The OCEAN ICE Southern Ocean Climatology. SEANOE. https://doi.org/10.17882/103946",
+  "license": "CC BY 4.0",
+  "source_url": "https://doi.org/10.17882/103946",
+  "source_dataset": {
+    "title": "The OCEAN ICE Southern Ocean Climatology",
+    "creators": [
+      "Zhou, Shenjie",
+      "Dutrieux, Pierre",
+      "Giulivi, Claudia"
+    ],
+    "publisher": "SEANOE",
+    "year": 2024,
+    "version": "2 (annual mean, created 16 October 2025)",
+    "doi": "10.17882/103946",
+    "url": "https://doi.org/10.17882/103946",
+    "license": "CC BY 4.0",
+    "citation": "Zhou, S., Dutrieux, P. and Giulivi, C. (2024). The OCEAN ICE Southern Ocean Climatology. SEANOE. https://doi.org/10.17882/103946",
+    "article": "Zhou, S., Dutrieux, P., Giulivi, C., Meijers, A., Lee, W. S., Kim, T.-W., Hattermann, T. and Janout, M. (2026). The OCEAN ICE hydrography profiles compilation and climatology. Earth System Science Data Discussions. https://doi.org/10.5194/essd-2025-727",
+    "profiles": "Zhou, S., Dutrieux, P., Giulivi, C., Lee, W. S., Kim, T.-W., Hattermann, T. and Janout, M. (2026). Southern Ocean (90S-45S) conservative temperature and absolute salinity profiles compilation (OCEAN ICE D1.1). SEANOE. https://doi.org/10.17882/99787"
+  },
+  "geometry_type": "sparse_grid",
+  "field_kind": "observed_ocean_seafloor",
+  "region": "antarctica",
+  "crs": "EPSG:3031",
+  "grid": {
+    "nx": 667,
+    "ny": 667,
+    "x0_m": -3333000,
+    "y0_m": 3333000,
+    "dx_m": 10000,
+    "dy_m": -10000
+  },
+  "source_grid": {
+    "description": "OCEAN ICE climatology: 0.2 deg longitude x 0.1 deg latitude, 180 W-180 E, 90 S-45 S, 601 levels at 10 dbar from 5 to 6005 dbar",
+    "longitude_step_deg": 0.2,
+    "latitude_step_deg": 0.1
+  },
+  "source_package": {
+    "grid": "bedmachine_antarctica_v4_480.meta.json",
+    "terrains": [
+      "bedmachine_antarctica_v4_480.meta.json",
+      "bedmachine_antarctica_v4_741.meta.json",
+      "bedmap3_antarctica_10km.meta.json",
+      "bedmap3_antarctica_4km.meta.json"
+    ]
+  },
+  "seafloor": {
+    "definition": "mean of each climatology column's lowest 150 dbar: the deepest level with data and the levels less than 150 dbar above it (15 levels at 10 dbar)",
+    "after": "Schmidtko et al. (2014), Science 346, 1227-1231, doi:10.1126/science.1256117; Zhou et al. (2026), Sect. 4.2",
+    "window_dbar": 150.0,
+    "bathymetry": "the climatology's own seafloor (RTopo-2.0.4), not the explorer's"
+  },
+  "support": {
+    "field": "support",
+    "definition": "share of the seafloor levels whose modified standard error in the full climatology is below 1e9: it writes 1e10 where no profile lies inside the mapping ellipse, and fills the value from profiles further along the isobaths",
+    "post2000": "the post-2000 climatology's error is finite everywhere and marks no such levels, so its view is faded by the full record's support, where no profile of any year lies nearby: the least it should fade",
+    "fade_below_percent": 50,
+    "share_of_domain_below_fade": 0.3866
+  },
+  "periods": [
+    {
+      "key": "full",
+      "label": "1972-2023",
+      "description": "every profile, 1972-2023 (the OCEAN ICE full climatology)",
+      "fields": {
+        "ct": "ct_full",
+        "sa": "sa_full"
+      }
+    },
+    {
+      "key": "post2000",
+      "label": "2000-2023",
+      "description": "the profiles since 2000 (the OCEAN ICE post-2000 climatology), when Argo floats and instrumented seals took over the sampling",
+      "fields": {
+        "ct": "ct_post2000",
+        "sa": "sa_post2000"
+      }
+    }
+  ],
+  "period_difference": {
+    "median_abs_ct_degc": 0.0127,
+    "share_abs_ct_above_0_05_degc": 0.0913,
+    "share_abs_ct_above_0_2_degc": 0.0124,
+    "note": "post-2000 minus full record, seafloor Conservative Temperature over the domain; the two products differ by their sampling as much as by any change, so the explorer offers no difference map"
+  },
+  "resampling": {
+    "method": "each cell centre is projected from EPSG:3031 to latitude and longitude (WGS84) and takes the bilinear mean of the climatology columns among its four neighbours, weights renormalised over the columns with data",
+    "reason": "one package on the 10 km BedMachine grid serves every Antarctic terrain: the explorer samples it bilinearly at each terrain's own cells",
+    "cavities": "only cells a lookup from some terrain's open ocean (mask class 0) can read are kept; ice-shelf cavities are left out because no profile was taken in them"
+  },
+  "domain": {
+    "cell_count": 312429,
+    "order": "row-major order of the non-zero cells of domain_mask",
+    "definition": "cells that a bilinear lookup from the open ocean of any Antarctic terrain can read (the four cells around each ocean node and one ring more) and whose full-record seafloor water is defined"
+  },
+  "visualization": {
+    "temperature_range_degc": [
+      -2.0,
+      2.0
+    ],
+    "salinity_range_g_per_kg": [
+      34.2,
+      35.0
+    ]
+  },
+  "validation": {
+    "sites": [
+      {
+        "name": "Pine Island Bay",
+        "lat": -74.9,
+        "lon": -102.5,
+        "column_ct_degc": 1.032,
+        "column_sa_g_per_kg": 34.9092,
+        "column_bottom_dbar": 835.0,
+        "in_domain": true,
+        "packed_ct_full_degc": 1.067,
+        "packed_sa_full_g_per_kg": 34.9158,
+        "packed_ct_post2000_degc": 1.067
+      },
+      {
+        "name": "Pine Island Trough, mid-shelf",
+        "lat": -73.5,
+        "lon": -106.5,
+        "column_ct_degc": 1.061,
+        "column_sa_g_per_kg": 34.8846,
+        "column_bottom_dbar": 865.0,
+        "in_domain": true,
+        "packed_ct_full_degc": 1.063,
+        "packed_sa_full_g_per_kg": 34.8759,
+        "packed_ct_post2000_degc": 1.063
+      },
+      {
+        "name": "Dotson Ice Shelf front",
+        "lat": -74.2,
+        "lon": -112.5,
+        "column_ct_degc": 0.343,
+        "column_sa_g_per_kg": 34.6871,
+        "column_bottom_dbar": 945.0,
+        "in_domain": true,
+        "packed_ct_full_degc": 0.182,
+        "packed_sa_full_g_per_kg": 34.6375,
+        "packed_ct_post2000_degc": 0.182
+      },
+      {
+        "name": "Belgica Trough",
+        "lat": -70.5,
+        "lon": -86.0,
+        "column_ct_degc": 1.183,
+        "column_sa_g_per_kg": 34.8891,
+        "column_bottom_dbar": 655.0,
+        "in_domain": true,
+        "packed_ct_full_degc": 1.188,
+        "packed_sa_full_g_per_kg": 34.8895,
+        "packed_ct_post2000_degc": 1.188
+      },
+      {
+        "name": "Ross Sea shelf",
+        "lat": -75.5,
+        "lon": 172.0,
+        "column_ct_degc": -1.878,
+        "column_sa_g_per_kg": 34.9405,
+        "column_bottom_dbar": 525.0,
+        "in_domain": true,
+        "packed_ct_full_degc": -1.88,
+        "packed_sa_full_g_per_kg": 34.9422,
+        "packed_ct_post2000_degc": -1.877
+      },
+      {
+        "name": "Filchner Trough",
+        "lat": -76.5,
+        "lon": -33.0,
+        "column_ct_degc": -2.037,
+        "column_sa_g_per_kg": 34.8061,
+        "column_bottom_dbar": 715.0,
+        "in_domain": true,
+        "packed_ct_full_degc": -2.027,
+        "packed_sa_full_g_per_kg": 34.8043,
+        "packed_ct_post2000_degc": -2.028
+      },
+      {
+        "name": "Prydz Bay",
+        "lat": -67.5,
+        "lon": 75.0,
+        "column_ct_degc": -1.677,
+        "column_sa_g_per_kg": 34.6825,
+        "column_bottom_dbar": 435.0,
+        "in_domain": true,
+        "packed_ct_full_degc": -1.697,
+        "packed_sa_full_g_per_kg": 34.6844,
+        "packed_ct_post2000_degc": -1.696
+      },
+      {
+        "name": "Southern Ocean abyss, 60 S 140 E",
+        "lat": -60.0,
+        "lon": 140.0,
+        "column_ct_degc": -0.337,
+        "column_sa_g_per_kg": 34.8365,
+        "column_bottom_dbar": 4535.0,
+        "in_domain": true,
+        "packed_ct_full_degc": -0.335,
+        "packed_sa_full_g_per_kg": 34.8366,
+        "packed_ct_post2000_degc": -0.314
+      }
+    ]
+  },
+  "source_files": [
+    {
+      "period": "full",
+      "name": "OI_Climatology.nc",
+      "sha256": "5b529bbe7d5c92aaf1a305b87949159796cb49554e228ac734063d1ce23c995b",
+      "description": "OCEAN:ICE D1.1 - Southern Ocean Climatology (annual mean) v2",
+      "created": "16-Oct-2025"
+    },
+    {
+      "period": "post2000",
+      "name": "OI_2000_Climatology.nc",
+      "sha256": "b9764dee3bbe219cd5bf40f174627660301b5d7742536c48f5f754db121bff79",
+      "description": "OCEAN:ICE D1.1 - Southern Ocean Climatology (annual mean post-2000) v2",
+      "created": "16-Oct-2025"
+    }
+  ],
+  "fields": [
+    {
+      "name": "ct_full",
+      "dtype": "int16",
+      "unit": "degC",
+      "scale": 0.001,
+      "offset": 0.0,
+      "fill_value": -32768,
+      "stats_degc": {
+        "min": -2.2743,
+        "max": 5.8981,
+        "mean": -0.155
+      },
+      "note": "Conservative Temperature of the seafloor water (mean of the column's lowest 150 dbar), every profile 1972-2023, one value per domain cell",
+      "byte_offset": 0,
+      "byte_length": 624858
+    },
+    {
+      "name": "sa_full",
+      "dtype": "int16",
+      "unit": "g/kg",
+      "scale": 0.0001,
+      "offset": 34.0,
+      "fill_value": -32768,
+      "stats_g_per_kg": {
+        "min": 32.2203,
+        "max": 35.2997,
+        "mean": 34.8308
+      },
+      "note": "Absolute Salinity of the seafloor water, every profile 1972-2023, one value per domain cell",
+      "byte_offset": 624858,
+      "byte_length": 624858
+    },
+    {
+      "name": "ct_post2000",
+      "dtype": "int16",
+      "unit": "degC",
+      "scale": 0.001,
+      "offset": 0.0,
+      "fill_value": -32768,
+      "stats_degc": {
+        "min": -2.2745,
+        "max": 6.0906,
+        "mean": -0.142
+      },
+      "note": "as ct_full, from the profiles since 2000; fill where that climatology has no column",
+      "byte_offset": 1249716,
+      "byte_length": 624858
+    },
+    {
+      "name": "sa_post2000",
+      "dtype": "int16",
+      "unit": "g/kg",
+      "scale": 0.0001,
+      "offset": 34.0,
+      "fill_value": -32768,
+      "stats_g_per_kg": {
+        "min": 32.2156,
+        "max": 35.2764,
+        "mean": 34.8305
+      },
+      "note": "as sa_full, from the profiles since 2000; fill where that climatology has no column",
+      "byte_offset": 1874574,
+      "byte_length": 624858
+    },
+    {
+      "name": "bottom_pressure",
+      "dtype": "int16",
+      "unit": "dbar",
+      "scale": 1.0,
+      "offset": 0.0,
+      "fill_value": -32768,
+      "stats_dbar": {
+        "min": 5.0,
+        "max": 6005.0,
+        "mean": 3650.275
+      },
+      "note": "pressure of the climatology's deepest level with data (its own RTopo-2.0.4 seafloor), full record",
+      "byte_offset": 2499432,
+      "byte_length": 624858
+    },
+    {
+      "name": "support",
+      "dtype": "uint8",
+      "unit": "percent",
+      "fill_value": 255,
+      "stats_percent": {
+        "min": 0.0,
+        "max": 100.0,
+        "mean": 60.36
+      },
+      "note": "percent of the seafloor levels with a profile of any year inside the mapping ellipse (full record's modified standard error below 1e9); the explorer fades cells below 50 in both periods",
+      "byte_offset": 3124290,
+      "byte_length": 312429
+    },
+    {
+      "name": "domain_mask",
+      "dtype": "uint8",
+      "flags": {
+        "0": "outside the domain (no seafloor water, or out of reach of every terrain's open ocean)",
+        "1": "domain cell"
+      },
+      "byte_offset": 3436719,
+      "byte_length": 444889
+    }
+  ]
+}

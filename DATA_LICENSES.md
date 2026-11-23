@@ -18,6 +18,8 @@ you reuse the data; the references are below and in [paper.bib](paper.bib).
 | Paxman, Austermann & Hollyday, isostatic response grid files v3 ([doi:10.18739/A22Z12R8C](https://doi.org/10.18739/A22Z12R8C)) | `*_isostatic_response_*` |
 | Nowicki & ISMIP6 Team (2024), ISMIP6 Antarctica 2300 projections ([doi:10.5281/zenodo.13135599](https://doi.org/10.5281/zenodo.13135599)), with Seroussi & Pelle (2024) ([doi:10.5281/zenodo.10528582](https://doi.org/10.5281/zenodo.10528582)) | `ismip6_2300_mean8_*` |
 | CPOM (2026), Antarctic Ice Sheet surface elevation change from multi-mission radar altimetry, product version 1.0 ([CPOM Land Ice Portal](https://www.cpom.ucl.ac.uk/landice/)), described in Shepherd et al. (2019) ([doi:10.1029/2019GL082182](https://doi.org/10.1029/2019GL082182)); from ERS-2 and Envisat (ESA FDR4ALT) and CryoSat-2 (ESA Cryo-TEMPO) data | `cpom_antarctica_dhdt_*`, `cpom_antarctica_dh_480` |
+| Zhou, Dutrieux & Giulivi (2024), The OCEAN ICE Southern Ocean Climatology, version 2 ([doi:10.17882/103946](https://doi.org/10.17882/103946)), described in Zhou et al. (2026), *Earth System Science Data Discussions* ([doi:10.5194/essd-2025-727](https://doi.org/10.5194/essd-2025-727)) | `ocean_ice_seafloor_antarctica` |
+| Zhou et al. (2026), Southern Ocean (90°S–45°S) conservative temperature and absolute salinity profiles compilation, OCEAN ICE D1.1 ([doi:10.17882/99787](https://doi.org/10.17882/99787)), compiled from the World Ocean Database, other ship archives, Argo and MEOP | `ocean_ice_profiles_antarctica`, `ocean_ice_profiles_antarctica_curves` |
 | SCAR Composite Gazetteer of Antarctica ([placenames.aq](https://placenames.aq/)) | `antarctica_geographic_names.json` (with a few Natural Earth and GEBCO labels, below) |
 
 ## NASA open data (cite the data set)
@@ -35,6 +37,12 @@ you reuse the data; the references are below and in [paper.bib](paper.bib).
 | Data | Packages |
 | --- | --- |
 | NOAA/NSIDC Climate Data Record of Passive Microwave Sea Ice Concentration, Version 6 (G02202), Meier et al. (2026) ([doi:10.7265/b18j-z797](https://doi.org/10.7265/b18j-z797)). The files state "No constraints on data access or use"; NSIDC asks that the data set be cited as a condition of use | `nsidc_sea_ice_antarctica`, `nsidc_sea_ice_greenland` |
+
+## Public domain (CC0 1.0; cite the data set)
+
+| Data | Packages |
+| --- | --- |
+| Mankoff (2020), Streams, Outlets, Basins, and Discharge [k=1.0], GEUS Dataverse, version 8 ([doi:10.22008/FK2/XKQVL7](https://doi.org/10.22008/FK2/XKQVL7)), described in Mankoff et al. (2020) ([doi:10.5194/essd-12-2811-2020](https://doi.org/10.5194/essd-12-2811-2020)); the dataset page asks for that citation | `greenland_mankoff_ice_basins_k1.json` |
 
 ## Other terms
 

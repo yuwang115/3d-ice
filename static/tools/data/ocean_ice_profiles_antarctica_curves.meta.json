@@ -1,0 +1,81 @@
+{
+  "title": "Temperature and salinity of each ocean profile around Antarctica at standard depths (OCEAN ICE profile compilation)",
+  "product_version": "Southern Ocean (90S-45S) conservative temperature and absolute salinity profiles compilation (OCEAN ICE D1.1), 1970-2025 (published August 2026)",
+  "reference": "Zhou, S., Dutrieux, P., Giulivi, C., Lee, W. S., Kim, T.-W., Hattermann, T. and Janout, M. (2026). Southern Ocean (90S-45S) conservative temperature and absolute salinity profiles compilation (OCEAN ICE D1.1). SEANOE. https://doi.org/10.17882/99787",
+  "license": "CC BY 4.0",
+  "source_url": "https://doi.org/10.17882/99787",
+  "geometry_type": "points",
+  "point_kind": "ocean_profile_curves",
+  "region": "antarctica",
+  "points_package": "ocean_ice_profiles_antarctica",
+  "points": {
+    "count": 442829,
+    "value_count": 4086201
+  },
+  "curves": {
+    "standard_depths_m": [
+      10,
+      50,
+      100,
+      150,
+      200,
+      300,
+      400,
+      500,
+      600,
+      800,
+      1000,
+      1500,
+      2000,
+      3000,
+      4000,
+      5000
+    ],
+    "layout": "for each point in the points package's order: the values at the standard depths shallower than its max_depth, then the value at max_depth; a curve's length follows from max_depth, so curves need no offsets",
+    "search": "a standard depth takes the nearest 10 m bin with data within 20 m (fill where none)"
+  },
+  "fields": [
+    {
+      "name": "ct",
+      "dtype": "int16",
+      "unit": "degC",
+      "scale": 0.001,
+      "offset": 0.0,
+      "fill_value": -32768,
+      "note": "Conservative Temperature along each curve, curves concatenated in point order",
+      "stats_degc": {
+        "min": -2.9489,
+        "max": 27.1202,
+        "mean": 0.438
+      },
+      "byte_offset": 0,
+      "byte_length": 8172402
+    },
+    {
+      "name": "sa",
+      "dtype": "int16",
+      "unit": "g/kg",
+      "scale": 0.0005,
+      "offset": 34.0,
+      "fill_value": -32768,
+      "note": "Absolute Salinity along each curve, in the same order",
+      "stats_g_per_kg": {
+        "min": 20.1978,
+        "max": 37.4437,
+        "mean": 34.5567
+      },
+      "byte_offset": 8172402,
+      "byte_length": 8172402
+    }
+  ],
+  "source_files": [
+    {
+      "name": "128224_temperature.nc",
+      "sha256": "218886b440974fbe87332462991bcadb3add9bd3a2fbd2f5d85834d84d38a550"
+    },
+    {
+      "name": "128223_salinity.nc",
+      "sha256": "58d09f54e7a5f3cd595a70a5cb58aa6b92c3475d44767b3e5a753a86988b48fd"
+    }
+  ]
+}

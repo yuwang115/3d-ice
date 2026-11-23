@@ -48,6 +48,7 @@ floating-point statistics, which depend on the NumPy version.
 | `cpom_antarctica_dhdt_480`, `_741`, `cpom_antarctica_dh_480` | CPOM Antarctic surface elevation change, product version 1.0: the 81 cumulative files `CPOM-AIS-L3C-DH-MULTIMISSION-5KM-19950321-<end>-fv1.nc`, the rate `CPOM-AIS-L3C-DHDT-MULTIMISSION-5KM-199505-202601-fv1.nc`, and the series `dmdt_{AIS,WAIS,EAIS,APIS}.json` | [CPOM Land Ice Portal](https://www.cpom.ucl.ac.uk/landice/downloads.php) (CC BY 4.0); save each series from `get_timeseries.php?product=dmdt&basin=<AIS, WAIS, EAIS or APIS>` as `dmdt_<id>.json` | `python scripts/prepare_cpom_land_ice.py --cumulative-dir <dir> --rate-file <DHDT file> --series-dir <dir>` (writes all three; the record's `source_files` lists the files and their SHA-256) |
 | `nsidc_sea_ice_antarctica`, `nsidc_sea_ice_greenland` | NOAA/NSIDC sea-ice concentration CDR, Version 6 (G02202): every monthly file `sic_ps{n,s}25_<YYYYMM>_<sensor>_v06r00.nc` with its `.mnf` manifest, and the grids' ancillary files `G02202-ancillary-ps{n,s}25-v06r00.nc` | [noaadata.apps.nsidc.org/NOAA/G02202_V6](https://noaadata.apps.nsidc.org/NOAA/G02202_V6/) over plain HTTPS, no login: `{north,south}/monthly/`, `{north,south}/checksums/monthly/`, `ancillary/` ([doi:10.7265/b18j-z797](https://doi.org/10.7265/b18j-z797)) | `python scripts/prepare_nsidc_sea_ice.py --cdr-dir <dir>`, where `<dir>` holds `{north,south}/monthly/`, `{north,south}/checksums/` and `ancillary/` (writes both regions; add `--sea-ice-index-dir <dir>` with the Sea Ice Index v4 monthly extent CSV files in `north/` and `south/` to record the comparison with them) |
 | `greenland_basins_ps_v1_4_2.json` | Greenland drainage basins, `Greenland_Basins_PS_v1.4.2.shp` | [Mouginot & Rignot (2019)](https://doi.org/10.7280/D1WT11) on Dryad (CC BY 4.0) | `python scripts/prepare_greenland_basins.py --input Greenland_Basins_PS_v1.4.2.shp` |
+| `greenland_mankoff_ice_basins_k1.json` | Greenland outlet catchments (ice basins, k = 1.0), `freshwater/ice/basins_filled.gpkg` | [Mankoff (2020), GEUS Dataverse, version 8](https://doi.org/10.22008/FK2/XKQVL7) (CC0 1.0); described in [Mankoff et al. (2020)](https://doi.org/10.5194/essd-12-2811-2020) | `python scripts/prepare_mankoff_basins.py --input basins_filled.gpkg` (keeps the divides between basins of at least 10 km², `--min-area-km2`, simplified to 250 m, `--tolerance-m`) |
 | `*_research_stations.json`, `*_geographic_names.json` | COMNAP facilities list, INTERACT stations, SCAR Composite Gazetteer, Natural Earth, Greenland Place Names Register | Online catalogues listed in each file's `sources` | `python scripts/prepare_polar_features.py --as-of <date>` (network access) |
 | `antarctica_ice_cores.json`, `greenland_ice_cores.json` | Ice-core sites: `scripts/data/ice_core_sites.json`, compiled from the publication of each core, with two independent sources for every position | The committed table; positions checked against the [NOAA NCEI ice-core archive](https://www.ncei.noaa.gov/products/paleoclimatology/ice-core) and [Davidge, Brooks & Mah (2022)](https://doi.org/10.5281/zenodo.7076469) | `python scripts/prepare_ice_cores.py` (no network access; refuses a site whose sources place it more than 5 km apart) |
 
@@ -90,7 +91,8 @@ archive (8 TB) on an HPC system, the third in this repository:
    carry unphysical speeds.
 3. `scripts/prepare_ismip6_projection.py` applies the mean change to BedMachine v4 Balanced
    ice (present-day ice cells only), keeps the speed change where at least four models
-   contribute, attaches the published sea-level mean and spread, and writes the package.
+   contribute and carries it down today's flow where ice remains but fewer do, attaches the
+   published sea-level mean and spread, and writes the package.
    Thickening is added as it is. Thinning is scaled by BedMachine thickness over the models'
    mean 2015 thickness, so each cell keeps the share of its ice that the models keep of
    theirs. Ice is gone where the models' mean thickness falls below 10 m, and ice that
@@ -115,7 +117,21 @@ By 2300 under SSP5-8.5 that left 872 holes in the shelves, most of them a single
 scaled frames leave 41, all of them where the models' mean thickness has fallen below 10 m:
 there the shelves read as open water rather than a few metres of film.
 
-The packer records two checks in `validation`. The packed frames change the ice volume by
+The speed change is carried downstream because the models that keep ice longest are the ones
+that change least. Late in the high-emission runs, the models that retreat furthest have lost
+the lower trunks of the retreating glaciers (Thwaites, the Siple Coast and Ronne-side streams),
+while the mean geometry still has ice there. Fewer than four models then have a usable speed,
+and the few left barely speed up, so today's speed, or their mean, showed the ice slowing down
+just below ice that had sped up by about 3 km/yr. Instead, each such cell takes the
+flow-weighted mean of its upwind neighbours in today's flow (MEaSUREs phase-based velocity,
+`antarctic_ice_velocity_phase_v01_480`): the steady first-order upwind solution of
+u · ∇Δv = 0, fed by the cells where at least four models remain. Cells that no such ice
+reaches, or that move 1 m/yr or less today, keep today's speed. By 2300 this covers 12.6 % of
+the ice in `expAE05` (93 % of those cells reached from upstream), 13.1 % in `expAE14` (70 %)
+and 0.6 % in `expAE10` (72 %).
+
+The packer records three checks in `validation`. `speed_change_carried` counts the cells of
+the last keyframe that take the carried speed change. The packed frames change the ice volume by
 100-105 % of the models' mean change: scaling moves ice loss towards the cells where
 BedMachine is the thicker. The geometry's own volume above flotation implies more sea-level
 rise by 2300 than the published mean:

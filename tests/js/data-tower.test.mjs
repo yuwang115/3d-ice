@@ -13,6 +13,7 @@ import {
   applyTransform,
   approach,
   clamp,
+  dragTurn,
   easeInOut,
   farAndNearCorner,
   fitView,
@@ -43,6 +44,19 @@ test("the default pitch lies inside the range a drag may tilt to", () => {
 test("yaw folds into one turn", () => {
   close(wrapYaw(2 * Math.PI + 0.25), 0.25);
   close(wrapYaw(-0.25), 2 * Math.PI - 0.25);
+});
+
+test("a sideways drag carries the front of the stack the way the pointer moves", () => {
+  for (const yaw of [0, 0.62, 2.4, 4.1]) {
+    const view = { ...VIEW, yaw };
+    // The point nearest the camera, the front of the stack, at this yaw.
+    const front = { x: Math.sin(yaw), z: Math.cos(yaw) };
+    const before = projectPoint(view, front.x, 0, front.z).x;
+    for (const dx of [12, -12]) {
+      const after = projectPoint({ ...view, yaw: yaw + dragTurn(dx, 0.0085) }, front.x, 0, front.z).x;
+      assert.equal(Math.sign(after - before), Math.sign(dx), `yaw ${yaw}, dx ${dx}`);
+    }
+  }
 });
 
 test("a layer's half extents keep its aspect and fit the same circle", () => {

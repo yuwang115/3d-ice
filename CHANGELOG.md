@@ -8,6 +8,37 @@ All notable changes to 3D ICE are recorded here. The format follows
 
 ### Added
 
+- Observed ocean around Antarctica in the research edition, from the OCEAN ICE project's
+  compilations (CC BY 4.0), as two layers under *Ocean and ice shelves*:
+  - *Seafloor water, observed*: the Conservative Temperature or Absolute Salinity of the lowest
+    150 m of the water column (Schmidtko et al., 2014), from the OCEAN ICE Southern Ocean
+    Climatology (Zhou, Dutrieux & Giulivi, 2024; version 2), which maps about 819,000 ship,
+    Argo and seal profiles along the bathymetry. It is drawn on the open-ocean seafloor of
+    every Antarctic terrain, for every profile (1972–2023) or the profiles since 2000; where
+    no profile lay inside the mapping ellipse it is stippled, which the visitor can switch off.
+    It shows the warm Circumpolar Deep Water on the Amundsen and Bellingshausen shelves, where
+    WAOM2 is near freezing (Pine Island Bay: +1.07 °C). Ice-shelf cavities are left empty. A
+    click reads the water, the pressure of the climatology's seafloor and how much of it had a
+    profile nearby. `scripts/prepare_ocean_ice_seafloor.py` packs it on the 10 km BedMachine grid
+    (3.9 MB) and `js/ocean-seafloor.js` samples it onto the terrain shown.
+  - *Ocean profiles*: where and when the ocean was measured, every ship CTD, Argo and seal
+    profile of the OCEAN ICE compilation (Zhou et al., 2026) inside the view, 442,829 from 1970
+    to 2025, as points on the sea surface coloured by platform, a year at a time with playback,
+    or all at once; a chart counts them by year and platform. A click shows the profile's
+    temperature and salinity against depth, from a curves package (16 MB) fetched on the first
+    click. `scripts/prepare_ocean_ice_profiles.py` and `js/ocean-profiles.js`.
+  The projection and the rebound switch both off, as they do the other layers drawn on
+  today's bed. `js/polar-projection.js` gains the inverse projection for the readouts.
+- A second set of Greenland basins in the research edition: the outlet catchments of
+  Mankoff et al. (2020), the ice that drains to each outlet at the margin of the ice sheet
+  and the glaciers around it, routed at ice-overburden water pressure (k = 1.0; GEUS
+  Dataverse, version 8, CC0). A *Basin set* chooser under *Basins* switches between them
+  and Mouginot & Rignot's seven regions, which stay the default and the ones the place
+  search finds; `?preset=greenland-outlet-catchments` opens on them. Of the 23,906 catchments
+  on Mankoff's 100 m grid, most are a few cells at the margin, so the layer draws the
+  divides between the 3,126 of at least 10 km² (97% of the ice area), on ice at least 150 m
+  thick, unlabelled. `scripts/prepare_mankoff_basins.py` stores each divide once, simplified
+  to 250 m, in a 332 KB package (118 KB compressed), and `js/basin-divides.js` decodes it.
 - The grounding line, in both editions: the edge of grounded ice wherever it meets floating
   ice or the ocean, drawn as a dark line on the ice surface. It is traced in the browser from
   the grounded and floating ice of the terrain on screen, every terrain of both regions, so
@@ -91,6 +122,19 @@ All notable changes to 3D ICE are recorded here. The format follows
   theme, where the outlined *3D* was hard to read, and *ICE* in the text colour.
 - `css/research-panel.css` becomes `css/panel.css`, which every explorer page loads, and the
   ⓘ menu and region buttons move from `js/research-panel.js` to `js/panel-masthead.js`.
+
+### Fixed
+
+- The ISMIP6 projection's flow lines no longer slow down below the glaciers that retreat. Late
+  in the high-emission runs, the lower trunks of Thwaites and of the Siple Coast and Ronne-side
+  streams turned blue, back to today's speed, just below ice that had sped up by about 3 km/yr.
+  Where fewer than four of the eight models still had ice with a usable speed, the packages fell
+  back on today's speed, and the few models left there are the ones that barely retreat. Such
+  cells now take
+  the change in speed of the ice that feeds them, carried down today's flow (MEaSUREs) from the
+  cells upstream where at least four models remain: by 2300, 12.6 % of the ice under SSP5-8.5,
+  13.1 % with ice-shelf collapse and 0.6 % under SSP1-2.6. The ice and the sea-level numbers are
+  unchanged. `scripts/prepare_ismip6_projection.py` rebuilt the three packages.
 
 ## [0.4.0] — 2026-11-01
 

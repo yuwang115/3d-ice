@@ -8,7 +8,7 @@
     "bundle:compat": "node scripts/build_compat_bundle.mjs",
     "smoke:compat": "node scripts/smoke_compat_bundle.mjs",
     "prepare:refined-basin-search": "node scripts/prepare_refined_basin_search.mjs",
-    "test:polar-features": "node --experimental-test-coverage --test-coverage-include=static/tools/js/polar-feature-search.js --test-coverage-include=static/tools/js/polar-feature-label-style.js --test-coverage-include=static/tools/js/polar-feature-details.js --test-coverage-include=static/tools/js/polar-refined-basins.js --test-coverage-lines=80 --test tests/js/polar-features.test.mjs",
+    "test:polar-features": "node --experimental-test-coverage --test-coverage-include=static/tools/js/polar-feature-search.js --test-coverage-include=static/tools/js/polar-feature-label-style.js --test-coverage-include=static/tools/js/polar-feature-details.js --test-coverage-include=static/tools/js/polar-refined-basins.js --test-coverage-include=static/tools/js/basin-divides.js --test-coverage-lines=80 --test tests/js/polar-features.test.mjs tests/js/basin-divides.test.mjs",
     "test:gia-rebound": "node --experimental-test-coverage --test-coverage-include=static/tools/js/gia-rebound.js --test-coverage-include=static/tools/js/gia-grid.js --test-coverage-include=static/tools/js/fft2d.js --test-coverage-lines=80 --test tests/js/gia-rebound.test.mjs tests/js/gia-point-load.test.mjs",
     "test:ice-projection": "node --experimental-test-coverage --test-coverage-include=static/tools/js/ice-projection.js --test-coverage-lines=80 --test tests/js/ice-projection.test.mjs",
     "test:data-contract": "node --experimental-test-coverage --test-coverage-include=static/tools/js/data-contract.js --test-coverage-lines=80 --test tests/js/data-contract.test.mjs",
@@ -17,11 +17,12 @@
     "test:runtime": "node --experimental-test-coverage --test-coverage-include=static/tools/js/vertical-scale.js --test-coverage-include=static/tools/js/layer-stats.js --test-coverage-include=static/tools/js/overlay-cells.js --test-coverage-include=static/tools/js/source-links.js --test-coverage-include=static/tools/js/grounding-line.js --test-coverage-lines=80 --test tests/js/vertical-scale.test.mjs tests/js/layer-stats.test.mjs tests/js/overlay-cells.test.mjs tests/js/source-links.test.mjs tests/js/grounding-line.test.mjs",
     "test:examples": "node --test tests/js/examples.test.mjs tests/js/ismip6-example.test.mjs",
     "test:locale": "node --test tests/js/locale-coverage.test.mjs",
-    "test:js": "npm run test:polar-features && npm run test:gia-rebound && npm run test:ice-projection && npm run test:surface-change && npm run test:sea-ice && npm run test:data-contract && npm run test:editions && npm run test:panel && npm run test:runtime && npm run test:tower && npm run test:examples && npm run test:locale",
+    "test:js": "npm run test:polar-features && npm run test:gia-rebound && npm run test:ice-projection && npm run test:surface-change && npm run test:sea-ice && npm run test:ocean && npm run test:data-contract && npm run test:editions && npm run test:panel && npm run test:runtime && npm run test:tower && npm run test:examples && npm run test:locale",
     "example:rebound": "node examples/isostatic-rebound.mjs",
     "example:ismip6": "node examples/ismip6-projection.mjs",
     "test:surface-change": "node --experimental-test-coverage --test-coverage-include=static/tools/js/surface-change.js --test-coverage-lines=80 --test tests/js/surface-change.test.mjs",
     "test:sea-ice": "node --experimental-test-coverage --test-coverage-include=static/tools/js/sea-ice.js --test-coverage-lines=80 --test tests/js/sea-ice.test.mjs",
+    "test:ocean": "node --experimental-test-coverage --test-coverage-include=static/tools/js/ocean-seafloor.js --test-coverage-include=static/tools/js/ocean-profiles.js --test-coverage-lines=80 --test tests/js/ocean-seafloor.test.mjs tests/js/ocean-profiles.test.mjs",
     "test:tower": "node --experimental-test-coverage --test-coverage-include=static/js/3d-ice-data-tower-geometry.js --test-coverage-lines=80 --test tests/js/data-tower.test.mjs"
   }
 }

@@ -52,7 +52,7 @@ TOWER_PRESETS = {
 # The page's sections, in order; Key Features is gone and Editions and Datasets are one.
 SECTIONS = ["explore", "latest-updates", "source-data", "feedback"]
 # The source data, one group per kind of dataset.
-SOURCE_GROUPS = 8
+SOURCE_GROUPS = 9
 # The updates on the page itself; the drawer holds every one.
 UPDATES_ON_PAGE = 3
 VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}

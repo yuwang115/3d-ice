@@ -320,13 +320,17 @@ class TestDataTower:
             _show_tower(page)
             box = page.locator("[data-tower-canvas]").bounding_box()
             before = _canvas_pixels(page)
+            yaw_before = page.evaluate("document.getElementById('data-tower').dataTowerState().yaw")
             x, y = box["x"] + box["width"] * 0.3, box["y"] + box["height"] * 0.5
             page.mouse.move(x, y)
             page.mouse.down()
             page.mouse.move(x + 160, y, steps=8)
+            yaw_dragged = page.evaluate("document.getElementById('data-tower').dataTowerState().yaw")
             page.mouse.up()
             page.wait_for_timeout(300)
             assert _canvas_pixels(page) != before
+            # A drag to the right brings the front of the stack to the right: the yaw falls.
+            assert yaw_dragged < yaw_before - 0.5, (yaw_before, yaw_dragged)
             assert page.url.rstrip("/") == server.rstrip("/"), "a drag is not a click"
         finally:
             context.close()

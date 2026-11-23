@@ -20,6 +20,12 @@ script produced a package: the metadata is the whole interface.
   fields hold one value per grid cell.
 - **Streamline packages** (ocean currents) set `"geometry_type": "streamlines_3d"` and have
   no grid; their fields hold one value per streamline segment.
+- **Sparse grid packages** (observed seafloor water) set `"geometry_type": "sparse_grid"` and
+  a `field_kind`. They carry a `grid` that only a `domain_mask` covers; every other field holds
+  one value per domain cell.
+- **Point packages** (ocean profiles) set `"geometry_type": "points"` and a `point_kind`, and
+  have no grid; their fields hold one value per point (`points.count`), or per curve value
+  (`points.value_count`) in a curve package.
 - **Sparse time-series packages** (ice-sheet projections, observed surface elevation change,
   observed sea ice) set `"geometry_type": "sparse_grid_time_series"`. They carry a `grid`, but
   only a mask covers it; their other fields hold one value per domain cell, or per domain cell
@@ -144,7 +150,8 @@ that they start on even offsets. `frames.years` lists the keyframe years in incr
 single-model one. The committed packages (`ismip6_2300_mean8_ae{05,10,14}_480`) are ISMIP6
 Antarctica 2300 multi-model means: `thickness` is BedMachine v4 thickness plus the mean
 change of eight models, `bed` is the BedMachine bed, `speed_change` the mean change in
-depth-averaged ice speed since 2015 that the flowlines follow, and `series` the mean, minimum
+depth-averaged ice speed since 2015 that the flowlines follow (carried down today's flow where
+fewer than four models still have ice), and `series` the mean, minimum
 and maximum of the models' published sea-level contribution. `experiment`, `models`,
 `sources`, `method` and `validation` record the scenario, the models averaged, the citations
 (CC BY 4.0), how the mean was formed, and how much of the mean volume change the packed frames
@@ -205,6 +212,33 @@ whose monthly mean concentration reaches 15 %, the ice the map draws, which is l
 reproduces NSIDC's cell positions and how this extent compares with the Sea Ice Index's;
 `source_files` the name, MD5 (checked against NSIDC's manifest), sensor and creation date of
 every monthly file. Rule 3 above does not apply to this family.
+
+**Observed seafloor water.** `ocean_ice_seafloor_antarctica` (`field_kind`
+`"observed_ocean_seafloor"`) holds the seafloor water of the OCEAN ICE Southern Ocean
+Climatology, version 2 (Zhou, Dutrieux & Giulivi 2024, CC BY 4.0): the mean of each climatology
+column's lowest 150 dbar (`seafloor`), resampled onto the 10 km BedMachine grid (`grid`, the
+`bedmachine_antarctica_v4_480` grid) by the bilinear mean of the columns around each cell, on the
+cells a lookup from the open ocean of any Antarctic terrain can read. The fields are, in this
+order, `ct_full` and `sa_full` (`int16`, Conservative Temperature in °C at 0.001 and Absolute
+Salinity in g/kg at 0.0001 from 34, for every profile 1972–2023), `ct_post2000` and
+`sa_post2000` (the same for the profiles since 2000), `bottom_pressure` (`int16`, dbar, of the
+climatology's deepest level), `support` (`uint8`, percent of the seafloor levels with a profile
+inside the mapping ellipse, 255 for none) and `domain_mask`. `periods` names each period's
+fields; `support` explains why both periods are faded by the full record's support;
+`period_difference` and `validation.sites` record how the periods differ and the packed water at
+named places next to the climatology's own column.
+
+**Ocean profiles.** `ocean_ice_profiles_antarctica` (`point_kind` `"ocean_profiles"`) lists the
+profiles of the OCEAN ICE hydrography compilation (Zhou et al. 2026, CC BY 4.0) inside the
+Antarctic domain, sorted by date: `x` and `y` (`int16`, EPSG:3031 metres at 250 m),
+`bottom_ct` and `bottom_sa` (`int16`, the deepest bin's Conservative Temperature and Absolute
+Salinity, at 0.001 °C and 0.0005 g/kg from 34), `day` (`uint16`, days since 1970-01-01),
+`max_depth` (`uint16`, m) and `platform` (`uint8`, named in its `flags`). `years.starts[k]` is
+the first point of year `years.first + k`, and `series` counts the points per platform and year.
+`ocean_ice_profiles_antarctica_curves` (`point_kind` `"ocean_profile_curves"`) holds `ct` and
+`sa` (`int16`, as above) along each profile's curve, curves concatenated in point order: the
+values at the `curves.standard_depths_m` shallower than its `max_depth`, then the value at
+`max_depth`, so a curve's length follows from `max_depth` and the package needs no offsets.
 
 **Streamlines.** Each segment stores its end points as `x0_ps_m`, `y0_ps_m`, `depth0_m`
 and `x1_ps_m`, `y1_ps_m`, `depth1_m` (projected metres and depth in metres), the potential

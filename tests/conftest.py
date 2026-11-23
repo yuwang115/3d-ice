@@ -69,6 +69,22 @@ def ice_cores_module():
 
 
 @pytest.fixture(scope="session")
+def ocean_ice_seafloor_module():
+    # prepare_ocean_ice_seafloor.py takes its projection and packing helpers from
+    # prepare_nsidc_sea_ice.py.
+    if str(SCRIPTS_DIR) not in sys.path:
+        sys.path.insert(0, str(SCRIPTS_DIR))
+    return _load_script_module("prepare_ocean_ice_seafloor.py")
+
+
+@pytest.fixture(scope="session")
+def ocean_ice_profiles_module():
+    if str(SCRIPTS_DIR) not in sys.path:
+        sys.path.insert(0, str(SCRIPTS_DIR))
+    return _load_script_module("prepare_ocean_ice_profiles.py")
+
+
+@pytest.fixture(scope="session")
 def ismip6_projection_module():
     return _load_script_module("prepare_ismip6_projection.py")
 
