@@ -43,9 +43,11 @@ and nothing else comes back. The public page keeps a switch at the end of the pr
 controls, the same layer as its *Ice flow* toggle.
 
 The sea-level number and chart are the mean of the models' own published results, with
-their range. Because flotation is not linear, the averaged ice on the map implies more
-sea-level rise than that mean: by 2300 it is 0.15 m against 0.05 m (SSP1-2.6), 1.93 m
-against 1.46 m (SSP5-8.5) and 3.12 m against 2.43 m (with collapse). The packages record
+their range: each model's published loss of ice above flotation at 362.5 Gt per mm, the
+conversion the explorer applies to its own geometry. Partly because flotation is not
+linear, the averaged ice on the map implies more sea-level rise than that mean: by 2300 it
+is 0.15 m against 0.05 m (SSP1-2.6), 1.93 m against 1.50 m (SSP5-8.5) and 3.12 m against
+2.49 m (with collapse). The packages record
 both figures. The packages,
 the pipeline ([data-pipeline.md](data-pipeline.md)) and the browser module
 (`static/tools/js/ice-projection.js`) are tested in `tests/test_prepare_ismip6_projection.py`,

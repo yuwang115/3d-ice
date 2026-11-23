@@ -56,9 +56,9 @@ test("the high-emissions example reproduces the documented ensemble-mean figures
   near(at(result, 2100).sleMeters, 0.018, 0.0005, "implied sea-level rise by 2100 (m)");
   near(at(result, 2200).sleMeters, 0.689, 0.0005, "implied sea-level rise by 2200 (m)");
   near(end.sleMeters, 1.974, 0.0005, "implied sea-level rise by 2300 (m)");
-  near(end.publishedMeanSleMeters, 1.463, 0.0005, "mean of the eight published values in 2300 (m)");
-  near(end.publishedMinSleMeters, -0.084, 0.0005, "lowest published value in 2300 (m)");
-  near(end.publishedMaxSleMeters, 3.99, 0.0005, "highest published value in 2300 (m)");
+  near(end.publishedMeanSleMeters, 1.501, 0.0005, "mean of the eight published values in 2300 (m)");
+  near(end.publishedMinSleMeters, -0.087, 0.0005, "lowest published value in 2300 (m)");
+  near(end.publishedMaxSleMeters, 4.102, 0.0005, "highest published value in 2300 (m)");
 });
 
 test("the basin figures quoted in the documentation and the manuscript are pinned", () => {
@@ -106,10 +106,10 @@ test("the low-emissions and shelf-collapse examples bracket the high-emissions o
 
   near(at(low, 2100).sleMeters, 0.011, 0.0005, "SSP1-2.6 by 2100 (m)");
   near(at(low, 2300).sleMeters, 0.151, 0.0005, "SSP1-2.6 by 2300 (m)");
-  near(at(low, 2300).publishedMeanSleMeters, 0.052, 0.0005, "SSP1-2.6 published mean (m)");
+  near(at(low, 2300).publishedMeanSleMeters, 0.053, 0.0005, "SSP1-2.6 published mean (m)");
   near(at(collapse, 2100).sleMeters, 0.059, 0.0005, "shelf collapse by 2100 (m)");
   near(at(collapse, 2300).sleMeters, 3.19, 0.0005, "shelf collapse by 2300 (m)");
-  near(at(collapse, 2300).publishedMeanSleMeters, 2.429, 0.0005, "shelf collapse published mean (m)");
+  near(at(collapse, 2300).publishedMeanSleMeters, 2.490, 0.0005, "shelf collapse published mean (m)");
   near(at(collapse, 2300).groundedAreaKm2 / 1e6, 10.892, 0.0005, "shelf collapse grounded area in 2300 (million km²)");
   near(at(collapse, 2300).floatingAreaKm2 / 1e6, 1.951, 0.0005, "shelf collapse floating area in 2300 (million km²)");
   near(at(low, 2300).groundedAreaKm2 / 1e6, 12.158, 0.0005, "SSP1-2.6 grounded area in 2300 (million km²)");

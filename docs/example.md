@@ -160,11 +160,11 @@ For expAE05 it prints:
 ```text
 Year   Grounded (10^6 km²)  Floating (10^6 km²)  Implied SLE (m)  Published mean [min, max] (m)
 2015       12.281                1.561             0.000        0.000 [0.000, 0.000]
-2100       12.157                1.674             0.018        -0.025 [-0.217, 0.130]
-2150       11.919                1.869             0.229        0.113 [-0.264, 0.500]
-2200       11.648                1.971             0.689        0.453 [-0.188, 1.469]
-2250       11.389                2.073             1.296        0.923 [-0.085, 2.669]
-2300       11.192                2.166             1.974        1.463 [-0.084, 3.990]
+2100       12.157                1.674             0.018        -0.025 [-0.224, 0.133]
+2150       11.919                1.869             0.229        0.116 [-0.272, 0.511]
+2200       11.648                1.971             0.689        0.464 [-0.193, 1.510]
+2250       11.389                2.073             1.296        0.946 [-0.087, 2.743]
+2300       11.192                2.166             1.974        1.501 [-0.087, 4.102]
 ```
 
 followed by the drainage basins of MEaSUREs Antarctic Boundaries v2 (Mouginot et al., 2017),
@@ -178,8 +178,8 @@ Ice rises and islands           0.000      0.015      0.033      0.054      0.06
 Outside every outline           0.000      0.001      0.003      0.004      0.005      0.005   -14,211
 ```
 
-By 2300 expAE10 implies 0.151 m (published mean 0.052 m) and expAE14 3.190 m (published mean
-2.429 m).
+By 2300 expAE10 implies 0.151 m (published mean 0.053 m) and expAE14 3.190 m (published mean
+2.490 m).
 
 ### Reading the result
 
@@ -195,8 +195,11 @@ By 2300 expAE10 implies 0.151 m (published mean 0.052 m) and expAE14 3.190 m (pu
   grounded ice in 2015 lies in cells whose centres fall inside no outline, almost all of them
   next to floating ice or open ocean, and is reported as its own row.
 - The implied rise and the published values measure the same quantity, the loss of ice
-  above flotation since 2015 with the control run not subtracted, but on different
-  geometries. The implied rise exceeds the published mean in all three experiments. One
+  above flotation since 2015 with the control run not subtracted, converted the same way
+  (362.5 Gt per mm, a freshwater equivalent, as Seroussi et al. (2024) plot it), but on
+  different geometries. The published values are each model's `ivaf` scalar; its `sle`
+  scalar converts the same loss at the model's own seawater density and is 2.2-2.8 % lower,
+  and its mean is kept in each package as `series.sea_level_contribution_seawater_m`. The implied rise exceeds the published mean in all three experiments. One
   cause is certain in sign: thickness above flotation, max(0, H − H<sub>f</sub>), is convex in
   H, so on a common baseline the mean geometry loses at least as much as the mean of the
   models. The example does not measure how much of the gap that explains. The fixed
@@ -205,7 +208,7 @@ By 2300 expAE10 implies 0.151 m (published mean 0.052 m) and expAE14 3.190 m (pu
   10 m may contribute too; separating them needs each model's geometry, which the packages
   do not hold.
 - The figures describe the ensemble mean only; no single model followed this path. The
-  published per-model range in 2300, from −0.08 to 3.99 m under expAE05, is far wider than
+  published per-model range in 2300, from −0.09 to 4.10 m under expAE05, is far wider than
   either mean.
 
 ## How these examples are kept honest

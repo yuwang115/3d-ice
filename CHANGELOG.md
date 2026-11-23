@@ -135,6 +135,17 @@ All notable changes to 3D ICE are recorded here. The format follows
   cells upstream where at least four models remain: by 2300, 12.6 % of the ice under SSP5-8.5,
   13.1 % with ice-shelf collapse and 0.6 % under SSP1-2.6. The ice and the sea-level numbers are
   unchanged. `scripts/prepare_ismip6_projection.py` rebuilt the three packages.
+- The ISMIP6 projection's published sea-level mean and range now convert each model's
+  published loss of ice volume above flotation (`ivaf`, Seroussi & Pelle, 2024) at 362.5 Gt
+  per mm, the freshwater equivalent that Seroussi et al. (2024) plot and that the packer
+  applies to the projected geometry. They were the published `sle` scalar, which converts the
+  same loss at each model's own seawater density and is 2.2-2.8 % lower, so the chart compared
+  the geometry with the models on different footings. By 2300 the mean of the eight models is
+  0.05 m under SSP1-2.6, 1.50 m under SSP5-8.5 and 2.49 m with ice-shelf collapse (it was 0.05,
+  1.46 and 2.43 m), and the SSP5-8.5 models range from -0.09 to 4.10 m. The packages keep the
+  `sle` mean as `series.sea_level_contribution_seawater_m`. Only their metadata changed; the
+  public explainer now gives 2.5 m for ice-shelf collapse, and a test ties its three figures to
+  the packages.
 
 ## [0.4.0] — 2026-11-01
 

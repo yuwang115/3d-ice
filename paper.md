@@ -124,7 +124,7 @@ BedMachine's thickness so that ice shelves do not break into spurious holes,
 and stores their mean speed change. The browser interpolates between keyframes,
 rebuilds the ice by flotation on the static bed, and moves the flowlines,
 coloured by today's speed plus that change, onto the projected surface. The averaged geometry implies more sea-level rise than the mean of the
-models' published contributions (1.93 against 1.46 m by 2300 under high
+models' published contributions (1.93 against 1.50 m by 2300 under high
 emissions), partly because flotation is non-linear where the models disagree
 about which basins collapse, so the explorer reports the published mean and
 range [@seroussi2024data].
