@@ -4,7 +4,7 @@ All notable changes to 3D ICE are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
-## [0.4.1] — Unreleased
+## [0.4.1] — 2026-11-24
 
 A worked example of the ISMIP6 projections to 2300 with the figure scripts of the Earth and
 Space Science report, observed ocean layers, the grounding line, Greenland outlet catchments,
