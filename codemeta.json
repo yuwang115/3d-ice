@@ -4,6 +4,7 @@
   "name": "3D ICE",
   "description": "An interactive browser-based cryosphere explorer for Antarctica and Greenland",
   "license": "https://spdx.org/licenses/MIT",
+  "identifier": "https://doi.org/10.5281/zenodo.24515887",
   "codeRepository": "https://github.com/yuwang115/3d-ice",
   "issueTracker": "https://github.com/yuwang115/3d-ice/issues",
   "url": "https://3d-ice.com/",
