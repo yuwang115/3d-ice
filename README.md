@@ -12,6 +12,7 @@
   <a href="https://github.com/yuwang115/3d-ice/actions/workflows/ci.yml"><img src="https://github.com/yuwang115/3d-ice/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/yuwang115/3d-ice/actions/workflows/draft-pdf.yml"><img src="https://github.com/yuwang115/3d-ice/actions/workflows/draft-pdf.yml/badge.svg" alt="Draft JOSS PDF"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
+  <a href="https://doi.org/10.5281/zenodo.24515887"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.24515887.svg" alt="DOI 10.5281/zenodo.24515887"></a>
 </p>
 
 <p align="center">
@@ -130,17 +131,21 @@ data pipeline from the repository alone.
 
 ## Citation
 
-Until an archival DOI and the JOSS paper are available, cite the latest tagged
-software release. The repository also includes a machine-readable
-[`CITATION.cff`](CITATION.cff) file for GitHub's **Cite this repository** menu.
+Every release is archived on Zenodo. Cite the version you used: v0.4.1 is
+[10.5281/zenodo.24515888](https://doi.org/10.5281/zenodo.24515888), and
+[10.5281/zenodo.24515887](https://doi.org/10.5281/zenodo.24515887) always resolves to the latest version.
+The repository also includes a machine-readable [`CITATION.cff`](CITATION.cff) file for
+GitHub's **Cite this repository** menu.
 
 ```bibtex
 @misc{wang2026_3dice,
-  author  = {Wang, Yu and Lin, Yucheng},
-  title   = {{3D ICE}: An Interactive Browser-Based Cryosphere Explorer for Antarctica and Greenland},
-  year    = {2026},
-  version = {0.4.1},
-  url     = {https://github.com/yuwang115/3d-ice/releases/tag/v0.4.1}
+  author    = {Wang, Yu and Lin, Yucheng},
+  title     = {{3D ICE}: An Interactive Browser-Based Cryosphere Explorer for Antarctica and Greenland},
+  year      = {2026},
+  version   = {0.4.1},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.24515888},
+  url       = {https://doi.org/10.5281/zenodo.24515888}
 }
 ```
 

@@ -4,6 +4,14 @@ All notable changes to 3D ICE are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- The README, `CITATION.cff` and `codemeta.json` cite the Zenodo archive of the releases:
+  10.5281/zenodo.24515887 for every version and 10.5281/zenodo.24515888 for v0.4.1, which the JOSS
+  draft's software reference now cites too. The README carries the DOI badge.
+
 ## [0.4.1] — 2026-11-24
 
 A worked example of the ISMIP6 projections to 2300 with the figure scripts of the Earth and

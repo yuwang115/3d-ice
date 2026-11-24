@@ -12,6 +12,14 @@ authors:
     family-names: Lin
     affiliation: "School of Energy and Environment, City University of Hong Kong"
     orcid: "https://orcid.org/0000-0002-5556-4490"
+doi: 10.5281/zenodo.24515887
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.24515887
+    description: "The Zenodo archive of every release (concept DOI)"
+  - type: doi
+    value: 10.5281/zenodo.24515888
+    description: "The Zenodo archive of version 0.4.1"
 repository-code: "https://github.com/yuwang115/3d-ice"
 url: "https://3d-ice.com/"
 license: MIT
