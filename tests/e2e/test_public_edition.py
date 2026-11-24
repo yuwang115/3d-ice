@@ -53,7 +53,7 @@ PUBLIC_TOGGLES = {
     "showResearchStations",
 }
 # The high-emission projection's mean sea-level rise from Antarctica by 2300 (its package).
-HIGH_EMISSIONS_2300_SEA_LEVEL = "+1.46 m"
+HIGH_EMISSIONS_2300_SEA_LEVEL = "+1.50 m"
 # Records the events the page asks the site's analytics to count, in window.__countedEvents.
 # Away from 3d-ice.com the analytics counts nothing itself, so this record is all there is.
 RECORD_COUNTED_EVENTS = """(() => {

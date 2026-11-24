@@ -27,8 +27,10 @@ by flotation.
 
 The sea-level series stored with the package is the mean of the published scalars of the same
 models (Seroussi & Pelle 2024, doi:10.5281/zenodo.10528582), so the number on screen is the
-ensemble's own. The package also records how far the volume above flotation of the packed
-geometry departs from it.
+ensemble's own: each model's published loss of ice volume above flotation (`ivaf`) at
+362.5 Gt per mm, the freshwater equivalent that Seroussi et al. (2024) plot and that the
+packer applies to the packed geometry, so the two compare like for like. The package also
+records how far the volume above flotation of the packed geometry departs from it.
 """
 
 from __future__ import annotations
@@ -194,22 +196,31 @@ def check_same_grid(grid: dict, x: np.ndarray, y: np.ndarray) -> None:
 
 
 def published_mean_sle(scalars_dir: Path, models: list[str], experiment: str) -> dict:
-    """Annual mean, min and max of the models' published `sle` change since their 2015 record.
+    """Annual mean, min and max of the models' published sea-level contribution since 2015.
+
+    The contribution is each model's published loss of ice volume above flotation (`ivaf`, in
+    Gt) at GT_PER_MM_SLE: the freshwater equivalent that Seroussi et al. (2024) plot and that
+    `sle_from_vaf` applies to the packed geometry, so the two compare like for like. The
+    published `sle` scalar is the same loss as a seawater equivalent at each model's own ocean
+    density (1023-1030 kg m-3 in the scalars' processing script), 2.2-2.8 % lower; its mean is
+    returned as `seawater_mean`, for reference.
 
     A 287-record series (LSCE) starts with the initial state, which is dropped, matching how
     the 2D fields were read; every series then has its first value at 2015.
     """
     import netCDF4  # noqa: PLC0415
 
-    curves = []
-    for model in models:
-        path = scalars_dir / experiment / "sle" / f"computed_sle_AIS_{model}_{experiment}.nc"
+    def change_since_2015(variable: str, model: str) -> np.ndarray:
+        path = scalars_dir / experiment / variable / f"computed_{variable}_AIS_{model}_{experiment}.nc"
         with netCDF4.Dataset(path) as ds:
-            values = np.asarray(ds["sle"][:], dtype=np.float64)
+            values = np.asarray(ds[variable][:], dtype=np.float64).ravel()
         if values.size == 287:
             values = values[1:]
-        curves.append(values - values[0])
-    length = min(c.size for c in curves)
+        return values - values[0]
+
+    curves = [-change_since_2015("ivaf", model) / GT_PER_MM_SLE / 1000.0 for model in models]
+    seawater = [change_since_2015("sle", model) for model in models]
+    length = min(c.size for c in curves + seawater)
     stack = np.stack([c[:length] for c in curves])
     return {
         "years": list(range(2015, 2015 + length)),
@@ -217,6 +228,7 @@ def published_mean_sle(scalars_dir: Path, models: list[str], experiment: str) ->
         "min": stack.min(axis=0),
         "max": stack.max(axis=0),
         "per_model_end": {model: float(c[length - 1]) for model, c in zip(models, curves)},
+        "seawater_mean": np.stack([c[:length] for c in seawater]).mean(axis=0),
     }
 
 
@@ -549,7 +561,7 @@ def main() -> None:
         "keyframes": {"interval_years": int(years[1] - years[0]), "interpolation": "linear in thickness and in speed change"},
         "validation": {
             "sea_level_of_packed_geometry_m": {
-                "note": "volume above flotation of the packed frames on the BedMachine bed (grid area, freshwater 362.5 Gt/mm) against the mean of the models' published sle",
+                "note": "volume above flotation of the packed frames on the BedMachine bed (grid area, freshwater 362.5 Gt/mm) against the mean of the models' published loss of volume above flotation (ivaf) at the same 362.5 Gt/mm",
                 "end_packed": round(float(sle_packed[-1]), 4),
                 "end_published_mean": round(float(at_keys[-1]), 4),
                 "max_abs_difference": round(float(np.max(np.abs(sle_packed - at_keys))), 4),
@@ -573,7 +585,8 @@ def main() -> None:
             "sea_level_contribution_min_m": [round(float(v), 5) for v in published["min"]],
             "sea_level_contribution_max_m": [round(float(v), 5) for v in published["max"]],
             "per_model_end_m": {k: round(v, 4) for k, v in published["per_model_end"].items()},
-            "note": "Annual mean, min and max over the models of the published ISMIP6 sea-level-equivalent change since 2015 (control run not subtracted, as in Seroussi et al. 2024).",
+            "sea_level_contribution_seawater_m": [round(float(v), 5) for v in published["seawater_mean"]],
+            "note": "Annual mean, min and max over the models of the published loss of ice volume above flotation since 2015 (ivaf, Seroussi & Pelle 2024) at 362.5 Gt per mm, the freshwater sea-level equivalent Seroussi et al. (2024) plot and the packer applies to the packed geometry; control run not subtracted, as in Seroussi et al. 2024. sea_level_contribution_seawater_m is the mean of the published sle scalar, the same loss as a seawater equivalent at each model's ocean density, 2.2-2.8 % lower.",
         },
     }
     meta = write_package(

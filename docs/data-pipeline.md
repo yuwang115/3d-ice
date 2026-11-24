@@ -139,9 +139,13 @@ rise by 2300 than the published mean:
 | Experiment | Geometry implies | Published mean |
 |---|---|---|
 | `expAE10` | 0.15 m | 0.05 m |
-| `expAE05` | 1.93 m | 1.46 m |
-| `expAE14` | 3.12 m | 2.43 m |
+| `expAE05` | 1.93 m | 1.50 m |
+| `expAE14` | 3.12 m | 2.49 m |
 
-This is because flotation is non-linear where the models disagree about which basins
-collapse. The explorer therefore shows the published mean as its number. The explorer registers the three
+Both columns convert the loss of ice above flotation at 362.5 Gt per mm; the published `sle`
+scalars, a seawater equivalent at each model's ocean density, are 2.2-2.8 % lower and are kept
+as `series.sea_level_contribution_seawater_m`. The gap is partly because flotation is
+non-linear where the models disagree about which basins collapse; the static bed and the
+BedMachine baseline contribute too. The explorer therefore shows the published mean as its
+number. The explorer registers the three
 basenames in `ICE_PROJECTION_SCENARIOS` in `static/tools/js/explorer-app.js`.

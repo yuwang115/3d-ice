@@ -152,7 +152,10 @@ Antarctica 2300 multi-model means: `thickness` is BedMachine v4 thickness plus t
 change of eight models, `bed` is the BedMachine bed, `speed_change` the mean change in
 depth-averaged ice speed since 2015 that the flowlines follow (carried down today's flow where
 fewer than four models still have ice), and `series` the mean, minimum
-and maximum of the models' published sea-level contribution. `experiment`, `models`,
+and maximum of the models' published sea-level contribution: their loss of ice volume above
+flotation (`ivaf`) at 362.5 Gt per mm, the conversion the browser applies to the packed
+geometry, with the mean of the published seawater-equivalent `sle` scalar beside it as
+`sea_level_contribution_seawater_m`. `experiment`, `models`,
 `sources`, `method` and `validation` record the scenario, the models averaged, the citations
 (CC BY 4.0), how the mean was formed, and how much of the mean volume change the packed frames
 keep and the sea level their geometry implies. Rule 3 above does not apply to this family; the

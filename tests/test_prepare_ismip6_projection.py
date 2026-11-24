@@ -311,21 +311,32 @@ def test_read_terrain_decodes_fill_and_mask(mod, tmp_path):
 
 
 @pytest.mark.unit
-def test_published_mean_sle_drops_the_initial_state_of_a_287_record_run(mod, tmp_path):
+def test_published_mean_sle_converts_ivaf_and_drops_the_initial_state_of_a_287_record_run(mod, tmp_path):
     netCDF4 = pytest.importorskip("netCDF4")
-    exp_dir = tmp_path / "expAE05" / "sle"
-    exp_dir.mkdir(parents=True)
-    series = {"A": np.linspace(0.0, 1.0, 286), "B": np.concatenate([[9.0], np.linspace(1.0, 3.0, 286)])}
-    for model, values in series.items():
-        with netCDF4.Dataset(exp_dir / f"computed_sle_AIS_{model}_expAE05.nc", "w") as ds:
-            ds.createDimension("time", values.size)
-            ds.createVariable("sle", "f4", ("time",))[:] = values
+    # Sea-level rise in metres since each model's 2015 record; B has an initial state first.
+    rise = {"A": np.linspace(0.0, 1.0, 286), "B": np.concatenate([[9.0], np.linspace(1.0, 3.0, 286)])}
+    for variable in ("ivaf", "sle"):
+        (tmp_path / "expAE05" / variable).mkdir(parents=True)
+    for model, metres in rise.items():
+        files = {
+            # Volume above flotation in Gt falls by 362.5 Gt for every mm the sea rises.
+            "ivaf": 4.0e7 - metres * mod.GT_PER_MM_SLE * 1000.0,
+            # The published seawater equivalent of the same loss is a little lower.
+            "sle": 0.975 * metres,
+        }
+        for variable, values in files.items():
+            path = tmp_path / "expAE05" / variable / f"computed_{variable}_AIS_{model}_expAE05.nc"
+            with netCDF4.Dataset(path, "w") as ds:
+                ds.createDimension("time", values.size)
+                ds.createVariable(variable, "f8", ("time",))[:] = values
     out = mod.published_mean_sle(tmp_path, ["A", "B"], "expAE05")
 
     assert out["years"][0] == 2015 and out["years"][-1] == 2300
     np.testing.assert_allclose(out["mean"][[0, -1]], [0.0, 1.5], atol=1e-6)
     np.testing.assert_allclose(out["max"][-1], 2.0, atol=1e-6)
     assert out["per_model_end"]["B"] == pytest.approx(2.0, abs=1e-6)
+    # The seawater series is kept apart, and is not what the package shows.
+    np.testing.assert_allclose(out["seawater_mean"][[0, -1]], [0.0, 0.975 * 1.5], atol=1e-6)
 
 
 # ------------------------------------------------------------------ package layout

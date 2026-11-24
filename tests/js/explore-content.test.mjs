@@ -246,6 +246,17 @@ test("the high-emission stop quotes the numbers its packages carry", () => {
   for (const quoted of chineseQuotes) assert.ok(chinese.includes(quoted), quoted);
 });
 
+test("the projection explainer quotes each scenario's mean in 2300 as its package carries it", () => {
+  const quoted = { ae10: ["0.05 m", "0.05 米", 100], ae05: ["1.5 m", "1.5 米", 10], ae14: ["2.5 m", "2.5 米", 10] };
+  const [english, chinese] = ["en-US", "zh-CN"].map((locale) => EXPLORE_CONTENT[locale].info.projection.body.join(" "));
+  for (const [scenario, [en, zh, scale]] of Object.entries(quoted)) {
+    const mean = meanSeaLevelIn(projectionMeta(scenario), 2300);
+    assert.equal(Math.round(mean * scale) / scale, Number.parseFloat(en), `${scenario}: ${mean} m rounds to ${en}`);
+    assert.ok(english.includes(en), `English quotes ${en}`);
+    assert.ok(chinese.includes(zh), `Chinese quotes ${zh}`);
+  }
+});
+
 test("the last stop ends the tour with a choice of the regions the tour visits", () => {
   const last = TOUR_CHAPTERS.at(-1);
   const visited = [...new Set(TOUR_CHAPTERS.map((chapter) => chapter.view.region).filter(Boolean))].sort();

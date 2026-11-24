@@ -55,8 +55,11 @@ same name.
 
 `node examples/isostatic-rebound.mjs` reproduces the isostatic-rebound figures the explorer shows
 for Antarctica, with the explorer's own decoder and rebound module: the published response by
-default, or an idealised solve with `--model flexural|local`. [example.md](example.md)
-walks through it and through a rebuild of part of the data pipeline from the repository alone.
+default, or an idealised solve with `--model flexural|local`.
+`node examples/ismip6-projection.mjs [--scenario ae10|ae05|ae14]` reports the grounded area and
+implied sea-level rise of the ISMIP6-2300 ensemble mean, total and by MEaSUREs drainage basin.
+[example.md](example.md) walks through both and through a rebuild of part of the data pipeline
+from the repository alone.
 
 ## Building the compatibility bundle
 
