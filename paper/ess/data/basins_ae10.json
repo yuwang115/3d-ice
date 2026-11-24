@@ -1,0 +1,4709 @@
+{
+  "scenario": "ae10",
+  "package": "ismip6_2300_mean8_ae10_480",
+  "title": "ISMIP6 Antarctica 2300 expAE10: mean of 8 ice sheet models, Low emissions (SSP1-2.6)",
+  "models": [
+    "DOE_MALI_4km",
+    "ILTS_SICOPOLIS",
+    "IMAU_UFEMISM1",
+    "LSCE_GRISLI",
+    "UCM_Yelmo",
+    "UCSD_ISSM",
+    "ULB_fETISh-KoriBU1",
+    "UNN_Ua"
+  ],
+  "cellArea": "ground",
+  "series": [
+    {
+      "year": 2015,
+      "groundedAreaKm2": 12281163.381422952,
+      "floatingAreaKm2": 1561390.0922867444,
+      "sleMeters": 0,
+      "publishedMeanSleMeters": 0,
+      "publishedMinSleMeters": 0,
+      "publishedMaxSleMeters": 0
+    },
+    {
+      "year": 2100,
+      "groundedAreaKm2": 12218375.411763517,
+      "floatingAreaKm2": 1622288.509904099,
+      "sleMeters": 0.01057285998678864,
+      "publishedMeanSleMeters": -0.0241,
+      "publishedMinSleMeters": -0.20392,
+      "publishedMaxSleMeters": 0.06712
+    },
+    {
+      "year": 2200,
+      "groundedAreaKm2": 12179706.919561228,
+      "floatingAreaKm2": 1659435.468346777,
+      "sleMeters": 0.06206340334010416,
+      "publishedMeanSleMeters": -0.00088,
+      "publishedMinSleMeters": -0.35727,
+      "publishedMaxSleMeters": 0.20573
+    },
+    {
+      "year": 2300,
+      "groundedAreaKm2": 12157525.75197463,
+      "floatingAreaKm2": 1681718.1309382385,
+      "sleMeters": 0.15051481172674291,
+      "publishedMeanSleMeters": 0.05337,
+      "publishedMinSleMeters": -0.37219,
+      "publishedMaxSleMeters": 0.35005
+    }
+  ],
+  "basins": [
+    {
+      "name": "Thwaites",
+      "initialGroundedAreaKm2": 191912.89535769634,
+      "groundedAreaChangeKm2": [
+        0,
+        -2965.4399760832603,
+        -4909.55680606846,
+        -8701.16636157062
+      ],
+      "sleMeters": [
+        0,
+        0.016632725613280285,
+        0.05323286601099035,
+        0.11899416699020511
+      ]
+    },
+    {
+      "name": "Pine Island",
+      "initialGroundedAreaKm2": 181585.4516937734,
+      "groundedAreaChangeKm2": [
+        0,
+        -2349.70573040843,
+        -3167.994384666119,
+        -4397.286976417614
+      ],
+      "sleMeters": [
+        0,
+        0.004480671029184715,
+        0.011009991416639501,
+        0.023211812418887878
+      ]
+    },
+    {
+      "name": "Totten",
+      "initialGroundedAreaKm2": 556029.1566622467,
+      "groundedAreaChangeKm2": [
+        0,
+        -487.92894402786624,
+        -3514.682983344188,
+        -6347.09171352745
+      ],
+      "sleMeters": [
+        0,
+        -0.0001544156093781448,
+        0.006594830523770164,
+        0.01652792117183154
+      ]
+    },
+    {
+      "name": "Moscow",
+      "initialGroundedAreaKm2": 220880.43605245798,
+      "groundedAreaChangeKm2": [
+        0,
+        -1072.3317038684909,
+        -4781.18212988411,
+        -5856.099811840424
+      ],
+      "sleMeters": [
+        0,
+        0.0014419960058935216,
+        0.007375498050842222,
+        0.014475677307573178
+      ]
+    },
+    {
+      "name": "Whillans",
+      "initialGroundedAreaKm2": 200916.65304155104,
+      "groundedAreaChangeKm2": [
+        0,
+        -17655.433403830742,
+        -22489.910327114863,
+        -24591.42353378539
+      ],
+      "sleMeters": [
+        0,
+        0.0032036891084719606,
+        0.007329136107352977,
+        0.012000172066221382
+      ]
+    },
+    {
+      "name": "Getz",
+      "initialGroundedAreaKm2": 84179.15409967452,
+      "groundedAreaChangeKm2": [
+        0,
+        -3465.0014771737624,
+        -4891.757743087699,
+        -5809.472533230597
+      ],
+      "sleMeters": [
+        0,
+        0.004072767018549711,
+        0.007214955305375681,
+        0.010811981182405875
+      ]
+    },
+    {
+      "name": "Bindschadler",
+      "initialGroundedAreaKm2": 126852.89753445196,
+      "groundedAreaChangeKm2": [
+        0,
+        -1981.450224569373,
+        -5007.38160991708,
+        -6468.44903532273
+      ],
+      "sleMeters": [
+        0,
+        0.001575940039684879,
+        0.006339133350704183,
+        0.010105962218891758
+      ]
+    },
+    {
+      "name": "Borchgrevink",
+      "initialGroundedAreaKm2": 171878.43294253168,
+      "groundedAreaChangeKm2": [
+        0,
+        -2095.07483629958,
+        -3193.5288033213874,
+        -4192.3017281744105
+      ],
+      "sleMeters": [
+        0,
+        0.0033279615822521197,
+        0.006491882742356374,
+        0.008193770816022712
+      ]
+    },
+    {
+      "name": "Kamb",
+      "initialGroundedAreaKm2": 161802.75190730402,
+      "groundedAreaChangeKm2": [
+        0,
+        -7654.548047857359,
+        -15830.4010408108,
+        -19183.08408493019
+      ],
+      "sleMeters": [
+        0,
+        0.0015215428836251757,
+        0.005032781524938482,
+        0.008158397237750255
+      ]
+    },
+    {
+      "name": "Institute",
+      "initialGroundedAreaKm2": 160224.79420536035,
+      "groundedAreaChangeKm2": [
+        0,
+        -1356.363824944361,
+        -2191.4310991216043,
+        -3027.129259254434
+      ],
+      "sleMeters": [
+        0,
+        0.000864832342637081,
+        0.0032708537408657028,
+        0.00815795454781586
+      ]
+    },
+    {
+      "name": "Haynes",
+      "initialGroundedAreaKm2": 9743.194147710823,
+      "groundedAreaChangeKm2": [
+        0,
+        -204.41502745243997,
+        -408.89737899922693,
+        -1432.1983377697416
+      ],
+      "sleMeters": [
+        0,
+        0.0013337167682845599,
+        0.004803552363483213,
+        0.007865911434629853
+      ]
+    },
+    {
+      "name": "MacAyeal",
+      "initialGroundedAreaKm2": 191550.68186087115,
+      "groundedAreaChangeKm2": [
+        0,
+        -3124.0706938155345,
+        -5934.917455525545,
+        -7288.519085493783
+      ],
+      "sleMeters": [
+        0,
+        0.001144061652700026,
+        0.004476065766971558,
+        0.007089706583135958
+      ]
+    },
+    {
+      "name": "Leopold and Astrid Coast",
+      "initialGroundedAreaKm2": 213428.5240218814,
+      "groundedAreaChangeKm2": [
+        0,
+        -878.1750966488908,
+        -1950.6451196320122,
+        -2340.7024746235693
+      ],
+      "sleMeters": [
+        0,
+        0.002456797228975824,
+        0.005309747505757743,
+        0.00673599678747855
+      ]
+    },
+    {
+      "name": "Moller",
+      "initialGroundedAreaKm2": 61275.684871543184,
+      "groundedAreaChangeKm2": [
+        0,
+        -1987.8826456865718,
+        -3138.983663404688,
+        -2826.2681104856456
+      ],
+      "sleMeters": [
+        0,
+        0.0012078594429258639,
+        0.0034964510090567426,
+        0.006430242872294176
+      ]
+    },
+    {
+      "name": "Kohler",
+      "initialGroundedAreaKm2": 14116.645309510792,
+      "groundedAreaChangeKm2": [
+        0,
+        -613.03799800862,
+        -1226.4881668057042,
+        -1941.977311616407
+      ],
+      "sleMeters": [
+        0,
+        0.001484319032546871,
+        0.004054104869151149,
+        0.0064005227638179165
+      ]
+    },
+    {
+      "name": "Mercer",
+      "initialGroundedAreaKm2": 71879.5085077515,
+      "groundedAreaChangeKm2": [
+        0,
+        -7577.774326622901,
+        -10104.366797316608,
+        -11683.035212536292
+      ],
+      "sleMeters": [
+        0,
+        0.0024380831132292786,
+        0.004472434280210262,
+        0.005688151068932325
+      ]
+    },
+    {
+      "name": "Pope",
+      "initialGroundedAreaKm2": 6969.1195219258625,
+      "groundedAreaChangeKm2": [
+        0,
+        -408.9491100429477,
+        -613.5400594288185,
+        -715.8970354792727
+      ],
+      "sleMeters": [
+        0,
+        0.0012742352594501789,
+        0.003212324846695217,
+        0.004956570786790476
+      ]
+    },
+    {
+      "name": "Baudouin",
+      "initialGroundedAreaKm2": 297792.973874747,
+      "groundedAreaChangeKm2": [
+        0,
+        -498.0208820494008,
+        -897.9365980203729,
+        -997.7502838535002
+      ],
+      "sleMeters": [
+        0,
+        0.001577655008465739,
+        0.0031746434751984587,
+        0.0037955928809819003
+      ]
+    },
+    {
+      "name": "Smith",
+      "initialGroundedAreaKm2": 5326.773011632404,
+      "groundedAreaChangeKm2": [
+        0,
+        -408.90068068141227,
+        -817.9847095081905,
+        -1022.687861623177
+      ],
+      "sleMeters": [
+        0,
+        0.001187539088278545,
+        0.002517824006749069,
+        0.0036285145720802016
+      ]
+    },
+    {
+      "name": "Cook",
+      "initialGroundedAreaKm2": 307645.5637845901,
+      "groundedAreaChangeKm2": [
+        0,
+        -197.14444538170937,
+        -98.61170721973758,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0.0009322168202767399,
+        0.002525048649461329,
+        0.0036029947281429444
+      ]
+    },
+    {
+      "name": "Ferrigno",
+      "initialGroundedAreaKm2": 9259.209567398362,
+      "groundedAreaChangeKm2": [
+        0,
+        -101.43547639884855,
+        -101.43547639884855,
+        -101.43547639884855
+      ],
+      "sleMeters": [
+        0,
+        0.0007323571987642637,
+        0.001756278329513197,
+        0.0024504934721525417
+      ]
+    },
+    {
+      "name": "Lazarev",
+      "initialGroundedAreaKm2": 31484.776839065893,
+      "groundedAreaChangeKm2": [
+        0,
+        -597.2659675548639,
+        -696.8420658500254,
+        -796.572991588102
+      ],
+      "sleMeters": [
+        0,
+        0.0008050861297088365,
+        0.001296243002027982,
+        0.0016555803231595703
+      ]
+    },
+    {
+      "name": "Echelmeyer",
+      "initialGroundedAreaKm2": 19075.57662815743,
+      "groundedAreaChangeKm2": [
+        0,
+        -830.2394805661024,
+        -1452.7613836556266,
+        -1556.5905664044622
+      ],
+      "sleMeters": [
+        0,
+        0.0005384937246462069,
+        0.0011282813961998584,
+        0.0015714446960207013
+      ]
+    },
+    {
+      "name": "George VI",
+      "initialGroundedAreaKm2": 78192.2490133406,
+      "groundedAreaChangeKm2": [
+        0,
+        -303.495936040199,
+        -506.34955684763554,
+        -404.9357594171597
+      ],
+      "sleMeters": [
+        0,
+        0.00015896304392431102,
+        0.00000931975971101661,
+        0.0012683630167839354
+      ]
+    },
+    {
+      "name": "Cosgrove",
+      "initialGroundedAreaKm2": 7811.255284784369,
+      "groundedAreaChangeKm2": [
+        0,
+        -507.07454542672986,
+        -608.2814752704389,
+        -709.4967089236025
+      ],
+      "sleMeters": [
+        0,
+        0.0005579820749659169,
+        0.0010770409093201825,
+        0.0012547957814675098
+      ]
+    },
+    {
+      "name": "Ninnis",
+      "initialGroundedAreaKm2": 178475.23984981896,
+      "groundedAreaChangeKm2": [
+        0,
+        -196.6364504225494,
+        -294.8619511430443,
+        -196.70303601305932
+      ],
+      "sleMeters": [
+        0,
+        0.0003075599859478344,
+        0.000679198878512657,
+        0.0010012817456680658
+      ]
+    },
+    {
+      "name": "Venable",
+      "initialGroundedAreaKm2": 14716.099825172145,
+      "groundedAreaChangeKm2": [
+        0,
+        -404.79665255755936,
+        -607.0861840676225,
+        -607.0861840676225
+      ],
+      "sleMeters": [
+        0,
+        0.00011124683185797833,
+        0.0003719857546529104,
+        0.0007664760265131135
+      ]
+    },
+    {
+      "name": "Fox",
+      "initialGroundedAreaKm2": 3755.0452092000037,
+      "groundedAreaChangeKm2": [
+        0,
+        -101.22493132041382,
+        -101.22493132041382,
+        -101.22493132041382
+      ],
+      "sleMeters": [
+        0,
+        0.0003285182237159524,
+        0.0005701213516056017,
+        0.0006975132251122503
+      ]
+    },
+    {
+      "name": "Prestud",
+      "initialGroundedAreaKm2": 11481.414501557456,
+      "groundedAreaChangeKm2": [
+        0,
+        -103.43342578680131,
+        -206.96181658173373,
+        -310.37260018097186
+      ],
+      "sleMeters": [
+        0,
+        0.0002721790885349957,
+        0.0004956820495812618,
+        0.0006756025745419657
+      ]
+    },
+    {
+      "name": "Nickerson",
+      "initialGroundedAreaKm2": 10156.32504085112,
+      "groundedAreaChangeKm2": [
+        0,
+        -512.4042630592521,
+        -819.7100646772651,
+        -922.2288456733932
+      ],
+      "sleMeters": [
+        0,
+        0.0003859579847148559,
+        0.0005459916309329639,
+        0.0005285266349048572
+      ]
+    },
+    {
+      "name": "Abbot",
+      "initialGroundedAreaKm2": 26547.55139355162,
+      "groundedAreaChangeKm2": [
+        0,
+        -202.3287400685076,
+        -101.17264232531306,
+        -0.09791985610718257
+      ],
+      "sleMeters": [
+        0,
+        0.000723885871984487,
+        0.00039327859051791413,
+        0.0005157075099039939
+      ]
+    },
+    {
+      "name": "Lucchitta Velasco",
+      "initialGroundedAreaKm2": 5595.2999206389495,
+      "groundedAreaChangeKm2": [
+        0,
+        -305.4764573659804,
+        -305.4764573659804,
+        -305.4764573659804
+      ],
+      "sleMeters": [
+        0,
+        0.0001816203211111299,
+        0.00021918152667608834,
+        0.0002953478526326935
+      ]
+    },
+    {
+      "name": "Philbin",
+      "initialGroundedAreaKm2": 3053.097256467583,
+      "groundedAreaChangeKm2": [
+        0,
+        -101.87885320329497,
+        -203.60037555521876,
+        -203.60037555521876
+      ],
+      "sleMeters": [
+        0,
+        0.00022714082156394472,
+        0.00026395466702039557,
+        0.000281489049821057
+      ]
+    },
+    {
+      "name": "MacRobertson Land",
+      "initialGroundedAreaKm2": 153584.29783184314,
+      "groundedAreaChangeKm2": [
+        0,
+        -896.2804555040202,
+        -1394.973258705024,
+        -1792.278654163063
+      ],
+      "sleMeters": [
+        0,
+        0.00029714932022510996,
+        0.0005056376073963704,
+        0.00026251659722460166
+      ]
+    },
+    {
+      "name": "Walgreen Coast",
+      "initialGroundedAreaKm2": 2233.7658605917754,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0.000050118988360995196,
+        0.00010612842849621966,
+        0.00024149645523370135
+      ]
+    },
+    {
+      "name": "Quar",
+      "initialGroundedAreaKm2": 2806.511734738845,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        -100.24244424079188,
+        -100.24244424079188
+      ],
+      "sleMeters": [
+        0,
+        0.00010881296878761818,
+        0.00017856736464847304,
+        0.00020926898399036602
+      ]
+    },
+    {
+      "name": "Hercules",
+      "initialGroundedAreaKm2": 9576.543983552796,
+      "groundedAreaChangeKm2": [
+        0,
+        -104.14006146671818,
+        -312.50295071442633,
+        -520.5700965648084
+      ],
+      "sleMeters": [
+        0,
+        0.00009343930980897846,
+        0.00015675264503425436,
+        0.00020339648297713333
+      ]
+    },
+    {
+      "name": "King",
+      "initialGroundedAreaKm2": 1314.61965522459,
+      "groundedAreaChangeKm2": [
+        0,
+        -100.92227987325123,
+        -100.92227987325123,
+        -100.92227987325123
+      ],
+      "sleMeters": [
+        0,
+        0.00013541402100222734,
+        0.00019858199125111228,
+        0.00018246600689689877
+      ]
+    },
+    {
+      "name": "Lauritzen",
+      "initialGroundedAreaKm2": 4458.015239888195,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        -98.84784074858999,
+        -98.84784074858999
+      ],
+      "sleMeters": [
+        0,
+        0.00006584754426065024,
+        0.00011885852575313792,
+        0.0001694605774658069
+      ]
+    },
+    {
+      "name": "Stange",
+      "initialGroundedAreaKm2": 15031.822409661845,
+      "groundedAreaChangeKm2": [
+        0,
+        -405.7666183132642,
+        -405.7666183132642,
+        -405.7666183132642
+      ],
+      "sleMeters": [
+        0,
+        -0.00018293775293489736,
+        0.0000677189344763006,
+        0.00014868791717149424
+      ]
+    },
+    {
+      "name": "Leverett",
+      "initialGroundedAreaKm2": 3056.290544222908,
+      "groundedAreaChangeKm2": [
+        0,
+        -105.32922005201499,
+        -210.66523019173792,
+        -210.66523019173792
+      ],
+      "sleMeters": [
+        0,
+        0.00009022601915356339,
+        0.00010918854277155411,
+        0.00012063296228313736
+      ]
+    },
+    {
+      "name": "Prince Harald Coast1",
+      "initialGroundedAreaKm2": 1478.924067923137,
+      "groundedAreaChangeKm2": [
+        0,
+        -98.50480198523519,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0.00007083901348543097,
+        0.00010252197940873402,
+        0.00010852167134536838
+      ]
+    },
+    {
+      "name": "Slava",
+      "initialGroundedAreaKm2": 5038.057301702968,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000009232246371548641,
+        0.00003975524337542049,
+        0.00010661565169343516
+      ]
+    },
+    {
+      "name": "Ross East1",
+      "initialGroundedAreaKm2": 2315.0052304760393,
+      "groundedAreaChangeKm2": [
+        0,
+        -105.20809456075312,
+        -315.61395754222644,
+        -420.8112299214213
+      ],
+      "sleMeters": [
+        0,
+        0.00004759718186755507,
+        0.00006722921462617817,
+        0.00006920031292109399
+      ]
+    },
+    {
+      "name": "Wilkins Island2",
+      "initialGroundedAreaKm2": 1607.5992749411698,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0.00002949673946497517,
+        0.00005058737464224028,
+        0.00006506893794691041
+      ]
+    },
+    {
+      "name": "Jackson-Perkins",
+      "initialGroundedAreaKm2": 1733.7935138153941,
+      "groundedAreaChangeKm2": [
+        0,
+        -101.88791707389055,
+        -101.88791707389055,
+        -101.88791707389055
+      ],
+      "sleMeters": [
+        0,
+        0.000048495243614157366,
+        0.000051836172180136125,
+        0.00006265637660919002
+      ]
+    },
+    {
+      "name": "Shirases Coast2",
+      "initialGroundedAreaKm2": 515.3250697018085,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        -103.12103555763485,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0.000025296618480247187,
+        0.00004916289133304564,
+        0.00004903491636710656
+      ]
+    },
+    {
+      "name": "Jason Peninsula",
+      "initialGroundedAreaKm2": 773.6591742223472,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0.00003791522206582018,
+        0.000045258476341105536,
+        0.000037429122271007884
+      ]
+    },
+    {
+      "name": "Oates Coast1",
+      "initialGroundedAreaKm2": 197.8149311234058,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0.00000975551881414863,
+        0.000023513890029402436,
+        0.00002926749671362309
+      ]
+    },
+    {
+      "name": "Princess Martha Coast1",
+      "initialGroundedAreaKm2": 601.280639090138,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0.000004563221115238711,
+        0.000021033873879831775,
+        0.000028388014532809665
+      ]
+    },
+    {
+      "name": "Verdi",
+      "initialGroundedAreaKm2": 802.8052954943989,
+      "groundedAreaChangeKm2": [
+        0,
+        100.29467507824347,
+        100.29467507824347,
+        100.29467507824347
+      ],
+      "sleMeters": [
+        0,
+        -5.381928906881647e-7,
+        0.000006570715437809645,
+        0.000017741329281086804
+      ]
+    },
+    {
+      "name": "Cape Jeremy",
+      "initialGroundedAreaKm2": 495.0613580922112,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0.000011017399714293548,
+        0.000017528956811331573,
+        0.000017278631845654454
+      ]
+    },
+    {
+      "name": "Ruppert Coast2",
+      "initialGroundedAreaKm2": 615.9313652518128,
+      "groundedAreaChangeKm2": [
+        0,
+        -205.29033975621974,
+        -205.29033975621974,
+        -205.29033975621974
+      ],
+      "sleMeters": [
+        0,
+        0.00001978338366291307,
+        0.000018743188438450458,
+        0.000015364349008463962
+      ]
+    },
+    {
+      "name": "Ross East4",
+      "initialGroundedAreaKm2": 9715.935113764905,
+      "groundedAreaChangeKm2": [
+        0,
+        -208.91406510397246,
+        -208.91406510397246,
+        -417.4670966943795
+      ],
+      "sleMeters": [
+        0,
+        0.00003316786655779093,
+        0.00003780092131764043,
+        0.00001127803245217393
+      ]
+    },
+    {
+      "name": "Knox Coast",
+      "initialGroundedAreaKm2": 193.26335111432854,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0000019556293822273576,
+        0.000006111634030706057,
+        0.000009289611470801583
+      ]
+    },
+    {
+      "name": "Wilkins Island1",
+      "initialGroundedAreaKm2": 200.41267672535974,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0.0000012685069952725164,
+        0.0000045645363473038476,
+        0.000007099914502679964
+      ]
+    },
+    {
+      "name": "Cooke",
+      "initialGroundedAreaKm2": 403.75118200188837,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0.000018640739132489186,
+        0.000009193321530600137,
+        0.0000068952245267623405
+      ]
+    },
+    {
+      "name": "Princess Astrid Coast2",
+      "initialGroundedAreaKm2": 99.40127499501077,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0.0000035203132920991667,
+        0.000006789175634762678,
+        0.000006789175634762678
+      ]
+    },
+    {
+      "name": "Shirases Coast1",
+      "initialGroundedAreaKm2": 309.8365315158886,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -7.838738642930558e-7,
+        7.834663483538566e-7,
+        0.000004702163601960954
+      ]
+    },
+    {
+      "name": "Enderby Land2",
+      "initialGroundedAreaKm2": 0,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Prince Harald Coast2",
+      "initialGroundedAreaKm2": 0,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Punchbowl",
+      "initialGroundedAreaKm2": 0,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Wilkins Island5",
+      "initialGroundedAreaKm2": 0,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Evans Headland",
+      "initialGroundedAreaKm2": 96.07701257042311,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        2.4304171179883645e-7,
+        2.4304171179883645e-7,
+        -9.721668471953428e-7
+      ]
+    },
+    {
+      "name": "Princess Martha Coast2",
+      "initialGroundedAreaKm2": 99.93462031253222,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        2.5280012917680334e-7,
+        -5.056002583536112e-7,
+        -0.0000010112005167072225
+      ]
+    },
+    {
+      "name": "Wilkins Island6",
+      "initialGroundedAreaKm2": 100.13820641059104,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0.0000017732059226195401,
+        -0.0000010132605272111678,
+        -0.0000010132605272111678
+      ]
+    },
+    {
+      "name": "LarsenG Bowman Peninsula",
+      "initialGroundedAreaKm2": 101.99056901196911,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -5.160019408771107e-7,
+        -0.0000012900048521927696,
+        -0.0000015480058226313227
+      ]
+    },
+    {
+      "name": "Drygalskis Headland",
+      "initialGroundedAreaKm2": 95.86252155593768,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0000019399929879568518,
+        -0.0000026674903584406717,
+        -0.0000031524886054298793
+      ]
+    },
+    {
+      "name": "Princess Astrid Coast1",
+      "initialGroundedAreaKm2": 99.4759131049885,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000001258198790583097,
+        -0.000004026236129865906,
+        -0.000003271316855516055
+      ]
+    },
+    {
+      "name": "Drygalski",
+      "initialGroundedAreaKm2": 957.0640807993059,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000010896156570571551,
+        -0.000007264688486872156,
+        -0.000004358607294944937
+      ]
+    },
+    {
+      "name": "Saunders Coast",
+      "initialGroundedAreaKm2": 206.01650497301137,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000002345425520551504,
+        -0.000002866500148046059,
+        -0.000004690622771363915
+      ]
+    },
+    {
+      "name": "LarsenE Kemp Peninsula",
+      "initialGroundedAreaKm2": 404.52207742406443,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0.000006388572559303964,
+        2.4907690916274146e-7,
+        -0.000005378798540274982
+      ]
+    },
+    {
+      "name": "Hamilton",
+      "initialGroundedAreaKm2": 1341.6963535868954,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0.0000172165651680428,
+        0.000007547037672144148,
+        -0.000006296839708970035
+      ]
+    },
+    {
+      "name": "Stubb",
+      "initialGroundedAreaKm2": 96.45765880802853,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0000017080323086585799,
+        -0.000005124096925975739,
+        -0.000008052152312247589
+      ]
+    },
+    {
+      "name": "LarsenF Piggot Peninsula",
+      "initialGroundedAreaKm2": 101.52910168320606,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000002311502555011031,
+        -0.000004879838727245517,
+        -0.000008218675751150342
+      ]
+    },
+    {
+      "name": "Atka",
+      "initialGroundedAreaKm2": 1598.5297476920093,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0000035139045485561537,
+        -0.000004250815466888629,
+        -0.00000903278211041499
+      ]
+    },
+    {
+      "name": "Rydberg Peninsula",
+      "initialGroundedAreaKm2": 1214.161595586827,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0.000004843779727818851,
+        -0.00001563482129107801,
+        -0.00001000170854390309
+      ]
+    },
+    {
+      "name": "Victoria Land3",
+      "initialGroundedAreaKm2": 404.3729945726848,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000002299744483852962,
+        -0.000006133718442851609,
+        -0.000010735021631448714
+      ]
+    },
+    {
+      "name": "Hektoria Headland",
+      "initialGroundedAreaKm2": 287.6828204725299,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000007516902381707701,
+        -0.000010911994734964991,
+        -0.000013579639833032934
+      ]
+    },
+    {
+      "name": "Jorum",
+      "initialGroundedAreaKm2": 480.4051159632537,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000009967570903472234,
+        -0.000011914197158279457,
+        -0.000015076861766539
+      ]
+    },
+    {
+      "name": "LarsenG Smith Peninsula",
+      "initialGroundedAreaKm2": 407.2427962422046,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000005150821295560244,
+        -0.000011845843258015741,
+        -0.00001519364221323535
+      ]
+    },
+    {
+      "name": "Thomson",
+      "initialGroundedAreaKm2": 1417.7432545990196,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000015131221708041645,
+        -0.000024618244746353067,
+        -0.000018473828377118688
+      ]
+    },
+    {
+      "name": "Starbuck",
+      "initialGroundedAreaKm2": 96.40062876540385,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000006096508729508642,
+        -0.000015119341649181438,
+        -0.000022191291775411464
+      ]
+    },
+    {
+      "name": "Wilkins Island3",
+      "initialGroundedAreaKm2": 806.4261366468439,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00002040379046293997,
+        -0.000024228214483532866,
+        -0.00002269894398402869
+      ]
+    },
+    {
+      "name": "American HighLand",
+      "initialGroundedAreaKm2": 211653.75616523984,
+      "groundedAreaChangeKm2": [
+        0,
+        -100.57396426127525,
+        -200.73105551899062,
+        -800.7344500446925
+      ],
+      "sleMeters": [
+        0,
+        0.00018238541893102404,
+        0.00008347842758376199,
+        -0.000032626969550667686
+      ]
+    },
+    {
+      "name": "Prospect",
+      "initialGroundedAreaKm2": 1685.8145425347632,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -3.312396437591564e-8,
+        -0.00001461305194248055,
+        -0.00003419098353209424
+      ]
+    },
+    {
+      "name": "Brahms",
+      "initialGroundedAreaKm2": 802.2268192725385,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00001497125391963491,
+        -0.00003222118152436854,
+        -0.000034250582475196845
+      ]
+    },
+    {
+      "name": "Pequod",
+      "initialGroundedAreaKm2": 289.07847567331856,
+      "groundedAreaChangeKm2": [
+        0,
+        -96.36717295436438,
+        -96.36717295436438,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000003074798750265992,
+        -0.000015994091262191638,
+        -0.000034613560252553445
+      ]
+    },
+    {
+      "name": "Harriott Headland",
+      "initialGroundedAreaKm2": 296.33347068064137,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00002073882529958181,
+        -0.00003523127168498917,
+        -0.00004097836413371758
+      ]
+    },
+    {
+      "name": "Mapple",
+      "initialGroundedAreaKm2": 192.482210435078,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00001314750477591008,
+        -0.000030433585075038993,
+        -0.00004211958803250921
+      ]
+    },
+    {
+      "name": "Icebreaker-Fitzgerald",
+      "initialGroundedAreaKm2": 1520.9258078232488,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00001615338996285773,
+        -0.00003564052019933512,
+        -0.00005205179036025416
+      ]
+    },
+    {
+      "name": "LarsenA",
+      "initialGroundedAreaKm2": 1050.5452254388829,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00003959959535465997,
+        -0.000052394401267652976,
+        -0.000052638211298584634
+      ]
+    },
+    {
+      "name": "Melville",
+      "initialGroundedAreaKm2": 192.62916000728765,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000021927920731553014,
+        -0.00004312482017577231,
+        -0.00005530691664567491
+      ]
+    },
+    {
+      "name": "Tracy Tremenchus",
+      "initialGroundedAreaKm2": 5917.1069917902,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000059211923456109344,
+        -0.0000964246499201131,
+        -0.00005979949379885117
+      ]
+    },
+    {
+      "name": "Richter",
+      "initialGroundedAreaKm2": 721.6653916420732,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000022692555321830084,
+        -0.00004773353931698666,
+        -0.00006416831309670408
+      ]
+    },
+    {
+      "name": "Bowman Strom Live Axel-Heigerg",
+      "initialGroundedAreaKm2": 10533.603518695714,
+      "groundedAreaChangeKm2": [
+        0,
+        -526.3790278676588,
+        -526.3790278676588,
+        -631.6593677200235
+      ],
+      "sleMeters": [
+        0,
+        0.00005374192678479203,
+        -0.000016376596176983588,
+        -0.00006446867049701421
+      ]
+    },
+    {
+      "name": "Sabrina Coast1",
+      "initialGroundedAreaKm2": 1165.3277313139586,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000023084383875364413,
+        -0.000043961627506668156,
+        -0.00006508844653425433
+      ]
+    },
+    {
+      "name": "Ross East3",
+      "initialGroundedAreaKm2": 5978.332214042186,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        -104.88208653172114,
+        -209.78849759215154
+      ],
+      "sleMeters": [
+        0,
+        0.000007672811559846744,
+        -0.000025760063527935317,
+        -0.00007089044003745337
+      ]
+    },
+    {
+      "name": "Ross East2",
+      "initialGroundedAreaKm2": 8940.715172861643,
+      "groundedAreaChangeKm2": [
+        0,
+        -105.15711373028898,
+        -210.33045206386305,
+        -315.4707442448034
+      ],
+      "sleMeters": [
+        0,
+        0.000022428437186898892,
+        1.9322586584715235e-7,
+        -0.00007746725546117874
+      ]
+    },
+    {
+      "name": "Zonda Eureka",
+      "initialGroundedAreaKm2": 3076.8990392786573,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00001130252294557788,
+        -0.0000552617252432311,
+        -0.00008716932184668323
+      ]
+    },
+    {
+      "name": "Victoria Land1",
+      "initialGroundedAreaKm2": 1994.32143865216,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000039361750872743605,
+        -0.00007846685797471148,
+        -0.00011302938275333135
+      ]
+    },
+    {
+      "name": "Campbell-Tinker",
+      "initialGroundedAreaKm2": 5383.8564981490645,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        -101.85697987746244,
+        -101.85697987746244
+      ],
+      "sleMeters": [
+        0,
+        -0.00002225288801207332,
+        -0.00006356659466088926,
+        -0.00011465820825777459
+      ]
+    },
+    {
+      "name": "Leppard",
+      "initialGroundedAreaKm2": 1836.090601243383,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000031765880295866215,
+        -0.00007796381910155232,
+        -0.00012050141418751815
+      ]
+    },
+    {
+      "name": "Alison",
+      "initialGroundedAreaKm2": 8842.544659825444,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00010161092198231411,
+        -0.00011802073192171167,
+        -0.0001210618085034492
+      ]
+    },
+    {
+      "name": "Wilkes Land1",
+      "initialGroundedAreaKm2": 3430.6953386777254,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00008706261669668915,
+        -0.00011951762479776766,
+        -0.00012349594958763985
+      ]
+    },
+    {
+      "name": "Harriott",
+      "initialGroundedAreaKm2": 1184.0585843938538,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00007912660468606647,
+        -0.00012655249701935836,
+        -0.0001405302168885925
+      ]
+    },
+    {
+      "name": "Withrow",
+      "initialGroundedAreaKm2": 2269.3636805260667,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00004410718992534823,
+        -0.00010413618626234178,
+        -0.00014537690800776803
+      ]
+    },
+    {
+      "name": "Flask",
+      "initialGroundedAreaKm2": 1254.1798171175965,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0000727186517528299,
+        -0.00012542837650138258,
+        -0.00014713906819566487
+      ]
+    },
+    {
+      "name": "Wilkes Land2",
+      "initialGroundedAreaKm2": 4038.6567913252293,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0000505188108447549,
+        -0.00008355359971301424,
+        -0.00015199730640977046
+      ]
+    },
+    {
+      "name": "Hektoria Green Evans",
+      "initialGroundedAreaKm2": 1438.4296524420429,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00015883557126666905,
+        -0.00018333978631170802,
+        -0.00019523093266722333
+      ]
+    },
+    {
+      "name": "LarsenG",
+      "initialGroundedAreaKm2": 3560.8750234749436,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        -101.81549199993151,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000056819934744789465,
+        -0.00012941598595913768,
+        -0.00020087780103265928
+      ]
+    },
+    {
+      "name": "Conger Glenzer",
+      "initialGroundedAreaKm2": 5243.165879669789,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00006266235914169704,
+        -0.00012832570598474418,
+        -0.00020213045773438787
+      ]
+    },
+    {
+      "name": "Dry Valleys",
+      "initialGroundedAreaKm2": 33961.51744315998,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00005808431842639911,
+        -0.00014118854885445355,
+        -0.0002078391212943471
+      ]
+    },
+    {
+      "name": "Airy Rotz Seller",
+      "initialGroundedAreaKm2": 1779.8455002029596,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00009229128073117016,
+        -0.00016106810345660995,
+        -0.00021008974121354098
+      ]
+    },
+    {
+      "name": "Mendelssohn",
+      "initialGroundedAreaKm2": 2604.908873616127,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00009451749358435201,
+        -0.00018803221150000697,
+        -0.00022173814362777037
+      ]
+    },
+    {
+      "name": "Crane",
+      "initialGroundedAreaKm2": 1154.9179135986262,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00011492197617158976,
+        -0.00018528074734073494,
+        -0.00022472037809504944
+      ]
+    },
+    {
+      "name": "Sabrina Coast2",
+      "initialGroundedAreaKm2": 4675.900136270716,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00008324550107030151,
+        -0.00014833252994212077,
+        -0.00022698420951638412
+      ]
+    },
+    {
+      "name": "Publications",
+      "initialGroundedAreaKm2": 34532.941068248925,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        0.000003596776853768508,
+        -0.00007225464395206007,
+        -0.00024951801786727223
+      ]
+    },
+    {
+      "name": "Eastern Graham Land",
+      "initialGroundedAreaKm2": 3803.835467131813,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0000801779219711104,
+        -0.0002053117061673334,
+        -0.00026515178948136536
+      ]
+    },
+    {
+      "name": "Union",
+      "initialGroundedAreaKm2": 7379.238963370145,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00006918415440504727,
+        -0.00016544455632095835,
+        -0.00027510513540915187
+      ]
+    },
+    {
+      "name": "Ross East5",
+      "initialGroundedAreaKm2": 10497.395612376551,
+      "groundedAreaChangeKm2": [
+        0,
+        -208.0015178203048,
+        -208.0015178203048,
+        -208.0015178203048
+      ],
+      "sleMeters": [
+        0,
+        -0.00007144410326495579,
+        -0.00017267969664794643,
+        -0.0002754927717821776
+      ]
+    },
+    {
+      "name": "Land",
+      "initialGroundedAreaKm2": 13237.560720628073,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00009001809751569976,
+        -0.00022260667969509557,
+        -0.0002786343260398412
+      ]
+    },
+    {
+      "name": "Shackleton",
+      "initialGroundedAreaKm2": 13380.11909886457,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        -105.18667044705398
+      ],
+      "sleMeters": [
+        0,
+        -0.00006823800241405837,
+        -0.00017510643061882276,
+        -0.0002821640083108105
+      ]
+    },
+    {
+      "name": "Voyeykov",
+      "initialGroundedAreaKm2": 6631.669818543502,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00009884024324538526,
+        -0.0001987728427293754,
+        -0.00031993739861458146
+      ]
+    },
+    {
+      "name": "Skelton",
+      "initialGroundedAreaKm2": 11487.665512090614,
+      "groundedAreaChangeKm2": [
+        0,
+        103.43507762558511,
+        103.43507762558511,
+        103.43507762558511
+      ],
+      "sleMeters": [
+        0,
+        -0.00009502170720755559,
+        -0.0002196708053267412,
+        -0.00036607236797504415
+      ]
+    },
+    {
+      "name": "Nivl",
+      "initialGroundedAreaKm2": 27226.66421769491,
+      "groundedAreaChangeKm2": [
+        0,
+        99.41929898083254,
+        99.62126003298181,
+        199.2057139249664
+      ],
+      "sleMeters": [
+        0,
+        -0.00003800729978399546,
+        -0.0002091281097530755,
+        -0.0003819687636124414
+      ]
+    },
+    {
+      "name": "Jelbart",
+      "initialGroundedAreaKm2": 19595.397840335787,
+      "groundedAreaChangeKm2": [
+        0,
+        -99.8487503949691,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00006265068960236979,
+        -0.00017806382278838352,
+        -0.0003990247125223765
+      ]
+    },
+    {
+      "name": "Holmes",
+      "initialGroundedAreaKm2": 29445.968374555476,
+      "groundedAreaChangeKm2": [
+        0,
+        0.24793282713653753,
+        -485.947363430143,
+        -680.5522682974806
+      ],
+      "sleMeters": [
+        0,
+        -0.00030610764703815696,
+        -0.0003073461599895136,
+        -0.00039920137613457066
+      ]
+    },
+    {
+      "name": "Coats Coast",
+      "initialGroundedAreaKm2": 26683.797291949773,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00019560989734358455,
+        -0.00030327372749601895,
+        -0.0004082437637074541
+      ]
+    },
+    {
+      "name": "Frostman-Lord-Shuman-Anandakri",
+      "initialGroundedAreaKm2": 5934.462924536484,
+      "groundedAreaChangeKm2": [
+        0,
+        -0.07822557373674499,
+        -0.07822557373674499,
+        -0.07822557373674499
+      ],
+      "sleMeters": [
+        0,
+        -0.00013311482034354793,
+        -0.0003000343143625234,
+        -0.00041055527105701044
+      ]
+    },
+    {
+      "name": "Butler-Swinburne",
+      "initialGroundedAreaKm2": 3817.4929534427392,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00012629746962913,
+        -0.0002737384335157101,
+        -0.00041832439600162437
+      ]
+    },
+    {
+      "name": "Edward VIII",
+      "initialGroundedAreaKm2": 3788.833836143091,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0001553023550850185,
+        -0.00029439626204545233,
+        -0.000421451936879115
+      ]
+    },
+    {
+      "name": "Prietsley-Rieves",
+      "initialGroundedAreaKm2": 22029.686484781938,
+      "groundedAreaChangeKm2": [
+        0,
+        -101.77767007843795,
+        -203.7486247088309,
+        -203.7486247088309
+      ],
+      "sleMeters": [
+        0,
+        -0.0001069512403958047,
+        -0.0002819645005041571,
+        -0.00044029861592533953
+      ]
+    },
+    {
+      "name": "LarsenF",
+      "initialGroundedAreaKm2": 5179.751807739687,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00015954569602746944,
+        -0.0003206360119340342,
+        -0.00046117054798825455
+      ]
+    },
+    {
+      "name": "Aviator",
+      "initialGroundedAreaKm2": 6681.511413973525,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00015574350196037357,
+        -0.00032222077995848556,
+        -0.00047230434202557946
+      ]
+    },
+    {
+      "name": "Fleming",
+      "initialGroundedAreaKm2": 5552.575782622086,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00016428857710150372,
+        -0.00033813200522923365,
+        -0.0004949143676318121
+      ]
+    },
+    {
+      "name": "Vigrid",
+      "initialGroundedAreaKm2": 35284.55705604021,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        -199.2352757726112,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00007182819442956223,
+        -0.00024079053084223335,
+        -0.0004984698257707469
+      ]
+    },
+    {
+      "name": "Lennox-King",
+      "initialGroundedAreaKm2": 21245.581848071713,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00015390933721779897,
+        -0.0003447750722509777,
+        -0.0005058767286223768
+      ]
+    },
+    {
+      "name": "Support Force",
+      "initialGroundedAreaKm2": 150870.4863064235,
+      "groundedAreaChangeKm2": [
+        0,
+        209.43396055159974,
+        104.65245609736303,
+        313.8112310691213
+      ],
+      "sleMeters": [
+        0,
+        -0.0000790108643912695,
+        -0.00022573656410123272,
+        -0.0005116075663169821
+      ]
+    },
+    {
+      "name": "Ekstrom",
+      "initialGroundedAreaKm2": 15875.448989814531,
+      "groundedAreaChangeKm2": [
+        0,
+        100.30261244756184,
+        200.30745725471024,
+        200.30745725471024
+      ],
+      "sleMeters": [
+        0,
+        -0.00019959647788433537,
+        -0.0003452371700128648,
+        -0.0005220374883438564
+      ]
+    },
+    {
+      "name": "Mariner",
+      "initialGroundedAreaKm2": 8283.527374730029,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00018071321130055167,
+        -0.0003808596748627489,
+        -0.0005666936184265181
+      ]
+    },
+    {
+      "name": "Amundsen",
+      "initialGroundedAreaKm2": 29858.81616632205,
+      "groundedAreaChangeKm2": [
+        0,
+        -210.67262274091627,
+        -316.0240225255948,
+        -316.0240225255948
+      ],
+      "sleMeters": [
+        0,
+        -0.00013783968284612627,
+        -0.0003776321148000545,
+        -0.0005843953747957822
+      ]
+    },
+    {
+      "name": "Lillie",
+      "initialGroundedAreaKm2": 14834.52410137165,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00019490085180148904,
+        -0.00040736941272661816,
+        -0.0005962709163474715
+      ]
+    },
+    {
+      "name": "Oates Coast2",
+      "initialGroundedAreaKm2": 9141.04670131922,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00021730267226502067,
+        -0.0004425181866754997,
+        -0.0006405772552987488
+      ]
+    },
+    {
+      "name": "Victoria Land2",
+      "initialGroundedAreaKm2": 12718.773621125067,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00023498004735155752,
+        -0.0004874276290956731,
+        -0.0007038504614165109
+      ]
+    },
+    {
+      "name": "Wilkins George VI",
+      "initialGroundedAreaKm2": 7822.555538190455,
+      "groundedAreaChangeKm2": [
+        0,
+        -100.95542560398098,
+        -100.95542560398098,
+        100.58024865254811
+      ],
+      "sleMeters": [
+        0,
+        -0.00021270060479945115,
+        -0.0005039756026009135,
+        -0.000710144377253557
+      ]
+    },
+    {
+      "name": "Minnesota",
+      "initialGroundedAreaKm2": 9648.493930942052,
+      "groundedAreaChangeKm2": [
+        0,
+        103.77127555220613,
+        103.77127555220613,
+        103.77127555220613
+      ],
+      "sleMeters": [
+        0,
+        -0.00022671548817016515,
+        -0.0004712659727561846,
+        -0.0007205621318982412
+      ]
+    },
+    {
+      "name": "Tucker",
+      "initialGroundedAreaKm2": 10971.763642999089,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00021899657183959244,
+        -0.000484108340397931,
+        -0.0007494992537280186
+      ]
+    },
+    {
+      "name": "Prince Harald",
+      "initialGroundedAreaKm2": 18286.15678277769,
+      "groundedAreaChangeKm2": [
+        0,
+        197.55159923216343,
+        197.55159923216343,
+        197.55159923216343
+      ],
+      "sleMeters": [
+        0,
+        -0.0002938706599723714,
+        -0.0006361378494236157,
+        -0.0008154790950233799
+      ]
+    },
+    {
+      "name": "Matusevitch",
+      "initialGroundedAreaKm2": 17327.552513992337,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00029909078293391216,
+        -0.0005943213775099713,
+        -0.0008670770205509432
+      ]
+    },
+    {
+      "name": "LarsenE",
+      "initialGroundedAreaKm2": 10422.95176197011,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.00030065358907047833,
+        -0.0006159063651083854,
+        -0.0008961176824137285
+      ]
+    },
+    {
+      "name": "Bach",
+      "initialGroundedAreaKm2": 10047.407591000305,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000330428735332672,
+        -0.0007089389041581917,
+        -0.0009039464236234593
+      ]
+    },
+    {
+      "name": "Scott",
+      "initialGroundedAreaKm2": 36304.19232116721,
+      "groundedAreaChangeKm2": [
+        0,
+        -105.33666727982927,
+        -210.68543798951578,
+        -421.37060162459966
+      ],
+      "sleMeters": [
+        0,
+        -0.00019622262547211482,
+        -0.0005627701199527058,
+        -0.0009180876942429561
+      ]
+    },
+    {
+      "name": "Fisher",
+      "initialGroundedAreaKm2": 104041.30887626193,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0003906373225832767,
+        -0.0006257052151945491,
+        -0.0010715444799688058
+      ]
+    },
+    {
+      "name": "Carlson",
+      "initialGroundedAreaKm2": 22291.7386946017,
+      "groundedAreaChangeKm2": [
+        0,
+        -103.55155200185618,
+        -103.55155200185618,
+        -103.55155200185618
+      ],
+      "sleMeters": [
+        0,
+        -0.0003814373315138982,
+        -0.0008024100933943542,
+        -0.001110033013028039
+      ]
+    },
+    {
+      "name": "Bailey",
+      "initialGroundedAreaKm2": 80446.54047258061,
+      "groundedAreaChangeKm2": [
+        0,
+        -207.60560458822874,
+        -311.2197947950481,
+        -311.2197947950481
+      ],
+      "sleMeters": [
+        0,
+        -0.00021211922929762514,
+        -0.000561319982699416,
+        -0.0011148476451710986
+      ]
+    },
+    {
+      "name": "Clarie Coast",
+      "initialGroundedAreaKm2": 24752.806924579374,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0006273001875507561,
+        -0.0009629715458294919,
+        -0.0011970489168205529
+      ]
+    },
+    {
+      "name": "Law Dome",
+      "initialGroundedAreaKm2": 14052.727751078333,
+      "groundedAreaChangeKm2": [
+        0,
+        -96.5344342103399,
+        0.06729577691658051,
+        96.70197826795447
+      ],
+      "sleMeters": [
+        0,
+        -0.000479613568956111,
+        -0.0008520336720466176,
+        -0.0012004448591114234
+      ]
+    },
+    {
+      "name": "Wilkins Island4",
+      "initialGroundedAreaKm2": 7518.566321228845,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0006027087756166396,
+        -0.000992566017756873,
+        -0.0012022554671217395
+      ]
+    },
+    {
+      "name": "Vincennes Bay",
+      "initialGroundedAreaKm2": 133830.64914913493,
+      "groundedAreaChangeKm2": [
+        0,
+        291.5221757136751,
+        194.3310693759704,
+        -194.52027117012767
+      ],
+      "sleMeters": [
+        0,
+        -0.0016856065164463216,
+        -0.002566059391313641,
+        -0.0012093084565030707
+      ]
+    },
+    {
+      "name": "Ingrid Christensen Coast",
+      "initialGroundedAreaKm2": 85775.78311454985,
+      "groundedAreaChangeKm2": [
+        0,
+        98.60193628600973,
+        98.60193628600973,
+        98.60193628600973
+      ],
+      "sleMeters": [
+        0,
+        -0.0002720625744109131,
+        -0.000590448892429908,
+        -0.0012213274285858117
+      ]
+    },
+    {
+      "name": "Budd Coast",
+      "initialGroundedAreaKm2": 18480.55928414674,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0004574093431929553,
+        -0.0008820826506149471,
+        -0.0012565661980870277
+      ]
+    },
+    {
+      "name": "Mulock",
+      "initialGroundedAreaKm2": 135975.083450165,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0004495138854125953,
+        -0.0009098124917998658,
+        -0.0013250024074454591
+      ]
+    },
+    {
+      "name": "D Orville Coast",
+      "initialGroundedAreaKm2": 26674.37722334078,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0004588692567285014,
+        -0.0009591723799906902,
+        -0.0013955982578397043
+      ]
+    },
+    {
+      "name": "LarsenC",
+      "initialGroundedAreaKm2": 17195.982042264266,
+      "groundedAreaChangeKm2": [
+        0,
+        -389.4047740292626,
+        -290.92418368880317,
+        -290.92418368880317
+      ],
+      "sleMeters": [
+        0,
+        -0.0005098783798575993,
+        -0.0010377572141589456,
+        -0.0014141466748447064
+      ]
+    },
+    {
+      "name": "Mawson Coast",
+      "initialGroundedAreaKm2": 109612.06552568874,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0003395894750478551,
+        -0.0005951067334658232,
+        -0.0015223907368129117
+      ]
+    },
+    {
+      "name": "Hull",
+      "initialGroundedAreaKm2": 16811.46890663445,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0006014239619965615,
+        -0.001202134422956065,
+        -0.0015677345576421576
+      ]
+    },
+    {
+      "name": "West Graham Land",
+      "initialGroundedAreaKm2": 21453.714349694546,
+      "groundedAreaChangeKm2": [
+        0,
+        293.4356948653294,
+        390.646897538536,
+        485.5662036763497
+      ],
+      "sleMeters": [
+        0,
+        -0.0009688816175655704,
+        -0.0014327797444127894,
+        -0.0016377225282900518
+      ]
+    },
+    {
+      "name": "Beardmore",
+      "initialGroundedAreaKm2": 117047.12870027134,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.000518910687706325,
+        -0.0011540389219764767,
+        -0.0017414339240441334
+      ]
+    },
+    {
+      "name": "Sulzberger",
+      "initialGroundedAreaKm2": 38569.53446611625,
+      "groundedAreaChangeKm2": [
+        0,
+        -618.7385131520932,
+        -516.0402616982901,
+        -516.0402616982901
+      ],
+      "sleMeters": [
+        0,
+        -0.0003610745449789675,
+        -0.0011029083725778296,
+        -0.0018183457819701374
+      ]
+    },
+    {
+      "name": "Foundation",
+      "initialGroundedAreaKm2": 158787.20111087075,
+      "groundedAreaChangeKm2": [
+        0,
+        -418.9762790479581,
+        -523.720686252811,
+        -523.720686252811
+      ],
+      "sleMeters": [
+        0,
+        -0.0007179107198818108,
+        -0.001378343616062401,
+        -0.0018674072851761312
+      ]
+    },
+    {
+      "name": "David",
+      "initialGroundedAreaKm2": 213623.66471386413,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0007231507311214661,
+        -0.0014035001452168368,
+        -0.0019995933853346483
+      ]
+    },
+    {
+      "name": "Dibble",
+      "initialGroundedAreaKm2": 32381.494005432036,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0006833302615871486,
+        -0.0014507921745000338,
+        -0.002160838702645759
+      ]
+    },
+    {
+      "name": "Prince Olav Coast",
+      "initialGroundedAreaKm2": 84324.02465730817,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        -195.5757617415802,
+        -97.81122081645299
+      ],
+      "sleMeters": [
+        0,
+        -0.0009199515391312221,
+        -0.0012786971176181232,
+        -0.0022231942677852484
+      ]
+    },
+    {
+      "name": "Wilkins",
+      "initialGroundedAreaKm2": 13257.939110336873,
+      "groundedAreaChangeKm2": [
+        0,
+        299.15081661807744,
+        299.15081661807744,
+        299.15081661807744
+      ],
+      "sleMeters": [
+        0,
+        -0.0008540431306778081,
+        -0.0016904471537442622,
+        -0.0022517666228874062
+      ]
+    },
+    {
+      "name": "Wilhelm II Coast",
+      "initialGroundedAreaKm2": 90285.87933665635,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0009171497982570597,
+        -0.0016170855583616946,
+        -0.0023439203290077752
+      ]
+    },
+    {
+      "name": "Rennick",
+      "initialGroundedAreaKm2": 50263.14116125343,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0007495839039162856,
+        -0.0016275966517835313,
+        -0.0024389525087631586
+      ]
+    },
+    {
+      "name": "Enderby Land",
+      "initialGroundedAreaKm2": 48114.816492282735,
+      "groundedAreaChangeKm2": [
+        0,
+        -194.78294873097911,
+        -485.5842568731023,
+        -388.02450599957956
+      ],
+      "sleMeters": [
+        0,
+        -0.0008225550937297782,
+        -0.001559790969525857,
+        -0.002596483534581699
+      ]
+    },
+    {
+      "name": "Academy",
+      "initialGroundedAreaKm2": 411054.9248450492,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0007343190041829432,
+        -0.0016396642891875041,
+        -0.002605120622069707
+      ]
+    },
+    {
+      "name": "Shirase Glacier",
+      "initialGroundedAreaKm2": 207381.5257305275,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0007512729770434704,
+        -0.0014153648675155912,
+        -0.002613212168991342
+      ]
+    },
+    {
+      "name": "Riiser-Larsen",
+      "initialGroundedAreaKm2": 92099.30224985011,
+      "groundedAreaChangeKm2": [
+        0,
+        201.98970543900214,
+        -0.6191054274822818,
+        -101.71097033942351
+      ],
+      "sleMeters": [
+        0,
+        -0.0005939702415530591,
+        -0.0014879275722868767,
+        -0.0026977092395018636
+      ]
+    },
+    {
+      "name": "Nimrod",
+      "initialGroundedAreaKm2": 281915.5966657303,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        104.73533957178006
+      ],
+      "sleMeters": [
+        0,
+        -0.0008158040721367919,
+        -0.00183084536593877,
+        -0.0027624706555113517
+      ]
+    },
+    {
+      "name": "Jutulstraumen",
+      "initialGroundedAreaKm2": 188861.37242382413,
+      "groundedAreaChangeKm2": [
+        0,
+        -0.40143746620742604,
+        -0.40143746620742604,
+        99.75042438777746
+      ],
+      "sleMeters": [
+        0,
+        -0.0008630090264159971,
+        -0.001737614669796554,
+        -0.0029516846488426944
+      ]
+    },
+    {
+      "name": "WilmaRobertDowner",
+      "initialGroundedAreaKm2": 52852.4845717772,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0009829520042968138,
+        -0.001928582305587266,
+        -0.003089901576122093
+      ]
+    },
+    {
+      "name": "Brunt Stancomb",
+      "initialGroundedAreaKm2": 123598.60001850734,
+      "groundedAreaChangeKm2": [
+        0,
+        102.29290632923949,
+        102.29290632923949,
+        102.29290632923949
+      ],
+      "sleMeters": [
+        0,
+        -0.000819198178074333,
+        -0.0019891743344187963,
+        -0.0031743637972319484
+      ]
+    },
+    {
+      "name": "Adelie Coast",
+      "initialGroundedAreaKm2": 83960.10729496837,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.001305199474240955,
+        -0.002265601354044275,
+        -0.0032333038732508417
+      ]
+    },
+    {
+      "name": "Rutford",
+      "initialGroundedAreaKm2": 57674.175177077996,
+      "groundedAreaChangeKm2": [
+        0,
+        -103.62348664803721,
+        -103.62348664803721,
+        -103.62348664803721
+      ],
+      "sleMeters": [
+        0,
+        -0.0015315517548097298,
+        -0.002925516094673304,
+        -0.00370975676164383
+      ]
+    },
+    {
+      "name": "Rayner Thyer",
+      "initialGroundedAreaKm2": 117912.84162025312,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0011731889713689596,
+        -0.0022419869232357275,
+        -0.0037639618028347944
+      ]
+    },
+    {
+      "name": "Lambert",
+      "initialGroundedAreaKm2": 424840.25629307824,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.001143317549059883,
+        -0.002684049781412492,
+        -0.004241738306308666
+      ]
+    },
+    {
+      "name": "LarsenD",
+      "initialGroundedAreaKm2": 40252.07035360857,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0014265729968725963,
+        -0.0030226722140774785,
+        -0.0043507513275062686
+      ]
+    },
+    {
+      "name": "Mertz",
+      "initialGroundedAreaKm2": 84055.66272808253,
+      "groundedAreaChangeKm2": [
+        0,
+        97.87485331123753,
+        97.87485331123753,
+        97.87485331123753
+      ],
+      "sleMeters": [
+        0,
+        -0.001693111063582746,
+        -0.0031988378244489518,
+        -0.0044244891083494295
+      ]
+    },
+    {
+      "name": "Slessor",
+      "initialGroundedAreaKm2": 493518.93727206317,
+      "groundedAreaChangeKm2": [
+        0,
+        -728.3240867992281,
+        -728.3240867992281,
+        -936.3318144422374
+      ],
+      "sleMeters": [
+        0,
+        -0.001343295811962177,
+        -0.0030764321600002366,
+        -0.005030726308785774
+      ]
+    },
+    {
+      "name": "Mellor",
+      "initialGroundedAreaKm2": 438879.19859411835,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0017767490560964198,
+        -0.0033246788703957058,
+        -0.005065306650811233
+      ]
+    },
+    {
+      "name": "Frost",
+      "initialGroundedAreaKm2": 149145.13830559998,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.0018133259685138268,
+        -0.003656840712178819,
+        -0.005438138463320555
+      ]
+    },
+    {
+      "name": "Byrd",
+      "initialGroundedAreaKm2": 932090.3645007492,
+      "groundedAreaChangeKm2": [
+        0,
+        104.17613791429903,
+        104.17613791429903,
+        104.17613791429903
+      ],
+      "sleMeters": [
+        0,
+        -0.0024494448269286612,
+        -0.005090328985767188,
+        -0.00738948594038057
+      ]
+    },
+    {
+      "name": "Evans",
+      "initialGroundedAreaKm2": 123727.71887237538,
+      "groundedAreaChangeKm2": [
+        0,
+        -0.4941126336780144,
+        -0.4941126336780144,
+        -0.4941126336780144
+      ],
+      "sleMeters": [
+        0,
+        -0.0032786343603030356,
+        -0.0066327075937296495,
+        -0.008184064614775704
+      ]
+    },
+    {
+      "name": "Recovery",
+      "initialGroundedAreaKm2": 1007978.4961539807,
+      "groundedAreaChangeKm2": [
+        0,
+        0,
+        104.23346800263971,
+        0
+      ],
+      "sleMeters": [
+        0,
+        -0.002987927948584184,
+        -0.006595036404880281,
+        -0.010622135336993022
+      ]
+    },
+    {
+      "name": "Denman Scott",
+      "initialGroundedAreaKm2": 265332.1822657742,
+      "groundedAreaChangeKm2": [
+        0,
+        97.04058225953486,
+        0,
+        -97.15350313408999
+      ],
+      "sleMeters": [
+        0,
+        -0.0034191786649033873,
+        -0.007071224249900153,
+        -0.010791709800045542
+      ]
+    }
+  ],
+  "islands": {
+    "name": "Islands",
+    "initialGroundedAreaKm2": 133505.08863998647,
+    "groundedAreaChangeKm2": [
+      0,
+      -9803.287863215519,
+      -12050.891799025645,
+      -12847.791458200256
+    ],
+    "sleMeters": [
+      0,
+      0.005921958563828858,
+      0.008256218791726246,
+      0.009537737360341001
+    ]
+  },
+  "outside": {
+    "name": "Outside every outline",
+    "initialGroundedAreaKm2": 25290.078737645235,
+    "groundedAreaChangeKm2": [
+      0,
+      12613.946459253806,
+      19355.248543594316,
+      23475.06482104966
+    ],
+    "sleMeters": [
+      0,
+      -0.00007280715636458764,
+      -0.0007227727072150177,
+      -0.0013297712869638695
+    ]
+  },
+  "publishedSeriesSource": {
+    "years": [
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025,
+      2026,
+      2027,
+      2028,
+      2029,
+      2030,
+      2031,
+      2032,
+      2033,
+      2034,
+      2035,
+      2036,
+      2037,
+      2038,
+      2039,
+      2040,
+      2041,
+      2042,
+      2043,
+      2044,
+      2045,
+      2046,
+      2047,
+      2048,
+      2049,
+      2050,
+      2051,
+      2052,
+      2053,
+      2054,
+      2055,
+      2056,
+      2057,
+      2058,
+      2059,
+      2060,
+      2061,
+      2062,
+      2063,
+      2064,
+      2065,
+      2066,
+      2067,
+      2068,
+      2069,
+      2070,
+      2071,
+      2072,
+      2073,
+      2074,
+      2075,
+      2076,
+      2077,
+      2078,
+      2079,
+      2080,
+      2081,
+      2082,
+      2083,
+      2084,
+      2085,
+      2086,
+      2087,
+      2088,
+      2089,
+      2090,
+      2091,
+      2092,
+      2093,
+      2094,
+      2095,
+      2096,
+      2097,
+      2098,
+      2099,
+      2100,
+      2101,
+      2102,
+      2103,
+      2104,
+      2105,
+      2106,
+      2107,
+      2108,
+      2109,
+      2110,
+      2111,
+      2112,
+      2113,
+      2114,
+      2115,
+      2116,
+      2117,
+      2118,
+      2119,
+      2120,
+      2121,
+      2122,
+      2123,
+      2124,
+      2125,
+      2126,
+      2127,
+      2128,
+      2129,
+      2130,
+      2131,
+      2132,
+      2133,
+      2134,
+      2135,
+      2136,
+      2137,
+      2138,
+      2139,
+      2140,
+      2141,
+      2142,
+      2143,
+      2144,
+      2145,
+      2146,
+      2147,
+      2148,
+      2149,
+      2150,
+      2151,
+      2152,
+      2153,
+      2154,
+      2155,
+      2156,
+      2157,
+      2158,
+      2159,
+      2160,
+      2161,
+      2162,
+      2163,
+      2164,
+      2165,
+      2166,
+      2167,
+      2168,
+      2169,
+      2170,
+      2171,
+      2172,
+      2173,
+      2174,
+      2175,
+      2176,
+      2177,
+      2178,
+      2179,
+      2180,
+      2181,
+      2182,
+      2183,
+      2184,
+      2185,
+      2186,
+      2187,
+      2188,
+      2189,
+      2190,
+      2191,
+      2192,
+      2193,
+      2194,
+      2195,
+      2196,
+      2197,
+      2198,
+      2199,
+      2200,
+      2201,
+      2202,
+      2203,
+      2204,
+      2205,
+      2206,
+      2207,
+      2208,
+      2209,
+      2210,
+      2211,
+      2212,
+      2213,
+      2214,
+      2215,
+      2216,
+      2217,
+      2218,
+      2219,
+      2220,
+      2221,
+      2222,
+      2223,
+      2224,
+      2225,
+      2226,
+      2227,
+      2228,
+      2229,
+      2230,
+      2231,
+      2232,
+      2233,
+      2234,
+      2235,
+      2236,
+      2237,
+      2238,
+      2239,
+      2240,
+      2241,
+      2242,
+      2243,
+      2244,
+      2245,
+      2246,
+      2247,
+      2248,
+      2249,
+      2250,
+      2251,
+      2252,
+      2253,
+      2254,
+      2255,
+      2256,
+      2257,
+      2258,
+      2259,
+      2260,
+      2261,
+      2262,
+      2263,
+      2264,
+      2265,
+      2266,
+      2267,
+      2268,
+      2269,
+      2270,
+      2271,
+      2272,
+      2273,
+      2274,
+      2275,
+      2276,
+      2277,
+      2278,
+      2279,
+      2280,
+      2281,
+      2282,
+      2283,
+      2284,
+      2285,
+      2286,
+      2287,
+      2288,
+      2289,
+      2290,
+      2291,
+      2292,
+      2293,
+      2294,
+      2295,
+      2296,
+      2297,
+      2298,
+      2299,
+      2300
+    ],
+    "sea_level_contribution_m": [
+      0,
+      -0.00031,
+      -0.00115,
+      -0.00189,
+      -0.00261,
+      -0.00343,
+      -0.00356,
+      -0.0037,
+      -0.00418,
+      -0.00486,
+      -0.00534,
+      -0.00596,
+      -0.00641,
+      -0.0067,
+      -0.00699,
+      -0.0074,
+      -0.0078,
+      -0.00797,
+      -0.0079,
+      -0.00797,
+      -0.00839,
+      -0.00929,
+      -0.01002,
+      -0.01048,
+      -0.01097,
+      -0.01156,
+      -0.01217,
+      -0.01286,
+      -0.01311,
+      -0.0134,
+      -0.0135,
+      -0.01354,
+      -0.01372,
+      -0.01386,
+      -0.01411,
+      -0.01462,
+      -0.01529,
+      -0.01601,
+      -0.01657,
+      -0.01728,
+      -0.01809,
+      -0.01845,
+      -0.01856,
+      -0.01862,
+      -0.01861,
+      -0.01878,
+      -0.01907,
+      -0.0191,
+      -0.0191,
+      -0.01895,
+      -0.01889,
+      -0.01903,
+      -0.01937,
+      -0.01983,
+      -0.02016,
+      -0.02046,
+      -0.02059,
+      -0.02074,
+      -0.02099,
+      -0.02093,
+      -0.02081,
+      -0.02081,
+      -0.021,
+      -0.02093,
+      -0.02105,
+      -0.02149,
+      -0.02211,
+      -0.02257,
+      -0.02293,
+      -0.0231,
+      -0.02315,
+      -0.02324,
+      -0.02361,
+      -0.02377,
+      -0.02371,
+      -0.02354,
+      -0.02336,
+      -0.0232,
+      -0.02318,
+      -0.02309,
+      -0.0232,
+      -0.02326,
+      -0.02382,
+      -0.02398,
+      -0.024,
+      -0.0241,
+      -0.02401,
+      -0.02386,
+      -0.02368,
+      -0.02352,
+      -0.02367,
+      -0.0237,
+      -0.02417,
+      -0.02444,
+      -0.02437,
+      -0.02419,
+      -0.02416,
+      -0.02447,
+      -0.02445,
+      -0.02431,
+      -0.02398,
+      -0.02371,
+      -0.02374,
+      -0.02369,
+      -0.02346,
+      -0.02317,
+      -0.02288,
+      -0.02283,
+      -0.02317,
+      -0.0234,
+      -0.02332,
+      -0.02324,
+      -0.02346,
+      -0.02374,
+      -0.02388,
+      -0.02376,
+      -0.02339,
+      -0.02322,
+      -0.02324,
+      -0.02321,
+      -0.02305,
+      -0.02278,
+      -0.02281,
+      -0.02294,
+      -0.02289,
+      -0.02278,
+      -0.02275,
+      -0.02256,
+      -0.02205,
+      -0.02182,
+      -0.02162,
+      -0.0213,
+      -0.02096,
+      -0.02066,
+      -0.0206,
+      -0.02023,
+      -0.01979,
+      -0.01947,
+      -0.01929,
+      -0.01888,
+      -0.01842,
+      -0.01779,
+      -0.01749,
+      -0.0173,
+      -0.0168,
+      -0.01608,
+      -0.01549,
+      -0.01506,
+      -0.01484,
+      -0.01493,
+      -0.01507,
+      -0.01538,
+      -0.01545,
+      -0.01525,
+      -0.01499,
+      -0.01439,
+      -0.01369,
+      -0.01333,
+      -0.01315,
+      -0.01283,
+      -0.01273,
+      -0.01267,
+      -0.01232,
+      -0.01186,
+      -0.01154,
+      -0.0112,
+      -0.01073,
+      -0.01044,
+      -0.00992,
+      -0.00945,
+      -0.00878,
+      -0.00831,
+      -0.00802,
+      -0.0076,
+      -0.0075,
+      -0.00755,
+      -0.00753,
+      -0.00684,
+      -0.00579,
+      -0.00468,
+      -0.00386,
+      -0.00334,
+      -0.00286,
+      -0.00204,
+      -0.00146,
+      -0.00088,
+      -0.00035,
+      0.00021,
+      0.00089,
+      0.00148,
+      0.00206,
+      0.00268,
+      0.00319,
+      0.00368,
+      0.00424,
+      0.00445,
+      0.00471,
+      0.0049,
+      0.00521,
+      0.00579,
+      0.00635,
+      0.00674,
+      0.00685,
+      0.0073,
+      0.00797,
+      0.00853,
+      0.0088,
+      0.00905,
+      0.00944,
+      0.0101,
+      0.01095,
+      0.01178,
+      0.01244,
+      0.01311,
+      0.0136,
+      0.01398,
+      0.01438,
+      0.01477,
+      0.01532,
+      0.01568,
+      0.0161,
+      0.01634,
+      0.01689,
+      0.01759,
+      0.01833,
+      0.01886,
+      0.01919,
+      0.01947,
+      0.01966,
+      0.02018,
+      0.02062,
+      0.02105,
+      0.02161,
+      0.02189,
+      0.02217,
+      0.02259,
+      0.02326,
+      0.02398,
+      0.02448,
+      0.025,
+      0.02533,
+      0.02573,
+      0.02654,
+      0.02751,
+      0.02817,
+      0.02874,
+      0.02915,
+      0.02964,
+      0.03015,
+      0.03073,
+      0.03129,
+      0.03197,
+      0.03263,
+      0.03313,
+      0.03374,
+      0.03432,
+      0.035,
+      0.03567,
+      0.0364,
+      0.03703,
+      0.03759,
+      0.03798,
+      0.0384,
+      0.03914,
+      0.0402,
+      0.04101,
+      0.04179,
+      0.04256,
+      0.04324,
+      0.04378,
+      0.04437,
+      0.04496,
+      0.04546,
+      0.04592,
+      0.04634,
+      0.04674,
+      0.04716,
+      0.04781,
+      0.04832,
+      0.04863,
+      0.04938,
+      0.05022,
+      0.05065,
+      0.05092,
+      0.05154,
+      0.05337
+    ],
+    "sea_level_contribution_min_m": [
+      0,
+      -0.00189,
+      -0.00563,
+      -0.00887,
+      -0.01222,
+      -0.01751,
+      -0.01942,
+      -0.02141,
+      -0.02387,
+      -0.02702,
+      -0.02956,
+      -0.033,
+      -0.03609,
+      -0.03848,
+      -0.0406,
+      -0.04265,
+      -0.04507,
+      -0.04764,
+      -0.04935,
+      -0.05095,
+      -0.05342,
+      -0.05633,
+      -0.05977,
+      -0.06186,
+      -0.06427,
+      -0.06767,
+      -0.07023,
+      -0.07369,
+      -0.07592,
+      -0.0781,
+      -0.0802,
+      -0.08202,
+      -0.08488,
+      -0.08718,
+      -0.08942,
+      -0.09226,
+      -0.09501,
+      -0.09895,
+      -0.10116,
+      -0.10369,
+      -0.10657,
+      -0.10875,
+      -0.11096,
+      -0.11359,
+      -0.11586,
+      -0.11806,
+      -0.12186,
+      -0.12342,
+      -0.1258,
+      -0.12708,
+      -0.12909,
+      -0.13182,
+      -0.13439,
+      -0.13814,
+      -0.14081,
+      -0.14404,
+      -0.14607,
+      -0.14839,
+      -0.15064,
+      -0.15223,
+      -0.15315,
+      -0.15482,
+      -0.157,
+      -0.1588,
+      -0.16031,
+      -0.16296,
+      -0.16463,
+      -0.16714,
+      -0.16969,
+      -0.17186,
+      -0.17369,
+      -0.17576,
+      -0.17857,
+      -0.18057,
+      -0.18225,
+      -0.18376,
+      -0.18538,
+      -0.18647,
+      -0.1883,
+      -0.18982,
+      -0.19274,
+      -0.19446,
+      -0.19815,
+      -0.20027,
+      -0.20174,
+      -0.20392,
+      -0.20552,
+      -0.20706,
+      -0.20868,
+      -0.21023,
+      -0.21202,
+      -0.21395,
+      -0.21597,
+      -0.21856,
+      -0.21997,
+      -0.22213,
+      -0.22367,
+      -0.22815,
+      -0.22956,
+      -0.23112,
+      -0.23245,
+      -0.23379,
+      -0.23566,
+      -0.23766,
+      -0.23895,
+      -0.24045,
+      -0.24212,
+      -0.24351,
+      -0.24545,
+      -0.2482,
+      -0.24982,
+      -0.25142,
+      -0.25393,
+      -0.25599,
+      -0.25777,
+      -0.25964,
+      -0.26106,
+      -0.26257,
+      -0.26438,
+      -0.26558,
+      -0.2671,
+      -0.26846,
+      -0.26973,
+      -0.2716,
+      -0.27308,
+      -0.27444,
+      -0.27635,
+      -0.27889,
+      -0.2801,
+      -0.28179,
+      -0.28372,
+      -0.28574,
+      -0.28701,
+      -0.28841,
+      -0.29116,
+      -0.29258,
+      -0.29399,
+      -0.29531,
+      -0.2969,
+      -0.29871,
+      -0.3007,
+      -0.30195,
+      -0.30311,
+      -0.30465,
+      -0.30556,
+      -0.30587,
+      -0.30733,
+      -0.30833,
+      -0.30967,
+      -0.31153,
+      -0.3133,
+      -0.31513,
+      -0.31775,
+      -0.31912,
+      -0.32086,
+      -0.3223,
+      -0.3231,
+      -0.32478,
+      -0.32639,
+      -0.32778,
+      -0.32908,
+      -0.33049,
+      -0.33171,
+      -0.33278,
+      -0.33415,
+      -0.33581,
+      -0.33672,
+      -0.33815,
+      -0.33924,
+      -0.34016,
+      -0.34118,
+      -0.34208,
+      -0.34418,
+      -0.34528,
+      -0.34643,
+      -0.34814,
+      -0.34995,
+      -0.35142,
+      -0.35125,
+      -0.35181,
+      -0.35248,
+      -0.35354,
+      -0.35507,
+      -0.35558,
+      -0.35616,
+      -0.35727,
+      -0.35815,
+      -0.35965,
+      -0.36026,
+      -0.36149,
+      -0.36199,
+      -0.36295,
+      -0.36358,
+      -0.36435,
+      -0.36541,
+      -0.36622,
+      -0.36749,
+      -0.36837,
+      -0.36937,
+      -0.36999,
+      -0.37058,
+      -0.37154,
+      -0.37257,
+      -0.37342,
+      -0.37377,
+      -0.37404,
+      -0.37489,
+      -0.37599,
+      -0.37674,
+      -0.37719,
+      -0.37773,
+      -0.37786,
+      -0.37775,
+      -0.37835,
+      -0.37836,
+      -0.37962,
+      -0.37982,
+      -0.3807,
+      -0.38103,
+      -0.38249,
+      -0.38313,
+      -0.38428,
+      -0.38485,
+      -0.3851,
+      -0.38529,
+      -0.38498,
+      -0.38529,
+      -0.38543,
+      -0.38634,
+      -0.3867,
+      -0.3868,
+      -0.38761,
+      -0.38769,
+      -0.38813,
+      -0.3887,
+      -0.38873,
+      -0.38917,
+      -0.38919,
+      -0.38881,
+      -0.3888,
+      -0.38849,
+      -0.38867,
+      -0.38684,
+      -0.38622,
+      -0.3852,
+      -0.3852,
+      -0.38476,
+      -0.38446,
+      -0.38392,
+      -0.38369,
+      -0.3831,
+      -0.38247,
+      -0.38173,
+      -0.38156,
+      -0.38114,
+      -0.381,
+      -0.38077,
+      -0.38052,
+      -0.38024,
+      -0.37984,
+      -0.37965,
+      -0.37971,
+      -0.37977,
+      -0.37966,
+      -0.37891,
+      -0.37872,
+      -0.37825,
+      -0.37811,
+      -0.37757,
+      -0.37766,
+      -0.37758,
+      -0.37782,
+      -0.37754,
+      -0.3777,
+      -0.37753,
+      -0.37765,
+      -0.37786,
+      -0.37737,
+      -0.37702,
+      -0.37714,
+      -0.37697,
+      -0.37603,
+      -0.37523,
+      -0.37465,
+      -0.37366,
+      -0.37219
+    ],
+    "sea_level_contribution_max_m": [
+      0,
+      0.00068,
+      0.00032,
+      0.00033,
+      0.00058,
+      0.00042,
+      0.00111,
+      0.00165,
+      0.00162,
+      0.00181,
+      0.00249,
+      0.00273,
+      0.00329,
+      0.00382,
+      0.00419,
+      0.00483,
+      0.00581,
+      0.00708,
+      0.00833,
+      0.0092,
+      0.00954,
+      0.00909,
+      0.00983,
+      0.01007,
+      0.00994,
+      0.01059,
+      0.01047,
+      0.01085,
+      0.01166,
+      0.01208,
+      0.01332,
+      0.01411,
+      0.01539,
+      0.01644,
+      0.01731,
+      0.01762,
+      0.01767,
+      0.01852,
+      0.01847,
+      0.01837,
+      0.01863,
+      0.01972,
+      0.02083,
+      0.02214,
+      0.02331,
+      0.02409,
+      0.02561,
+      0.02675,
+      0.0287,
+      0.03005,
+      0.03128,
+      0.03242,
+      0.03293,
+      0.03404,
+      0.03535,
+      0.03721,
+      0.0386,
+      0.03961,
+      0.04025,
+      0.04194,
+      0.04333,
+      0.0444,
+      0.04517,
+      0.04671,
+      0.04726,
+      0.04804,
+      0.04791,
+      0.04848,
+      0.04916,
+      0.0501,
+      0.05108,
+      0.05242,
+      0.05303,
+      0.05422,
+      0.05554,
+      0.0563,
+      0.05736,
+      0.0585,
+      0.05953,
+      0.06116,
+      0.06236,
+      0.06349,
+      0.0637,
+      0.06524,
+      0.0665,
+      0.06712,
+      0.06836,
+      0.0694,
+      0.07108,
+      0.07224,
+      0.0733,
+      0.07481,
+      0.07514,
+      0.07671,
+      0.07822,
+      0.08052,
+      0.08129,
+      0.08233,
+      0.08349,
+      0.08488,
+      0.08663,
+      0.08823,
+      0.08863,
+      0.08967,
+      0.09126,
+      0.09262,
+      0.09369,
+      0.09438,
+      0.09473,
+      0.09637,
+      0.0979,
+      0.09913,
+      0.09983,
+      0.10036,
+      0.10103,
+      0.1021,
+      0.10365,
+      0.10484,
+      0.10575,
+      0.10618,
+      0.107,
+      0.10837,
+      0.10884,
+      0.10999,
+      0.11116,
+      0.11275,
+      0.11408,
+      0.11571,
+      0.11784,
+      0.1188,
+      0.12047,
+      0.1225,
+      0.12402,
+      0.12559,
+      0.12676,
+      0.12834,
+      0.13004,
+      0.13131,
+      0.1328,
+      0.13526,
+      0.13697,
+      0.1391,
+      0.14047,
+      0.14197,
+      0.14385,
+      0.14595,
+      0.14712,
+      0.1481,
+      0.14938,
+      0.15002,
+      0.15104,
+      0.15144,
+      0.1533,
+      0.15452,
+      0.15615,
+      0.15882,
+      0.16083,
+      0.16232,
+      0.16311,
+      0.16474,
+      0.16583,
+      0.16663,
+      0.16857,
+      0.16993,
+      0.1709,
+      0.17215,
+      0.17386,
+      0.17503,
+      0.17723,
+      0.17864,
+      0.18117,
+      0.18239,
+      0.18438,
+      0.18615,
+      0.18676,
+      0.18776,
+      0.18891,
+      0.19191,
+      0.19392,
+      0.19625,
+      0.19756,
+      0.19895,
+      0.20031,
+      0.20259,
+      0.20391,
+      0.20573,
+      0.20712,
+      0.20868,
+      0.21003,
+      0.21135,
+      0.21242,
+      0.21418,
+      0.2154,
+      0.21695,
+      0.2181,
+      0.21814,
+      0.21876,
+      0.21916,
+      0.22003,
+      0.2216,
+      0.22294,
+      0.2243,
+      0.22472,
+      0.22619,
+      0.22748,
+      0.22824,
+      0.2285,
+      0.22979,
+      0.23146,
+      0.23306,
+      0.23473,
+      0.23679,
+      0.23841,
+      0.24034,
+      0.24094,
+      0.24217,
+      0.24297,
+      0.24394,
+      0.24486,
+      0.24585,
+      0.24736,
+      0.2483,
+      0.2498,
+      0.25166,
+      0.25337,
+      0.25395,
+      0.25461,
+      0.25561,
+      0.25608,
+      0.25753,
+      0.25871,
+      0.26055,
+      0.26166,
+      0.26232,
+      0.26343,
+      0.26398,
+      0.26583,
+      0.26726,
+      0.26758,
+      0.2689,
+      0.26967,
+      0.27071,
+      0.27175,
+      0.27342,
+      0.27402,
+      0.27548,
+      0.27605,
+      0.27732,
+      0.27855,
+      0.27982,
+      0.28087,
+      0.28223,
+      0.28342,
+      0.28442,
+      0.28599,
+      0.28697,
+      0.28841,
+      0.28937,
+      0.29072,
+      0.29181,
+      0.29278,
+      0.29351,
+      0.29476,
+      0.29606,
+      0.29824,
+      0.30003,
+      0.30204,
+      0.30445,
+      0.30679,
+      0.30905,
+      0.31224,
+      0.31442,
+      0.3167,
+      0.31835,
+      0.3205,
+      0.32244,
+      0.32474,
+      0.32761,
+      0.33058,
+      0.33301,
+      0.33641,
+      0.33962,
+      0.34252,
+      0.34457,
+      0.3465,
+      0.35005
+    ],
+    "per_model_end_m": {
+      "DOE_MALI_4km": 0.0858,
+      "ILTS_SICOPOLIS": 0.1114,
+      "IMAU_UFEMISM1": -0.1564,
+      "LSCE_GRISLI": 0.3172,
+      "UCM_Yelmo": -0.0621,
+      "UCSD_ISSM": 0.1532,
+      "ULB_fETISh-KoriBU1": 0.3501,
+      "UNN_Ua": -0.3722
+    },
+    "sea_level_contribution_seawater_m": [
+      0,
+      -0.00031,
+      -0.00112,
+      -0.00184,
+      -0.00254,
+      -0.00333,
+      -0.00346,
+      -0.00359,
+      -0.00406,
+      -0.00472,
+      -0.00518,
+      -0.00579,
+      -0.00623,
+      -0.00651,
+      -0.00679,
+      -0.00719,
+      -0.00758,
+      -0.00774,
+      -0.00767,
+      -0.00774,
+      -0.00815,
+      -0.00902,
+      -0.00973,
+      -0.01018,
+      -0.01065,
+      -0.01123,
+      -0.01182,
+      -0.01249,
+      -0.01274,
+      -0.01302,
+      -0.01311,
+      -0.01315,
+      -0.01332,
+      -0.01345,
+      -0.0137,
+      -0.0142,
+      -0.01484,
+      -0.01555,
+      -0.01609,
+      -0.01678,
+      -0.01757,
+      -0.01792,
+      -0.01803,
+      -0.01808,
+      -0.01807,
+      -0.01823,
+      -0.01851,
+      -0.01854,
+      -0.01854,
+      -0.0184,
+      -0.01834,
+      -0.01847,
+      -0.0188,
+      -0.01925,
+      -0.01956,
+      -0.01985,
+      -0.01997,
+      -0.02013,
+      -0.02036,
+      -0.0203,
+      -0.02019,
+      -0.02018,
+      -0.02037,
+      -0.0203,
+      -0.02042,
+      -0.02084,
+      -0.02144,
+      -0.02189,
+      -0.02224,
+      -0.02241,
+      -0.02245,
+      -0.02254,
+      -0.0229,
+      -0.02306,
+      -0.02299,
+      -0.02283,
+      -0.02265,
+      -0.02249,
+      -0.02247,
+      -0.02238,
+      -0.02248,
+      -0.02254,
+      -0.02309,
+      -0.02325,
+      -0.02326,
+      -0.02336,
+      -0.02326,
+      -0.02311,
+      -0.02294,
+      -0.02279,
+      -0.02293,
+      -0.02295,
+      -0.02341,
+      -0.02367,
+      -0.02361,
+      -0.02342,
+      -0.02339,
+      -0.0237,
+      -0.02368,
+      -0.02354,
+      -0.02321,
+      -0.02295,
+      -0.02297,
+      -0.02293,
+      -0.0227,
+      -0.02242,
+      -0.02214,
+      -0.02209,
+      -0.02241,
+      -0.02264,
+      -0.02256,
+      -0.02248,
+      -0.02269,
+      -0.02296,
+      -0.0231,
+      -0.02298,
+      -0.02262,
+      -0.02245,
+      -0.02247,
+      -0.02244,
+      -0.02228,
+      -0.02202,
+      -0.02205,
+      -0.02217,
+      -0.02212,
+      -0.02201,
+      -0.02198,
+      -0.02179,
+      -0.0213,
+      -0.02107,
+      -0.02087,
+      -0.02056,
+      -0.02023,
+      -0.01994,
+      -0.01987,
+      -0.01951,
+      -0.01908,
+      -0.01877,
+      -0.01859,
+      -0.01819,
+      -0.01774,
+      -0.01712,
+      -0.01683,
+      -0.01665,
+      -0.01615,
+      -0.01545,
+      -0.01487,
+      -0.01445,
+      -0.01424,
+      -0.01433,
+      -0.01446,
+      -0.01476,
+      -0.01483,
+      -0.01463,
+      -0.01438,
+      -0.01379,
+      -0.01311,
+      -0.01276,
+      -0.01258,
+      -0.01226,
+      -0.01217,
+      -0.01211,
+      -0.01176,
+      -0.01132,
+      -0.011,
+      -0.01067,
+      -0.01021,
+      -0.00992,
+      -0.00942,
+      -0.00896,
+      -0.0083,
+      -0.00784,
+      -0.00755,
+      -0.00715,
+      -0.00705,
+      -0.00709,
+      -0.00707,
+      -0.00639,
+      -0.00537,
+      -0.00429,
+      -0.00349,
+      -0.00298,
+      -0.00251,
+      -0.00171,
+      -0.00114,
+      -0.00057,
+      -0.00006,
+      0.00049,
+      0.00116,
+      0.00173,
+      0.0023,
+      0.00291,
+      0.0034,
+      0.00388,
+      0.00443,
+      0.00463,
+      0.00489,
+      0.00507,
+      0.00538,
+      0.00594,
+      0.00649,
+      0.00687,
+      0.00698,
+      0.00742,
+      0.00808,
+      0.00862,
+      0.00889,
+      0.00914,
+      0.00952,
+      0.01016,
+      0.01099,
+      0.0118,
+      0.01244,
+      0.0131,
+      0.01357,
+      0.01395,
+      0.01434,
+      0.01472,
+      0.01526,
+      0.01561,
+      0.01602,
+      0.01625,
+      0.01679,
+      0.01748,
+      0.0182,
+      0.01871,
+      0.01904,
+      0.01931,
+      0.01949,
+      0.02001,
+      0.02043,
+      0.02085,
+      0.0214,
+      0.02167,
+      0.02195,
+      0.02236,
+      0.02301,
+      0.02372,
+      0.02421,
+      0.02471,
+      0.02504,
+      0.02542,
+      0.02621,
+      0.02716,
+      0.0278,
+      0.02836,
+      0.02876,
+      0.02924,
+      0.02973,
+      0.0303,
+      0.03085,
+      0.03151,
+      0.03215,
+      0.03264,
+      0.03323,
+      0.0338,
+      0.03447,
+      0.03512,
+      0.03583,
+      0.03644,
+      0.03699,
+      0.03737,
+      0.03778,
+      0.0385,
+      0.03954,
+      0.04033,
+      0.04109,
+      0.04184,
+      0.0425,
+      0.04303,
+      0.0436,
+      0.04418,
+      0.04467,
+      0.04511,
+      0.04553,
+      0.04592,
+      0.04633,
+      0.04696,
+      0.04746,
+      0.04776,
+      0.04849,
+      0.04931,
+      0.04973,
+      0.04999,
+      0.0506,
+      0.05238
+    ],
+    "note": "Annual mean, min and max over the models of the published loss of ice volume above flotation since 2015 (ivaf, Seroussi & Pelle 2024) at 362.5 Gt per mm, the freshwater sea-level equivalent Seroussi et al. (2024) plot and the packer applies to the packed geometry; control run not subtracted, as in Seroussi et al. 2024. sea_level_contribution_seawater_m is the mean of the published sle scalar, the same loss as a seawater equivalent at each model's ocean density, 2.2-2.8 % lower."
+  }
+}

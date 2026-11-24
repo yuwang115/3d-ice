@@ -1,0 +1,6 @@
+# Outputs of the figure scripts. The figures themselves are in the manuscript.
+figures/raw/
+figures/figure*.png
+figures/figure*.pdf
+figures/figure*.jpg
+figures/basin_table.md

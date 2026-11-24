@@ -163,6 +163,8 @@ stops and all the public edition's words, in English and Chinese, are in
 | `scripts/` | Data preparation, bundle and release utilities, and trailer capture. |
 | `tests/` | Python, JavaScript and browser tests. |
 | `docs/`, `examples/` | Design documentation and runnable examples. |
+| `paper.md`, `paper.bib` | The JOSS paper draft. |
+| `paper/ess/` | Scripts and data behind the figures of the Earth and Space Science report. |
 | `dist/` | Generated compatibility bundle (not committed). |
 | `.github/workflows/` | CI, the JOSS paper draft, GitHub Pages deployment and release automation. |
 
