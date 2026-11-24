@@ -4,10 +4,31 @@ All notable changes to 3D ICE are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.4.1] — Unreleased
+
+A worked example of the ISMIP6 projections to 2300 with the figure scripts of the Earth and
+Space Science report, observed ocean layers, the grounding line, Greenland outlet catchments,
+an edition switch and a data tower on the home pages.
 
 ### Added
 
+- `examples/ismip6-projection.mjs` (`npm run example:ismip6`), a worked example of the
+  ISMIP6-2300 projection layer. It decodes the three ensemble-mean packages (expAE10, expAE05
+  and expAE14) with the explorer's own projection module, rebuilds each keyframe by flotation
+  on the static BedMachine bed, and reports the grounded and floating area, the sea-level rise
+  implied by the loss of ice above flotation, and the mean and range of the same eight models'
+  published values. It does so for the ice sheet and for each drainage basin of MEaSUREs
+  Antarctic Boundaries v2, with the ice rises and islands and the cells outside every outline
+  reported beside the basins, so that the parts add up to the whole. `--json` writes the same
+  as JSON, and `--cell-area grid` reproduces the packages' own validation figures.
+  `docs/example.md` gains it as section 3, and `tests/js/ismip6-example.test.mjs` pins every
+  figure it reports.
+- `paper/ess/`, the scripts and data behind Figures 1-5 of the Technical Report on 3D ICE
+  submitted to AGU's *Earth and Space Science*. Playwright scripts capture the explorer views,
+  matplotlib scripts draw every figure at AGU's print size and stop on any label under 8 pt,
+  and `data/` holds the worked example's output for the three experiments, which
+  `make_data.sh` writes again byte for byte. Its README lists the versions used. The
+  manuscript itself is not in the repository.
 - Observed ocean around Antarctica in the research edition, from the OCEAN ICE project's
   compilations (CC BY 4.0), as two layers under *Ocean and ice shelves*:
   - *Seafloor water, observed*: the Conservative Temperature or Absolute Salinity of the lowest
@@ -591,6 +612,7 @@ hydrology, WAOM2 and Copernicus ocean streamlines, RISE ice-shelf basal melt and
 driving, and drainage-basin boundaries, together with the preparation scripts and the
 compatibility-bundle release workflow.
 
+[0.4.1]: https://github.com/yuwang115/3d-ice/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/yuwang115/3d-ice/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/yuwang115/3d-ice/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/yuwang115/3d-ice/compare/v0.2.0...v0.3.0
